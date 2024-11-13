@@ -1,51 +1,482 @@
-ul:not(:not(.vertical-nav)) {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  width: 200px;
-  background-color: #f1f1f1;
-
-  & > li a {
-    display: block;
-    color: #000;
-    padding: 8px 16px;
-    text-decoration: none;
-  };
-
-  & > li a.active {
-    background-color: #04AA6D;
-    color: white;
-  };
-
-  & > li a:hover:not(.active) {
-    background-color: #555;
-    color: white;
-  };
+* {
+    font-family: 'Mojangles';
 }
+
+@font-face {
+    font-family: 'Mojangles';
+    src: url('/assets/fonts/Mojangles.ttf');
+    unicode-range: U+000D, U+0020-007E, U+00A0-00FF, U+0131, U+0141-0142, U+0152-0153, U+0160-0161, U+0178, U+017D-017E, U+0192, U+02C6-02C7, U+02D8-02DD, U+0394, U+03A9, U+03C0, U+2013-2014, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+2074, U+20AC, U+2122, U+2202, U+220F, U+2211-2212, U+221A, U+221E, U+222B, U+2248, U+2260, U+2264-2265, U+25CA, U+FB01-FB02;
+}
+
+@font-face {
+    font-family: 'Minecraft-Five';
+    src: url('/assets/fonts/Minecraft-Five-48bb3.otf');
+    unicode-range: U+000D, U+0020-003F, U+0041-007E, U+00A0-00A6, U+00A8-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+}
+
+@font-face {
+    font-family: 'Minecraft-Five-Bold';
+    src: url('/assets/fonts/Minecraft-Five-Bold-4ded8.otf');
+    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+    font-weight: bold
+}
+
+@font-face {
+    font-family: 'Minecraft-Seven';
+    src: url('/assets/fonts/Minecraft-Seven-66398.otf');
+    unicode-range: U+000D, U+0020-007E, U+00A0-00B1, U+00B4, U+00B6-00B8, U+00BA-00BB, U+00BF-0148, U+014A-017E, U+0192, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+}
+
+@font-face {
+    font-family: 'Minecraft-Seven-v4';
+    src: url('/assets/fonts/Minecraft-Seven-v4-c1725.ttf');
+    unicode-range: U+0020-007E, U+00A0-00AC, U+00AE-017E, U+0192, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2017-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+3000, U+F6C3, U+F8FF, U+FB01-FB02;
+}
+
+@font-face {
+    font-family: 'Minecraft-Ten';
+    src: url('/assets/fonts/Minecraft-Ten-ed29a.otf');
+    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+0192, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+}
+
+body {
+    margin: 0px
+}
+
+ul:not(:not(.vertical-nav)) {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 200px;
+    background-color: #f1f1f1;
+
+    &>li a {
+        display: block;
+        color: #000;
+        padding: 8px 16px;
+        text-decoration: none;
+    }
+
+    ;
+
+    &>li a.active {
+        background-color: #04AA6D;
+        color: white;
+    }
+
+    ;
+
+    &>li a:hover:not(.active) {
+        background-color: #555;
+        color: white;
+    }
+
+    ;
+}
+
 ul:not(:not(.horizontal-nav)) {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #333;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
 
-  & > li {
-    float: left;
-  };
+    &>li {
+        float: left;
+    }
 
-  & > li a {
-    display: block;
+    ;
+
+    &>li a {
+        display: block;
+        @media (prefers-color-scheme: dark) {
+
+        color: white;
+        }
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+    ;
+
+    &>li a:hover:not(.active) {
+        background-color: #111;
+    };
+
+    &>li a:hover {
+        & > .settings_button {
+            background-image: url('/assets/images/ui/settings_glyph_color_2x_hover.png');
+        }
+    };
+
+    &>.active {
+        background-color: #04AA6D;
+    }
+
+    ;
+}
+
+.overlay_page {
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.use_menu_background {
+    background-image: url('/assets/images/ui/backgrounds/menubackground.png');
+    image-rendering: pixelated;
+}
+
+.settings_button {
+    image-rendering: pixelated;
+    background-image: url('/assets/images/ui/glyphs/settings_glyph_color_2x.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: 0px;
+    margin: -10px;
+    padding: 0px;
+    display: inline-block;
+    vertical-align: 5%;
+}
+
+.settings_button:hover {
+    background-image: url('/assets/images/ui/glyphs/settings_glyph_color_2x_hover.png');
+}
+
+.alert {
+    padding: 20px;
+    background-color: #f44336;
     color: white;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-  };
+}
 
-  & > li a:hover:not(.active) {
-    background-color: #111;
-  };
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-  & > .active {
-    background-color: #04AA6D;
-  };
+.closebtn:hover {
+    color: black;
+}
+
+.disabled-dropdown-contents {
+  box-shadow: 100px 100px 100px 100px #00000055 inset;
+}
+
+.mcdropdown {
+  & > #dropdowncontents {
+    border-image: url('/assets/images/dropdown/dropdown_background.png') 2 2 2 2 fill / 2px 2px 2px 2px;
+    padding: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+    image-rendering: pixelated;
+    & > .mcdropdownoption:checked {
+      background-image: url('/assets/images/dropdown/dropDownSelectBG.png');
+    }
+    & > .mcdropdownoption:hover:not(.disabled-toggle-checkbox) {
+      background-image: url('/assets/images/dropdown/dropDownHoverBG.png');
+    }
+    & > div:not(.mcdropdownoption) {
+      & > .mcdropdownoption:has(> input:checked):not(:hover) {
+        background-image: url('/assets/images/dropdown/dropDownSelectBG.png');
+        & > .mcradiocheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/radio/radio_on.png');
+        };
+        & > .mctogglecheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/checkbox/checkbox_check.png');
+        };
+        & > .mcradiocheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/radio/radio_on.png');
+          filter: brightness(0.5);
+        };
+        & > .mctogglecheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/checkbox/checkbox_check_locked.png');
+        };
+      }
+    }
+    & > div:not(.mcdropdownoption) > .mcdropdownoption:hover {
+        background-image: url('/assets/images/dropdown/dropDownHoverBG.png');
+    }
+    & > div:not(.mcdropdownoption) > .mcdropdownoption:hover:has(> input:checked) {
+        & > .mcradiocheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/radio/radio_on_hover.png');
+        };
+        & > .mctogglecheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/checkbox/checkbox_checkHover.png');
+        };
+        & > .mcradiocheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/radio/radio_on.png');
+          filter: brightness(0.5);
+        };
+        & > .mctogglecheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/checkbox/checkbox_check_locked.png');
+        };
+    }
+    & > div:not(.mcdropdownoption) > .mcdropdownoption:hover:not(:has(> input:checked)) {
+        & > .mcradiocheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/radio/radio_off_hover.png');
+        };
+        & > .mctogglecheckbox:not(.disabled-toggle-checkbox) {
+          background-image: url('/assets/images/checkbox/checkbox_spaceHover.png');
+        };
+        & > .mcradiocheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/radio/radio_off.png');
+          filter: brightness(0.5);
+        };
+        & > .mctogglecheckbox .disabled-toggle-checkbox {
+          background-image: url('/assets/images/checkbox/checkbox_space_locked.png');
+        };
+    }
+  }
+  & > #dropdownbutton {
+    & > #cv, #cvsel {
+      right: 10px;
+    }
+  }
+}
+
+.mcdropdownoption, .mctogglecontainer {
+  position: relative;
+}
+
+.mcradio {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mcradiocheckbox {
+  position: relative;/*
+  top: 0;*/
+  left: 0;
+  height: 16px;
+  width: 16px;
+  margin-top: 2.25px;
+  margin-bottom: 2.75px;
+  margin-left: 2px;
+  background-repeat: no-repeat;/*
+  background-attachment: fixed;*/
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+  border: 0px;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.mcradiocheckbox:not(:disabled) {
+  background-image: url('/assets/images/radio/radio_off.png');
+}
+
+.mcradiocheckbox:disabled {
+  background-image: url('/assets/images/radio/radio_off.png');
+  filter: brightness(0.5);
+}
+
+.mctoggle {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mctoggleswitch {
+  position: relative;/*
+  top: 0;*/
+  left: 0;
+  height: 16px;
+  width: 16px;
+  margin-top: 2.25px;
+  margin-bottom: 2.75px;
+  margin-left: 2px;
+  background-image: url('/assets/images/radio/radio_off.png');
+  background-repeat: no-repeat;/*
+  background-attachment: fixed;*/
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+  border: 0px;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.mctogglecheckbox {
+  position: relative;/*
+  top: 0;*/
+  left: 0;
+  height: 16px;
+  width: 16px;
+  margin-top: 2.25px;
+  margin-bottom: 2.75px;
+  margin-left: 2px;
+  background-repeat: no-repeat;/*
+  background-attachment: fixed;*/
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+  border: 0px;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.mctogglecheckbox:not(.disabled-toggle-checkbox) { 
+  background-image: url('/assets/images/checkbox/checkbox_space.png');
+}
+
+.mctogglecheckbox .disabled-toggle-checkbox { 
+  background-image: url('/assets/images/checkbox/checkbox_space_locked.png');
+}/*
+
+.mcdropdownoption .mcradiocheckbox:after {
+  top: 9px;
+  left: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+};*/
+
+.nsel {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+.btn {
+  position: relative;
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-repeat: repeat-x;
+  background-position: -1px -1px;
+  background-size: 110% 110%;
+  border: 1px solid rgba(27, 31, 35, 0.2);
+  border-radius: 0px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-image: url('/assets/images/light.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  padding: 5px;
+  image-rendering: pixelated;
+}
+
+.btn i {
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.75
+}
+
+.btn .octicon {
+  vertical-align: text-top
+}
+
+.btn .Counter {
+  color: #586069;
+  text-shadow: none;
+  background-color: rgba(27, 31, 35, 0.1)
+}
+
+.btn:hover {
+  text-decoration: none;
+  background-repeat: repeat-x
+}
+
+.btn:focus {
+  outline: 0
+}
+
+.btn:disabled,
+.btn.disabled,
+.btn[aria-disabled=true] {
+  cursor: default;
+  background-position: 0 0;
+  border-image: url('/assets/images/disabledButton.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.btn:active:enabled,
+.btn.selected,
+.btn[aria-selected=true] {
+  background-image: none
+}
+
+.btn {/*
+  color: #ffffff;
+  background-color: #87ceeb;*//*
+  background-image: linear-gradient(-180deg, #fafbfc 0%, #eff3f6 90%)*/
+}
+
+.btn:focus:enabled,
+.btn.focus {/*
+  box-shadow: 0 0 0 0.2em rgba(3, 102, 214, 0.3)*/
+  border-image: url('/assets/images/button_borderless_lighthover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.btn:hover:enabled {/*
+  background-color: #e6ebf1;
+  background-image: linear-gradient(-180deg, #f0f3f6 0%, #e6ebf1 90%);
+  background-position: -.5em;
+  border-color: rgba(27, 31, 35, 0.35)*/
+  border-image: url('/assets/images/button_borderless_lighthover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages) {
+  & > :not(.preventinvert, #cv, #cvsel) {
+    filter: invert(100%);
+  }
+  & > :not(:not(#cv, #cvsel)):not(.preventinvert) {
+    filter: brightness(1000000%);
+  }
+}
+
+.btn:active:enabled,
+.btn.selected,
+.btn[aria-selected=true],
+[open]>.btn {/*
+  background-color: #e9ecef;
+  background-image: none;
+  border-color: rgba(27, 31, 35, 0.35);
+  box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
+  
+  border-image: url('/assets/images/button_borderless_lightpressednohover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.btn:active:hover:enabled,
+.btn.selectedhover,
+.btn[aria-selected=true],
+[open]>.btn {/*
+  background-color: #e9ecef;
+  background-image: none;
+  border-color: rgba(27, 31, 35, 0.35);
+  box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
+  
+  border-image: url('/assets/images/button_borderless_lightpressed.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.btn:disabled,
+.btn.disabled,
+.btn[aria-disabled=true] {/*
+  color: rgba(36, 41, 46, 0.4);
+  background-color: #eff3f6;
+  background-image: none;
+  border-color: rgba(27, 31, 35, 0.2);
+  box-shadow: none*/
+  border-image: url('/assets/images/disabledButton.png') 1 1 1 1 fill / 1px 1px 1px 1px;
 }
