@@ -1,2 +1,2 @@
-# 8Crafter.github.io
-8Crafter's Website
+# 8Crafter
+This is the website for the YouTuber 8Crafter
