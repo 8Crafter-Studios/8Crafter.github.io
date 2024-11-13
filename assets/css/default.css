@@ -329,11 +329,11 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .mctogglecheckbox:not(.disabled-toggle-checkbox) { 
-  background-image: url('/assets/images/checkbox/checkbox_space.png');
+  background-image: url('/assets/images/ui/checkbox/checkbox_space.png');
 }
 
 .mctogglecheckbox .disabled-toggle-checkbox { 
-  background-image: url('/assets/images/checkbox/checkbox_space_locked.png');
+  background-image: url('/assets/images/ui/checkbox/checkbox_space_locked.png');
 }/*
 
 .mcdropdownoption .mcradiocheckbox:after {
@@ -373,7 +373,16 @@ ul:not(:not(.horizontal-nav)) {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  border-image: url('/assets/images/light.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  --border-image-light: url('/assets/images/ui/buttons/button_borderless_light.png');
+  --border-image-dark: url('/assets/images/ui/buttons/button_borderless_dark.png');
+  --border-image-lighthover: url('/assets/images/ui/buttons/button_borderless_lighthover.png');
+  --border-image-darkhover: url('/assets/images/ui/buttons/button_borderless_darkhover.png');
+  --border-image-lightpressednohover: url('/assets/images/ui/buttons/button_borderless_lightpressednohover.png');
+  --border-image-darkpressednohover: url('/assets/images/ui/buttons/button_borderless_darkpressednohover.png');
+  --border-image-lightpressed: url('/assets/images/ui/buttons/button_borderless_lightpressed.png');
+  --border-image-darkpressed: url('/assets/images/ui/buttons/button_borderless_darkpressed.png');
+  --border-image-disabled: url('/assets/images/ui/buttons/disabledButton.png');
+  border-image: var(--border-image-light) 1 1 1 1 fill / 1px 1px 1px 1px;
   padding: 5px;
   image-rendering: pixelated;
 }
@@ -408,7 +417,7 @@ ul:not(:not(.horizontal-nav)) {
 .btn[aria-disabled=true] {
   cursor: default;
   background-position: 0 0;
-  border-image: url('/assets/images/disabledButton.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-disabled) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:active:enabled,
@@ -426,7 +435,7 @@ ul:not(:not(.horizontal-nav)) {
 .btn:focus:enabled,
 .btn.focus {/*
   box-shadow: 0 0 0 0.2em rgba(3, 102, 214, 0.3)*/
-  border-image: url('/assets/images/button_borderless_lighthover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-lighthover) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:hover:enabled {/*
@@ -434,7 +443,7 @@ ul:not(:not(.horizontal-nav)) {
   background-image: linear-gradient(-180deg, #f0f3f6 0%, #e6ebf1 90%);
   background-position: -.5em;
   border-color: rgba(27, 31, 35, 0.35)*/
-  border-image: url('/assets/images/button_borderless_lighthover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-lighthover) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages) {
@@ -455,7 +464,7 @@ ul:not(:not(.horizontal-nav)) {
   border-color: rgba(27, 31, 35, 0.35);
   box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
   
-  border-image: url('/assets/images/button_borderless_lightpressednohover.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-lightpressednohover) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:active:hover:enabled,
@@ -467,7 +476,7 @@ ul:not(:not(.horizontal-nav)) {
   border-color: rgba(27, 31, 35, 0.35);
   box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
   
-  border-image: url('/assets/images/button_borderless_lightpressed.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-lightpressed) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:disabled,
@@ -478,5 +487,5 @@ ul:not(:not(.horizontal-nav)) {
   background-image: none;
   border-color: rgba(27, 31, 35, 0.2);
   box-shadow: none*/
-  border-image: url('/assets/images/disabledButton.png') 1 1 1 1 fill / 1px 1px 1px 1px;
+  border-image: var(--border-image-disabled) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
