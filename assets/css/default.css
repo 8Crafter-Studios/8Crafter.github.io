@@ -84,14 +84,19 @@
 }
 
 :root {
-    --bg-color-light: hsl(0, 0%, 93%);
-    --bg-color-dark: hsl(0, 0%, 7%);
-    --bg-color-BlueTheme: hsl(197, 71%, 73%);
+    --root-bg-color-light: hsl(0, 0%, 93%);
+    --root-bg-color-dark: hsl(0, 0%, 7%);
+    --root-bg-color-BlueTheme: hsl(197, 71%, 73%);
+    --root-text-color-light: hsl(0, 0%, 0%);
+    --root-text-color-dark: hsl(0, 0%, 100%);
+    --root-text-color-BlueTheme: hsl(197, 71%, 27%);
+    ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
 }
 
 html {
-    ---theme-var-switcher--html-bg-color: var(--bg-color-dark);
+    ---theme-var-switcher--html-bg-color: var(--root-bg-color-dark);
     background-color: var(---theme-var-switcher--html-bg-color);
+    color: var(---theme-var-switcher--root-text-color)
 }
 
 body {

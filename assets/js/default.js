@@ -43,6 +43,11 @@ function changeTheme(theme, setCSS = true){
         changeThemeCSS(theme);
     };
 }
+const themeDisplayMapping = {
+    get auto(){
+        return window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)").matches?"Auto (Dark)":"Auto (Light)":"Auto"
+    }
+}
 /**
  * 
  * @param {"auto"|"dark"|"light"|"BlueTheme"} theme 
@@ -52,13 +57,14 @@ function changeThemeCSS(theme){
         throw new TypeError("Invalid CSS Theme Value: "+JSON.stringify(theme))
     };
     try{
-        $('themeDropdownContents').find(`input[id="${theme}"]`).prop('checked', true);
+        $('themeDropdown > #dropdowncontents').find(`input[id="${theme}"]`).prop('checked', true);
+        $('#themeDropdownButtonSelectedOptionTextDisplay, #themeDropdownAutoOptionLabel').find(`input[id="${theme}"]`).prop('checked', true);
     }catch(e){
         console.error(e, e.stack)
     };
     forEachRuleCallback((rule, ruleName, styleSheet)=>{
-        if(!!rule.cssText.match(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
-            rule.cssText=rule.cssText.replaceAll(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
+        if(!!rule.cssText.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
+            rule.cssText=rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
         }
     });
 }
