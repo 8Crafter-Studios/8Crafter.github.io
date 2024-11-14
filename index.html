@@ -14,6 +14,8 @@
     <meta name="robots" content="all">
 
     <script src="/node_modules/jquery/dist/jquery.js"></script>
+    <script src="/assets/js/default.js"></script>
+    <script src="/assets/js/JSONB.js" type="module"></script>
 
     <link href="../assets/css/default.css" rel="stylesheet"><!--
     <link href="/assets/css/home.css" rel="stylesheet">-->
@@ -38,9 +40,16 @@
       <div id="settings_menu" class="overlay_page use_menu_background" hidden aria-hidden>
         <h1>Settings</h1>
         <a onclick="$('#settings_sidebar').slideToggle()">About</a>
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))">
+          <input type="checkbox" id="testtoggle" name="testtoggle" value="TESTTOGGLE" class="mctoggle">
+          <div class="mctoggleswitch"></div>
+          <label>Test Toggle</label>
+        </div>
       </div>
       <center>
         <h1>Home</h1>
+        <button type="button" class="btn no-remove-disabled nsel" id="apply_selected_image">Test Button</button>
+        <button type="button" disabled="true" class="btn no-remove-disabled nsel" id="apply_selected_image">Disabled Button</button>
       </center>
     </main>
   </body>
