@@ -83,8 +83,23 @@
         U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
 }
 
+:root {
+    --bg-color-light: hsl(0, 0%, 93%);
+    --bg-color-dark: hsl(0, 0%, 7%);
+    --bg-color-BlueTheme: hsl(197, 71%, 73%);
+}
+
+html {
+    ---theme-var-switcher--html-bg-color: var(--bg-color-dark);
+    background-color: var(---theme-var-switcher--html-bg-color);
+}
+
 body {
     margin: 0px;
+}
+
+.piximg {
+    image-rendering: pixelated;
 }
 
 ul:not(:not(.vertical-nav)) {
@@ -125,10 +140,7 @@ ul:not(:not(.horizontal-nav)) {
 
     & > li a {
         display: block;
-
-        @media (prefers-color-scheme: dark) {
-            color: white;
-        }
+        color: white;
 
         text-align: center;
         padding: 14px 16px;
@@ -334,12 +346,18 @@ ul:not(:not(.horizontal-nav)) {
     }
 }
 
-.mctogglecontainer:has(> input:not(:not(.disabled-toggle-checkbox))):not(:hover) {
+.mctogglecontainer:has(> input:not(:not(.disabled-toggle-checkbox))) {
     cursor: default;
+    & > label {
+        cursor: inherit
+    }
 }
 
-.mctogglecontainer:has(> input:not(.disabled-toggle-checkbox)):not(:hover) {
+.mctogglecontainer:has(> input:not(.disabled-toggle-checkbox)) {
     cursor: pointer;
+    & > label {
+        cursor: inherit
+    }
 }
 
 .mcdropdownoption,

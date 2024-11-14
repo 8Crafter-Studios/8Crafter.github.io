@@ -57,8 +57,8 @@ function changeThemeCSS(theme){
         console.error(e, e.stack)
     };
     forEachRuleCallback((rule, ruleName, styleSheet)=>{
-        if(!!rule.cssText.match(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+:\s*var\(--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*\);)/)){
-            rule.cssText=rule.cssText.replaceAll(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+:\s*var\(--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*\);)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
+        if(!!rule.cssText.match(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
+            rule.cssText=rule.cssText.replaceAll(/(?<=[\n\s;\{]---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
         }
     });
 }
