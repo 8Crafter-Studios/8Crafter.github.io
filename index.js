@@ -84,7 +84,7 @@ if (debugMode) {
     })
 };
 app.use('/', router);
-app.listen(8212);
+app.listen(8213);
 if (!!!network.en0) {
     network.en0 = []
 };
@@ -111,5 +111,5 @@ if(!!!currentIP){
 
 console.log(nets)
 console.log(network)
-console.log(`Running at Port http://${currentIP}:8212`);
+console.log(`Running at Port http://${currentIP}:8213`);
 module.exports = { app, router, path, exec, execute: execute };

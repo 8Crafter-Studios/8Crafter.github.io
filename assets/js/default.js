@@ -1,4 +1,4 @@
-import("./JSONB.js")
+// import("./JSONB.js")
 /**
  * 
  * @param {string} name 
@@ -23,7 +23,7 @@ function forEachRuleCallback(callbackfn) {
     for (var i = 0; i < document.styleSheets.length; i++) {
         var ix, sheet = document.styleSheets[i];
         for (ix = 0; ix < sheet.cssRules.length; ix++) {
-            callbackfn(sheet.cssRules.item(ix).style, sheet.cssRules[ix].selectorText, sheet);
+            callbackfn(sheet.cssRules.item(ix)?.style, sheet.cssRules[ix].selectorText, sheet);
         }
     }
     return null;
@@ -50,6 +50,13 @@ const themeDisplayMapping = {
     "light": "Light",
     "BlueTheme": "Blue",
 }
+
+// MediaQueryList
+const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
+
+// recommended method for newer browsers: specify event-type as first argument
+darkModePreference.addEventListener("change", e => e.matches && activateDarkMode());
+
 /**
  * 
  * @param {"auto"|"dark"|"light"|"BlueTheme"} theme 
@@ -60,29 +67,38 @@ function changeThemeCSS(theme){
     };
     try{
         $('themeDropdown > #dropdowncontents').find(`input[id="${theme}"]`).prop('checked', true);
-        $('#themeDropdownButtonSelectedOptionTextDisplay').find(`input[id="${theme}"]`).prop('checked', true);
-        $('#themeDropdownAutoOptionLabel').find(`input[id="${theme}"]`).val();
+        $('#themeDropdownButtonSelectedOptionTextDisplay').text(themeDisplayMapping[theme]);
+        $('#themeDropdownAutoOptionLabel').text(themeDisplayMapping.auto);
     }catch(e){
-        console.error(e, e.stack)
+        console.error(e.toString(), e.stack)
     };
-    forEachRuleCallback((rule, ruleName, styleSheet)=>{
-        if(!!rule.cssText.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
-            rule.cssText=rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
-        }
-    });
+		$('h1').text('5');
+    try{
+				forEachRuleCallback((rule, ruleName, styleSheet)=>{
+        		try{
+								if(!!rule?.cssText.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
+            				rule.cssText=rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
+        				}
+						}catch{/*toast*/}
+    		});
+		}catch(e){};
+		$('h1').text('6');
 }
 $(function onDocumentLoad(){
     globalThis.colorScheme=Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)")??0);
+		$('h1').text('2');
     if(colorScheme==0){
+				$('h1').text('3');
         changeThemeCSS("auto");
+				$('h1').text('4');
     }else if(colorScheme==1){
         changeThemeCSS("light");
     }else if(colorScheme==2){
         changeThemeCSS("dark");
     }else if(colorScheme==3){
         changeThemeCSS("BlueTheme");
-    }else{
-        console.error("Invalid value for variable colorScheme: " + JSONB.stringify(
+    }else{/*
+        console.error("Invalid value for variable colorScheme: " + JSON.stringify(
             colorScheme,
             undefined,
             0,
@@ -97,9 +113,20 @@ $(function onDocumentLoad(){
                 set: true,
                 function: true,
             }
-        ))
+        ))*/
+						$('h1').text('99.9');
     };
-    $('.themeDropdownOption').on('click', (event)=>{
-        changeThemeCSS($(event.target).find('input').get(0).id);
+		$('h1').text('7')
+    try{		$('h1').text('7.5');
+			$('.themeDropdownOptionInput').change((event)=>{
+			$('h1').text('8')
+					$('h1').text(JSON.stringify(event));/*
+        changeThemeCSS(event.target.id);*/
     });
+				$('h1').text('8.5');
+					$('h1').text(JSON.stringify($('.themeDropdownOptionInput')));
+		}catch(e){
+				$('h1').text('9');
+				$('h1').text(e.toString()+e.stack)
+		}
 });

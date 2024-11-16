@@ -38,7 +38,7 @@
       </ul>
     </header>
     <main style="display: contents;">
-      <div id="settings_menu" class="overlay_page use_menu_background" hidden aria-hidden>
+      <div id="settings_menu" class="overlay_page use_menu_background" aria-hidden style="display: none;">
         <h1>Settings</h1>
         <a onclick="$('#settings_sidebar').slideToggle()">About</a>
         <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))">
@@ -48,7 +48,7 @@
         </div>
         <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
           <button id="dropdownbutton" class="btn" type="button" ontouchstart="" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
-            <span style="color: initial;">Theme<span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span></span>
+            <span style="color: initial;" id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span>
             <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png">
             <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" hidden>
           </button>
