@@ -49,31 +49,31 @@
         <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
           <button id="dropdownbutton" class="btn" type="button" ontouchstart="" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
             <span style="color: initial;">Theme<span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span></span>
-            <img id="cv" src="/assets/images/dropdown/dropdown_chevron.png">
-            <img id="cvsel" src="/assets/images/dropdown/dropdown_chevron_up.png" hidden>
+            <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png">
+            <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" hidden>
           </button>
           <div id="dropdowncontents" hidden style="display: flex;">
             <div style="flex-grow: 1; width: 0;">
-              <div class="mcdropdownoption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio">
+              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+                <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio themeDropdownOptionInput">
                 <div class="mcradiocheckbox"></div>
                 <label for="auto" id="themeDropdownAutoOptionLabel">Auto</label>
               </div>
-              <div class="mcdropdownoption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio">
+              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+                <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio themeDropdownOptionInput">
                 <div class="mcradiocheckbox"></div>
                 <label for="dark">Dark</label>
               </div>
-              <div class="mcdropdownoption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio">
+              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+                <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio themeDropdownOptionInput">
                 <div class="mcradiocheckbox"></div>
                 <label for="light">Light</label>
               </div>
-            </div>
-            <div class="mcdropdownoption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-              <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio">
-              <div class="mcradiocheckbox"></div>
-              <label for="BlueTheme">Blue</label>
+              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+                <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio themeDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="BlueTheme">Blue</label>
+              </div>
             </div>
           </div>
         </div>

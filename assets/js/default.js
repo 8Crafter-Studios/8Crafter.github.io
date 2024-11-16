@@ -1,5 +1,4 @@
 import("./JSONB.js")
-globalThis.colorScheme=Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)")??0);
 /**
  * 
  * @param {string} name 
@@ -46,7 +45,10 @@ function changeTheme(theme, setCSS = true){
 const themeDisplayMapping = {
     get auto(){
         return window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)").matches?"Auto (Dark)":"Auto (Light)":"Auto"
-    }
+    },
+    "dark": "Dark",
+    "light": "Light",
+    "BlueTheme": "Blue",
 }
 /**
  * 
@@ -58,7 +60,8 @@ function changeThemeCSS(theme){
     };
     try{
         $('themeDropdown > #dropdowncontents').find(`input[id="${theme}"]`).prop('checked', true);
-        $('#themeDropdownButtonSelectedOptionTextDisplay, #themeDropdownAutoOptionLabel').find(`input[id="${theme}"]`).prop('checked', true);
+        $('#themeDropdownButtonSelectedOptionTextDisplay').find(`input[id="${theme}"]`).prop('checked', true);
+        $('#themeDropdownAutoOptionLabel').find(`input[id="${theme}"]`).val();
     }catch(e){
         console.error(e, e.stack)
     };
@@ -68,29 +71,35 @@ function changeThemeCSS(theme){
         }
     });
 }
-if(colorScheme==0){
-    changeThemeCSS("auto");
-}else if(colorScheme==1){
-    changeThemeCSS("light");
-}else if(colorScheme==2){
-    changeThemeCSS("dark");
-}else if(colorScheme==3){
-    changeThemeCSS("BlueTheme");
-}else{
-    throw new TypeError("Invalid value for variable colorScheme: " + JSONB.stringify(
-        colorScheme,
-        undefined,
-        0,
-        {
-            bigint: true,
-            class: true,
-            undefined: true,
-            Infinity: true,
-            NegativeInfinity: true,
-            NaN: true,
-            get: true,
-            set: true,
-            function: true,
-        }
-    ))
-};
+$(function onDocumentLoad(){
+    globalThis.colorScheme=Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)")??0);
+    if(colorScheme==0){
+        changeThemeCSS("auto");
+    }else if(colorScheme==1){
+        changeThemeCSS("light");
+    }else if(colorScheme==2){
+        changeThemeCSS("dark");
+    }else if(colorScheme==3){
+        changeThemeCSS("BlueTheme");
+    }else{
+        console.error("Invalid value for variable colorScheme: " + JSONB.stringify(
+            colorScheme,
+            undefined,
+            0,
+            {
+                bigint: true,
+                class: true,
+                undefined: true,
+                Infinity: true,
+                NegativeInfinity: true,
+                NaN: true,
+                get: true,
+                set: true,
+                function: true,
+            }
+        ))
+    };
+    $('.themeDropdownOption').on('click', (event)=>{
+        changeThemeCSS($(event.target).find('input').get(0).id);
+    });
+});
