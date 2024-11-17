@@ -130,3 +130,22 @@ $(function onDocumentLoad(){
 				$('h1').text(e.toString()+e.stack)
 		}
 });
+$(document).ready(function() {
+    // Select the target node
+    var targetNode = document.getElementById('light');
+
+    // Create an observer instance
+    var observer = new MutationObserver(function(mutationsList) {
+        for (var mutation of mutationsList) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'checked') {
+                console.log('The checked attribute was modified.');
+            }
+        }
+    });
+
+    // Configuration of the observer
+    var config = { attributes: true };
+
+    // Start observing the target node for configured mutations
+    observer.observe(targetNode, config);
+});
