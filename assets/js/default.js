@@ -1,4 +1,4 @@
-// import("./JSONB.js")
+import("./JSONB.js")
 /**
  * 
  * @param {string} name 
@@ -50,12 +50,20 @@ const themeDisplayMapping = {
     "light": "Light",
     "BlueTheme": "Blue",
 }
+const themeDisplayMappingB = {
+    get auto(){
+        return window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light":"dark"
+    },
+    "dark": "dark",
+    "light": "light",
+    "BlueTheme": "BlueTheme",
+}
 
 // MediaQueryList
 const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
 
 // recommended method for newer browsers: specify event-type as first argument
-darkModePreference.addEventListener("change", e => e.matches && activateDarkMode());
+darkModePreference.addEventListener("change", e => e.matches && changeThemeCSS("auto"));
 
 /**
  * 
@@ -66,35 +74,41 @@ function changeThemeCSS(theme){
         throw new TypeError("Invalid CSS Theme Value: "+JSON.stringify(theme))
     };
     try{
-        $('themeDropdown > #dropdowncontents').find(`input[id="${theme}"]`).prop('checked', true);
+        $('#themeDropdown > #dropdowncontents').find(`input[id="${theme}"]`).prop('checked', true);
         $('#themeDropdownButtonSelectedOptionTextDisplay').text(themeDisplayMapping[theme]);
         $('#themeDropdownAutoOptionLabel').text(themeDisplayMapping.auto);
     }catch(e){
         console.error(e.toString(), e.stack)
     };
-		$('h1').text('5');
-    try{
-				forEachRuleCallback((rule, ruleName, styleSheet)=>{
-        		try{
-								if(!!rule?.cssText.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
-            				rule.cssText=rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
-        				}
-						}catch{/*toast*/}
-    		});
-		}catch(e){};
-		$('h1').text('6');
+    forEachRuleCallback((rule, ruleName, styleSheet)=>{
+        if(!!rule?.cssText?.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)){
+            rule.cssText=rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme=="auto"?(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light":theme)
+        }
+    });
+    if(theme=="auto"){
+        if(themeDisplayMappingB.auto=="dark"){
+            $('.btn > span').addClass('preventinvert');
+        }else{
+            $('.btn > span').removeClass('preventinvert');
+        }
+    }else if(theme=="dark"){
+        $('.btn > span').addClass('preventinvert');
+    }else if(theme=="light"){
+        $('.btn > span').removeClass('preventinvert');
+    }else if(theme=="BlueTheme"){
+        $('.btn > span').removeClass('preventinvert');
+    }else{
+        $('.btn > span').removeClass('preventinvert');
+    }
 }
 $(function onDocumentLoad(){
     globalThis.colorScheme=Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)")??0);
-		$('h1').text('2');
     if(colorScheme==0){
-				$('h1').text('3');
         changeThemeCSS("auto");
-				$('h1').text('4');
     }else if(colorScheme==1){
-        changeThemeCSS("light");
-    }else if(colorScheme==2){
         changeThemeCSS("dark");
+    }else if(colorScheme==2){
+        changeThemeCSS("light");
     }else if(colorScheme==3){
         changeThemeCSS("BlueTheme");
     }else{/*
@@ -114,38 +128,8 @@ $(function onDocumentLoad(){
                 function: true,
             }
         ))*/
-						$('h1').text('99.9');
     };
-		$('h1').text('7')
-    try{		$('h1').text('7.5');
-			$('.themeDropdownOptionInput').change((event)=>{
-			$('h1').text('8')
-					$('h1').text(JSON.stringify(event));/*
-        changeThemeCSS(event.target.id);*/
+    $('.themeDropdownOption').click(event=>{
+        changeTheme($(event.currentTarget).find('input')[0].id);
     });
-				$('h1').text('8.5');
-					$('h1').text(JSON.stringify($('.themeDropdownOptionInput')));
-		}catch(e){
-				$('h1').text('9');
-				$('h1').text(e.toString()+e.stack)
-		}
-});
-$(document).ready(function() {
-    // Select the target node
-    var targetNode = document.getElementById('light');
-
-    // Create an observer instance
-    var observer = new MutationObserver(function(mutationsList) {
-        for (var mutation of mutationsList) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'checked') {
-                console.log('The checked attribute was modified.');
-            }
-        }
-    });
-
-    // Configuration of the observer
-    var config = { attributes: true };
-
-    // Start observing the target node for configured mutations
-    observer.observe(targetNode, config);
 });

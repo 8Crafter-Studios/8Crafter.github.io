@@ -181,6 +181,12 @@ ul:not(:not(.horizontal-nav)) {
     padding: 0px;
 }
 
+.no_margins {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
 .use_menu_background {
     background-image: url("/assets/images/ui/backgrounds/menubackground.png");
     image-rendering: pixelated;
@@ -207,6 +213,11 @@ ul:not(:not(.horizontal-nav)) {
     background-color: #f44336;
     color: white;
 }
+
+.alert.success {background-color: #04AA6D;}
+.alert.info {background-color: #2196F3;}
+.alert.warning {background-color: #ff9800;}
+
 
 .closebtn {
     margin-left: 15px;
@@ -317,7 +328,7 @@ ul:not(:not(.horizontal-nav)) {
     & > #dropdownbutton {
         & > #cv,
         #cvsel {
-            right: 10px;
+            right: 7px; top: 10px; position: absolute
         }
     }
 }
@@ -367,6 +378,10 @@ ul:not(:not(.horizontal-nav)) {
     & > label {
         cursor: inherit
     }
+}
+
+.mcdropdownoption {
+    color: white;
 }
 
 .mcdropdownoption,
@@ -522,6 +537,9 @@ ul:not(:not(.horizontal-nav)) {
     --border-image-BlueThemepressednohover: url("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png");
     --border-image-BlueThemepressed: url("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png");
     --border-image-disabled: url("/assets/images/ui/buttons/disabledButton.png");
+    --btn-text-color-light: hsl(0, 0%, 0%);
+    --btn-text-color-dark: hsl(0, 0%, 100%);
+    --btn-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--border-image: var(--border-image-dark);
     ---theme-var-switcher--border-image-hover: var(--border-image-darkhover);
     ---theme-var-switcher--border-image-pressednohover: var(
@@ -530,6 +548,7 @@ ul:not(:not(.horizontal-nav)) {
     ---theme-var-switcher--border-image-pressed: var(
         --border-image-darkpressed
     );
+    ---theme-var-switcher--btn-text-color: var(--btn-text-color-dark);
     border-image: var(
             ---theme-var-switcher--border-image,
             var(--border-image-light)
@@ -537,6 +556,7 @@ ul:not(:not(.horizontal-nav)) {
         1 1 1 1 fill / 1px 1px 1px 1px;
     padding: 5px;
     image-rendering: pixelated;
+    color: var(---theme-var-switcher--btn-text-color);
 }
 
 .btn i {
