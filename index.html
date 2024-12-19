@@ -78,7 +78,7 @@
     <title>8Crafter's Website</title>
   </head>
   <body>
-    <header style="position: sticky;">
+    <header class="header" style="position: fixed; width: 100%">
       <noscript>
         <div class="alert warning">
           <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
@@ -98,50 +98,59 @@
         <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
       </ul>
     </header>
-    <main style="display: contents;">
-      <div id="settings_menu" class="overlay_page" aria-hidden style="display: none;">
-        <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5;"></div>
-        <h1>Settings</h1>
-        <a onclick="$('#settings_sidebar').slideToggle()">About</a>
-        <div id="settings_left_sidebar" class="no_margins" style=""></div>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))">
-          <input type="checkbox" id="testtoggle" name="testtoggle" value="TESTTOGGLE" class="mctoggle">
-          <div class="mctoggleswitch"></div>
-          <label>Test Toggle</label>
-        </div>
-        <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
-          <button id="dropdownbutton" class="btn" type="button" ontouchstart="" style="min-width: 140px; text-align: left;" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
-            <span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span>
-            <div style="width: 11px; height: 11px; margin: 0px; padding: 0px; display: inline-block;"></div>
-            <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute">
-            <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute" hidden>
-          </button>
-          <div id="dropdowncontents" hidden style="display: flex;">
-            <div style="flex-grow: 1; width: 0;">
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="auto" id="themeDropdownAutoOptionLabel">Auto</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="dark">Dark</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="light">Light</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="BlueTheme">Blue</label>
-              </div>
+    <div id="settings_menu" class="overlay_page" aria-hidden style="display: none;">
+      <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5;"></div>
+      <div id="settings_left_sidebar" class="no_margins" style="width: 300px; height: -webkit-fill-available; overflow-y: scroll; float: left;">
+        <label for="settings_section_radio_video" class="radio_button_container_label" style="width: 100%;">
+          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video">
+          <div class="no-remove-disabled nsel">Video</div>
+        </label>
+        <label for="settings_section_radio_test" class="radio_button_container_label" style="width: 100%;">
+          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_test" title="Video">
+          <div class="no-remove-disabled nsel">Test</div>
+        </label>
+      </div>
+      <h1>Settings</h1>
+      <button type="button" onclick="$('#settings_left_sidebar').slideToggle()">About</button>
+      <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))">
+        <input type="checkbox" id="testtoggle" name="testtoggle" value="TESTTOGGLE" class="mctoggle" title="testtoggle">
+        <div class="mctoggleswitch"></div>
+        <label>Test Toggle</label>
+      </div>
+      <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
+        <button id="dropdownbutton" class="btn" type="button" ontouchstart="" style="min-width: 140px; text-align: left;" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
+          <span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span>
+          <div style="width: 11px; height: 11px; margin: 0px; padding: 0px; display: inline-block;"></div>
+          <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute">
+          <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute" hidden>
+        </button>
+        <div id="dropdowncontents" hidden style="display: flex;">
+          <div style="flex-grow: 1; width: 0;">
+            <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+              <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio themeDropdownOptionInput">
+              <div class="mcradiocheckbox"></div>
+              <label for="auto" id="themeDropdownAutoOptionLabel">Auto</label>
+            </div>
+            <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+              <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio themeDropdownOptionInput">
+              <div class="mcradiocheckbox"></div>
+              <label for="dark">Dark</label>
+            </div>
+            <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+              <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio themeDropdownOptionInput">
+              <div class="mcradiocheckbox"></div>
+              <label for="light">Light</label>
+            </div>
+            <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
+              <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio themeDropdownOptionInput">
+              <div class="mcradiocheckbox"></div>
+              <label for="BlueTheme">Blue</label>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <main>
       <center>
         <h1>Home</h1>
         <button type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>

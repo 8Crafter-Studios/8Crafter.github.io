@@ -95,6 +95,7 @@
     --root-text-color-dark: hsl(0, 0%, 100%);
     --root-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
+    --header-height: 102px;
 }
 
 html {
@@ -105,6 +106,28 @@ html {
 
 body {
     margin: 0px;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    padding-top: var(--header-height);
+    margin-left: 0;
+    /* min-height: 100vh; */
+    gap: 2em;
+    width: -webkit-fill-available;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;/* 
+    padding: 0.5em;
+    padding-left: 1em; */
+    height: auto;
 }
 
 .piximg {
@@ -174,11 +197,12 @@ ul:not(:not(.horizontal-nav)) {
 .overlay_page {
     z-index: 9999;
     width: 100%;
-    height: 100%;
+    height: -webkit-fill-available;
     position: absolute;
     border: 0px;
     margin: 0px;
     padding: 0px;
+    padding-top: var(--header-height);
 }
 
 .no_margins {
@@ -502,7 +526,8 @@ ul:not(:not(.horizontal-nav)) {
     /* Standard syntax */
 }
 
-.btn {
+.btn,
+.radio_button_container_label {
     position: relative;
     display: inline-block;
     padding: 6px 12px;
@@ -559,7 +584,8 @@ ul:not(:not(.horizontal-nav)) {
     color: var(---theme-var-switcher--btn-text-color);
 }
 
-.btn i {
+.btn i,
+.radio_button_container_label i {
     font-style: normal;
     font-weight: 500;
     opacity: 0.75;
@@ -575,18 +601,23 @@ ul:not(:not(.horizontal-nav)) {
     background-color: rgba(27, 31, 35, 0.1);
 }
 
-.btn:hover {
+.btn:hover,
+.radio_button_container_label:hover {
     text-decoration: none;
     background-repeat: repeat-x;
 }
 
-.btn:focus {
+.btn:focus,
+.radio_button_container_label:focus {
     outline: 0;
 }
 
 .btn:disabled,
 .btn.disabled,
-.btn[aria-disabled="true"] {
+.btn[aria-disabled="true"],
+.radio_button_container_label:hover:has(> input:disabled),
+.radio_button_container_label:hover:has(> input.disabled),
+.radio_button_container_label:hover:has(> input[aria-disabled="true"]) {
     cursor: default;
     background-position: 0 0;
     border-image: var(--border-image-disabled) 1 1 1 1 fill / 1px 1px 1px 1px;
@@ -594,7 +625,8 @@ ul:not(:not(.horizontal-nav)) {
 
 .btn:active:enabled,
 .btn.selected,
-.btn[aria-selected="true"] {
+.btn[aria-selected="true"],
+.radio_button_container_label:has(> input:checked) {
     background-image: none;
 }
 
@@ -607,7 +639,9 @@ ul:not(:not(.horizontal-nav)) {
 /* } */
 
 .btn:focus:enabled,
-.btn.focus {
+.btn.focus,
+.radio_button_container_label:focus:enabled,
+.radio_button_container_label.focus {
     /*
   box-shadow: 0 0 0 0.2em rgba(3, 102, 214, 0.3)*/
     border-image: var(
@@ -617,7 +651,8 @@ ul:not(:not(.horizontal-nav)) {
         1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
-.btn:hover:enabled {
+.btn:hover:enabled,
+.radio_button_container_label:hover {
     /*
   background-color: #e6ebf1;
   background-image: linear-gradient(-180deg, #f0f3f6 0%, #e6ebf1 90%);
@@ -630,7 +665,8 @@ ul:not(:not(.horizontal-nav)) {
         1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
-.btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages) {
+.btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages),
+.radio_button_container_label:hover:enabled:not(.noinvert):not(.buttonhascoloredimages) {
     & > :not(.preventinvert, #cv, #cvsel) {
         filter: invert(100%);
     }
@@ -643,7 +679,10 @@ ul:not(:not(.horizontal-nav)) {
 .btn:active:enabled,
 .btn.selected,
 .btn[aria-selected="true"],
-[open] > .btn {
+[open] > .btn,
+.radio_button_container_label:has(> input:checked),
+.radio_button_container_label:active:enabled,
+.radio_button_container_label.selected {
     /*
   background-color: #e9ecef;
   background-image: none;
@@ -660,7 +699,10 @@ ul:not(:not(.horizontal-nav)) {
 .btn:active:hover:enabled,
 .btn.selectedhover,
 .btn[aria-selected="true"],
-[open] > .btn {
+[open] > .btn,
+.radio_button_container_label:hover:has(> input:checked),
+.radio_button_container_label:active:hover:enabled,
+.radio_button_container_label.selectedhover {
     /*
   background-color: #e9ecef;
   background-image: none;
@@ -676,7 +718,10 @@ ul:not(:not(.horizontal-nav)) {
 
 .btn:disabled,
 .btn.disabled,
-.btn[aria-disabled="true"] {
+.btn[aria-disabled="true"],
+.radio_button_container_label:hover:has(> input:disabled),
+.radio_button_container_label:hover:has(> input.disabled),
+.radio_button_container_label:hover:has(> input[aria-disabled="true"]) {
     /*
   color: rgba(36, 41, 46, 0.4);
   background-color: #eff3f6;
