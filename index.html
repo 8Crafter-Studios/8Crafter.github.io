@@ -111,7 +111,7 @@
         </label>
       </div>
       <h1>Settings</h1>
-      <button type="button" onclick="$('#settings_left_sidebar').slideToggle()">About</button>
+      <button type="button" onclick="$('#settings_left_sidebar').animate({width: 'toggle'})">About</button>
       <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))">
         <input type="checkbox" id="testtoggle" name="testtoggle" value="TESTTOGGLE" class="mctoggle" title="testtoggle">
         <div class="mctoggleswitch"></div>
