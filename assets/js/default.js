@@ -88,17 +88,29 @@ function changeThemeCSS(theme){
     if(theme=="auto"){
         if(themeDisplayMappingB.auto=="dark"){
             $('.btn > span').addClass('preventinvert');
+            $(':root').addClass('dark_theme');
+            $(':root').removeClass('light_theme blue_theme');
         }else{
             $('.btn > span').removeClass('preventinvert');
+            $(':root').addClass('light_theme');
+            $(':root').removeClass('dark_theme blue_theme');
         }
     }else if(theme=="dark"){
         $('.btn > span').addClass('preventinvert');
+        $(':root').addClass('dark_theme');
+        $(':root').removeClass('light_theme blue_theme');
     }else if(theme=="light"){
         $('.btn > span').removeClass('preventinvert');
+        $(':root').addClass('light_theme');
+        $(':root').removeClass('dark_theme blue_theme');
     }else if(theme=="BlueTheme"){
         $('.btn > span').removeClass('preventinvert');
+        $(':root').addClass('blue_theme');
+        $(':root').removeClass('dark_theme light_theme');
     }else{
         $('.btn > span').removeClass('preventinvert');
+        $(':root').addClass('light_theme');
+        $(':root').removeClass('dark_theme blue_theme');
     }
 }
 $(function onDocumentLoad(){
@@ -138,4 +150,15 @@ $(function onDocumentLoad(){
     $('.themeDropdownOption').click(event=>{
         changeTheme($(event.currentTarget).find('input')[0].id);
     });
+    $('input[name="settings_section"]').change(()=>{
+        try{
+            if($('#settings_section_radio_video').prop('checked')){
+                $('#video_settings_section').get(0).style.display=''
+            }else{
+                $('#video_settings_section').get(0).style.display='none'
+            }
+        }catch(e){
+            console.error(e, e.stack)
+        }
+    })
 });

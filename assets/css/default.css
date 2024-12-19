@@ -98,6 +98,88 @@
     --header-height: 102px;
 }
 
+.dark_theme {
+    --dark_theme_display_contents: contents;
+    --light_theme_display_contents: none;
+    --blue_theme_display_contents: none;
+    --display_none_on_dark_theme: none;
+    --display_none_on_not_light_theme: none;
+    --display_none_on_not_blue_theme: none;
+    --display_contents_on_dark_theme: contents;
+    --display_contents_on_not_light_theme: contents;
+    --display_contents_on_not_blue_theme: contents;
+}
+
+.light_theme {
+    --dark_theme_display_contents: none;
+    --light_theme_display_contents: contents;
+    --blue_theme_display_contents: none;
+    --display_none_on_light_theme: none;
+    --display_none_on_not_dark_theme: none;
+    --display_none_on_not_blue_theme: none;
+    --display_contents_on_light_theme: contents;
+    --display_contents_on_not_dark_theme: contents;
+    --display_contents_on_not_blue_theme: contents;
+}
+
+.blue_theme {
+    --dark_theme_display_contents: none;
+    --light_theme_display_contents: none;
+    --blue_theme_display_contents: contents;
+    --display_none_on_blue_theme: none;
+    --display_none_on_not_dark_theme: none;
+    --display_none_on_not_light_theme: none;
+    --display_contents_on_blue_theme: contents;
+    --display_contents_on_not_dark_theme: contents;
+    --display_contents_on_not_light_theme: contents;
+}
+
+only_visible_dark_theme {
+    display: var(--dark_theme_display_contents);
+}
+
+only_visible_light_theme {
+    display: var(--light_theme_display_contents);
+}
+
+only_visible_blue_theme {
+    display: var(--blue_theme_display_contents);
+}
+
+only_visible_on_themes {
+    display: none;
+}
+
+/* only_visible_on_themes[blue][light]:not([dark]) {
+    display: var(--display_none_on_dark_theme, "contents");
+}
+
+only_visible_on_themes[dark] {
+    display: var(--display_contents_on_dark_theme, ignored);
+}
+
+only_visible_on_themes[light] {
+    display: var(--display_contents_on_light_theme);
+} */
+
+@container style(--display_contents_on_dark_theme: contents) {
+    only_visible_on_themes[dark] {
+        display: contents;
+    }
+}
+
+@container style(--display_contents_on_light_theme: contents) {
+    only_visible_on_themes[light] {
+        display: contents;
+    }
+}
+
+@container style(--display_contents_on_blue_theme: contents) {
+    only_visible_on_themes[blue] {
+        display: contents;
+    }
+}
+
 html {
     ---theme-var-switcher--html-bg-color: var(--root-bg-color-dark);
     background-color: var(---theme-var-switcher--html-bg-color);
@@ -205,6 +287,10 @@ ul:not(:not(.horizontal-nav)) {
     padding-top: var(--header-height);
 }
 
+.settings_section {
+    display: flow-root;
+}
+
 .no_margins {
     border: 0px;
     margin: 0px;
@@ -214,6 +300,11 @@ ul:not(:not(.horizontal-nav)) {
 .use_menu_background {
     background-image: url("/assets/images/ui/backgrounds/menubackground.png");
     image-rendering: pixelated;
+}
+
+.blur_behind_5px {
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
 }
 
 .settings_button {
