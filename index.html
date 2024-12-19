@@ -167,11 +167,19 @@
         left: 50%;
         transform: translate(-50%, -50%);">
           <h1 style="font-size: 4em;">Home</h1>
-          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link">
+        </center>
+        <div style="position: absolute;
+        bottom: 16px;
+        left: 16px; z-index: 1; width: 32px;">
+          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px">
             <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
             YouTube
           </button>
-        </center>
+          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
+            <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            YouTube
+          </button>
+        </div>
         <only_visible_on_themes dark style="z-index: 0; position: relative">
           <image src="assets\images\wallpapers\background sunset 1 animated logo.svg" style="z-index: 0; position: relative"></image>
         </only_visible_on_themes>
