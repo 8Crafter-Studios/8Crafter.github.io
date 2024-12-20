@@ -92,7 +92,7 @@
       <ul class="horizontal-nav">
         <li style="margin-top: -10px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter"><image title="8Crafter" src="favicon.ico" width="32px" class="piximg" style="vertical-align: middle; margin-right: 5px;"></image><span style="vertical-align: middle; font-size: 32px;">8Crafter</span></a></li>
         <li class="active"><a href="index.html">Home</a></li>
-        <li><a href="/docs/index.html">Docs</a></li>
+        <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 10px 0px;"></image></a></li>
         <li><a href="/main/contact.html">Contact</a></li>
         <li><a href="/main/about.html">About</a></li>
         <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
@@ -166,16 +166,20 @@
         top: 70%;
         left: 50%;
         transform: translate(-50%, -50%);">
-          <h1 style="font-size: 4em;">Home</h1>
+          <!-- <h1 style="font-size: 4em;">Home</h1> -->
         </center>
         <div style="position: absolute;
         bottom: 16px;
         left: 16px; z-index: 1; width: 32px;">
-          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px">
-            <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            YouTube
+          <button type="button" class="btn no-remove-disabled nsel" id="patreon_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')">
+            <img src="/assets/images/ui/icons/patreon_favicon-32.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            Patreon
           </button>
-          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
+          <button type="button" class="btn no-remove-disabled nsel" id="modbay_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/modbay.org/user/8crafter/', '_blank')">
+            <img src="/assets/images/ui/icons/modbay_apple-touch-icon-180x180.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            Modbay
+          </button>
+          <button type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
             <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
             YouTube
           </button>

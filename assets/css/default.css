@@ -253,7 +253,7 @@ ul:not(:not(.horizontal-nav)) {
     }
 
     & > li a {
-        display: block;
+        display: flex;
         color: white;
 
         text-align: center;
