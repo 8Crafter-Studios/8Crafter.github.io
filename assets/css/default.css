@@ -280,7 +280,7 @@ ul:not(:not(.horizontal-nav)) {
     z-index: 9999;
     width: 100%;
     height: -webkit-fill-available;
-    position: absolute;
+    position: fixed;
     border: 0px;
     margin: 0px;
     padding: 0px;
@@ -289,6 +289,8 @@ ul:not(:not(.horizontal-nav)) {
 
 .settings_section {
     display: flow-root;
+    height: 100%;
+    overflow: scroll;
 }
 
 .no_margins {
