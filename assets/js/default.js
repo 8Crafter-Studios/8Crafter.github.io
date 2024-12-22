@@ -30,6 +30,21 @@ function forEachRuleCallback(callbackfn) {
 }
 /**
  * 
+ * @param {string} key
+ * @param {any} value 
+ */
+function saveSetting(key, value){
+    window.localStorage.setItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`, JSON.stringify(value));
+}
+/**
+ * 
+ * @param {string} key
+ */
+function getSetting(key){
+    return JSON.parse(window.localStorage.getItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`)??"null");
+}
+/**
+ * 
  * @param {"auto"|"dark"|"light"|"BlueTheme"} theme 
  */
 function changeTheme(theme, setCSS = true){
@@ -147,9 +162,25 @@ $(function onDocumentLoad(){
             }
         ))*/
     };
+		try{if(getSetting("use_noto_sans_font") == true){
+			$("#use_noto_sans_font").prop("checked", true);
+			$(':root').addClass('use_noto_sans_font');
+		}}catch{}
+		if(!!getSetting("zoom")){
+			$("#zoom_text_box").val(getSetting("zoom").slice(0, -1));
+			$(':root')[0].style.zoom=getSetting("zoom");
+		}
     $('.themeDropdownOption').click(event=>{
         changeTheme($(event.currentTarget).find('input')[0].id);
     });
+		$('#use_noto_sans_font').parent().click(()=>{
+			saveSetting("use_noto_sans_font", $('#use_noto_sans_font').prop("checked"))
+			if($('#use_noto_sans_font').prop("checked")){
+				$(':root').addClass('use_noto_sans_font');
+			}else{
+				$(':root').removeClass('use_noto_sans_font');
+			}
+		})
     $('input[name="settings_section"]').change(()=>{
         try{
             if($('#settings_section_radio_video').prop('checked')){
@@ -161,4 +192,10 @@ $(function onDocumentLoad(){
             console.error(e, e.stack)
         }
     })
+		$('#confirm_zoom_change').click(()=>{
+			$(':root')[0].style.zoom = $('#zoom_text_box').val()+"%";
+		});
+		$('#save_zoom_change').click(()=>{
+			saveSetting("zoom", $('#zoom_text_box').val()+"%");
+		});
 });

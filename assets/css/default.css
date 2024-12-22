@@ -1,5 +1,19 @@
-* {
-    font-family: "Mojangles";
+@container style(--use_noto_sans_font: false) {
+		* {
+    		font-family: "Mojangles";
+		}
+		only_visible_on_fonts[Mojangles] {
+        display: contents;
+    }
+}
+
+@container style(--use_noto_sans_font: true) {
+		* {
+    		font-family: "NotoSansArabic-Regular";
+		}
+		only_visible_on_fonts[NotoSans] {
+        display: contents;
+    }
 }
 
 @font-face {
@@ -83,8 +97,23 @@
         U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
 }
 
+@font-face {
+    font-family: "NotoSansArabic-Regular";
+		font-size-adjust: 0.1%;
+    src: url("/assets/fonts/NotoSansArabic-Regular-9137a.ttf");
+    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1,
+        U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+0192,
+        U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD,
+        U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F,
+        U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23,
+        U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B,
+        U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E,
+        U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126,
+        U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+}
+
 [hidden]:not(.no-override-display-when-hidden) {
-	  display: none !important
+	  display: none !important;
 }
 
 :root {
@@ -96,6 +125,14 @@
     --root-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
     --header-height: 102px;
+}
+
+:root.use_noto_sans_font {
+	--use_noto_sans_font: true;
+}
+
+:root:not(.use_noto_sans_font) {
+	--use_noto_sans_font: false;
 }
 
 .dark_theme {
@@ -147,6 +184,10 @@ only_visible_blue_theme {
 }
 
 only_visible_on_themes {
+    display: none;
+}
+
+only_visible_on_fonts {
     display: none;
 }
 
@@ -822,4 +863,54 @@ ul:not(:not(.horizontal-nav)) {
   border-color: rgba(27, 31, 35, 0.2);
   box-shadow: none*/
     border-image: var(--border-image-disabled) 1 1 1 1 fill / 1px 1px 1px 1px;
+}
+
+.form-control,
+.form-select {
+  min-height: 34px;
+  padding: 6px 8px;
+  font-size: 16px;
+  line-height: 20px;
+  color: #FFFFFF;  
+  vertical-align: middle;/*
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: right 8px center;*//*
+  border: 1px solid #d1d5da;*//*
+  border-radius: 3px;
+  outline: none;*//*
+  box-shadow: inset 0 1px 2px rgba(27, 31, 35, 0.075);*/
+  border-image: url('/assets/images/ui/textboxes/edit_box_indent.png') 2 1 2 1 fill / 4px 2px 4px 2px;
+  padding: 4px 5px 4px 5px;
+  image-rendering: pixelated;
+}
+
+.form-control::placeholder {
+  color: white;
+	opacity: 0.5;
+}
+
+.form-control:enabled:hover::placeholder {
+  opacity: 1 !important;
+}
+/*
+.form-control.focus,
+.form-control:focus,
+.form-select.focus,
+.form-select:focus {
+  border-color: #2188ff;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(27, 31, 35, 0.075), 0 0 0 0.2em rgba(3, 102, 214, 0.3)
+}*/
+
+.form-control:enabled:hover {
+  border-image: url('/assets/images/ui/textboxes/edit_box_indent_hover.png') 2 1 2 1 fill / 4px 2px 4px 2px;
+}
+
+@media (min-width: 768px) {
+
+  .form-control,
+  .form-select {
+    font-size: 14px
+  }
 }
