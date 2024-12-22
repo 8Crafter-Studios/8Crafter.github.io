@@ -291,6 +291,8 @@ ul:not(:not(.horizontal-nav)) {
 
     & > li {
         float: left;
+				line-height: 20px;
+				
     }
 
     & > li a {
