@@ -271,6 +271,12 @@ autofill_from_file {
     display: contents;
 }
 
+card-grid {
+	display: grid;
+	grid-template: max-content;
+    flex-direction: row;
+}
+
 .header {
     position: fixed;
     top: 0;

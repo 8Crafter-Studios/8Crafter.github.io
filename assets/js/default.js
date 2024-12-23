@@ -135,7 +135,7 @@ $(async function onDocumentLoad(){
         let v = autofill_from_file_elements.item(i);
         const path = $(v).attr('path');
         autofill_from_file_elements_fill_promises.push((async()=>{
-            v.outerHTML = await (await fetch(new Request(path))).text()
+            v.outerHTML = path.endsWith(".js")?(await import(path)).default(...JSON.parse($(v).attr("params")??"[]")):await (await fetch(new Request(path))).text()
         })());
     }
     for await(let r of autofill_from_file_elements_fill_promises){}

@@ -90,9 +90,9 @@
         This website is currently under construction.
       </div>
       <ul class="horizontal-nav">
-        <li style="height: 48px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+        <li style="height: 48px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
         <li class="active"><a href="index.html">Home</a></li>
-        <li><a href="https://wiki.8crafter.com/main/" style="line-height: 20px;">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 10px 0px;"></image></a></li>
+        <li><a href="https://wiki.8crafter.com/main/" style="/*line-height: 20px;*/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
         <li><a href="/main/contact.html">Contact</a></li>
         <li><a href="/main/about.html">About</a></li>
         <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
@@ -256,8 +256,31 @@
         </only_visible_on_themes>
       </banner>
       <center>
-        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
+        <!--<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
         <button ontouchstart type="button" disabled="true" class="btn no-remove-disabled nsel" id="disabled-button">Disabled Button</button>
+				<br>-->
+				<card-list style="width: 90%;">
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: 200px; aspect-ratio: 1;">
+						<b>Add-Ons</b>
+						<br>
+						<image src="/assets/images/ui/add-ons.png">
+					</button>
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: 200px; aspect-ratio: 1;">
+						<b>Node.js Programs</b>
+						<br>
+						<image src="/assets/images/ui/nodejs.png">
+					</button>
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: 200px; aspect-ratio: 1;">
+						<b>Windows Registry Files</b>
+						<br>
+						<image src="/assets/images/ui/windows_registry.png">
+					</button>
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: 200px; aspect-ratio: 1;">
+						<b>iPhone/iPad Shortcuts</b>
+						<br>
+						<image src="/assets/images/ui/apple_shortcuts_app.png">
+					</button>
+				</card-grid>
       </center>
     </main>
   </body>
