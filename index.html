@@ -121,6 +121,24 @@
           <label>Use Noto Sans Font</label>
         </div>
         <br>
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+          <input type="checkbox" id="filter_invert_enabled" name="filter_invert_enabled" value="Invert Colors" class="mctoggle" title="filter_invert_enabled">
+          <div class="mctoggleswitch"></div>
+          <label>Invert Colors</label>
+        </div>
+        <br>
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+          <input type="checkbox" id="filter_grayscale_enabled" name="filter_grayscale_enabled" value="Grayscale" class="mctoggle" title="filter_grayscale_enabled">
+          <div class="mctoggleswitch"></div>
+          <label>Grayscale</label>
+        </div>
+        <br>
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+          <input type="checkbox" id="filter_sepia_enabled" name="filter_sepia_enabled" value="Sepia Filter" class="mctoggle" title="filter_sepia_enabled">
+          <div class="mctoggleswitch"></div>
+          <label>Sepia Filter</label>
+        </div>
+        <br>
         <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
           Theme
           <br>
@@ -181,17 +199,45 @@
           <!-- <h1 style="font-size: 4em;">Home</h1> -->
         </center>
         <div style="position: absolute;
-        bottom: 16px;
-        left: 16px; z-index: 1; width: 32px;">
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="patreon_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')">
+        bottom: 16px; left: 16px;
+        z-index: 1; width: 128px;
+        height: calc(100% - 32px);
+        overflow: scroll;
+        display: flex;
+        flex-direction: column-reverse;" id="link_button_list" onload="this.scrollTop = this.scrollHeight; $(this).scrollTop($(this)[0].scrollHeight);">
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/about:blank', '_blank')">
+            <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            ????????
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id=_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/about:blank', '_blank')">
+            <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            ????????
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/mcpedl.com/user/8crafter/', '_blank')">
+            <img src="/assets/images/ui/icons/mcpedl.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            MCPEDL
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/discord.gg/jrCTeHGuhx', '_blank')">
+            <img src="/assets/images/ui/icons/discord-icon-512x512-xtx725no.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            Discord
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id=_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/github.com/Andexter8', '_blank')">
+            <img src="/assets/images/ui/icons/25231.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            GitHub
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/www.paypal.com/paypalme/8Crafter', '_blank')">
+            <img src="/assets/images/ui/icons/paypal.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
+            PayPal
+          </button>
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="patreon_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')">
             <img src="/assets/images/ui/icons/patreon_favicon-32.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
             Patreon
           </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="modbay_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/modbay.org/user/8crafter/', '_blank')">
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="modbay_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/modbay.org/user/8crafter/', '_blank')">
             <img src="/assets/images/ui/icons/modbay_apple-touch-icon-180x180.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
             Modbay
           </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px; width: 128px; text-align: left;" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
+          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
             <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
             YouTube
           </button>

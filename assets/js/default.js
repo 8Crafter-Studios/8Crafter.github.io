@@ -166,6 +166,18 @@ $(function onDocumentLoad(){
 			$("#use_noto_sans_font").prop("checked", true);
 			$(':root').addClass('use_noto_sans_font');
 		}}catch{}
+        if(getSetting("filter_sepia_enabled") == true){
+			$("#filter_sepia_enabled").prop("checked", true);
+			$(':root').addClass('filter_sepia');
+		}
+        if(getSetting("filter_invert_enabled") == true){
+			$("#filter_invert_enabled").prop("checked", true);
+			$(':root').addClass('filter_invert');
+		}
+        if(getSetting("filter_grayscale_enabled") == true){
+			$("#filter_grayscale_enabled").prop("checked", true);
+			$(':root').addClass('filter_grayscale');
+		}
 		if(!!getSetting("zoom")){
 			$("#zoom_text_box").val(getSetting("zoom").slice(0, -1));
 			$(':root')[0].style.zoom=getSetting("zoom");
@@ -173,14 +185,38 @@ $(function onDocumentLoad(){
     $('.themeDropdownOption').click(event=>{
         changeTheme($(event.currentTarget).find('input')[0].id);
     });
-		$('#use_noto_sans_font').parent().click(()=>{
-			saveSetting("use_noto_sans_font", $('#use_noto_sans_font').prop("checked"))
-			if($('#use_noto_sans_font').prop("checked")){
-				$(':root').addClass('use_noto_sans_font');
-			}else{
-				$(':root').removeClass('use_noto_sans_font');
-			}
-		})
+    $('#use_noto_sans_font').parent().click(()=>{
+        saveSetting("use_noto_sans_font", $('#use_noto_sans_font').prop("checked"))
+        if($('#use_noto_sans_font').prop("checked")){
+            $(':root').addClass('use_noto_sans_font');
+        }else{
+            $(':root').removeClass('use_noto_sans_font');
+        }
+    })
+    $('#filter_invert_enabled').parent().click(()=>{
+        saveSetting("filter_invert_enabled", $('#filter_invert_enabled').prop("checked"))
+        if($('#filter_invert_enabled').prop("checked")){
+            $(':root').addClass('filter_invert');
+        }else{
+            $(':root').removeClass('filter_invert');
+        }
+    })
+    $('#filter_sepia_enabled').parent().click(()=>{
+        saveSetting("filter_sepia_enabled", $('#filter_sepia_enabled').prop("checked"))
+        if($('#filter_sepia_enabled').prop("checked")){
+            $(':root').addClass('filter_sepia');
+        }else{
+            $(':root').removeClass('filter_sepia');
+        }
+    })
+    $('#filter_grayscale_enabled').parent().click(()=>{
+        saveSetting("filter_grayscale_enabled", $('#filter_grayscale_enabled').prop("checked"))
+        if($('#filter_grayscale_enabled').prop("checked")){
+            $(':root').addClass('filter_grayscale');
+        }else{
+            $(':root').removeClass('filter_grayscale');
+        }
+    })
     $('input[name="settings_section"]').change(()=>{
         try{
             if($('#settings_section_radio_video').prop('checked')){
@@ -198,4 +234,5 @@ $(function onDocumentLoad(){
 		$('#save_zoom_change').click(()=>{
 			saveSetting("zoom", $('#zoom_text_box').val()+"%");
 		});
+    $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
 });
