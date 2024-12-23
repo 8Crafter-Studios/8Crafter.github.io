@@ -90,7 +90,7 @@
         This website is currently under construction.
       </div>
       <ul class="horizontal-nav">
-        <li style="height: 48px;"><a href="https://youtube.com/@8crafter" style="padding-top: 5.5px; padding-bottom: 5.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+        <li style="height: 48px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
         <li class="active"><a href="index.html">Home</a></li>
         <li><a href="https://wiki.8crafter.com/main/" style="line-height: 20px;">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 10px 0px;"></image></a></li>
         <li><a href="/main/contact.html">Contact</a></li>
@@ -138,6 +138,12 @@
           <div class="mctoggleswitch"></div>
           <label>Sepia Filter</label>
         </div>
+        <br>
+        <mcslider>
+          <label for="hue_rotate_deg_slider">Hue Rotate Degrees: 0deg</label>
+          <br>
+          <input id="hue_rotate_deg_slider" name="hue_rotate_deg_slider" type="range" min="0" max="360" step="1" value="1" oninput="let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Degrees: )\d+(?:\.\d+)?(?=deg)/, $(this).val()))">
+        </mcslider>
         <br>
         <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
           Theme

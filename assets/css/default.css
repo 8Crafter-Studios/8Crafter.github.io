@@ -116,19 +116,6 @@
         U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
 }
 
-.filter_invert {
-    filter: invert(1);
-} 
-
-.filter_grayscale {
-    filter: grayscale(1);
-}
-
-.filter_sepia {
-    filter: sepia(1);
-    /* filter: hue-rotate(0,5.) */
-}
-
 [hidden]:not(.no-override-display-when-hidden) {
 	  display: none !important;
 }
@@ -142,6 +129,10 @@
     --root-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
     --header-height: 102px;
+    --filter_invert: 0;
+    --filter_grayscale: 0;
+    --filter_sepia: 0;
+    --hue-rotate-deg: 0deg;
 }
 
 :root.use_noto_sans_font {
@@ -150,6 +141,23 @@
 
 :root:not(.use_noto_sans_font) {
 	--use_noto_sans_font: false;
+}
+
+.filter_invert {
+    --filter_invert: 1;
+}
+
+.filter_grayscale {
+    --filter_grayscale: 1;
+}
+
+.filter_sepia {
+    --filter_sepia: 1;
+    /* filter: hue-rotate(0,5.) */
+}
+
+:root {
+    filter: invert(var(--filter_invert, 0)) grayscale(var(--filter_grayscale, 0)) sepia(var(--filter_sepia, 0)) hue-rotate(var(--hue-rotate-deg));
 }
 
 .dark_theme {
@@ -257,6 +265,10 @@ main {
     /* min-height: 100vh; */
     gap: 2em;
     width: -webkit-fill-available;
+}
+
+autofill_from_file {
+    display: contents;
 }
 
 .header {

@@ -128,7 +128,17 @@ function changeThemeCSS(theme){
         $(':root').removeClass('dark_theme blue_theme');
     }
 }
-$(function onDocumentLoad(){
+$(async function onDocumentLoad(){
+    const autofill_from_file_elements = document.getElementsByTagName('autofill_from_file');
+    const autofill_from_file_elements_fill_promises = [];
+    for(let i = 0; i < autofill_from_file_elements.length; i++){
+        let v = autofill_from_file_elements.item(i);
+        const path = $(v).attr('path');
+        autofill_from_file_elements_fill_promises.push((async()=>{
+            v.outerHTML = await (await fetch(new Request(path))).text()
+        })());
+    }
+    for await(let r of autofill_from_file_elements_fill_promises){}
     const resizeObserver = new ResizeObserver(event => {
         const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"));
         rule.style.cssText = rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height());
@@ -235,4 +245,8 @@ $(function onDocumentLoad(){
 			saveSetting("zoom", $('#zoom_text_box').val()+"%");
 		});
     $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
+    $('#hue_rotate_deg_slider').on("input", ()=>{
+        const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"&&r.cssText.includes("--hue-rotate-deg:")));
+        rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $('#hue_rotate_deg_slider').val());
+    });
 });
