@@ -172,6 +172,11 @@ $(async function onDocumentLoad(){
             }
         ))*/
     };
+    $('#hue_rotate_deg_slider').on("input", ()=>{
+				saveSetting("hue_rotate_deg", $('#hue_rotate_deg_slider').val());
+        const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"&&r.cssText.includes("--hue-rotate-deg:")));
+        rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $('#hue_rotate_deg_slider').val());
+    });
 		try{if(getSetting("use_noto_sans_font") == true){
 			$("#use_noto_sans_font").prop("checked", true);
 			$(':root').addClass('use_noto_sans_font');
@@ -187,6 +192,10 @@ $(async function onDocumentLoad(){
         if(getSetting("filter_grayscale_enabled") == true){
 			$("#filter_grayscale_enabled").prop("checked", true);
 			$(':root').addClass('filter_grayscale');
+		}
+    if(!!getSetting("hue_rotate_deg")){
+			$("#hue_rotate_deg_slider").val(getSetting("hue_rotate_deg"));
+			$("#hue_rotate_deg_slider").trigger("input");
 		}
 		if(!!getSetting("zoom")){
 			$("#zoom_text_box").val(getSetting("zoom").slice(0, -1));
@@ -245,8 +254,4 @@ $(async function onDocumentLoad(){
 			saveSetting("zoom", $('#zoom_text_box').val()+"%");
 		});
     $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
-    $('#hue_rotate_deg_slider').on("input", ()=>{
-        const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"&&r.cssText.includes("--hue-rotate-deg:")));
-        rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $('#hue_rotate_deg_slider').val());
-    });
 });
