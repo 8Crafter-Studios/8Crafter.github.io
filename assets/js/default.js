@@ -1,6 +1,35 @@
 import("./JSONB.js")
 /**
  * 
+ * @param {()=>boolean} stopOnCondition 
+ * @param {number} interval 
+ * @param {number} step 
+ * @returns 
+ */
+async function cycleHueRotate(stopOnCondition = ()=>false, interval = 20, step=1){
+    let val = 0;
+    return new Promise(resolve=>{
+        let id = setInterval(()=>{
+            if(stopOnCondition()==true){
+                clearInterval(id);
+                resolve(true);
+                return;
+            }
+            // $("#hue_rotate_deg_slider").val(($("#hue_rotate_deg_slider").val() + 1) % 360);
+			// $("#hue_rotate_deg_slider").trigger("input");
+            
+            val += step;
+            val %= 360;
+            
+            const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"&&r.cssText.includes("--hue-rotate-deg:")));
+            rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, val);
+        }, interval)
+    })
+
+}
+// globalThis.cycleHueRotate = cycleHueRotate;
+/**
+ * 
  * @param {string} name 
  * @returns 
  */
