@@ -103,7 +103,7 @@
       <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
         <button type="button" onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}" class="btn nsel" style="float: left; width: 60px" id="settings_left_sidebar_toggle_button" ontouchstart="" mode="1">Hide</button>
       </div>
-      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: scroll; float: left; border-right: 1px solid #cccccc; ">
+      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc; ">
         <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available;">
           <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video" checked>
           <div class="no-remove-disabled nsel">Video</div>

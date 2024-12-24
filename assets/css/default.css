@@ -404,7 +404,7 @@ ul:not(:not(.horizontal-nav)) {
 .settings_section {
     display: flow-root;
     height: 100%;
-    overflow: scroll;
+    overflow: auto;
 }
 
 .no_margins {
