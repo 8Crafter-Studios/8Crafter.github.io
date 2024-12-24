@@ -737,6 +737,10 @@ ul:not(:not(.horizontal-nav)) {
     /* Standard syntax */
 }
 
+.ndrg {
+    -webkit-user-drag: none;
+}
+
 .btn,
 .radio_button_container_label {
     position: relative;
