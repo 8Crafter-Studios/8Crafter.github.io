@@ -69,6 +69,7 @@
     <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropDownSelectBG.png">
 
     <script src="./assets/js/jquery.min.js"></script>
+    <script src="./assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
     <script src="./assets/js/default.js"></script>
     <script src="./assets/js/JSONB.js" type="module"></script>
 
@@ -89,14 +90,28 @@
         <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
         This website is currently under construction.
       </div>
-      <ul class="horizontal-nav">
-        <li style="height: 48px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
-        <li class="active"><a href="index.html">Home</a></li>
-        <li><a href="https://wiki.8crafter.com/main/" style="/*line-height: 20px;*/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
+      <ul class="horizontal-nav full-sized-nav">
+        <li style="height: 48px; margin-bottom: -5px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+        <li class="active"><a href="/index.html">Home</a></li>
         <li><a href="/main/contact.html">Contact</a></li>
         <li><a href="/main/about.html">About</a></li>
+        <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
         <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
       </ul>
+      <ul class="horizontal-nav compressed-nav">
+        <li style="float:left; cursor:pointer;"><a onclick="$('#nav-sidebar').toggle('slide')" style="vertical-align: middle; padding: 0px; height:44px; width:44px;"><div class="menu_threebars_button" title="Menu" style="width: 30px; height: 30px;"></div></a></li>
+        <li style="height: 44px; margin-bottom: 0px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding: 4px 7px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+      </ul>
+      <div id="nav-sidebar" class="blur_behind_5px" style="display: none;">
+        <ul class="vertical-nav compressed-nav" style="background-color: unset;">
+          <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
+          <li class="active"><a href="/index.html">Home</a></li>
+          <li><a href="/main/contact.html">Contact</a></li>
+          <li><a href="/main/about.html">About</a></li>
+          <li><a href="https://wiki.8crafter.com/main/">Wiki<inlinecontainer class="nav-image-invert-on-button-hover"><image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 7.5px 0px; filter: invert(1);"></image></inlinecontainer></a></li>
+          <li style="cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
+        </ul>
+      </div>
     </header>
     <div id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none;">
       <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5;"></div>
@@ -259,27 +274,27 @@
         <!--<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
         <button ontouchstart type="button" disabled="true" class="btn no-remove-disabled nsel" id="disabled-button">Disabled Button</button>
 				<br>-->
-				<card-grid style="width: 90%;">
+				<card-grid type1 style="width: 90%;">
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/add-ons/add-ons', '_self')">
-						<b>Add-Ons</b>
+						<b style="text-wrap: auto;">Add-Ons</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/add-ons.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
 					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')">
-						<b>NodeJS Programs</b>
+						<b style="text-wrap: auto;">NodeJS Programs</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/NodeJS.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
 					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')">
-						<b>Windows Registry Files</b>
+						<b style="text-wrap: auto;">Windows Registry Files</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/Regedit-Icon-Big-256.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
 					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')">
-						<b>iPhone/iPad Shortcuts</b>
+						<b style="text-wrap: auto;">iPhone/iPad Shortcuts</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/apple_shortcuts.png" style="width: 90%;" class="piximg nsel ndrg">
@@ -296,7 +311,13 @@
         <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/www.8crafter.com/', '_blank')">Old Website</button>
       </center>
     </footer>
+    <div id="css_variable_getters" style="display: none;">
+      <!-- window.getComputedStyle($("test1a")[0]).getPropertyValue('width') -->
+      <test1a></test1a>
+      <!-- window.getComputedStyle($("test1b")[0]).getPropertyValue('width') -->
+      <test1b></test1b>
+    </div>
+    <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
+    <page_background theme_color_bg ontouchstart></page_background>
   </body>
-  <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
-  <page_background theme_color_bg ontouchstart></page_background>
 </html>

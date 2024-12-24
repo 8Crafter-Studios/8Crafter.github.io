@@ -5,7 +5,7 @@ export default function getComponent(){
       <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
         <button type="button" onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}" class="btn nsel" style="float: left; width: 60px" id="settings_left_sidebar_toggle_button" ontouchstart="" mode="1">Hide</button>
       </div>
-      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: scroll; float: left; border-right: 1px solid #cccccc; ">
+      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc; ">
         <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available;">
           <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video" checked>
           <div class="no-remove-disabled nsel">Video</div>
@@ -17,25 +17,25 @@ export default function getComponent(){
       </div>
       <settings_section id="video_settings_section" class="settings_section">
         <center><h1>Video Settings</h1></center>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
           <input type="checkbox" id="use_noto_sans_font" name="use_noto_sans_font" value="Use Noto Sans Font" class="mctoggle" title="use_noto_sans_font">
           <div class="mctoggleswitch"></div>
           <label>Use Noto Sans Font</label>
         </div>
         <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
           <input type="checkbox" id="filter_invert_enabled" name="filter_invert_enabled" value="Invert Colors" class="mctoggle" title="filter_invert_enabled">
           <div class="mctoggleswitch"></div>
           <label>Invert Colors</label>
         </div>
         <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
           <input type="checkbox" id="filter_grayscale_enabled" name="filter_grayscale_enabled" value="Grayscale" class="mctoggle" title="filter_grayscale_enabled">
           <div class="mctoggleswitch"></div>
           <label>Grayscale</label>
         </div>
         <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))" style="display: inline-block;">
+        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
           <input type="checkbox" id="filter_sepia_enabled" name="filter_sepia_enabled" value="Sepia Filter" class="mctoggle" title="filter_sepia_enabled">
           <div class="mctoggleswitch"></div>
           <label>Sepia Filter</label>

@@ -69,6 +69,7 @@
     <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropDownSelectBG.png">
 
     <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
     <script src="../assets/js/default.js"></script>
     <script src="../assets/js/JSONB.js" type="module"></script>
 
@@ -77,40 +78,69 @@
 
     <title>About - 8Crafter's Website</title>
   </head>
-  <only_visible_on_themes dark style="z-index: 0; position: relative">
-    <body style="background-image: url(/assets/images/wallpapers/10949934.jpg); background-position: 50%; background-size: cover;">
-      <autofill_from_file path="/components/header.component.js" params="[3]"></autofill_from_file>
-      <autofill_from_file path="/components/settings_menu.component.js"></autofill_from_file>
-      <main>
-        <div style="margin: auto; text-align: center;
-        margin: 0;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: #00000099;
-        color: white">
-          <p>I am a very experienced programmer. I make YouTube videos and Add-Ons for Minecraft Bedrock Edition. I also make Node.js programs, autohotkey scripts, bash scripts, powershell scripts, windows registry files, python programs, java programs, shortcuts for the iPhone/iPad shortcuts app, shortcuts for the iPhone/iPad scriptable app, and more.</p>
+  <body style="background-image: var(--theme_bg_url_2); background-position: 50%; background-size: cover;">
+    <autofill_from_file path="/components/header.component.js" params="[2]">
+      <!-- This is the fallback HTML for the header. -->
+      <header class="header" style="position: fixed; width: 100%">
+        <noscript>
+          <div class="alert warning">
+            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+            This website requires JavaScript to function, please allow JavaScript on this website.
+          </div>
+        </noscript>
+        <div class="alert">
+          <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+          This website is currently under construction.
         </div>
-      </main>
-    </body>
-  </only_visible_on_themes>
-  <only_visible_on_themes light blue style="z-index: 0; position: relative">
-    <body style="background-image: url(/assets/images/wallpapers/10949934.jpg); background-position: 50%; background-size: cover;">
-      <autofill_from_file path="/components/header.component.js" params="[3]"></autofill_from_file>
-      <autofill_from_file path="/components/settings_menu.component.js"></autofill_from_file>
-      <main>
-        <div style="margin: auto; text-align: center;
-        margin: 0;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: #00000099;
-        color: white">
-          <p>I am a very experienced programmer. I make YouTube videos and Add-Ons for Minecraft Bedrock Edition. I also make Node.js programs, autohotkey scripts, bash scripts, powershell scripts, windows registry files, python programs, java programs, shortcuts for the iPhone/iPad shortcuts app, shortcuts for the iPhone/iPad scriptable app, and more.</p>
+        <ul class="horizontal-nav full-sized-nav">
+          <li style="height: 48px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/main/contact.html">Contact</a></li>
+          <li class="active"><a href="/main/about.html">About</a></li>
+          <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
+          <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
+        </ul>
+        <ul class="horizontal-nav compressed-nav">
+          <li style="height: 48px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="/main/contact.html">Contact</a></li>
+          <li class="active"><a href="/main/about.html">About</a></li>
+          <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
+          <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
+        </ul>
+        <div id="nav-sidebar" style="display: none;">
+          <ul class="vertical-nav compressed-nav">
+            <li style="height: 48px; margin-bottom: -10px;"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="/main/contact.html">Contact</a></li>
+            <li class="active"><a href="/main/about.html">About</a></li>
+            <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
+            <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
+          </ul>
         </div>
-      </main>
-    </body>
-  </only_visible_on_themes>
+      </header>
+    </autofill_from_file>
+    <autofill_from_file path="/components/settings_menu.component.js"></autofill_from_file>
+    <main>
+      <div style="margin: auto; text-align: center;
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #00000099;
+      color: #ffffff;">
+        <p>I am a very experienced programmer. I make YouTube videos and Add-Ons for Minecraft Bedrock Edition. I also make Node.js programs, autohotkey scripts, bash scripts, powershell scripts, windows registry files, python programs, java programs, shortcuts for the iPhone/iPad shortcuts app, shortcuts for the iPhone/iPad scriptable app, and more.</p>
+      </div>
+    </main>
+    <footer class="dirt_bg piximg main-footer off-screen">
+      <center>
+        <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
+        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/wiki.8crafter.com/main/', '_blank')">Wiki</button>
+        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/www.8crafter.com/', '_blank')">Old Website</button>
+      </center>
+    </footer>
+    <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
+    <page_background theme_color_bg ontouchstart></page_background>
+  </body>
 </html>
