@@ -129,6 +129,7 @@
     --root-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
     --header-height: 102px;
+    --body-height: 0px;
     --filter_invert: 0;
     --filter_grayscale: 0;
     --filter_sepia: 0;
@@ -273,8 +274,35 @@ autofill_from_file {
 
 card-grid {
 	display: grid;
-	grid-template: max-content;
-    flex-direction: row;
+	/* grid-template: max-content; */
+    /* flex-direction: row; */
+    column-gap: 1em;
+    grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
+    row-gap: 1em;
+}
+
+page_background {
+    position: fixed;
+    z-index: -99999999;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+page_background[theme_color_bg] {
+
+    background-color: var(---theme-var-switcher--html-bg-color);
+    color: var(---theme-var-switcher--root-text-color)
+}
+
+footer.main-footer {
+    bottom: calc(100% - var(--body-height));
+    left: 0;
+    right: 0;
+    position: absolute;
 }
 
 .header {
@@ -290,6 +318,12 @@ card-grid {
 
 .piximg {
     image-rendering: pixelated;
+}
+
+.dirt_bg {
+    background-image: url("/assets/images/ui/backgrounds/dirt.png");
+    image-rendering: pixelated;
+    background-repeat: repeat;
 }
 
 ul:not(:not(.vertical-nav)) {

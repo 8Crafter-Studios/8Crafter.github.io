@@ -259,23 +259,23 @@
         <!--<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
         <button ontouchstart type="button" disabled="true" class="btn no-remove-disabled nsel" id="disabled-button">Disabled Button</button>
 				<br>-->
-				<card-list style="width: 90%;">
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: 200px; aspect-ratio: 1;">
+				<card-grid style="width: 90%;">
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: auto;">
 						<b>Add-Ons</b>
 						<br>
 						<image src="/assets/images/ui/add-ons.png">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: 200px; aspect-ratio: 1;">
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;">
 						<b>Node.js Programs</b>
 						<br>
 						<image src="/assets/images/ui/nodejs.png">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: 200px; aspect-ratio: 1;">
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;">
 						<b>Windows Registry Files</b>
 						<br>
 						<image src="/assets/images/ui/windows_registry.png">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: 200px; aspect-ratio: 1;">
+					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;">
 						<b>iPhone/iPad Shortcuts</b>
 						<br>
 						<image src="/assets/images/ui/apple_shortcuts_app.png">
@@ -283,5 +283,16 @@
 				</card-grid>
       </center>
     </main>
+    <br>
+    <br>
+    <br>
+    <footer class="dirt_bg piximg main-footer">
+      <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
+      a
+      <br>
+      j
+    </footer>
   </body>
+  <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
+  <page_background theme_color_bg ontouchstart></page_background>
 </html>
