@@ -321,7 +321,7 @@ footer.main-footer {
 }
 
 .dirt_bg {
-    background-image: url("/assets/images/ui/backgrounds/dirt.png");
+    background-image: url("/assets/images/ui/backgrounds/dirt.svg");
     image-rendering: pixelated;
     background-repeat: repeat;
 }
