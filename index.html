@@ -266,19 +266,19 @@
             <br>
 						<image src="/assets/images/ui/icons/add-ons.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')">
+					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')">
 						<b>NodeJS Programs</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/NodeJS.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')">
+					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')">
 						<b>Windows Registry Files</b>
 						<br>
             <br>
 						<image src="/assets/images/ui/icons/Regedit-Icon-Big-256.png" style="width: 90%;" class="piximg nsel ndrg">
 					</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')">
+					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')">
 						<b>iPhone/iPad Shortcuts</b>
 						<br>
             <br>
@@ -287,14 +287,14 @@
 				</card-grid>
       </center>
     </main>
-    <br>
-    <br>
+    <div style="height: var(--footer-height)"></div>
     <br>
     <footer class="dirt_bg piximg main-footer">
-      <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
-      a
-      <br>
-      j
+      <center>
+        <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
+        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/wiki.8crafter.com/main/', '_blank')">Wiki</button>
+        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/www.8crafter.com/', '_blank')">Old Website</button>
+      </center>
     </footer>
   </body>
   <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->

@@ -180,6 +180,12 @@ $(async function onDocumentLoad(){
         // console.log($(event[0].target).height(), rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()))
     });
     resizeObserverB.observe($('body').get(0));
+    const resizeObserverC = new ResizeObserver(event => {
+        const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"));
+        rule.style.cssText = rule.style.cssText.replace(/(?<=--footer-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()+20);
+        // console.log($(event[0].target).height(), rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()))
+    });
+    resizeObserverC.observe($('footer.main-footer').get(0));
     globalThis.colorScheme=Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)")??0);
     if(colorScheme==0){
         changeThemeCSS("auto");

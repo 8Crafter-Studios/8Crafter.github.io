@@ -130,6 +130,7 @@
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
     --header-height: 102px;
     --body-height: 0px;
+    --footer-height: 52px;
     --filter_invert: 0;
     --filter_grayscale: 0;
     --filter_sepia: 0;
@@ -303,6 +304,7 @@ footer.main-footer {
     left: 0;
     right: 0;
     position: absolute;
+    padding: 10px;
 }
 
 .header {
