@@ -208,7 +208,7 @@
         bottom: 16px; left: 16px;
         z-index: 1; width: 128px;
         height: calc(100% - 32px);
-        overflow: scroll;
+        overflow: auto;
         display: flex;
         flex-direction: column-reverse;" id="link_button_list" onload="this.scrollTop = this.scrollHeight; $(this).scrollTop($(this)[0].scrollHeight);">
           <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/about:blank', '_blank')">
@@ -263,22 +263,26 @@
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: auto;">
 						<b>Add-Ons</b>
 						<br>
-						<image src="/assets/images/ui/add-ons.png">
+            <br>
+						<image src="/assets/images/ui/icons/add-ons.png" style="width: 90%;" class="piximg" onclick="window.open('https:/\/wiki.8crafter.com/main/add-ons/add-ons', '_self')">
 					</button>
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;">
 						<b>Node.js Programs</b>
 						<br>
-						<image src="/assets/images/ui/nodejs.png">
+            <br>
+						<image src="/assets/images/ui/icons/NodeJS.png" style="width: 90%;" class="piximg" onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')">
 					</button>
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;">
 						<b>Windows Registry Files</b>
 						<br>
-						<image src="/assets/images/ui/windows_registry.png">
+            <br>
+						<image src="/assets/images/ui/icons/Regedit-Icon-Big-256.png" style="width: 90%;" class="piximg" onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')">
 					</button>
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;">
 						<b>iPhone/iPad Shortcuts</b>
 						<br>
-						<image src="/assets/images/ui/apple_shortcuts_app.png">
+            <br>
+						<image src="/assets/images/ui/icons/apple_shortcuts.png" style="width: 90%;" class="piximg" onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')">
 					</button>
 				</card-grid>
       </center>
