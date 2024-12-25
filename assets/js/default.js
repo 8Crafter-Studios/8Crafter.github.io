@@ -158,16 +158,30 @@ function changeThemeCSS(theme){
     }
 }
 $(async function onDocumentLoad(){
+    // console.log(1)
     const autofill_from_file_elements = document.getElementsByTagName('autofill_from_file');
     const autofill_from_file_elements_fill_promises = [];
     for(let i = 0; i < autofill_from_file_elements.length; i++){
         let v = autofill_from_file_elements.item(i);
         const path = $(v).attr('path');
+        // console.log(1.1)
         autofill_from_file_elements_fill_promises.push((async()=>{
             v.outerHTML = path.endsWith(".js")?(await import(path)).default(...JSON.parse($(v).attr("params")??"[]")):await (await fetch(new Request(path))).text()
+            // console.log(1.2)
         })());
+        // console.log(1.3)
     }
-    for await(let r of autofill_from_file_elements_fill_promises){}
+    for await(let r of autofill_from_file_elements_fill_promises){
+        // console.log(1.4)
+    }
+    // console.log(1.5)
+    if(new URLSearchParams(window.location.search).get('hide_under_construction_alert')=='true'){
+        try{
+            $("#under_construction_alert")[0].style.display='none';
+        }catch(e){
+            console.error(e, e.stack)
+        }
+    };
     try{
         const resizeObserver = new ResizeObserver(event => {
             const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"));
@@ -306,5 +320,20 @@ $(async function onDocumentLoad(){
 		$('#save_zoom_change').click(()=>{
 			saveSetting("zoom", $('#zoom_text_box').val()+"%");
 		});
-    $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
+    // $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
+
+    // all <a> tags containing a certain rel=""
+    // source: https://stackoverflow.com/a/15579157/16872762
+    $("a[rel~='keep-params']").click(function(e) {
+        e.preventDefault();
+
+        var params = window.location.search,
+            dest = $(this).attr('href') + params;
+
+        // in my experience, a short timeout has helped overcome browser bugs
+        window.setTimeout(function() {
+            window.location.href = dest;
+        }, 100);
+    });
+
 });

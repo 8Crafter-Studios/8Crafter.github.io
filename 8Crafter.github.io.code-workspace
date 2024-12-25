@@ -4,5 +4,10 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"[html]": {
+			"editor.defaultFormatter": "esbenp.prettier-vscode",
+			"prettier.printWidth": 160
+		}
+	}
 }

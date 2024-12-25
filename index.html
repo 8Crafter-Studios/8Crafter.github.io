@@ -1,323 +1,662 @@
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <meta name="keywords" content="8Crafter, YouTube, Minecraft, MCBE, MCPE, MCEE">
-    <meta name="theme-color" content="#87ceeb">
-    <meta name="msapplication-TileColor" content="#87ceeb">
-    <meta name="color-scheme" content="dark light">
-    <meta name="application-name" content="Node.js">
-    <meta name="creator" content="Andersen Zahn">
-    <meta name="author" content="Andersen Zahn">
-    <meta property="og:locale" content="en_US">
-    <meta name="description" content="This is the website for the YouTuber and MCBE Add-On creator 8Crafter.">
-    <meta name="robots" content="all">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta name="keywords" content="8Crafter, YouTube, Minecraft, MCBE, MCPE, MCEE" />
+        <meta name="theme-color" content="#87ceeb" />
+        <meta name="msapplication-TileColor" content="#87ceeb" />
+        <meta name="color-scheme" content="dark light" />
+        <meta name="application-name" content="Node.js" />
+        <meta name="creator" content="Andersen Zahn" />
+        <meta name="author" content="Andersen Zahn" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="description" content="This is the website for the YouTuber and MCBE Add-On creator 8Crafter." />
+        <meta name="robots" content="all" />
 
-    <!--<link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off.png">-->
-    <!--<link rel="prefetch" href="./assets/images/ui/textboxes/edit_box_indent.png">-->
-    <link rel="preload" as="image" href="./assets/images/ui/textboxes/edit_box_indent.png">
-    <link rel="preload" as="image" href="./assets/images/ui/textboxes/edit_box_indent_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/backgrounds/menubackground.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_dark.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkhover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkpressed.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkpressednohover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lighthover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lightpressed.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lightpressednohover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_default.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png">
-    <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_pressed.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_check.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_check_locked.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_checkDisabled.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_checkHover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled_disabled.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_space.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_space_locked.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_spaceDisabled.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_spaceHover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkboxUnFilled.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/copy.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/ErrorGlyph.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/infobulb.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_2x.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_color_2x.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_color_2x_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/storageIconColor.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/UpdateGlyph.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/upload.png">
-    <link rel="preload" as="image" href="./assets/images/ui/glyphs/WarningGlyph.png">
-    <link rel="preload" as="image" href="./assets/images/ui/navigation/menu_threebars.png">
-    <link rel="preload" as="image" href="./assets/images/ui/radio/radio_off.png">
-    <link rel="preload" as="image" href="./assets/images/ui/radio/radio_off_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/radio/radio_on.png">
-    <link rel="preload" as="image" href="./assets/images/ui/radio/radio_on_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off.png">
-    <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_on.png">
-    <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_on_hover.png">
-    <link rel="preload" as="image" href="./assets/images/ui/misc/missing_texture.png">
-    <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_background.png">
-    <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_chevron.png">
-    <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_chevron_up.png">
-    <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropDownHoverBG.png">
-    <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropDownSelectBG.png">
+        <!--<link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off.png">-->
+        <!--<link rel="prefetch" href="./assets/images/ui/textboxes/edit_box_indent.png">-->
+        <link rel="preload" as="image" href="./assets/images/ui/textboxes/edit_box_indent.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/textboxes/edit_box_indent_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/backgrounds/menubackground.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_dark.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkhover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkpressed.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_darkpressednohover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lighthover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lightpressed.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_lightpressednohover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_default.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/buttons/button_borderless_light_blue_pressed.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_check.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_check_locked.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_checkDisabled.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_checkHover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled_disabled.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_filled_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_space.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_space_locked.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_spaceDisabled.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkbox_spaceHover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/checkbox/checkboxUnFilled.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/copy.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/ErrorGlyph.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/infobulb.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_2x.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_color_2x.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/settings_glyph_color_2x_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/storageIconColor.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/UpdateGlyph.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/upload.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/glyphs/WarningGlyph.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/navigation/menu_threebars.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/radio/radio_off.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/radio/radio_off_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/radio/radio_on.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/radio/radio_on_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_off_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_on.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/toggle/toggle_on_hover.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/misc/missing_texture.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_background.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_chevron.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropdown_chevron_up.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropDownHoverBG.png" />
+        <link rel="preload" as="image" href="./assets/images/ui/dropdown/dropDownSelectBG.png" />
 
-    <script src="./assets/js/jquery.min.js"></script>
-    <script src="./assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
-    <script src="./assets/js/default.js"></script>
-    <script src="./assets/js/JSONB.js" type="module"></script>
+        <script src="./assets/js/jquery.min.js"></script>
+        <script src="./assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
+        <script src="./assets/js/default.js"></script>
+        <script src="./assets/js/dir_specific/index.js"></script>
+        <script src="./assets/js/JSONB.js" type="module"></script>
 
-    <link href="./assets/css/default.css" rel="stylesheet"><!--
+        <link href="./assets/css/default.css" rel="stylesheet" />
+        <!--
     <link href="/assets/css/home.css" rel="stylesheet">-->
 
-    <title>8Crafter's Website</title>
-  </head>
-  <body>
-    <header class="header" style="position: fixed; width: 100%">
-      <noscript>
-        <div class="alert warning">
-          <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-          This website requires JavaScript to function, please allow JavaScript on this website.
-        </div>
-      </noscript>
-      <div class="alert">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        This website is currently under construction.
-      </div>
-      <ul class="horizontal-nav full-sized-nav">
-        <li style="height: 48px; margin-bottom: -5px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
-        <li class="active"><a href="/index.html">Home</a></li>
-        <li><a href="/main/contact.html">Contact</a></li>
-        <li><a href="/main/about.html">About</a></li>
-        <li><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
-        <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
-      </ul>
-      <ul class="horizontal-nav compressed-nav">
-        <li style="float:left; cursor:pointer;"><a onclick="$('#nav-sidebar').toggle('slide')" style="vertical-align: middle; padding: 0px; height:44px; width:44px;"><div class="menu_threebars_button" title="Menu" style="width: 30px; height: 30px;"></div></a></li>
-        <li style="height: 44px; margin-bottom: 0px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding: 4px 7px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
-      </ul>
-      <div id="nav-sidebar" class="blur_behind_5px" style="display: none;">
-        <ul class="vertical-nav compressed-nav" style="background-color: unset;">
-          <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
-          <li class="active"><a href="/index.html">Home</a></li>
-          <li><a href="/main/contact.html">Contact</a></li>
-          <li><a href="/main/about.html">About</a></li>
-          <li><a href="https://wiki.8crafter.com/main/">Wiki<inlinecontainer class="nav-image-invert-on-button-hover"><image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 7.5px 0px; filter: invert(1);"></image></inlinecontainer></a></li>
-          <li style="cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
-        </ul>
-      </div>
-    </header>
-    <div id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none;">
-      <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5;"></div>
-      <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
-        <button type="button" onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}" class="btn nsel" style="float: left; width: 60px" id="settings_left_sidebar_toggle_button" ontouchstart="" mode="1">Hide</button>
-      </div>
-      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc; ">
-        <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available;">
-          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video" checked>
-          <div class="no-remove-disabled nsel">Video</div>
-        </label>
-        <label ontouchstart="" for="settings_section_radio_test" class="radio_button_container_label" style="width: -webkit-fill-available;">
-          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_test" title="test">
-          <div class="no-remove-disabled nsel">Test</div>
-        </label>
-      </div>
-      <settings_section id="video_settings_section" class="settings_section">
-        <center><h1>Video Settings</h1></center>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
-          <input type="checkbox" id="use_noto_sans_font" name="use_noto_sans_font" value="Use Noto Sans Font" class="mctoggle" title="use_noto_sans_font">
-          <div class="mctoggleswitch"></div>
-          <label>Use Noto Sans Font</label>
-        </div>
-        <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
-          <input type="checkbox" id="filter_invert_enabled" name="filter_invert_enabled" value="Invert Colors" class="mctoggle" title="filter_invert_enabled">
-          <div class="mctoggleswitch"></div>
-          <label>Invert Colors</label>
-        </div>
-        <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
-          <input type="checkbox" id="filter_grayscale_enabled" name="filter_grayscale_enabled" value="Grayscale" class="mctoggle" title="filter_grayscale_enabled">
-          <div class="mctoggleswitch"></div>
-          <label>Grayscale</label>
-        </div>
-        <br>
-        <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
-          <input type="checkbox" id="filter_sepia_enabled" name="filter_sepia_enabled" value="Sepia Filter" class="mctoggle" title="filter_sepia_enabled">
-          <div class="mctoggleswitch"></div>
-          <label>Sepia Filter</label>
-        </div>
-        <br>
-        <mcslider>
-          <label for="hue_rotate_deg_slider">Hue Rotate Degrees: 0deg</label>
-          <br>
-          <input id="hue_rotate_deg_slider" name="hue_rotate_deg_slider" type="range" min="0" max="360" step="1" value="1" oninput="let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Degrees: )\d+(?:\.\d+)?(?=deg)/, $(this).val()))">
-        </mcslider>
-        <br>
-        <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
-          Theme
-          <br>
-          <button id="dropdownbutton" class="btn" type="button" ontouchstart="" style="min-width: 140px; text-align: left;" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
-            <span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span>
-            <div style="width: 11px; height: 11px; margin: 0px; padding: 0px; display: inline-block;"></div>
-            <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute">
-            <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute" hidden>
-          </button>
-          <div id="dropdowncontents" hidden style="display: flex;">
-            <div style="flex-grow: 1; width: 0;">
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="auto" id="themeDropdownAutoOptionLabel">Auto</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="dark">Dark</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="light">Light</label>
-              </div>
-              <div class="mcdropdownoption themeDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\'radio\']').prop('checked', true)">
-                <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio themeDropdownOptionInput">
-                <div class="mcradiocheckbox"></div>
-                <label for="BlueTheme">Blue</label>
-              </div>
+        <title>8Crafter's Website</title>
+    </head>
+    <body>
+        <header class="header" style="position: fixed; width: 100%">
+            <noscript>
+                <div id="noscript_alert" class="alert warning">
+                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    This website requires JavaScript to function, please allow JavaScript on this website.
+                </div>
+            </noscript>
+            <div id="under_construction_alert" class="alert">
+                <span
+                    class="closebtn"
+                    onclick="this.parentElement.style.display='none'; {const urlParams = new URLSearchParams(window.location.search); urlParams.set('hide_under_construction_alert', 'true'); window.history.pushState({ id: '100' }, 'Page', urlParams);}"
+                    >&times;</span
+                >
+                This website is currently under construction.
             </div>
-          </div>
+            <ul class="horizontal-nav full-sized-nav">
+                <li style="height: 48px; margin-bottom: -5px" class="NavLink_8Crafter">
+                    <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                        ><image
+                            title="8Crafter"
+                            src="/favicon.ico"
+                            width="32px"
+                            height="32px"
+                            class="piximg"
+                            style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                        ></image
+                        ><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial"
+                            >8Crafter</span
+                        ></a
+                    >
+                </li>
+                <li class="active"><a href="/index.html" rel="keep-params">Home</a></li>
+                <li><a href="/main/contact.html" rel="keep-params">Contact</a></li>
+                <li><a href="/main/about.html" rel="keep-params">About</a></li>
+                <li>
+                    <a href="https://wiki.8crafter.com/main/"
+                        >Wiki<image
+                            src="/assets/images/ui/glyphs/external_link.png"
+                            style="
+                                width: 17px;
+                                height: 17px;
+                                margin: -10px -10px -10px 5px;
+                                image-rendering: pixelated;
+                                vertical-align: middle;
+                                padding: 9.5px 0px;
+                            "
+                        ></image
+                    ></a>
+                </li>
+                <li style="float: right; cursor: pointer">
+                    <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle"
+                        ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
+                        Settings</a
+                    >
+                </li>
+            </ul>
+            <ul class="horizontal-nav compressed-nav">
+                <li style="float: left; cursor: pointer">
+                    <a onclick="$('#nav-sidebar').toggle('slide')" style="vertical-align: middle; padding: 0px; height: 44px; width: 44px"
+                        ><div class="menu_threebars_button" title="Menu" style="width: 30px; height: 30px"></div
+                    ></a>
+                </li>
+                <li style="height: 44px; margin-bottom: 0px" class="NavLink_8Crafter">
+                    <a href="https://youtube.com/@8crafter" style="padding: 4px 7px"
+                        ><image
+                            title="8Crafter"
+                            src="/favicon.ico"
+                            width="32px"
+                            height="32px"
+                            class="piximg"
+                            style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                        ></image
+                        ><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial"
+                            >8Crafter</span
+                        ></a
+                    >
+                </li>
+            </ul>
+            <div id="nav-sidebar" class="blur_behind_5px" style="display: none">
+                <ul class="vertical-nav compressed-nav" style="background-color: unset">
+                    <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
+                    <li class="active"><a href="/index.html" rel="keep-params">Home</a></li>
+                    <li><a href="/main/contact.html" rel="keep-params">Contact</a></li>
+                    <li><a href="/main/about.html" rel="keep-params">About</a></li>
+                    <li>
+                        <a href="https://wiki.8crafter.com/main/"
+                            >Wiki<inlinecontainer class="nav-image-invert-on-button-hover"
+                                ><image
+                                    src="/assets/images/ui/glyphs/external_link.png"
+                                    style="
+                                        width: 17px;
+                                        height: 17px;
+                                        margin: -10px -10px -10px 5px;
+                                        image-rendering: pixelated;
+                                        vertical-align: middle;
+                                        padding: 7.5px 0px;
+                                        filter: invert(1);
+                                    "
+                                ></image></inlinecontainer
+                        ></a>
+                    </li>
+                    <li style="cursor: pointer">
+                        <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle"
+                            ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
+                            Settings</a
+                        >
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <div id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none">
+            <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5"></div>
+            <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
+                <button
+                    type="button"
+                    onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}"
+                    class="btn nsel"
+                    style="float: left; width: 60px"
+                    id="settings_left_sidebar_toggle_button"
+                    ontouchstart=""
+                    mode="1"
+                >
+                    Hide
+                </button>
+            </div>
+            <div
+                id="settings_left_sidebar"
+                class="no_margins"
+                style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc"
+            >
+                <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available">
+                    <input
+                        type="radio"
+                        name="settings_section"
+                        style="display: none"
+                        class="no-remove-disabled nsel"
+                        id="settings_section_radio_video"
+                        title="Video"
+                        checked
+                    />
+                    <div class="no-remove-disabled nsel">Video</div>
+                </label>
+                <label ontouchstart="" for="settings_section_radio_test" class="radio_button_container_label" style="width: -webkit-fill-available">
+                    <input
+                        type="radio"
+                        name="settings_section"
+                        style="display: none"
+                        class="no-remove-disabled nsel"
+                        id="settings_section_radio_test"
+                        title="test"
+                    />
+                    <div class="no-remove-disabled nsel">Test</div>
+                </label>
+            </div>
+            <settings_section id="video_settings_section" class="settings_section">
+                <center><h1>Video Settings</h1></center>
+                <div
+                    class="mctogglecontainer nsel"
+                    ontouchstart=""
+                    onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                    style="display: inline-block"
+                >
+                    <input
+                        type="checkbox"
+                        id="use_noto_sans_font"
+                        name="use_noto_sans_font"
+                        value="Use Noto Sans Font"
+                        class="mctoggle"
+                        title="use_noto_sans_font"
+                    />
+                    <div class="mctoggleswitch"></div>
+                    <label>Use Noto Sans Font</label>
+                </div>
+                <br />
+                <div
+                    class="mctogglecontainer nsel"
+                    ontouchstart=""
+                    onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                    style="display: inline-block"
+                >
+                    <input
+                        type="checkbox"
+                        id="filter_invert_enabled"
+                        name="filter_invert_enabled"
+                        value="Invert Colors"
+                        class="mctoggle"
+                        title="filter_invert_enabled"
+                    />
+                    <div class="mctoggleswitch"></div>
+                    <label>Invert Colors</label>
+                </div>
+                <br />
+                <div
+                    class="mctogglecontainer nsel"
+                    ontouchstart=""
+                    onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                    style="display: inline-block"
+                >
+                    <input
+                        type="checkbox"
+                        id="filter_grayscale_enabled"
+                        name="filter_grayscale_enabled"
+                        value="Grayscale"
+                        class="mctoggle"
+                        title="filter_grayscale_enabled"
+                    />
+                    <div class="mctoggleswitch"></div>
+                    <label>Grayscale</label>
+                </div>
+                <br />
+                <div
+                    class="mctogglecontainer nsel"
+                    ontouchstart=""
+                    onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                    style="display: inline-block"
+                >
+                    <input
+                        type="checkbox"
+                        id="filter_sepia_enabled"
+                        name="filter_sepia_enabled"
+                        value="Sepia Filter"
+                        class="mctoggle"
+                        title="filter_sepia_enabled"
+                    />
+                    <div class="mctoggleswitch"></div>
+                    <label>Sepia Filter</label>
+                </div>
+                <br />
+                <mcslider>
+                    <label for="hue_rotate_deg_slider">Hue Rotate Degrees: 0deg</label>
+                    <br />
+                    <input
+                        id="hue_rotate_deg_slider"
+                        name="hue_rotate_deg_slider"
+                        type="range"
+                        min="0"
+                        max="360"
+                        step="1"
+                        value="1"
+                        oninput="{let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Degrees: )\d+(?:\.\d+)?(?=deg)/, $(this).val()))}"
+                    />
+                </mcslider>
+                <br />
+                <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
+                    Theme
+                    <br />
+                    <button
+                        id="dropdownbutton"
+                        class="btn"
+                        type="button"
+                        ontouchstart=""
+                        style="min-width: 140px; text-align: left"
+                        onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}"
+                    >
+                        <span id="themeDropdownButtonSelectedOptionTextDisplay">Auto</span>
+                        <div style="width: 11px; height: 11px; margin: 0px; padding: 0px; display: inline-block"></div>
+                        <img
+                            id="cv"
+                            src="/assets/images/ui/dropdown/dropdown_chevron.png"
+                            inert
+                            class="nsel"
+                            style="right: 7px; top: 10px; position: absolute"
+                        />
+                        <img
+                            id="cvsel"
+                            src="/assets/images/ui/dropdown/dropdown_chevron_up.png"
+                            inert
+                            class="nsel"
+                            style="right: 7px; top: 10px; position: absolute"
+                            hidden
+                        />
+                    </button>
+                    <div id="dropdowncontents" hidden style="display: flex">
+                        <div style="flex-grow: 1; width: 0">
+                            <div
+                                class="mcdropdownoption themeDropdownOption"
+                                ontouchstart=""
+                                onclick="$(this).find('input[type=\'radio\']').prop('checked', true)"
+                            >
+                                <input type="radio" id="auto" name="themeDropdown" value="auto" class="mcradio themeDropdownOptionInput" />
+                                <div class="mcradiocheckbox"></div>
+                                <label for="auto" id="themeDropdownAutoOptionLabel">Auto</label>
+                            </div>
+                            <div
+                                class="mcdropdownoption themeDropdownOption"
+                                ontouchstart=""
+                                onclick="$(this).find('input[type=\'radio\']').prop('checked', true)"
+                            >
+                                <input type="radio" id="dark" name="themeDropdown" value="dark" class="mcradio themeDropdownOptionInput" />
+                                <div class="mcradiocheckbox"></div>
+                                <label for="dark">Dark</label>
+                            </div>
+                            <div
+                                class="mcdropdownoption themeDropdownOption"
+                                ontouchstart=""
+                                onclick="$(this).find('input[type=\'radio\']').prop('checked', true)"
+                            >
+                                <input type="radio" id="light" name="themeDropdown" value="light" class="mcradio themeDropdownOptionInput" />
+                                <div class="mcradiocheckbox"></div>
+                                <label for="light">Light</label>
+                            </div>
+                            <div
+                                class="mcdropdownoption themeDropdownOption"
+                                ontouchstart=""
+                                onclick="$(this).find('input[type=\'radio\']').prop('checked', true)"
+                            >
+                                <input type="radio" id="BlueTheme" name="themeDropdown" value="BlueTheme" class="mcradio themeDropdownOptionInput" />
+                                <div class="mcradiocheckbox"></div>
+                                <label for="BlueTheme">Blue</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="zoom_text_box">Zoom %</label>
+                    </div>
+                    <div class="form-group-body">
+                        <input
+                            type="number"
+                            id="zoom_text_box"
+                            name="zoom_text_box"
+                            value="100"
+                            placeholder="100"
+                            class="form-control"
+                            ontouchstart
+                            onchange="$(this).val($(this).val().replaceAll(/[^0-9\.\-]/g, ''))"
+                        />
+                    </div>
+                    <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="confirm_zoom_change">Confirm Zoom Change</button>
+                    <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="save_zoom_change">Save Zoom Change</button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="reset_zoom"
+                        onclick="$('#zoom_text_box').val('100'); $('#confirm_zoom_change').click(); $('#save_zoom_change').click()"
+                    >
+                        Reset Zoom
+                    </button>
+                </div>
+            </settings_section>
         </div>
-				<div class="form-group">
-          <div class="form-group-header">
-            <label for="zoom_text_box">Zoom %</label>
-          </div>
-          <div class="form-group-body">
-            <input type="number" id="zoom_text_box" name="zoom_text_box" value="100" placeholder="100"
-              class="form-control" ontouchstart onchange="$(this).val($(this).val().replaceAll(/[^0-9\.\-]/g, ''))">
-          </div>
-        	<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="confirm_zoom_change">Confirm Zoom Change</button>
-        	<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="save_zoom_change">Save Zoom Change</button>
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="reset_zoom" onclick="$('#zoom_text_box').val('100'); $('#confirm_zoom_change').click(); $('#save_zoom_change').click()">Reset Zoom</button>
-        </div>
-      </settings_section>
-    </div>
-    <main>
-      <banner style="position: relative;
-      text-align: center;">
-        <center style="z-index: 1;
-        width: 100%;
-        position: absolute;
-        top: 70%;
-        left: 50%;
-        transform: translate(-50%, -50%);">
-          <!-- <h1 style="font-size: 4em;">Home</h1> -->
-        </center>
-        <div style="position: absolute;
-        bottom: 16px; left: 16px;
-        z-index: 1; width: 128px;
-        height: calc(100% - 32px);
-        overflow: auto;
-        display: flex;
-        flex-direction: column-reverse;" id="link_button_list" onload="this.scrollTop = this.scrollHeight; $(this).scrollTop($(this)[0].scrollHeight);">
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/about:blank', '_blank')">
-            <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            ????????
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id=_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/about:blank', '_blank')">
-            <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            ????????
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/mcpedl.com/user/8crafter/', '_blank')">
-            <img src="/assets/images/ui/icons/mcpedl.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            MCPEDL
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/discord.gg/jrCTeHGuhx', '_blank')">
-            <img src="/assets/images/ui/icons/discord-icon-512x512-xtx725no.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            Discord
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id=_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/github.com/Andexter8', '_blank')">
-            <img src="/assets/images/ui/icons/25231.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            GitHub
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/www.paypal.com/paypalme/8Crafter', '_blank')">
-            <img src="/assets/images/ui/icons/paypal.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            PayPal
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="patreon_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')">
-            <img src="/assets/images/ui/icons/patreon_favicon-32.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            Patreon
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="modbay_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px" onclick="window.open('https:/\/modbay.org/user/8crafter/', '_blank')">
-            <img src="/assets/images/ui/icons/modbay_apple-touch-icon-180x180.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            Modbay
-          </button>
-          <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="youtube_link" style="margin-top: 5px; width: 128px; text-align: left; height: 32px;" onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')">
-            <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px;">
-            YouTube
-          </button>
-        </div>
-        <only_visible_on_themes dark style="z-index: 0; position: relative">
-          <object type="image/svg+xml" data="/assets/images/wallpapers/background sunset 1 animated logo.svg" style="z-index: 0; position: relative; -webkit-user-drag: none;"></object>
-        </only_visible_on_themes>
-        <only_visible_on_themes light blue style="z-index: 0; position: relative">
-          <object type="image/svg+xml" data="/assets/images/wallpapers/background winter 1 animated logo.svg" style="z-index: 0; position: relative; -webkit-user-drag: none;"></object>
-        </only_visible_on_themes>
-      </banner>
-      <center>
-        <!--<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
+        <main>
+            <banner style="position: relative; text-align: center">
+                <center style="z-index: 1; width: 100%; position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%)">
+                    <!-- <h1 style="font-size: 4em;">Home</h1> -->
+                </center>
+                <div
+                    style="
+                        position: absolute;
+                        bottom: 16px;
+                        left: 16px;
+                        z-index: 1;
+                        width: 128px;
+                        height: calc(100% - 32px);
+                        overflow: auto;
+                        display: flex;
+                        flex-direction: column-reverse;
+                    "
+                    id="link_button_list"
+                    onload="this.scrollTop = this.scrollHeight; $(this).scrollTop($(this)[0].scrollHeight);"
+                >
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/about:blank', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        ????????
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/about:blank', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        ????????
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/mcpedl.com/user/8crafter/', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/mcpedl.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        MCPEDL
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/discord.gg/jrCTeHGuhx', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/discord-icon-512x512-xtx725no.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        Discord
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/github.com/Andexter8', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/25231.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        GitHub
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/www.paypal.com/paypalme/8Crafter', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/paypal.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        PayPal
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="patreon_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/patreon_favicon-32.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        Patreon
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="modbay_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/modbay.org/user/8crafter/', '_blank')"
+                    >
+                        <img
+                            src="/assets/images/ui/icons/modbay_apple-touch-icon-180x180.png"
+                            style="height: 25px; vertical-align: text-top; margin: -5px 0px"
+                        />
+                        Modbay
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="youtube_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/www.youtube.com/@8crafter', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/youtube_colored_28dp.png" style="height: 25px; vertical-align: text-top; margin: -5px 0px" />
+                        YouTube
+                    </button>
+                </div>
+                <only_visible_on_themes dark style="z-index: 0; position: relative">
+                    <object
+                        type="image/svg+xml"
+                        data="/assets/images/wallpapers/background sunset 1 animated logo.svg"
+                        style="z-index: 0; position: relative; -webkit-user-drag: none"
+                    ></object>
+                </only_visible_on_themes>
+                <only_visible_on_themes light blue style="z-index: 0; position: relative">
+                    <object
+                        type="image/svg+xml"
+                        data="/assets/images/wallpapers/background winter 1 animated logo.svg"
+                        style="z-index: 0; position: relative; -webkit-user-drag: none"
+                    ></object>
+                </only_visible_on_themes>
+            </banner>
+            <center>
+                <!--<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="test_button">Test Button</button>
         <button ontouchstart type="button" disabled="true" class="btn no-remove-disabled nsel" id="disabled-button">Disabled Button</button>
 				<br>-->
-				<card-grid type1 style="width: 90%;">
-					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="add-ons_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/add-ons/add-ons', '_self')">
-						<b style="text-wrap: auto;">Add-Ons</b>
-						<br>
-            <br>
-						<image src="/assets/images/ui/icons/add-ons.png" style="width: 90%;" class="piximg nsel ndrg">
-					</button>
-					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="NodeJS_apps_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')">
-						<b style="text-wrap: auto;">NodeJS Programs</b>
-						<br>
-            <br>
-						<image src="/assets/images/ui/icons/NodeJS.png" style="width: 90%;" class="piximg nsel ndrg">
-					</button>
-					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="windows_registry_files_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')">
-						<b style="text-wrap: auto;">Windows Registry Files</b>
-						<br>
-            <br>
-						<image src="/assets/images/ui/icons/Regedit-Icon-Big-256.png" style="width: 90%;" class="piximg nsel ndrg">
-					</button>
-					<button ontouchstart type="button" disabled class="btn no-remove-disabled nsel" id="apple_shortcuts_button" style="width: auto;" onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')">
-						<b style="text-wrap: auto;">iPhone/iPad Shortcuts</b>
-						<br>
-            <br>
-						<image src="/assets/images/ui/icons/apple_shortcuts.png" style="width: 90%;" class="piximg nsel ndrg">
-					</button>
-				</card-grid>
-      </center>
-    </main>
-    <div style="height: var(--footer-height)"></div>
-    <br>
-    <footer class="dirt_bg piximg main-footer">
-      <center>
-        <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
-        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/wiki.8crafter.com/main/', '_blank')">Wiki</button>
-        <button ontouchstart type="button" class="btn no-remove-disabled nsel" id="wiki_button" onclick="window.open('https:/\/www.8crafter.com/', '_blank')">Old Website</button>
-      </center>
-    </footer>
-    <div id="css_variable_getters" style="display: none;">
-      <!-- window.getComputedStyle($("test1a")[0]).getPropertyValue('width') -->
-      <test1a></test1a>
-      <!-- window.getComputedStyle($("test1b")[0]).getPropertyValue('width') -->
-      <test1b></test1b>
-    </div>
-    <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
-    <page_background theme_color_bg ontouchstart></page_background>
-  </body>
+                <card-grid type1 style="width: 90%">
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="add-ons_button"
+                        style="width: auto"
+                        onclick="window.open('https:/\/wiki.8crafter.com/main/add-ons/add-ons', '_self')"
+                    >
+                        <b style="text-wrap: auto">Add-Ons</b>
+                        <br />
+                        <br />
+                        <img src="/assets/images/ui/icons/add-ons.png" style="width: 90%" class="piximg nsel ndrg" />
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        disabled
+                        class="btn no-remove-disabled nsel"
+                        id="NodeJS_apps_button"
+                        style="width: auto"
+                        onclick="window.open('https:/\/wiki.8crafter.com/main/NodeJS_programs/list', '_self')"
+                    >
+                        <b style="text-wrap: auto">NodeJS Programs</b>
+                        <br />
+                        <br />
+                        <img src="/assets/images/ui/icons/NodeJS.png" style="width: 90%" class="piximg nsel ndrg" />
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        disabled
+                        class="btn no-remove-disabled nsel"
+                        id="windows_registry_files_button"
+                        style="width: auto"
+                        onclick="window.open('https:/\/wiki.8crafter.com/main/regedit_files/list', '_self')"
+                    >
+                        <b style="text-wrap: auto">Windows Registry Files</b>
+                        <br />
+                        <br />
+                        <img src="/assets/images/ui/icons/Regedit-Icon-Big-256.png" style="width: 90%" class="piximg nsel ndrg" />
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        disabled
+                        class="btn no-remove-disabled nsel"
+                        id="apple_shortcuts_button"
+                        style="width: auto"
+                        onclick="window.open('https:/\/wiki.8crafter.com/main/apple_shortcuts/list', '_self')"
+                    >
+                        <b style="text-wrap: auto">iPhone/iPad Shortcuts</b>
+                        <br />
+                        <br />
+                        <img src="/assets/images/ui/icons/apple_shortcuts.png" style="width: 90%" class="piximg nsel ndrg" />
+                    </button>
+                </card-grid>
+            </center>
+        </main>
+        <div style="height: var(--footer-height)"></div>
+        <br />
+        <footer class="dirt_bg piximg main-footer">
+            <center>
+                <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
+                <button
+                    ontouchstart
+                    type="button"
+                    class="btn no-remove-disabled nsel"
+                    id="wiki_button"
+                    onclick="window.open('https:/\/wiki.8crafter.com/main/', '_blank')"
+                >
+                    Wiki
+                </button>
+                <button
+                    ontouchstart
+                    type="button"
+                    class="btn no-remove-disabled nsel"
+                    id="wiki_button"
+                    onclick="window.open('https:/\/www.8crafter.com/', '_blank')"
+                >
+                    Old Website
+                </button>
+            </center>
+        </footer>
+        <div id="css_variable_getters" style="display: none">
+            <!-- window.getComputedStyle($("test1a")[0]).getPropertyValue('width') -->
+            <test1a></test1a>
+            <!-- window.getComputedStyle($("test1b")[0]).getPropertyValue('width') -->
+            <test1b></test1b>
+        </div>
+        <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
+        <page_background theme_color_bg ontouchstart></page_background>
+    </body>
 </html>
