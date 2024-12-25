@@ -2,7 +2,8 @@ const SitemapGenerator = require('sitemap-generator');
 
 // create generator
 const generator = SitemapGenerator('https://www.dev.8crafter.com/', {
-  stripQuerystring: false
+  stripQuerystring: false,
+  lastMod: true,
 });
 
 const crawler = generator.getCrawler()
