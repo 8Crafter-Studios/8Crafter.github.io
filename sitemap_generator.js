@@ -8,7 +8,7 @@ const generator = SitemapGenerator('https://www.dev.8crafter.com/', {
 const crawler = generator.getCrawler()
 const sitemap = generator.getSitemap()
 
-sitemap.addURL('https://www.dev.8crafter.com/debug-sticks-add-on/andexdbnbtstructureloader')
+sitemap.addURL('https://www.dev.8crafter.com/debug-sticks-add-on/andexdbnbtstructureloader.html')
 
 generator.on('add', (url) => {
   console.log(url);
