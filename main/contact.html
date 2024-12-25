@@ -90,7 +90,11 @@
                     </div>
                 </noscript>
                 <div id="under_construction_alert" class="alert">
-                    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    <span
+                        class="closebtn"
+                        onclick="this.parentElement.style.display='none'; {const urlParams = new URLSearchParams(window.location.search); urlParams.set('hide_under_construction_alert', 'true'); window.history.pushState({ id: '100' }, 'Page', window.location.pathname + '?' + urlParams.toString());}"
+                        >&times;</span
+                    >
                     This website is currently under construction.
                 </div>
                 <ul class="horizontal-nav">

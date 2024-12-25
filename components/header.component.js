@@ -2,14 +2,18 @@ export default function getComponent(tabIndex = -1){
 	return `
     <header class="header" style="position: fixed; width: 100%">
       <noscript>
-        <div id="noscript_alert" class="alert warning">
-          <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-          This website requires JavaScript to function, please allow JavaScript on this website.
-        </div>
+          <div id="noscript_alert" class="alert warning">
+              <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+              This website requires JavaScript to function, please allow JavaScript on this website.
+          </div>
       </noscript>
       <div id="under_construction_alert" class="alert">
-        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-        This website is currently under construction.
+          <span
+              class="closebtn"
+              onclick="this.parentElement.style.display='none'; {const urlParams = new URLSearchParams(window.location.search); urlParams.set('hide_under_construction_alert', 'true'); window.history.pushState({ id: '100' }, 'Page', window.location.pathname + '?' + urlParams.toString());}"
+              >&times;</span
+          >
+          This website is currently under construction.
       </div>
       <ul class="horizontal-nav full-sized-nav">
         <li style="height: 48px; margin-bottom: -5px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
