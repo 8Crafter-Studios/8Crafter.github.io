@@ -406,7 +406,7 @@ footer.main-footer {
 }
 
 footer.off-screen {
-    top: 100%;
+    top: var(--body-height);
     bottom: unset;
 }
 
