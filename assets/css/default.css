@@ -438,14 +438,25 @@ ul:not(:not(.vertical-nav)) {
     width: 200px;
     background-color: #f1f1f1;
 
-    & > li a {
+    & > li a,
+    & > li button,
+    & > li .navbar-dropdown .navbar-dropbtn {
         display: block;
         color: #000;
         padding: 8px 16px;
         text-decoration: none;
     }
+    & > li .navbar-dropdown .navbar-dropbtn {
+        width: -webkit-fill-available;
+        text-align: left;
+    }
+    & > li .navbar-dropdown .navbar-dropdown-content a:not(.active) {
+        background-color: #0005;
+    }
 
-    & > li a:hover:not(.active) {
+    & > li a:hover:not(.active),
+    & > li .navbar-dropdown:hover .navbar-dropbtn,
+    & > li .navbar-dropdown:hover .navbar-dropdown-content a:hover {
         background-color: #5f838338;
         color: white;
         & > .nav-image-invert-on-button-hover {
@@ -456,13 +467,33 @@ ul:not(:not(.vertical-nav)) {
         }
     }
 
+    & > li a:hover,
+    & > li .navbar-dropdown:hover .navbar-dropbtn {
+        & > [name=cv] {
+            display: none;
+        };
+        & > [name=cvsel] {
+            display: block;
+        };
+    }
+
+    & > li a:not(:hover),
+    & > li .navbar-dropdown:not(:hover) .navbar-dropbtn {
+        & > [name=cv] {
+            display: block;
+        };
+        & > [name=cvsel] {
+            display: none;
+        };
+    }
+
     & > li a:hover {
         & > .settings_button {
             background-image: url("/assets/images/ui/glyphs/settings_glyph_color_2x_hover.png");
         }
     }
 
-    & > .active {
+    .active {
         background-color: #00ffdc38;
         /* color: white; */
     }
@@ -490,8 +521,27 @@ ul:not(:not(.horizontal-nav)) {
         text-decoration: none;
     }
 
-    & > li a:hover:not(.active) {
+    & > li a:hover:not(.active),
+    & > li .navbar-dropdown:hover .navbar-dropbtn,
+    & > li .navbar-dropdown:hover .navbar-dropdown-content a:hover {
         background-color: #111;
+        & > [name=cv] {
+            display: none;
+        };
+        & > [name=cvsel] {
+            display: block;
+        };
+    }
+
+    & > li a:not(:hover):not(.active),
+    & > li .navbar-dropdown:not(:hover) .navbar-dropbtn,
+    & > li .navbar-dropdown:hover .navbar-dropdown-content a:hover {
+        & > [name=cv] {
+            display: block;
+        };
+        & > [name=cvsel] {
+            display: none;
+        };
     }
 
     & > li a:hover {
@@ -500,7 +550,7 @@ ul:not(:not(.horizontal-nav)) {
         }
     }
 
-    & > .active {
+    .active {
         background-color: #04aa6d;
     }
 }
@@ -517,6 +567,62 @@ ul:not(:not(.horizontal-nav)) {
     top: 0px;
     overflow-y: auto;
     background-color: #6b6b6b80;
+}
+
+
+
+.navbar-dropdown {/* 
+    float: left; */
+    overflow: hidden;
+}
+
+.navbar-dropdown .navbar-dropbtn {
+    font-size: 16px;  
+    border: none;
+    outline: none;
+    color: white;/* 
+    padding: 14px 16px; */
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+}
+
+.navbar-dropdown:not(.no_padding_override) .navbar-dropbtn {
+    padding: 14px 16px;
+}
+
+.navbar-dropdown-content {
+    display: none;/* 
+    position: absolute; *//* 
+    background-color: #333; */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.navbar-dropdown-content:not(.no_bg_color_override) {
+    background-color: #333;
+}
+
+.navbar-dropdown-content:not(.no_absolute_display) {
+    position: absolute;
+}
+
+.navbar-dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.navbar-dropdown-content:not(.no_bg_color_override) a:hover {
+    background-color: #ddd;
+}
+
+.navbar-dropdown:hover .navbar-dropdown-content {
+    display: block;
 }
 
 .overlay_page {

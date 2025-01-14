@@ -20,7 +20,33 @@ export default function getComponent(tabIndex = -1){
         <li${tabIndex==0?' class="active"':""}><a href="/index.html" rel="keep-params">Home</a></li>
         <li${tabIndex==1?' class="active"':""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
         <li${tabIndex==2?' class="active"':""}><a href="/main/about.html" rel="keep-params">About</a></li>
-        <li${tabIndex==3?' class="active"':""}><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px;"></image></a></li>
+        <li${tabIndex==3?' class="active"':""}><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px; padding-right: 10px;" title="External Link"></image></a></li>
+        <li${tabIndex>=100  &&tabIndex<200?' class="active"':""}>
+            <div class="navbar-dropdown">
+                <button type="button" class="navbar-dropbtn">
+                    Utilities
+
+                    <img
+                        name="cv"
+                        src="/assets/images/ui/dropdown/dropdown_chevron.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                    <img
+                        name="cvsel"
+                        src="/assets/images/ui/dropdown/dropdown_chevron_up.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                </button>
+                <div class="navbar-dropdown-content">
+                    <a${tabIndex==100?' class="active"':""} href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
+                    <a${tabIndex==101?' class="active"':""} href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                </div>
+            </div>
+        </li>
         <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
       </ul>
       <ul class="horizontal-nav compressed-nav">
@@ -33,7 +59,33 @@ export default function getComponent(tabIndex = -1){
           <li${tabIndex==0?' class="active"':""}><a href="/index.html" rel="keep-params">Home</a></li>
           <li${tabIndex==1?' class="active"':""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
           <li${tabIndex==2?' class="active"':""}><a href="/main/about.html" rel="keep-params">About</a></li>
-          <li${tabIndex==3?' class="active"':""}><a href="https://wiki.8crafter.com/main/">Wiki<inlinecontainer class="nav-image-invert-on-button-hover"><image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 7.5px 0px; filter: invert(1);"></image></inlinecontainer></a></li>
+          <li${tabIndex==3?' class="active"':""}><a href="https://wiki.8crafter.com/main/">Wiki<inlinecontainer class="nav-image-invert-on-button-hover"><image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 7.5px 0px; filter: invert(1);" title="External Link"></image></inlinecontainer></a></li>
+          <li>
+              <div class="navbar-dropdown no_padding_override">
+                  <button type="button" class="navbar-dropbtn${tabIndex>=100  &&tabIndex<200?' active':""}">
+                      Utilities
+
+                      <img
+                          name="cv"
+                          src="/assets/images/ui/dropdown/dropdown_chevron.png"
+                          inert
+                          class="nsel"
+                          style="float: right; margin: 2.5px;"
+                      />
+                      <img
+                          name="cvsel"
+                          src="/assets/images/ui/dropdown/dropdown_chevron_up.png"
+                          inert
+                          class="nsel"
+                          style="float: right; margin: 2.5px; filter: invert(1);"
+                      />
+                  </button>
+                  <div class="navbar-dropdown-content no_absolute_display no_bg_color_override">
+                      <a${tabIndex==100?' class="active"':""} href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
+                      <a${tabIndex==101?' class="active"':""} href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                  </div>
+              </div>
+          </li>
           <li style="cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
         </ul>
       </div>

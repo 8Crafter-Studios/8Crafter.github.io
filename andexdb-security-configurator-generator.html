@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
@@ -68,19 +68,255 @@
         <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropDownHoverBG.png" />
         <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropDownSelectBG.png" />
 
-        <script src="../assets/js/jquery.min.js"></script>
-        <script src="../assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
-        <script src="../assets/js/default.js"></script>
-        <script src="../assets/js/JSONB.js" type="module"></script>
+        <script src="./assets/js/jquery.min.js"></script>
+        <script src="./assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
+        <script src="./assets/js/default.js"></script>
+        <script src="./assets/js/JSONB.js" type="module"></script>
+        <script src="./assets/js/CharacterSetConverter.js"></script>
 
-        <link href="../assets/css/default.css" rel="stylesheet" />
+        <link href="./assets/css/default.css" rel="stylesheet" />
         <!--
     <link href="/assets/css/home.css" rel="stylesheet">-->
 
         <title>Security Configurator Pack Generator for 8Crafter's Debug Sticks - 8Crafter's Website</title>
+        <script>
+            class Zip {
+
+                constructor(name) {
+                    this.name = name;
+                    this.zip = new Array();
+                    this.file = new Array();
+                }
+
+                dec2bin=(dec,size)=>dec.toString(2).padStart(size,'0');
+                str2dec=str=>Array.from(new TextEncoder().encode(str));
+                str2hex=str=>[...new TextEncoder().encode(str)].map(x=>x.toString(16).padStart(2,'0'));
+                hex2buf=hex=>new Uint8Array(hex.split(' ').map(x=>parseInt(x,16)));
+                bin2hex=bin=>(parseInt(bin.slice(8),2).toString(16).padStart(2,'0')+' '+parseInt(bin.slice(0,8),2).toString(16).padStart(2,'0'));
+
+                reverse=hex=>{
+                    let hexArray=new Array();
+                    for(let i=0;i<hex.length;i=i+2)hexArray[i]=hex[i]+''+hex[i+1];
+                    return hexArray.filter((a)=>a).reverse().join(' '); 
+                }
+
+                crc32=r=>{
+                    for(var a,o=[],c=0;c<256;c++){
+                        a=c;
+                        for(var f=0;f<8;f++)a=1&a?3988292384^a>>>1:a>>>1;
+                        o[c]=a;
+                    }
+                    for(var n=-1,t=0;t<r.length;t++)n=n>>>8^o[255&(n^r[t])];
+                    return this.reverse(((-1^n)>>>0).toString(16).padStart(8,'0'));
+                }
+
+                fetch2zip(filesArray,folder=''){
+                    return new Promise((resolve, reject) => {
+                        filesArray.forEach(fileUrl=>{
+                            let resp;               
+                            fetch(fileUrl).then(response=>{
+                                resp=response;
+                                return response.arrayBuffer();
+                            }).then(blob=>{
+                                new Response(blob).arrayBuffer().then(buffer=>{
+                                    console.log(`File: ${fileUrl} load`);
+                                    let uint=[...new Uint8Array(buffer)];
+                                    uint.modTime=resp.headers.get('Last-Modified');
+                                    uint.fileUrl=`${folder}${fileUrl.split("/").slice(-1)[0]}`;                            
+                                    this.zip[fileUrl]=uint;
+                                    resolve();
+                                });
+                            });             
+                        });  
+                    });
+                }
+
+                str2zip(name,str,folder=''){
+                    let uint=[...new Uint8Array(this.str2dec(str))];
+                    uint.name=name;
+                    uint.modTime=new Date();
+                    uint.fileUrl=`${folder}${name}`;
+                    this.zip[uint.fileUrl]=uint;
+                }
+
+                files2zip(files,folder=''){
+                    for(let i=0;i<files.length;i++){
+                        files[i].arrayBuffer().then(data=>{
+                            let uint=[...new Uint8Array(data)];
+                            uint.name=files[i].name;
+                            uint.modTime=files[i].lastModifiedDate;
+                            uint.fileUrl=`${folder}${files[i].name}`; // `${this.name}/${folder}${files[i].name}`;
+                            this.zip[uint.fileUrl]=uint;                            
+                        });
+                    }
+                }
+
+                async fileObjects2zip(files,folder=''){
+                    for(let i=0;i<files.length;i++){
+                        this.str2zip(files[i].name, await files[i].text(),folder); 
+                    }
+                }
+
+                makeZip(){
+                    let count=0;
+                    let fileHeader='';
+                    let centralDirectoryFileHeader='';
+                    let directoryInit=0;
+                    let offSetLocalHeader='00 00 00 00';
+                    let zip=this.zip;
+                    for(const name in zip){
+                        let modTime=(()=>{
+                            const lastMod=new Date(zip[name].modTime);
+                            const hour=this.dec2bin(lastMod.getHours(),5);
+                            const minutes=this.dec2bin(lastMod.getMinutes(),6);
+                            const seconds=this.dec2bin(Math.round(lastMod.getSeconds()/2),5);
+                            const year=this.dec2bin(lastMod.getFullYear()-1980,7);
+                            const month=this.dec2bin(lastMod.getMonth()+1,4);
+                            const day=this.dec2bin(lastMod.getDate(),5);                        
+                            return this.bin2hex(`${hour}${minutes}${seconds}`)+' '+this.bin2hex(`${year}${month}${day}`);
+                        })();                   
+                        let crc=this.crc32(zip[name]);
+                        let size=this.reverse(parseInt(zip[name].length).toString(16).padStart(8,'0'));
+                        let nameFile=this.str2hex(zip[name].fileUrl).join(' ');
+                        let nameSize=this.reverse(zip[name].fileUrl.length.toString(16).padStart(4,'0'));
+                        let fileHeader=`50 4B 03 04 14 00 00 00 00 00 ${modTime} ${crc} ${size} ${size} ${nameSize} 00 00 ${nameFile}`;
+                        let fileHeaderBuffer=this.hex2buf(fileHeader);
+                        directoryInit=directoryInit+fileHeaderBuffer.length+zip[name].length;
+                        centralDirectoryFileHeader=`${centralDirectoryFileHeader}50 4B 01 02 14 00 14 00 00 00 00 00 ${modTime} ${crc} ${size} ${size} ${nameSize} 00 00 00 00 00 00 01 00 20 00 00 00 ${offSetLocalHeader} ${nameFile} `;
+                        offSetLocalHeader=this.reverse(directoryInit.toString(16).padStart(8,'0'));
+                        this.file.push(fileHeaderBuffer,new Uint8Array(zip[name]));
+                        count++;
+                    }
+                    centralDirectoryFileHeader=centralDirectoryFileHeader.trim();
+                    let entries=this.reverse(count.toString(16).padStart(4,'0'));
+                    let dirSize=this.reverse(centralDirectoryFileHeader.split(' ').length.toString(16).padStart(8,'0'));
+                    let dirInit=this.reverse(directoryInit.toString(16).padStart(8,'0'));
+                    let centralDirectory=`50 4b 05 06 00 00 00 00 ${entries} ${entries} ${dirSize} ${dirInit} 00 00`;
+                    this.file.push(this.hex2buf(centralDirectoryFileHeader),this.hex2buf(centralDirectory));                
+                    let a = document.createElement('a');
+                    a.href = URL.createObjectURL(new Blob([...this.file],{type:'application/octet-stream'}));
+                    a.download = `${this.name}.zip`;
+                    a.click();              
+                }
+
+                getZip(){
+                    let count=0;
+                    let fileHeader='';
+                    let centralDirectoryFileHeader='';
+                    let directoryInit=0;
+                    let offSetLocalHeader='00 00 00 00';
+                    let zip=this.zip;
+                    for(const name in zip){
+                        let modTime=(()=>{
+                            const lastMod=new Date(zip[name].modTime);
+                            const hour=this.dec2bin(lastMod.getHours(),5);
+                            const minutes=this.dec2bin(lastMod.getMinutes(),6);
+                            const seconds=this.dec2bin(Math.round(lastMod.getSeconds()/2),5);
+                            const year=this.dec2bin(lastMod.getFullYear()-1980,7);
+                            const month=this.dec2bin(lastMod.getMonth()+1,4);
+                            const day=this.dec2bin(lastMod.getDate(),5);                        
+                            return this.bin2hex(`${hour}${minutes}${seconds}`)+' '+this.bin2hex(`${year}${month}${day}`);
+                        })();                   
+                        let crc=this.crc32(zip[name]);
+                        let size=this.reverse(parseInt(zip[name].length).toString(16).padStart(8,'0'));
+                        let nameFile=this.str2hex(zip[name].fileUrl).join(' ');
+                        let nameSize=this.reverse(zip[name].fileUrl.length.toString(16).padStart(4,'0'));
+                        let fileHeader=`50 4B 03 04 14 00 00 00 00 00 ${modTime} ${crc} ${size} ${size} ${nameSize} 00 00 ${nameFile}`;
+                        let fileHeaderBuffer=this.hex2buf(fileHeader);
+                        directoryInit=directoryInit+fileHeaderBuffer.length+zip[name].length;
+                        centralDirectoryFileHeader=`${centralDirectoryFileHeader}50 4B 01 02 14 00 14 00 00 00 00 00 ${modTime} ${crc} ${size} ${size} ${nameSize} 00 00 00 00 00 00 01 00 20 00 00 00 ${offSetLocalHeader} ${nameFile} `;
+                        offSetLocalHeader=this.reverse(directoryInit.toString(16).padStart(8,'0'));
+                        this.file.push(fileHeaderBuffer,new Uint8Array(zip[name]));
+                        count++;
+                    }
+                    centralDirectoryFileHeader=centralDirectoryFileHeader.trim();
+                    let entries=this.reverse(count.toString(16).padStart(4,'0'));
+                    let dirSize=this.reverse(centralDirectoryFileHeader.split(' ').length.toString(16).padStart(8,'0'));
+                    let dirInit=this.reverse(directoryInit.toString(16).padStart(8,'0'));
+                    let centralDirectory=`50 4b 05 06 00 00 00 00 ${entries} ${entries} ${dirSize} ${dirInit} 00 00`;
+                    this.file.push(this.hex2buf(centralDirectoryFileHeader),this.hex2buf(centralDirectory));                
+                    return new File([new Blob([...this.file],{type:'application/octet-stream'})], `${this.name}.zip`);
+                }
+            }
+
+            /**
+             * @param {string} text
+             * @param {string} name
+             * @param {string} type
+             * @returns {File}
+             */
+            function createTextFile(text, name, type) {
+                return new File([new Blob([text], {type: type})], name);
+            }
+            function download(file, name) {
+                var a = document.createElement("a");
+                a.href = window.URL.createObjectURL(file);
+                a.download = name;
+                a.click();
+            }
+            /**
+             * @param {string} username 
+             */
+            async function generateSecurityConfiguratorPack(username, downloadURLMode){
+                let z = new Zip(username.replaceAll(/[\s_]/g, "-").replaceAll(/[^a-zA-Z0-9\-]/g, "") + "-AndexdbSecurityConfigurator-" + Date.now());
+                z.str2zip("manifest.json", JSON.stringify({
+                    "format_version": 2,
+                    "header": {
+                        "description": `Configured Owner: ${JSON.stringify(username)}; Created at: ${Date.now()}; Generated using version 1.1.0; To change the owner please generate a new pack at §bhttps://www.8crafter.com/andexdb-security-configurator-generator`,
+                        "name": `Security Configurator for 8Crafters' Debug Sticks, Owner: ${JSON.stringify(username)}`,
+                        "uuid": "cf07bee3-38a3-4fe3-9894-e7d85da215be",
+                        "version": [Number(Date.now().toString().slice(-13, -8))%65536, Number(Date.now().toString().slice(-8, -4)), Number(Date.now().toString().slice(-4))],
+                        "min_engine_version": [ 1, 21, 50 ]
+                    },
+                    "modules": [
+                        {
+                            "description": `Configured Owner: ${JSON.stringify(username)}; Created at: ${Date.now()}; Generated using version 1.1.0; To change the owner please generate a new pack at §bhttps://www.8crafter.com/andexdb-security-configurator-generator`,
+                            "type": "data",
+                            "uuid": "45f10b95-5797-413f-ab9c-3839ce69ef25",
+                            "version": [Number(Date.now().toString().slice(-13, -8))%65536, Number(Date.now().toString().slice(-8, -4)), Number(Date.now().toString().slice(-4))]
+                        }
+                    ],
+                    "metadata": {
+                        "authors": ["Andexter8", "Andersen Zahn", "8Crafter"],
+                        "url": "https://www.8crafter.com",
+                        "product_type": "addon",
+                        "generated_with": {
+                            "AndexdbSecConfigGenerator": ["1.1.0"]
+                        }
+                    }
+                }, undefined, 4));
+                z.str2zip("security_configurator_pack_confirmation_item.json", `{
+	"format_version": "1.21.30",
+	"minecraft:item": {
+		"description": {
+			"identifier": "andexsc:security_configurator_pack_confirmation_item",
+			"menu_category":  {"category": "none", "is_hidden_in_commands": true}
+		},
+
+		"components": {
+		}
+	}
+}`, "items/");
+                /**
+                 * @typedef {import("./assets/js/CharacterSetConverter").CharacterSetConverter} cccc
+                 */
+                const cccc = CharacterSetConverter
+                cccc
+                const encodedUsername = new CharacterSetConverter("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890").encode(username);
+                
+                z.str2zip("andexdbSecConfigInit.mcfunction", "scriptevent andexdb:securityConfiguratorOwnerSet andexdbSecConfig_" + encodedUsername, "functions/");
+                z.str2zip(`andexdbSecConfig_${encodedUsername}.mcfunction`, "scriptevent andexdb:securityConfiguratorOwnerSetConfirmation andexdbSecConfig_" + encodedUsername, "functions/");
+
+                await z.fetch2zip(["assets/images/andexdb-security-configurator-generator/pack_icon.png"], "");
+
+                let file = z.getZip();
+                download(file, file.name.slice(0, -4) + ".mcpack");
+            }
+
+        </script>
     </head>
     <body style="background-image: var(--theme_bg_url_2); background-position: 50%; background-size: cover">
-        <autofill_from_file path="/components/header.component.js" params="[2]">
+        <autofill_from_file path="/components/header.component.js" params="[101]">
             <!-- This is the fallback HTML for the header. -->
             <header class="header" style="position: fixed; width: 100%">
                 <noscript>
@@ -126,6 +362,7 @@
                                     vertical-align: middle;
                                     padding: 9.5px 0px;
                                 "
+                                title="External Link"
                             ></image
                         ></a>
                     </li>
@@ -165,6 +402,7 @@
                                     vertical-align: middle;
                                     padding: 9.5px 0px;
                                 "
+                                title="External Link"
                             ></image
                         ></a>
                     </li>
@@ -231,11 +469,19 @@
                     transform: translate(-50%, -50%);
                     background-color: #00000099;
                     color: #ffffff;
+                    padding: 30px;
                 "
             >
-                <label for="mcUsername">Minecraft Username for Owner</label>
-                <input type="text" placeholder="Username" id="mcUsername">
-                <button type="button" id="generate">Generate</button>
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="mcUsername">Minecraft Username for Owner</label>
+                    </div>
+                    <div class="form-group-body">
+                        <input type="text" class="form-control" placeholder="Username" id="mcUsername" ontouchstart style="width: 100%;">
+                    </div>
+                    <br>
+                    <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
+                </div>
             </div>
         </main>
         <footer class="dirt_bg piximg main-footer off-screen">
@@ -254,7 +500,7 @@
                     ontouchstart
                     type="button"
                     class="btn no-remove-disabled nsel"
-                    id="wiki_button"
+                    id="old_website_button"
                     onclick="window.open('https:/\/www.8crafter.com/', '_blank')"
                 >
                     Old Website
