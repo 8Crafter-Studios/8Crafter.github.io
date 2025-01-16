@@ -44,6 +44,7 @@ export default function getComponent(tabIndex = -1){
                 <div class="navbar-dropdown-content">
                     <a${tabIndex==100?' class="active"':""} href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
                     <a${tabIndex==101?' class="active"':""} href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                    <a${tabIndex==102?' class="active"':""} href="/utilities/mcstructure-loader.html" rel="keep-params">Structure Loader</a>
                 </div>
             </div>
         </li>
@@ -83,6 +84,7 @@ export default function getComponent(tabIndex = -1){
                   <div class="navbar-dropdown-content no_absolute_display no_bg_color_override">
                       <a${tabIndex==100?' class="active"':""} href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
                       <a${tabIndex==101?' class="active"':""} href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                      <a${tabIndex==102?' class="active"':""} href="/utilities/mcstructure-loader.html" rel="keep-params">Structure Loader</a>
                   </div>
               </div>
           </li>

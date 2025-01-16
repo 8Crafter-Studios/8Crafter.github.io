@@ -116,13 +116,13 @@
         U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02; */
 }
 
-@media (max-width: 646px) {
+@media (max-width: 762px) {
     .full-sized-nav {
         display: none;
     }
 }
 
-@media not (max-width: 646px) {
+@media not (max-width: 762px) {
     .compressed-nav {
         display: none;
     }
