@@ -324,7 +324,7 @@ async function generateStructureImporterPack(){
     z.str2zip("manifest.json", JSON.stringify({
         "format_version": 2,
         "header": {
-            "description": `Structure list: ${JSON.stringify(Object.values(importedFiles).map(f=>f.name.includes("/")?f.name.slice(0, -12).replace("/", ":"):"mystructure:"+f.name.slice(0, -12)))}; Created at: ${Date.now()}; Generated using version 1.0.0; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
+            "description": `Structure list:\n${Object.values(importedFiles).map(f=>f.name.includes("/")?f.name.slice(0, -12).replace("/", ":"):"mystructure:"+f.name.slice(0, -12)).join("\n")}\nCreated at: ${Date.now()}; Generated using version 1.0.0; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
             "name": `${Date.now()} - 8Crafter's Mobile Structure Importer`,
             "uuid": "3e47c876-79e9-423d-b0ef-7b33876796e5",
             "version": [Number(Date.now().toString().slice(-13, -8))%65536, Number(Date.now().toString().slice(-8, -4)), Number(Date.now().toString().slice(-4))],
