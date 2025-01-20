@@ -397,6 +397,16 @@ page_background[theme_color_bg] {
     color: var(---theme-var-switcher--root-text-color)
 }
 
+purple_border_background {
+    display: contents;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    position: absolute;
+}
+
 footer.main-footer {
     bottom: calc(100% - var(--body-height));
     left: 0;
@@ -976,6 +986,62 @@ ul:not(:not(.horizontal-nav)) {
 
 .ndrg {
     -webkit-user-drag: none;
+}
+
+.purpleBorder {/* 
+    position: relative;
+    display: inline-block;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none; */
+    background-repeat: repeat-x;
+    background-position: -1px -1px;
+    background-size: 110% 110%;
+    border: 1px solid rgba(27, 31, 35, 0.2);
+    border-radius: 0px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;/* 
+    --border-image-light: url("/assets/images/ui/buttons/button_borderless_light.png");
+    --border-image-dark: url("/assets/images/ui/buttons/button_borderless_dark.png");
+    --border-image-lighthover: url("/assets/images/ui/buttons/button_borderless_lighthover.png");
+    --border-image-darkhover: url("/assets/images/ui/buttons/button_borderless_darkhover.png");
+    --border-image-lightpressednohover: url("/assets/images/ui/buttons/button_borderless_lightpressednohover.png");
+    --border-image-darkpressednohover: url("/assets/images/ui/buttons/button_borderless_darkpressednohover.png");
+    --border-image-lightpressed: url("/assets/images/ui/buttons/button_borderless_lightpressed.png");
+    --border-image-darkpressed: url("/assets/images/ui/buttons/button_borderless_darkpressed.png");
+    --border-image-BlueTheme: url("/assets/images/ui/buttons/button_borderless_light_blue_default.png");
+    --border-image-BlueThemehover: url("/assets/images/ui/buttons/button_borderless_light_blue_hover.png");
+    --border-image-BlueThemepressednohover: url("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png");
+    --border-image-BlueThemepressed: url("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png");
+    --border-image-disabled: url("/assets/images/ui/buttons/disabledButton.png");/* 
+    --btn-text-color-light: hsl(0, 0%, 0%);
+    --btn-text-color-dark: hsl(0, 0%, 100%);
+    --btn-text-color-BlueTheme: hsl(197, 71%, 27%);
+    ---theme-var-switcher--border-image: var(--border-image-dark);
+    ---theme-var-switcher--border-image-hover: var(--border-image-darkhover);
+    ---theme-var-switcher--border-image-pressednohover: var(
+        --border-image-darkpressednohover
+    );
+    ---theme-var-switcher--border-image-pressed: var(
+        --border-image-darkpressed
+    );
+    ---theme-var-switcher--btn-text-color: var(--btn-text-color-dark); */
+    border-image: url("/assets/images/ui/backgrounds/purpleBorder.png")
+        4 4 4 4 fill / 4px 4px 4px 4px;
+    background-color: rgba(27, 12, 27, 255);
+    background-clip: padding-box;
+    padding: 5px;
+    image-rendering: pixelated;/* 
+    color: var(---theme-var-switcher--btn-text-color); */
 }
 
 .btn,

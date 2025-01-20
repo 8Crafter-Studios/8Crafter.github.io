@@ -163,7 +163,7 @@ $(async function onDocumentLoad(){
     const autofill_from_file_elements_fill_promises = [];
     for(let i = 0; i < autofill_from_file_elements.length; i++){
         let v = autofill_from_file_elements.item(i);
-        const path = $(v).attr('path');
+        const path = $(v).attr('src');
         // console.log(1.1)
         autofill_from_file_elements_fill_promises.push((async()=>{
             v.outerHTML = path.endsWith(".js")?(await import(path)).default(...JSON.parse($(v).attr("params")??"[]")):await (await fetch(new Request(path))).text()
@@ -337,3 +337,30 @@ $(async function onDocumentLoad(){
     });
 
 });
+class PurpleBorderBackgroundElement extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.shadowRoot.innerHTML = `
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceL.png" style="height: calc(100% - 1.75vw); width: 1vw; left: 0px; top: 0.875vw; z-index: -5;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceR.png" style="height: calc(100% - 1.75vw); width: 1vw; right: 0px; top: 0.875vw; z-index: -5;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceT.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; top: 0px; z-index: -5;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceB.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; bottom: 0px; z-index: -5;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTL.png" style="height: 1vw; width: 1vw; left: 0px; top: 0px; z-index: -4;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTR.png" style="height: 1vw; width: 1vw; right: 0px; top: 0px; z-index: -4;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBL.png" style="height: 1vw; width: 1vw; left: 0px; bottom: 0px; z-index: -4;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBR.png" style="height: 1vw; width: 1vw; right: 0px; bottom: 0px; z-index: -4;
+    position: absolute; image-rendering: pixelated;">
+    <img src="/assets/images/ui/backgrounds/purpleBorder_sliceC.png" style="height: calc(100% - 1.75vw); width: calc(100% - 1.75vw); right: 0.875vw; bottom: 0.875vw; z-index: -6;
+    position: absolute; image-rendering: pixelated;">`;
+  }
+}
+
+customElements.define('purple-border_background', PurpleBorderBackgroundElement);

@@ -83,7 +83,7 @@
     </head>
     <body style="background-image: var(--theme_bg_url_2); background-position: 50%; background-size: cover">
         <div style="position: fixed; height: 100%; width: 100%; top: 0; left: 0; backdrop-filter: brightness(0.4);"></div>
-        <autofill_from_file path="/components/header.component.js" params="[102]">
+        <autofill_from_file src="/components/header.component.js" params="[102]">
             <!-- This is the fallback HTML for the header. -->
             <header class="header" style="position: fixed; width: 100%">
                 <noscript>
@@ -223,9 +223,9 @@
                 </div>
             </header>
         </autofill_from_file>
-        <autofill_from_file path="/components/settings_menu.component.js"></autofill_from_file>
+        <autofill_from_file src="/components/settings_menu.component.js"></autofill_from_file>
         <main>
-            <center style="width: calc(100% - 60px); height: calc(100% - 60px - var(--header-height)); padding: 30px 0px; position: absolute; left: 30px"><!-- 
+            <center style="width: calc(100% - 60px); height: calc(100% - 60px - var(--header-height)); padding: 30px 0px; position: relative; left: 30px; color: white;"><!-- 
                 <div class="form-group">
                     <div class="form-group-header">
                         <label for="mcUsername">Minecraft Username for Owner</label>
@@ -280,25 +280,47 @@
                     </div>
                 </div>
 
-                <center style="bottom: 30px; position: absolute; width: 100%;">
+                <center style="width: 100%; margin-top: 30px;">
                     <div class="text-center mx-auto my-2" style="color: inherit;">
                         <input type="file" hidden="true" id="file-import-input" accept=".mcstructure" class="d-none" multiple="">
                         <label for="file-audios" style="color: inherit;">
-                        <button type="button" class="btn nsel" style="color: inherit;" id="import_files_button"
+                        <button type="button" class="btn nsel" id="import_files_button"
                             onClick="$('#file-import-input').click()">
                             <only_visible_on_themes light blue>
                                 <img width="16" height="16" src="/assets/images/ui/glyphs/upload.png"
-                                style="image-rendering: pixelated; filter: invert(100%);" aria-hidden="true"></img>
+                                style="image-rendering: pixelated; vertical-align: text-bottom; filter: invert(100%);" aria-hidden="true"></img>
                             </only_visible_on_themes>
                             <only_visible_on_themes dark>
                                 <img width="16" height="16" src="/assets/images/ui/glyphs/upload.png"
-                                style="image-rendering: pixelated;" aria-hidden="true"></img>
+                                style="image-rendering: pixelated; vertical-align: text-bottom;" aria-hidden="true"></img>
                             </only_visible_on_themes>
                             Import .mcstructure files
                         </button>
                         </label>
-                        <button type="button" class="btn nsel" id="generate" onclick="generateStructureImporterPack()">Generate</button>
+                        <button type="submit" class="btn nsel" id="generate" form="mcstructure-loader-form" onclick="generateStructureImporterPack()">Generate</button>
                     </div>
+                    <purple-border_background ba></purple-border_background>
+                    <!-- 
+                    <div style="height: 50%; width: 50%; position: fixed; z-index: 50; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceL.png" style="height: calc(100% - 1.75vw); width: 1vw; left: 0px; top: 0.875vw; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceR.png" style="height: calc(100% - 1.75vw); width: 1vw; right: 0px; top: 0.875vw; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceT.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; top: 0px; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceB.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; bottom: 0px; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTL.png" style="height: 1vw; width: 1vw; left: 0px; top: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTR.png" style="height: 1vw; width: 1vw; right: 0px; top: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBL.png" style="height: 1vw; width: 1vw; left: 0px; bottom: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBR.png" style="height: 1vw; width: 1vw; right: 0px; bottom: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceC.png" style="height: calc(100% - 1.75vw); width: calc(100% - 1.75vw); right: 0.875vw; bottom: 0.875vw; z-index: -6;
+                        position: absolute; image-rendering: pixelated;">
+                    </div> -->
                 </center>
             </center>
         </main>
@@ -334,7 +356,7 @@
                 <span style="padding: 8.5px 0px;" data-temp="filename"></span>
             </div>
             <div name="structure_name_and_delete_column" style="width: calc(60% - 1px); padding: 10px 0px; border: solid #ffffff; border-width: 0px 0px 0px 1px; text-align: left; display: inline-block;">
-                <textarea name="structurename" rows="1" pattern="/[^:\/]+:[^:]+/" class="form-control" style="margin-left: 10px; width: calc(100% - 47px); height: -webkit-fill-available;" data-value="structurename"></textarea>
+                <textarea name="structurename" autocapitalize="off" autocomplete="off" spellcheck="false" inputmode="text" required  rows="1" pattern="/[^:\/]+:[^:]+/" class="form-control" style="margin-left: 10px; width: calc(100% - 47px); height: -webkit-fill-available;" data-value="structurename"></textarea>
                 <button type="button" class="btn nsel" name="delete" style="float: right; margin: 3px 0px;/*  transform: translate(0, 50%); */" onclick="delete importedFiles[$(this).attr('thisIndex')]; delete importedFilesWithValidNames[$(this).attr('thisIndex')]; updateFileCountAndSizeDisplay(); $(this).parent().parent().remove()">
                     <only_visible_on_themes light blue>
                         <img width="15" height="16" src="/assets/images/ui/glyphs/trash_default.png"

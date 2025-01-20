@@ -2,5 +2,6 @@
     "[html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "prettier.printWidth": 160
-    }
+    },
+    "html.customData": ["./html.html-data.json"]
 }
