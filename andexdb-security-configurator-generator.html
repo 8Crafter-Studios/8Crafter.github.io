@@ -254,6 +254,38 @@
                 a.download = name;
                 a.click();
             }
+            function randomUUID() {
+                var chars = "0123456789abcdef";
+                var random_1 = '';
+                var random_2 = '';
+                var random_3 = '';
+                var random_4 = '';
+                var random_5 = '';
+
+                for (var i=0; i<8; i++) {
+                    var rnum = Math.floor(Math.random() * chars.length);
+                    random_1 += chars.substring(rnum,rnum+1);
+                }
+                for (var i=0; i<4; i++) {
+                    var rnum = Math.floor(Math.random() * chars.length);
+                    random_2 += chars.substring(rnum,rnum+1);
+                }
+                for (var i=0; i<4; i++) {
+                    var rnum = Math.floor(Math.random() * chars.length);
+                    random_3 += chars.substring(rnum,rnum+1);
+                }
+                for (var i=0; i<4; i++) {
+                    var rnum = Math.floor(Math.random() * chars.length);
+                    random_4 += chars.substring(rnum,rnum+1);
+                }
+                for (var i=0; i<12; i++) {
+                    var rnum = Math.floor(Math.random() * chars.length);
+                    random_5 += chars.substring(rnum,rnum+1);
+                }
+                var uuid = random_1 + "-" + random_2 + "-" + random_3 + "-" + random_4 + "-" + random_5;
+                return uuid;
+                
+            }
             /**
              * @param {string} username 
              */
@@ -264,7 +296,7 @@
                     "header": {
                         "description": `Configured Owner: ${JSON.stringify(username)}; Created at: ${Date.now()}; Generated using version 1.1.0; To change the owner please generate a new pack at §bhttps://www.8crafter.com/andexdb-security-configurator-generator`,
                         "name": `Security Configurator for 8Crafters' Debug Sticks, Owner: ${JSON.stringify(username)}`,
-                        "uuid": "cf07bee3-38a3-4fe3-9894-e7d85da215be",
+                        "uuid": randomUUID(),
                         "version": [Number(Date.now().toString().slice(-13, -8))%65536, Number(Date.now().toString().slice(-8, -4)), Number(Date.now().toString().slice(-4))],
                         "min_engine_version": [ 1, 21, 50 ]
                     },
@@ -272,7 +304,7 @@
                         {
                             "description": `Configured Owner: ${JSON.stringify(username)}; Created at: ${Date.now()}; Generated using version 1.1.0; To change the owner please generate a new pack at §bhttps://www.8crafter.com/andexdb-security-configurator-generator`,
                             "type": "data",
-                            "uuid": "45f10b95-5797-413f-ab9c-3839ce69ef25",
+                            "uuid": randomUUID(),
                             "version": [Number(Date.now().toString().slice(-13, -8))%65536, Number(Date.now().toString().slice(-8, -4)), Number(Date.now().toString().slice(-4))]
                         }
                     ],
@@ -281,7 +313,7 @@
                         "url": "https://www.8crafter.com",
                         "product_type": "addon",
                         "generated_with": {
-                            "AndexdbSecConfigGenerator": ["1.1.0"]
+                            "AndexdbSecConfigGenerator": ["1.2.0"]
                         }
                     }
                 }, undefined, 4));
