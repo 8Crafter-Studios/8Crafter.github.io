@@ -1047,35 +1047,37 @@ function compressIntArrayB(s, replacement="-1"){Array.from(s.matchAll(/(?<=[\,\[
                             <br />
                             <textarea
                                 name="inputNBT"
-                                style="width: 100%; font-family: consolas, consolasBackup"
+                                style="width: 100%; font-family: Mojangles, consolas, consolasBackup"
                                 rows="10"
                                 onchange="inlength.value=inputNBT.value.length"
                                 oninput="inlength.value=inputNBT.value.length"
                                 for="CMPRSNBT"
                                 spellcheck="false"
+                                class="form-control"
                             ></textarea>
                             <br />
                             <input
                                 type="button"
-                                class="button button"
+                                class="btn nsel"
                                 name="Compress/Convert Button"
                                 value="Compress/Convert NBT"
                                 onClick="compressNBT();outlength.value=outputNBT.value.length;inlength.value=inputNBT.value.length;"
                                 style="cursor: pointer"
                             />
-                            <input type="reset" class="button button" name="Reset Button" value="Reset" style="cursor: pointer" />
+                            <input type="reset" class="btn nsel" name="Reset Button" value="Reset" style="cursor: pointer" />
                             <br />
                             Compressed Version (this is what you will paste into minecraft)
                             <br />
                             <textarea
                                 name="outputNBT"
                                 id="outputNBT"
-                                style="width: 100%; font-family: consolas, consolasBackup"
+                                style="width: 100%; font-family: Mojangles, consolas, consolasBackup"
                                 rows="10"
                                 onchange="outlength.value=outputNBT.value.length"
                                 oninput="outlength.value=outputNBT.value.length"
                                 for="CMPRSNBT"
                                 spellcheck="false"
+                                class="form-control"
                             ></textarea>
                             <div>
                                 Input Length: <output name="inlength" for="CMPRSNBT">0</output>; Compressed Length:
