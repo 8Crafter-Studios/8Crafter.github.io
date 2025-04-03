@@ -356,7 +356,7 @@
                 <span style="padding: 8.5px 0px;" data-temp="filename"></span>
             </div>
             <div name="structure_name_and_delete_column" style="width: calc(60% - 1px); padding: 10px 0px; border: solid #ffffff; border-width: 0px 0px 0px 1px; text-align: left; display: inline-block;">
-                <textarea name="structurename" autocapitalize="off" autocomplete="off" spellcheck="false" inputmode="text" required  rows="1" pattern="/[^:\/]+:[^:]+/" class="form-control" style="margin-left: 10px; width: calc(100% - 47px); height: -webkit-fill-available;" data-value="structurename"></textarea>
+                <textarea name="structurename" autocapitalize="off" autocomplete="off" spellcheck="false" inputmode="text" required  rows="1" pattern="/[^:\/]+:[^:]+/" class="form-control" style="margin-left: 10px; width: calc(100% - 47px); max-width: calc(100% - 47px); height: -webkit-fill-available;" data-value="structurename"></textarea>
                 <button type="button" class="btn nsel" name="delete" style="float: right; margin: 3px 0px;/*  transform: translate(0, 50%); */" onclick="delete importedFiles[$(this).attr('thisIndex')]; delete importedFilesWithValidNames[$(this).attr('thisIndex')]; updateFileCountAndSizeDisplay(); $(this).parent().parent().remove()">
                     <only_visible_on_themes light blue>
                         <img width="15" height="16" src="/assets/images/ui/glyphs/trash_default.png"
