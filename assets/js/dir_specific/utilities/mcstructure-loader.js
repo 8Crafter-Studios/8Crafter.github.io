@@ -81,9 +81,9 @@ function importFiles(files) {
             $(fileItem).find("button[name=delete]").attr("thisIndex", thisIndex);
             // console.log($(fileItem).find("button[name=delete]"));
             const resizeObserverForTextboxContainer = new ResizeObserver(event => {
-                $(event[0].target).parent().find("button[name=delete]")[0].style.margin=`${($(event[0].target).height()-29)/2}px 0px`;
+                $(event[0].target).parent().find("button[name=delete]")[0].style.margin=`${($(event[0].target).height()-19)/2}px 0px`;
             });
-            resizeObserverForTextboxContainer.observe($(fileItem).find("[name=structure_name_and_delete_column]").get(0));
+            resizeObserverForTextboxContainer.observe($(fileItem).find("[name=structure_name_and_delete_column]").find("textarea").get(0));
             $(fileItem).find("textarea").on("input", event=>{
                 $(event.target).val($(event.target).val().replaceAll("//", "/_"))
                 if(!/^([^:\/]+:)?[^:]+$/.test($(event.target).val())){
