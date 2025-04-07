@@ -1249,6 +1249,11 @@ ul:not(:not(.horizontal-nav)) {
     border-image: var(--border-image-disabled) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+}
+
 .form-control,
 .form-select {
   min-height: 34px;
