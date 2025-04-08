@@ -712,26 +712,8 @@ async function applyMods() {
                 }
                 if (settings.allowForChangingSeeds) {
                     distData = distData.replace(
-                        `ER=({advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o})=>{const{t:i}=Og("CreateNewWorld.advanced"),{t:c}=Og("CreateNewWorld.all"),s=(0,a.useContext)(lT)!==rT.CREATE,u=Tv($A),d=Gr(),m=(0,r.useSharedFacet)(Cf),p=(0,r.useSharedFacet)(jg),f=(0,r.useFacetMap)((e=>e.worldSeed),[],[e]),g=(0,r.useFacetMap)((e=>e.isClipboardCopySupported),[],[m]),E=(0,r.useFacetCallback)(((e,t,n)=>()=>{t.copyToClipboard(e),n.queueSnackbar(i(".copyToClipboard"))}),[i],[f,m,p]),h=s?E:()=>d.push("/create-new-world/seed-templates"),v=s?"":i(".worldSeedPlaceholder"),b=i(s?".worldSeedCopyButton":".worldSeedButton"),y=(0,r.useFacetMap)(((e,t,n)=>t||n&&u&&!s&&e.generatorType!=Qh.Overworld),[u,s],[e,l,t]);return o?a.createElement(r.DeferredMount,null,a.createElement(Fl,{data:g},(e=>s&&!e?a.createElement($O,{disabled:s,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
-                            settings.maxTextLengthOverride === ""
-                                ? 1000000
-                                : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                ? 1000000
-                                : settings.maxTextLengthOverride
-                        },value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-text-field"}):a.createElement($O.WithButton,{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
-                            settings.maxTextLengthOverride === ""
-                                ? 1000000
-                                : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                ? 1000000
-                                : settings.maxTextLengthOverride
-                        },value:f,onChange:n,placeholder:v,buttonNarrationHint:i(".narrationTemplatesButtonNarrationHint"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-with-button"})))):a.createElement(r.DeferredMount,null,a.createElement($O,{disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
-                            settings.maxTextLengthOverride === ""
-                                ? 1000000
-                                : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                ? 1000000
-                                : settings.maxTextLengthOverride
-                        },value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked")}))},`,
-                        `ER = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: n, isSeedChangeLocked: l, showSeedTemplates: o }) => {
+                        `ER=({advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o})=>{const{t:i}=Og("CreateNewWorld.advanced"),{t:c}=Og("CreateNewWorld.all"),s=(0,a.useContext)(lT)!==rT.CREATE,u=Tv($A),d=Gr(),m=(0,r.useSharedFacet)(Cf),p=(0,r.useSharedFacet)(jg),f=(0,r.useFacetMap)((e=>e.worldSeed),[],[e]),g=(0,r.useFacetMap)((e=>e.isClipboardCopySupported),[],[m]),E=(0,r.useFacetCallback)(((e,t,n)=>()=>{t.copyToClipboard(e),n.queueSnackbar(i(".copyToClipboard"))}),[i],[f,m,p]),h=s?E:()=>d.push("/create-new-world/seed-templates"),v=s?"":i(".worldSeedPlaceholder"),b=i(s?".worldSeedCopyButton":".worldSeedButton"),y=(0,r.useFacetMap)(((e,t,n)=>t||n&&u&&!s&&e.generatorType!=Qh.Overworld),[u,s],[e,l,t]);return o?a.createElement(r.DeferredMount,null,a.createElement(Fl,{data:g},(e=>s&&!e?a.createElement($O,{disabled:s,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-text-field"}):a.createElement($O.WithButton,{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:v,buttonNarrationHint:i(".narrationTemplatesButtonNarrationHint"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-with-button"})))):a.createElement(r.DeferredMount,null,a.createElement($O,{disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked")}))},`,
+                        `ER = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: n, isSeedChangeLocked: l, showSeedTemplates: o, worldData: wd }) => {
                     const { t: i } = Og("CreateNewWorld.advanced"),
                         { t: c } = Og("CreateNewWorld.all"),
                         s = (0, a.useContext)(lT) !== rT.CREATE,
@@ -782,7 +764,7 @@ async function applyMods() {
                                             textDisabled: false /* s */, // Modified
                                             disabled: false /* y */, // Modified
                                             label: i(".worldSeedLabel"),
-                                            description: i(".worldSeedDescription"),
+                                            description: i(".worldSeedDescription") + (s ? " Please go to the Debug tab if you want to change the seed, as any changes made in this text box will not be saved." : ""),
                                             maxLength: ${
                                                 settings.maxTextLengthOverride === ""
                                                     ? 1000000
@@ -1018,10 +1000,15 @@ async function applyMods() {
                                             return a.createElement(js, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
                                         },
                                         null,
-                                        "rawData: " + JSON.stringify({
-                                            ...rawData.get(),
-                                            betaFeatures: rawData.get().betaFeatures.map(v=>JSON.parse(JSON.stringify(v)))
-                                        }, undefined, 2)
+                                        "rawData: " +
+                                            JSON.stringify(
+                                                {
+                                                    ...rawData.get(),
+                                                    betaFeatures: rawData.get().betaFeatures.map((v) => JSON.parse(JSON.stringify(v))),
+                                                },
+                                                undefined,
+                                                2
+                                            )
                                     )
                                 ),
                                 a.createElement($O, {
@@ -1029,10 +1016,14 @@ async function applyMods() {
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
                                     maxLength: 3000000,
-                                    value: JSON.stringify({
-                                        ...rawData.get(),
-                                        betaFeatures: rawData.get().betaFeatures.map(v=>JSON.parse(JSON.stringify(v)))
-                                    }, undefined, 0),
+                                    value: JSON.stringify(
+                                        {
+                                            ...rawData.get(),
+                                            betaFeatures: rawData.get().betaFeatures.map((v) => JSON.parse(JSON.stringify(v))),
+                                        },
+                                        undefined,
+                                        0
+                                    ),
                                     // onChange: d,
                                     filterProfanity: !1,
                                     disabled: false,
@@ -1051,7 +1042,18 @@ async function applyMods() {
                                             return a.createElement(js, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
                                         },
                                         null,
-                                        "rawData: " + JSON.stringify({...Object.getOwnPropertyDescriptors(rawData.get()), general: {...Object.getOwnPropertyDescriptor(rawData.get(), "general"), value: Object.getOwnPropertyDescriptors(rawData.get().general)}}, undefined, 2)
+                                        "rawData: " +
+                                            JSON.stringify(
+                                                {
+                                                    ...Object.getOwnPropertyDescriptors(rawData.get()),
+                                                    general: {
+                                                        ...Object.getOwnPropertyDescriptor(rawData.get(), "general"),
+                                                        value: Object.getOwnPropertyDescriptors(rawData.get().general),
+                                                    },
+                                                },
+                                                undefined,
+                                                2
+                                            )
                                     )
                                 ),
                                 a.createElement($O, {
@@ -1059,11 +1061,7 @@ async function applyMods() {
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
                                     maxLength: 3000000,
-                                    value: JSON.stringify(
-                                        Object.getOwnPropertyDescriptors(rawData.get()),
-                                        undefined,
-                                        0
-                                    ),
+                                    value: JSON.stringify(Object.getOwnPropertyDescriptors(rawData.get()), undefined, 0),
                                     // onChange: d,
                                     filterProfanity: !1,
                                     disabled: false,
@@ -1079,7 +1077,7 @@ async function applyMods() {
              * @param {Object} param0
              * @param {RawWorldData} param0.rawData
              */
-            function rawValueEditor ({ rawData: e }) {
+            function rawValueEditor({ rawData: e }) {
                 const { t: c } = wi("CreateNewWorld.general") /* ,
                 s = 1 == (0, r.useFacetUnwrap)(n) ? ".editor" : "",
                 u = (0, r.useFacetMap)((e) => e.worldName, [], [o]),
@@ -1100,13 +1098,23 @@ async function applyMods() {
                         null,
                         a.createElement(fu, null, "Raw Value Editor"),
                         a.createElement($O, {
+                            label: "worldSeed",
+                            description: "The seed of the world. (advanced.worldSeed)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().advanced.worldSeed,
+                            maxLength: 3000,
+                            value: rawData.get().advanced.worldSeed,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.advanced.worldSeed = t), [], [rawData]),
+                            filterProfanity: !1,
+                            disabled: false,
+                        }),
+                        a.createElement($O, {
                             label: "playerPermissions",
                             description: "?. (multiplayer.playerPermissions)",
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerPermissions,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer
-                                .playerPermissions,
+                            value: rawData.get().multiplayer.playerPermissions,
                             onChange: playerPermissionsChange,
                             filterProfanity: !1,
                             disabled: false,
@@ -1118,8 +1126,7 @@ async function applyMods() {
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerAccess,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer
-                                .playerAccess,
+                            value: rawData.get().multiplayer.playerAccess,
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.multiplayer.playerAccess = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1130,8 +1137,7 @@ async function applyMods() {
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.gameMode,
                             maxLength: 3000,
-                            value: rawData.get().general
-                                .gameMode,
+                            value: rawData.get().general.gameMode,
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.general.gameMode = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1142,8 +1148,7 @@ async function applyMods() {
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.difficulty,
                             maxLength: 3000,
-                            value: rawData.get().general
-                                .difficulty,
+                            value: rawData.get().general.difficulty,
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.general.difficulty = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1154,8 +1159,7 @@ async function applyMods() {
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.generatorType,
                             maxLength: 3000,
-                            value: rawData.get().advanced
-                                .generatorType,
+                            value: rawData.get().advanced.generatorType,
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.advanced.generatorType = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1166,8 +1170,7 @@ async function applyMods() {
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.simulationDistance,
                             maxLength: 3000,
-                            value: rawData.get().advanced
-                                .simulationDistance,
+                            value: rawData.get().advanced.simulationDistance,
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.advanced.simulationDistance = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1177,7 +1180,11 @@ async function applyMods() {
                             disabled: true,
                             description: "Whether or not achievements are disabled. (read-only)",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.achievementsDisabled, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsDisabled = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsDisabled = t),
+                                [],
+                                [rawData]
+                            ),
                         }),
                         a.createElement(Nx, {
                             title: "achievementsPermanentlyDisabled (read-only)",
@@ -1185,21 +1192,33 @@ async function applyMods() {
                             disabled: true,
                             description: "Whether or not achievements are permanently disabled. (read-only)",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.achievementsPermanentlyDisabled, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsPermanentlyDisabled = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsPermanentlyDisabled = t),
+                                [],
+                                [rawData]
+                            ),
                         }),
                         a.createElement(Nx, {
                             title: "isUsingTemplate (read-only)",
                             disabled: true,
                             description: "isUsingTemplate (read-only)",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.isUsingTemplate, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isUsingTemplate = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isUsingTemplate = t),
+                                [],
+                                [rawData]
+                            ),
                         }),
                         a.createElement(Nx, {
                             title: "isLockedTemplate",
                             disabled: false,
                             description: "isLockedTemplate",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.isLockedTemplate, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isLockedTemplate = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isLockedTemplate = t),
+                                [],
+                                [rawData]
+                            ),
                         }),
                         a.createElement(Nx, {
                             title: "playerHasDied (read-only)",
@@ -1213,18 +1232,26 @@ async function applyMods() {
                             disabled: true,
                             description: "scriptingCoding.consoleCommandsEnabled",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.consoleCommandsEnabled, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.consoleCommandsEnabled = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.consoleCommandsEnabled = t),
+                                [],
+                                [rawData]
+                            ),
                         }),
                         a.createElement(Nx, {
                             title: "codeBuilderEnabled (read-only)",
                             disabled: true,
                             description: "scriptingCoding.codeBuilderEnabled (read-only)",
                             value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.codeBuilderEnabled, [], [e]),
-                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.codeBuilderEnabled = t), [], [rawData]),
+                            onChange: (0, r.useFacetCallback)(
+                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.codeBuilderEnabled = t),
+                                [],
+                                [rawData]
+                            ),
                         })
                     )
                 );
-            };`
+            }`
                     );
                 }
                 if (settings.maxTextLengthOverride !== "") {
@@ -1240,15 +1267,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.11.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.11.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.11.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
