@@ -533,7 +533,7 @@ async function applyMods() {
                                             buttonInputLegend: b,
                                             buttonText: b,
                                             buttonOnClick: h,
-                                            textDisabled: s,
+                                            textDisabled: false /* s */, // Modified
                                             disabled: false /* y */, // Modified
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription"),
@@ -982,11 +982,11 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.getFullname().endsWith(".js")) {
-                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
+                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
                     } else if (entry.getFullname().endsWith(".css")) {
-                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
+                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
                     } else if (entry.getFullname().endsWith(".html")) {
-                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
+                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
                     }
                     entry.replaceText(distData);
                     console.log(`Entry ${entry.name} has been successfully modified.`);
