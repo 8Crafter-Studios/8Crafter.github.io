@@ -1,6 +1,7 @@
 const currentPresets = {
     none: { displayName: "None (Use Imported .zip File)", url: "" },
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+    "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
 /**
  * @type {File}
@@ -62,11 +63,11 @@ $(function onDocumentLoad() {
         zipFile = files[0];
         currentImportedFile = zipFile;
         $("#imported_file_name").css("color", "yellow");
-        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
         await validateZipFile();
         $(this).val("");
         $("#imported_file_name").css("color", "inherit");
-        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
         $("#file-import-input").prop("disabled", false);
     });
     $("#hardcore_mode_toggle_always_clickable")
@@ -119,10 +120,10 @@ $(function onDocumentLoad() {
                 $("#imported_file_name").text("No file imported.");
             } else {
                 $("#imported_file_name").css("color", "yellow");
-                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
                 await validateZipFile();
                 $("#imported_file_name").css("color", "inherit");
-                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
                 // $("#apply_mods").prop("disabled", false);
             }
         } else {
@@ -132,19 +133,50 @@ $(function onDocumentLoad() {
             currentImportedFile = undefined;
             $("#imported_file_name").css("color", "orange");
             $("#imported_file_name").text(`Loading...`);
+            const response = await fetch(currentPresets[currentPreset].url);
+            if(response.status === 404) {
+                console.error(`404 while loading PRESET: ${currentPresets[currentPreset].displayName}`, currentPresets[currentPreset].url);
+                $("#imported_file_name").css("color", "red");
+                $("#imported_file_name").text(`Failed to load PRESET: ${currentPresets[currentPreset].displayName}`);
+                return;
+            }
             currentImportedFile = new File(
-                [await fetch(currentPresets[currentPreset].url).then((response) => response.blob())],
+                [await response.blob()],
                 currentPresets[currentPreset].url.split("/").pop()
             );
             $("#imported_file_name").css("color", "yellow");
-            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
             // $("#apply_mods").prop("disabled", false);
             await validateZipFile();
             $("#imported_file_name").css("color", "inherit");
-            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
         }
     });
 });
+
+/**
+ * Format file size in metric prefix
+ * @param {number|string} fileSize
+ * @returns {string}
+ */
+const formatFileSizeMetric = (fileSize) => {
+    let size = Math.abs(fileSize);
+
+    if (Number.isNaN(size)) {
+        return 'Invalid file size';
+    }
+
+    if (size === 0) {
+        return '0 bytes';
+    }
+
+    const units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'RB', 'QB'];
+    let quotient = Math.floor(Math.log10(size) / 3);
+    quotient = quotient < units.length ? quotient : units.length - 1;
+    size /= (1000 ** quotient);
+
+    return `${+size.toFixed(2)} ${units[quotient]}`;
+};
 
 /**
  * Validates the currently imported zip file, also importing it into zipFs and repairing the directory structure if possible.
@@ -1208,15 +1240,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.10.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
