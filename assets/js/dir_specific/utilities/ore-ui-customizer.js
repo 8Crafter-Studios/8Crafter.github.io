@@ -170,7 +170,7 @@ async function validateZipFile() {
             failed = 1;
             if (zipFs.entries.findIndex((entry) => entry.data?.filename === "dist/") !== -1) {
                 // Repair the zip directory structure.
-                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "dist/"), zipFs.addDirectory("gui/"));
+                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "dist/"), zipFs.addDirectory("gui")); // adding a / to the end of the string for addDirectory causes it to show "Local Disk" inside of the zip file on windows.
                 failed = 2;
                 $("#import_files_error").css("color", "yellow");
                 $("#import_files_error").text(
@@ -184,7 +184,7 @@ async function validateZipFile() {
                 $("#download").prop("disabled", true); */
             } else if (zipFs.entries.findIndex((entry) => entry.data?.filename === "hbui/") !== -1) {
                 // Repair the zip directory structure.
-                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "hbui/"), zipFs.addDirectory("gui/dist/"));
+                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "hbui/"), zipFs.addDirectory("gui/dist"));
                 failed = 2;
                 $("#import_files_error").css("color", "yellow");
                 $("#import_files_error").text(
@@ -1208,15 +1208,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
