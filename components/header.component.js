@@ -86,6 +86,7 @@ export default function getComponent(tabIndex = -1){
                       <a${tabIndex==100?' class="active"':""} href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
                       <a${tabIndex==101?' class="active"':""} href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
                       <a${tabIndex==102?' class="active"':""} href="/utilities/mcstructure-loader.html" rel="keep-params">Structure Loader</a>
+                      <a${tabIndex==103?' class="active"':""} href="/utilities/ore-ui-customizer.html" rel="keep-params">Ore UI Customizer</a>
                   </div>
               </div>
           </li>
