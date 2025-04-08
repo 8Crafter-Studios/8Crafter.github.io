@@ -1,0 +1,631 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta name="keywords" content="8Crafter, YouTube, Minecraft, MCBE, MCPE, MCEE" />
+        <meta name="theme-color" content="#87ceeb" />
+        <meta name="msapplication-TileColor" content="#87ceeb" />
+        <meta name="color-scheme" content="dark light" />
+        <meta name="application-name" content="Node.js" />
+        <meta name="creator" content="Andersen Zahn" />
+        <meta name="author" content="Andersen Zahn" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="description" content="This is the website for the YouTuber and MCBE Add-On creator 8Crafter." />
+        <meta name="robots" content="all" />
+
+        <!--<link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_off.png">-->
+        <!--<link rel="prefetch" href="../assets/images/ui/textboxes/edit_box_indent.png">-->
+        <link rel="preload" as="image" href="../assets/images/ui/textboxes/edit_box_indent.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/textboxes/edit_box_indent_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/backgrounds/menubackground.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_dark.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_darkhover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_darkpressed.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_darkpressednohover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_light.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_lighthover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_lightpressed.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_lightpressednohover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_light_blue_default.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_light_blue_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/buttons/button_borderless_light_blue_pressed.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_check.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_check_locked.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_checkDisabled.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_checkHover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_filled.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_filled_disabled.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_filled_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_space.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_space_locked.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_spaceDisabled.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_spaceHover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkboxUnFilled.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/copy.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/ErrorGlyph.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/infobulb.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/settings_glyph_2x.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/settings_glyph_color_2x.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/settings_glyph_color_2x_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/storageIconColor.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/UpdateGlyph.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/upload.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/WarningGlyph.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/navigation/menu_threebars.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/radio/radio_off.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/radio/radio_off_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/radio/radio_on.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/radio/radio_on_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_off.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_off_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_on.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_on_hover.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/misc/missing_texture.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropdown_background.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropdown_chevron.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropdown_chevron_up.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropDownHoverBG.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/dropdown/dropDownSelectBG.png" />
+
+        <script type="text/javascript" src="../assets/js/zip-fs-full.js"></script>
+        <script src="../assets/js/jquery.min.js"></script>
+        <script src="../assets/js/jquery-ui-1.14.1.custom/jquery-ui.min.js"></script>
+        <script src="../assets/js/default.js"></script>
+        <script src="../assets/js/JSONB.js" type="module"></script>
+        <script src="../assets/js/CharacterSetConverter.js"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js"></script>
+
+        <link href="../assets/css/default.css" rel="stylesheet" />
+        <!--
+    <link href="/assets/css/home.css" rel="stylesheet">-->
+
+        <title>Ore UI Customizer - 8Crafter's Website</title>
+    </head>
+    <body style="background-image: var(--theme_bg_url_2); background-position: 50%; background-size: cover">
+        <div style="position: fixed; height: 100%; width: 100%; top: 0; left: 0; backdrop-filter: brightness(0.4)"></div>
+        <autofill_from_file src="/components/header.component.js" params="[103]">
+            <!-- This is the fallback HTML for the header. -->
+            <header class="header" style="position: fixed; width: 100%">
+                <noscript>
+                    <div id="noscript_alert" class="alert warning">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        This website requires JavaScript to function, please allow JavaScript on this website.
+                    </div>
+                </noscript>
+                <div id="under_construction_alert" class="alert">
+                    <span
+                        class="closebtn"
+                        onclick="this.parentElement.style.display='none'; {const urlParams = new URLSearchParams(window.location.search); urlParams.set('hide_under_construction_alert', 'true'); window.history.pushState({ id: '100' }, 'Page', window.location.pathname + '?' + urlParams.toString());}"
+                        >&times;</span
+                    >
+                    This website is currently under construction.
+                </div>
+                <ul class="horizontal-nav full-sized-nav">
+                    <li style="height: 48px; margin-bottom: -10px">
+                        <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                            ><image
+                                title="8Crafter"
+                                src="/favicon.ico"
+                                width="32px"
+                                height="32px"
+                                class="piximg"
+                                style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                            ></image
+                            ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
+                        >
+                    </li>
+                    <li><a href="/index.html">Home</a></li>
+                    <li><a href="/main/contact.html">Contact</a></li>
+                    <li class="active"><a href="/main/about.html">About</a></li>
+                    <li>
+                        <a href="https://wiki.8crafter.com/main/"
+                            >Wiki<image
+                                src="/assets/images/ui/glyphs/external_link.png"
+                                style="
+                                    width: 17px;
+                                    height: 17px;
+                                    margin: -10px -10px -10px 5px;
+                                    image-rendering: pixelated;
+                                    vertical-align: middle;
+                                    padding: 9.5px 0px;
+                                "
+                                title="External Link"
+                            ></image
+                        ></a>
+                    </li>
+                    <li style="float: right; cursor: pointer">
+                        <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle"
+                            ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
+                            Settings</a
+                        >
+                    </li>
+                </ul>
+                <ul class="horizontal-nav compressed-nav">
+                    <li style="height: 48px; margin-bottom: -10px">
+                        <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                            ><image
+                                title="8Crafter"
+                                src="favicon.ico"
+                                width="32px"
+                                height="32px"
+                                class="piximg"
+                                style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                            ></image
+                            ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
+                        >
+                    </li>
+                    <li><a href="/index.html" rel="keep-params">Home</a></li>
+                    <li><a href="/main/contact.html" rel="keep-params">Contact</a></li>
+                    <li class="active"><a href="/main/about.html" rel="keep-params">About</a></li>
+                    <li>
+                        <a href="https://wiki.8crafter.com/main/"
+                            >Wiki<image
+                                src="/assets/images/ui/glyphs/external_link.png"
+                                style="
+                                    width: 17px;
+                                    height: 17px;
+                                    margin: -10px -10px -10px 5px;
+                                    image-rendering: pixelated;
+                                    vertical-align: middle;
+                                    padding: 9.5px 0px;
+                                "
+                                title="External Link"
+                            ></image
+                        ></a>
+                    </li>
+                    <li style="float: right; cursor: pointer">
+                        <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle"
+                            ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
+                            Settings</a
+                        >
+                    </li>
+                </ul>
+                <div id="nav-sidebar" style="display: none">
+                    <ul class="vertical-nav compressed-nav">
+                        <li style="height: 48px; margin-bottom: -10px">
+                            <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                                ><image
+                                    title="8Crafter"
+                                    src="favicon.ico"
+                                    width="32px"
+                                    height="32px"
+                                    class="piximg"
+                                    style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                                ></image
+                                ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
+                            >
+                        </li>
+                        <li><a href="/index.html" rel="keep-params">Home</a></li>
+                        <li><a href="/main/contact.html" rel="keep-params">Contact</a></li>
+                        <li class="active"><a href="/main/about.html" rel="keep-params">About</a></li>
+                        <li>
+                            <a href="https://wiki.8crafter.com/main/"
+                                >Wiki<image
+                                    src="/assets/images/ui/glyphs/external_link.png"
+                                    style="
+                                        width: 17px;
+                                        height: 17px;
+                                        margin: -10px -10px -10px 5px;
+                                        image-rendering: pixelated;
+                                        vertical-align: middle;
+                                        padding: 9.5px 0px;
+                                    "
+                                ></image
+                            ></a>
+                        </li>
+                        <li style="float: right; cursor: pointer">
+                            <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle"
+                                ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
+                                Settings</a
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </header>
+        </autofill_from_file>
+        <autofill_from_file src="/components/settings_menu.component.js"></autofill_from_file>
+        <main>
+            <center
+                style="
+                    width: calc(100% - 60px);
+                    height: calc(100% - 60px - var(--header-height));
+                    padding: 30px 0px;
+                    position: relative;
+                    left: 30px;
+                    color: white;
+                "
+            >
+                <!-- 
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="mcUsername">Minecraft Username for Owner</label>
+                    </div>
+                    <div class="form-group-body">
+                        <input type="text" class="form-control" placeholder="Username" id="mcUsername" ontouchstart style="width: 100%;">
+                    </div>
+                    <br>
+                    <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
+                </div> -->
+                <h1>8Crafter's Ore UI Customizer v0.0.1</h1>
+                <h4>Instructions</h4>
+                <ul style="text-align: left; list-style: decimal">
+                    <li>
+                        Copmress your unmodified <code>gui</code> folder into a .zip file.
+                        <ul style="text-align: left; list-style: circle">
+                            <li>
+                                <b>Windows (Bedrock Launcher):</b>
+                                If you are on windows and using Minecraft Bedrock Launcher, go to <code>%appdata%/.minecraft_bedrock/versions</code>, open the
+                                folder for the version that is your current Minecraft version, and open the <code>data</code> folder. Then, right click on the
+                                <code>gui</code> folder, and click on <code>Compress to... > ZIP File</code>.
+                            </li>
+                            <li>
+                                <b>Windows (IOBit Unlocker):</b>
+                                If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock launcher, please use the
+                                bedrock launcher method instead if you are using bedrock launcher), go to
+                                <code>%ProgramData%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/data</code>. Then, right click on the <code>gui</code> folder,
+                                and click on <code>Compress to... > ZIP File</code>.
+                            </li>
+                            <li>
+                                <b>Android</b>
+                                If you are on Android, go to <code>base.apk/assests</code>. Then select the <code>gui</code> folder, and compress it into a .zip
+                                file.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
+                    <li>Upload the .zip file containing your unmodified gui folder.</li>
+                </ul>
+                <br />
+                <form id="options_box" style="text-align: left; width: fit-content">
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="hardcore_mode_toggle_always_clickable"
+                            name="hardcore_mode_toggle_always_clickable"
+                            value="Make Hardcore Mode Toggle Always Clickable (so you can turn hardcore mode on and off at any time)"
+                            class="mctoggle"
+                            title="hardcore_mode_toggle_always_clickable"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label>Make Hardcore Mode Toggle Always Clickable<br />This will allow you to turn hardcore mode on and off whenever you want.</label>
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="allow_disabling_enabled_experimental_toggles"
+                            name="allow_disabling_enabled_experimental_toggles"
+                            value="Allow Disabling Enabled Experimental Toggles"
+                            class="mctoggle"
+                            title="allow_disabling_enabled_experimental_toggles"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label
+                            >Allow Disabling Enabled Experimental Toggles<br />This will allow you to disable the experimental toggles even after the world has
+                            been played with them on, also applies to the <code>Education Edition</code> toggle.</label
+                        >
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="add_generator_type_dropdown"
+                            name="add_generator_type_dropdown"
+                            value="Add Generator Type Dropdown"
+                            class="mctoggle"
+                            title="add_generator_type_dropdown"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label>
+                            Add Generator Type Dropdown
+                            <br />
+                            This will add a dropdown that allows you to select the world generator type.
+                            <br />
+                            It lets you choose any of the following world generator types:
+                            <br />
+                            <ul style="text-align: left; list-style: circle">
+                                <li>Legacy</li>
+                                <li>Infinite world</li>
+                                <li>Flat world</li>
+                                <li>Void world</li>
+                            </ul>
+                        </label>
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="add_more_default_game_modes"
+                            name="add_more_default_game_modes"
+                            value="Add More Default Game Modes"
+                            class="mctoggle"
+                            title="add_more_default_game_modes"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label>
+                            Add More Default Game Modes
+                            <br />
+                            This will add more options to the <code>Game Mode</code> dropdown.
+                            <br />
+                            It will cause the dropdown to have the following options:
+                            <br />
+                            <ul style="text-align: left; list-style: circle">
+                                <li>Survival</li>
+                                <li>Creative</li>
+                                <li>Adventure</li>
+                                <li>Default</li>
+                                <li>Spectator</li>
+                            </ul>
+                        </label>
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="allow_changing_seeds"
+                            name="allow_changing_seeds"
+                            value="Allow Changing Seeds"
+                            class="mctoggle"
+                            title="allow_changing_seeds"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label
+                            >Allow Changing Seeds<br />This will allow you to change the world seed whenever you want, also works on marketplace worlds that
+                            don't let you change the seed.</label
+                        >
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="allow_changing_seeds"
+                            name="allow_changing_seeds"
+                            value="Allow Changing Seeds"
+                            class="mctoggle"
+                            title="allow_changing_seeds"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label
+                            >Add Debug Tab<br />This adds the <code>Debug</code> tab to the create and edit world screens (it also has a bunch of additional options added to the tab that aren't normally in there).</label
+                        >
+                    </div>
+                    <br />
+                    <br />
+                    <div class="form-group">
+                        <div class="form-group-header">
+                            <label for="max_text_length_override">
+                                Max Text Length Override (Leave blank to not override it)
+                                <br />
+                                If specified, this will override the max length of every text box to be the specified value.
+                            </label>
+                        </div>
+                        <div class="form-group-body">
+                            <input
+                                type="number"
+                                id="max_text_length_override"
+                                name="max_text_length_override"
+                                value="1000000"
+                                placeholder="1000000"
+                                class="form-control"
+                                ontouchstart
+                                onchange="$(this).val($(this).val().replaceAll(/[^0-9\-]/g, '').replaceAll(/(?<!^)-/g, ''))"
+                            />
+                        </div>
+                    </div>
+                    <br />
+                    <input type="reset" class="btn nsel" id="resetOreUICustomizerOptions" form="options_box" value="Reset Options To Defaults" />
+                </form>
+                <br />
+                <center style="width: 100%; margin-top: 30px">
+                    <div class="text-center mx-auto my-2" style="color: inherit">
+                        <input type="file" hidden="true" id="file-import-input" accept=".zip" class="d-none" />
+                        <label for="file-audios" style="color: inherit">
+                            <button type="button" class="btn nsel" id="import_files_button" onClick="$('#file-import-input').click()">
+                                <only_visible_on_themes light blue>
+                                    <img
+                                        width="16"
+                                        height="16"
+                                        src="/assets/images/ui/glyphs/upload.png"
+                                        style="image-rendering: pixelated; vertical-align: text-bottom; filter: invert(100%)"
+                                        aria-hidden="true"
+                                    />
+                                </only_visible_on_themes>
+                                <only_visible_on_themes dark>
+                                    <img
+                                        width="16"
+                                        height="16"
+                                        src="/assets/images/ui/glyphs/upload.png"
+                                        style="image-rendering: pixelated; vertical-align: text-bottom"
+                                        aria-hidden="true"
+                                    />
+                                </only_visible_on_themes>
+                                Import .zip file
+                            </button>
+                        </label>
+                        <button type="button" class="btn nsel" id="apply_mods" disabled onclick="applyMods()">Apply Mods</button>
+                        <button type="button" class="btn nsel" id="download" disabled onclick="download()">Download</button>
+                        <br />
+                        <button type="button" class="btn nsel" id="changelogs-link-button" onclick="window.open('./mcstructure-loader-changelogs', '_self')">
+                            Changelogs
+                        </button>
+                    </div>
+                    <purple-border_background ba></purple-border_background>
+                    <!-- 
+                    <div style="height: 50%; width: 50%; position: fixed; z-index: 50; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceL.png" style="height: calc(100% - 1.75vw); width: 1vw; left: 0px; top: 0.875vw; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceR.png" style="height: calc(100% - 1.75vw); width: 1vw; right: 0px; top: 0.875vw; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceT.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; top: 0px; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceB.png" style="height: 1vw; width: calc(100% - 1.75vw); left: 0.875vw; bottom: 0px; z-index: -5;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTL.png" style="height: 1vw; width: 1vw; left: 0px; top: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceTR.png" style="height: 1vw; width: 1vw; right: 0px; top: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBL.png" style="height: 1vw; width: 1vw; left: 0px; bottom: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBR.png" style="height: 1vw; width: 1vw; right: 0px; bottom: 0px; z-index: -4;
+                        position: absolute; image-rendering: pixelated;">
+                        <img src="/assets/images/ui/backgrounds/purpleBorder_sliceC.png" style="height: calc(100% - 1.75vw); width: calc(100% - 1.75vw); right: 0.875vw; bottom: 0.875vw; z-index: -6;
+                        position: absolute; image-rendering: pixelated;">
+                    </div> -->
+                </center>
+            </center>
+        </main>
+        <footer class="dirt_bg piximg main-footer off-screen">
+            <center>
+                <!-- <img class="piximg" src="/assets/images/ui/backgrounds/dirt.png" style="position: absolute; width: 100%; "> -->
+                <button
+                    ontouchstart
+                    type="button"
+                    class="btn no-remove-disabled nsel"
+                    id="wiki_button"
+                    onclick="window.open('https:/\/wiki.8crafter.com/main/', '_blank')"
+                >
+                    Wiki
+                </button>
+                <button
+                    ontouchstart
+                    type="button"
+                    class="btn no-remove-disabled nsel"
+                    id="old_website_button"
+                    onclick="window.open('https:/\/www.8crafter.com/', '_blank')"
+                >
+                    Old Website
+                </button>
+            </center>
+        </footer>
+        <!-- The ontouchstart attribute on the page_background tag below is to make it so that when you tap an empty spot on the screen after tapping on a seletable element, then it will correctly deselect that element. -->
+        <page_background theme_color_bg ontouchstart></page_background>
+
+        <template id="structure-item-template">
+            <div
+                style="
+                    width: calc(100% - 20px);
+                    padding: 0px 10px;
+                    border: solid #ffffff;
+                    border-width: 0px 0px 1px 0px;
+                    text-align: left;
+                    font-size: 0;
+                    display: flex;
+                "
+                data-file=""
+            >
+                <div
+                    name="file_name_column"
+                    style="
+                        width: 40%;
+                        font-size: 16px;
+                        padding: 19px 0px;
+                        border: solid #ffffff;
+                        border-width: 0px 0px 0px 0px;
+                        text-align: left;
+                        vertical-align: middle;
+                        display: inline-block;
+                        line-height: 0;
+                        overflow-x: auto;
+                    "
+                >
+                    <span style="padding: 8.5px 0px" data-temp="filename"></span>
+                </div>
+                <div
+                    name="structure_name_and_delete_column"
+                    style="
+                        width: calc(60% - 1px);
+                        padding: 10px 0px;
+                        border: solid #ffffff;
+                        border-width: 0px 0px 0px 1px;
+                        text-align: left;
+                        display: inline-block;
+                    "
+                >
+                    <textarea
+                        name="structurename"
+                        autocapitalize="off"
+                        autocomplete="off"
+                        spellcheck="false"
+                        inputmode="text"
+                        required
+                        rows="1"
+                        pattern="/[^:\/]+:[^:]+/"
+                        class="form-control"
+                        style="margin-left: 10px; width: calc(100% - 47px); max-width: calc(100% - 47px); height: -webkit-fill-available"
+                        data-value="structurename"
+                    ></textarea>
+                    <button
+                        type="button"
+                        class="btn nsel"
+                        name="delete"
+                        style="float: right; margin: 3px 0px; /*  transform: translate(0, 50%); */"
+                        onclick="delete importedFiles[$(this).attr('thisIndex')]; delete importedFilesWithValidNames[$(this).attr('thisIndex')]; updateFileCountAndSizeDisplay(); $(this).parent().parent().remove()"
+                    >
+                        <only_visible_on_themes light blue>
+                            <img
+                                width="15"
+                                height="16"
+                                src="/assets/images/ui/glyphs/trash_default.png"
+                                style="image-rendering: pixelated"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        <only_visible_on_themes dark>
+                            <img
+                                width="15"
+                                height="16"
+                                src="/assets/images/ui/glyphs/trash_default.png"
+                                style="image-rendering: pixelated; filter: invert()"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                    </button>
+                </div>
+            </div>
+        </template>
+    </body>
+</html>
+

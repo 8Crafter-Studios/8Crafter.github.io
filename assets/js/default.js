@@ -279,7 +279,27 @@ $(async function onDocumentLoad(){
             $(':root').removeClass('use_noto_sans_font');
         }
     })
+    $('#use_noto_sans_font').click((e)=>{
+        e.preventDefault = true;
+        $("#use_noto_sans_font").prop("checked", !$("#use_noto_sans_font").prop("checked"));
+        saveSetting("use_noto_sans_font", $('#use_noto_sans_font').prop("checked"))
+        if($('#use_noto_sans_font').prop("checked")){
+            $(':root').addClass('use_noto_sans_font');
+        }else{
+            $(':root').removeClass('use_noto_sans_font');
+        }
+    })
     $('#filter_invert_enabled').parent().click(()=>{
+        saveSetting("filter_invert_enabled", $('#filter_invert_enabled').prop("checked"))
+        if($('#filter_invert_enabled').prop("checked")){
+            $(':root').addClass('filter_invert');
+        }else{
+            $(':root').removeClass('filter_invert');
+        }
+    })
+    $('#filter_invert_enabled').click((e)=>{
+        e.preventDefault = true;
+        $("#filter_invert_enabled").prop("checked", !$("#filter_invert_enabled").prop("checked"));
         saveSetting("filter_invert_enabled", $('#filter_invert_enabled').prop("checked"))
         if($('#filter_invert_enabled').prop("checked")){
             $(':root').addClass('filter_invert');
@@ -295,7 +315,27 @@ $(async function onDocumentLoad(){
             $(':root').removeClass('filter_sepia');
         }
     })
+    $('#filter_sepia_enabled').click((e)=>{
+        e.preventDefault = true;
+        $("#filter_sepia_enabled").prop("checked", !$("#filter_sepia_enabled").prop("checked"));
+        saveSetting("filter_sepia_enabled", $('#filter_sepia_enabled').prop("checked"))
+        if($('#filter_sepia_enabled').prop("checked")){
+            $(':root').addClass('filter_sepia');
+        }else{
+            $(':root').removeClass('filter_sepia');
+        }
+    })
     $('#filter_grayscale_enabled').parent().click(()=>{
+        saveSetting("filter_grayscale_enabled", $('#filter_grayscale_enabled').prop("checked"))
+        if($('#filter_grayscale_enabled').prop("checked")){
+            $(':root').addClass('filter_grayscale');
+        }else{
+            $(':root').removeClass('filter_grayscale');
+        }
+    })
+    $('#filter_grayscale_enabled').click((e)=>{
+        e.preventDefault = true;
+        $("#filter_grayscale_enabled").prop("checked", !$("#filter_grayscale_enabled").prop("checked"));
         saveSetting("filter_grayscale_enabled", $('#filter_grayscale_enabled').prop("checked"))
         if($('#filter_grayscale_enabled').prop("checked")){
             $(':root').addClass('filter_grayscale');

@@ -96,6 +96,10 @@ if(!!!currentIP){
         currentIP=network["Wi-Fi"][0]
     }else if(!!network["Wi-Fi 3"] && !!network["Wi-Fi 3"][0]){
         currentIP=network["Wi-Fi 3"][0]
+    }else if(!!network["Wi-Fi 4"] && !!network["Wi-Fi 4"][0]){
+        currentIP=network["Wi-Fi 4"][0]
+    }else if(!!network["Wi-Fi 5"] && !!network["Wi-Fi 5"][0]){
+        currentIP=network["Wi-Fi 5"][0]
     }else if(!!network["Wi-Fi"] && !!network["Wi-Fi"][0]){
         currentIP=network["Wi-Fi"][0]
     }else if(!!network["Ethernet 3"] && !!network["Ethernet 3"][0]){
