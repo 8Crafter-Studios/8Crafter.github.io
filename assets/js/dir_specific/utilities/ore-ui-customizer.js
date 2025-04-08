@@ -1,3 +1,7 @@
+const currentPresets = {
+    none: { displayName: "None (Use Imported .zip File)", url: "" },
+    "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+};
 /**
  * @type {File}
  */
@@ -18,6 +22,14 @@ let zipFileEntries = undefined;
  * @type {zip.FS}
  */
 let zipFs = undefined;
+/**
+ * @type {"none"}
+ */
+let currentPreset = "none";
+/**
+ * @type {File}
+ */
+let currentImportedFile = undefined;
 
 $(function onDocumentLoad() {
     $("#list-wrapper").on("dragenter", function (event) {
@@ -37,8 +49,25 @@ $(function onDocumentLoad() {
     });
     $("#file-import-input").on("change", async function () {
         const files = $(this).prop("files");
-        await updateZipFile(files[0]);
+        if (currentPreset !== "none") return false;
+        if (files.length === 0) {
+            $("#imported_file_name").css("color", "red");
+            $("#imported_file_name").text("No file imported.");
+            return;
+        }
+        $("#file-import-input").prop("disabled", true);
+        $("#import_files_error").prop("hidden", true);
+        $("#apply_mods").prop("disabled", true);
+        $("#download").prop("disabled", true);
+        zipFile = files[0];
+        currentImportedFile = zipFile;
+        $("#imported_file_name").css("color", "yellow");
+        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+        await validateZipFile();
         $(this).val("");
+        $("#imported_file_name").css("color", "inherit");
+        $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+        $("#file-import-input").prop("disabled", false);
     });
     $("#hardcore_mode_toggle_always_clickable")
         .parent()
@@ -63,17 +92,143 @@ $(function onDocumentLoad() {
     $("#options_box").submit(function () {
         return false;
     });
+    const presetItemTemplate = $("#preset-item-template").prop("content");
+    Object.entries(currentPresets).forEach(([key, value]) => {
+        if (key !== "none") {
+            const presetItem = $(presetItemTemplate).clone();
+            presetItem.find("label").text(value.displayName);
+            presetItem.find("label").attr("for", "gui_preset_" + key);
+            presetItem.find("input").attr("id", "gui_preset_" + key);
+            presetItem.find("input").attr("value", key);
+            $("#gui_preset .dropdowncontentsinner").append(presetItem);
+        }
+    });
+    $(".guiPresetDropdownOption").click(async (event) => {
+        const selectedInput = $(event.currentTarget).find("input")[0];
+        if (selectedInput.value === currentPreset) return;
+        $("#download").prop("disabled", true);
+        currentPreset = selectedInput.value;
+        $("#gui_preset").find(".guiPresetDropdownButtonSelectedOptionTextDisplay").text(currentPresets[currentPreset].displayName);
+        if (selectedInput.value === "none") {
+            $("#import_files_button").prop("disabled", false);
+            $("#file-import-input").prop("disabled", false);
+            currentImportedFile = zipFile;
+            if (currentImportedFile === undefined) {
+                $("#apply_mods").prop("disabled", true);
+                $("#imported_file_name").css("color", "red");
+                $("#imported_file_name").text("No file imported.");
+            } else {
+                $("#imported_file_name").css("color", "yellow");
+                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+                await validateZipFile();
+                $("#imported_file_name").css("color", "inherit");
+                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+                // $("#apply_mods").prop("disabled", false);
+            }
+        } else {
+            $("#import_files_button").prop("disabled", true);
+            $("#file-import-input").prop("disabled", true);
+            $("#apply_mods").prop("disabled", true);
+            currentImportedFile = undefined;
+            $("#imported_file_name").css("color", "orange");
+            $("#imported_file_name").text(`Loading...`);
+            currentImportedFile = new File(
+                [await fetch(currentPresets[currentPreset].url).then((response) => response.blob())],
+                currentPresets[currentPreset].url.split("/").pop()
+            );
+            $("#imported_file_name").css("color", "yellow");
+            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes - (Validating...)`);
+            // $("#apply_mods").prop("disabled", false);
+            await validateZipFile();
+            $("#imported_file_name").css("color", "inherit");
+            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+        }
+    });
 });
 
-async function updateZipFile(file) {
-    zipFile = file;
-    if (file) {
-        $("#apply_mods").prop("disabled", false);
-    } else {
-        $("#apply_mods").prop("disabled", true);
+/**
+ * Validates the currently imported zip file, also importing it into zipFs and repairing the directory structure if possible.
+ *
+ * @returns {Promise<boolean>} A promise resolving to `true` if the zip file is valid and `false` otherwise.
+ */
+async function validateZipFile() {
+    /**
+     * @type {0 | 1 | 2}
+     */
+    let failed = 0;
+    try {
+        zipFs = new zip.fs.FS();
+        await zipFs.importBlob(currentImportedFile);
+    } catch (e) {
+        failed = 1;
+        console.error(e);
+        $("#import_files_error").css("color", "red");
+        $("#import_files_error").text(`Invalid zip file. ${e + e.stack}`);
     }
-    $("#download").prop("disabled", true);
-    // zipFileEntries = await new zip.ZipReader(new zip.BlobReader(zipFile)).getEntries({ filenameEncoding: "utf-8" });
+    try {
+        if (!failed && zipFs.entries.findIndex((entry) => entry.data?.filename === "gui/") === -1) {
+            failed = 1;
+            if (zipFs.entries.findIndex((entry) => entry.data?.filename === "dist/") !== -1) {
+                // Repair the zip directory structure.
+                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "dist/"), zipFs.addDirectory("gui/"));
+                failed = 2;
+                $("#import_files_error").css("color", "yellow");
+                $("#import_files_error").text(
+                    `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file was structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the dist folder instead of the gui folder.`
+                );
+                $("#import_files_error").prop("hidden", false);/* 
+                $("#import_files_error").text(
+                    `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
+                );
+                $("#apply_mods").prop("disabled", true);
+                $("#download").prop("disabled", true); */
+            } else if (zipFs.entries.findIndex((entry) => entry.data?.filename === "hbui/") !== -1) {
+                // Repair the zip directory structure.
+                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "hbui/"), zipFs.addDirectory("gui/dist/"));
+                failed = 2;
+                $("#import_files_error").css("color", "yellow");
+                $("#import_files_error").text(
+                    `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file was structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the hbui folder instead of the gui folder.`
+                );
+                $("#import_files_error").prop("hidden", false);/* 
+                $("#import_files_error").text(
+                    `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
+                );
+                $("#apply_mods").prop("disabled", true);
+                $("#download").prop("disabled", true); *//* 
+                $("#import_files_error").css("color", "red");
+                $("#import_files_error").text(
+                    `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file is structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the hbui folder instead of the gui folder.`
+                );
+                $("#import_files_error").prop("hidden", false);
+                $("#apply_mods").prop("disabled", true);
+                $("#download").prop("disabled", true); */
+            }else{
+                $("#import_files_error").css("color", "red");
+                $("#import_files_error").text(`Invalid zip file folder structure. Missing gui/ folder. The gui/ folder must be at the root of the zip file.`);
+                $("#import_files_error").prop("hidden", false);
+            }
+        }
+    } catch (e) {
+        failed = 1;
+        console.error(e);
+        $("#import_files_error").css("color", "red");
+        $("#import_files_error").text(`Invalid zip file. Error while parsing directory structure: ${e + e.stack}`);
+        $("#import_files_error").prop("hidden", false);
+    }
+    if (failed === 1) {
+        $("#apply_mods").prop("disabled", true);
+        return false;
+    } else if (failed === 2) {
+        $("#apply_mods").prop("disabled", false);
+        return true;
+    } else {
+        $("#import_files_error").css("color", "red");
+        $("#import_files_error").text("");
+        $("#import_files_error").prop("hidden", true);
+        $("#apply_mods").prop("disabled", false);
+        return true;
+    }
 }
 
 function getSettings() {
@@ -124,15 +279,36 @@ function getSettings() {
          * @type {boolean}
          */
         allowForChangingSeeds: $("#allow_for_changing_seeds").prop("checked"),
+        /**
+         * If specified, this will override the max length of every text box to be the specified value.
+         *
+         * Leave it blank to not override it.
+         *
+         * @type {`${number}` | ""}
+         */
         maxTextLengthOverride: $("#max_text_length_override").val(),
+        /**
+         * This adds the `Debug` tab to the create and edit world screens.
+         *
+         * It also has a bunch of additional options added to the tab that aren't normally in there.
+         *
+         * @type {boolean}
+         */
         addDebugTab: $("#add_debug_tab").prop("checked"),
+        /**
+         * These are replacements for the UI colors.
+         *
+         * @type {Record<`#${string}`, `#${string}`>}
+         *
+         * @todo Make this functional.
+         */
         colorReplacements: {
             /**
              * Gray 80
              *
              * This is used as the solid background for many Ore UI menus.
              *
-             * @type {string}
+             * @type {`#${string}`}
              */
             "#313233": "#006188",
             /**
@@ -140,7 +316,7 @@ function getSettings() {
              *
              * This is used for the main part of a pressed button.
              *
-             * @type {string}
+             * @type {`#${string}`}
              */
             "#48494a": "#007eaf",
             "#3c8527": "#27856e",
@@ -154,12 +330,16 @@ function getSettings() {
 }
 
 async function applyMods() {
-    zipFs = new zip.fs.FS();
-    await zipFs.importBlob(zipFile);
+    $("#apply_mods").prop("disabled", true);
+    $("#download").prop("disabled", true);
+    if(!await validateZipFile()){
+        console.error("applyMods - validateZipFile failed");
+        return false;
+    };
     const settings = getSettings();
     zipFs.entries.map(
         /** @param {zip.ZipFileEntry | zip.ZipDirectoryEntry} entry */ async (entry) => {
-            if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)/.test(entry.getFullname())) {
+            if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)/.test(entry.data?.filename)) {
                 return entry;
             }
 
@@ -265,9 +445,10 @@ async function applyMods() {
                     );
                 }
                 if (settings.addMoreDefaultGameModes) {
-                    distData = distData.replace(
-                        `function bA({generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o}){const{t:i}=wi("CreateNewWorld.general"),{t:c}=wi("CreateNewWorld.all"),s=(0,r.useSharedFacet)(Gh),u=(0,a.useContext)(lT)!==rT.CREATE,d=(0,r.useSharedFacet)(bh),m=(0,r.useFacetMap)(((e,t,n)=>e||t||n),[],[t,s,o]),p=(0,r.useFacetMap)(((e,t)=>{const n=[mA({label:i(".gameModeSurvivalLabel"),description:i(".gameModeSurvivalDescription"),value:Th.SURVIVAL},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{}),{label:i(".gameModeCreativeLabel"),description:i(".gameModeCreativeDescription"),value:Th.CREATIVE,narrationSuffix:c(".narrationSuffixDisablesAchievements")}];return(u||t)&&n.push(mA({label:i(".gameModeAdventureLabel"),description:i(t?".gameModeAdventureTemplateDescription":".gameModeAdventureDescription"),value:Th.ADVENTURE},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{})),n}),[i,c,u],[l,n]),f=(0,r.useNotifyMountComplete)();return a.createElement(Fx,{title:i(".gameModeTitle"),disabled:m,options:p,onMountComplete:f,value:(0,r.useFacetMap)((e=>e.gameMode),[],[e]),onChange:(0,r.useFacetCallback)(((e,t)=>n=>{const a=e.gameMode;e.gameMode=n,u&&t.trackOptionChanged(cA.GameModeChanged,a,n)}),[u],[e,d])})}`,
-                        `/**
+                    distData = distData
+                        .replace(
+                            `function bA({generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o}){const{t:i}=wi("CreateNewWorld.general"),{t:c}=wi("CreateNewWorld.all"),s=(0,r.useSharedFacet)(Gh),u=(0,a.useContext)(lT)!==rT.CREATE,d=(0,r.useSharedFacet)(bh),m=(0,r.useFacetMap)(((e,t,n)=>e||t||n),[],[t,s,o]),p=(0,r.useFacetMap)(((e,t)=>{const n=[mA({label:i(".gameModeSurvivalLabel"),description:i(".gameModeSurvivalDescription"),value:Th.SURVIVAL},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{}),{label:i(".gameModeCreativeLabel"),description:i(".gameModeCreativeDescription"),value:Th.CREATIVE,narrationSuffix:c(".narrationSuffixDisablesAchievements")}];return(u||t)&&n.push(mA({label:i(".gameModeAdventureLabel"),description:i(t?".gameModeAdventureTemplateDescription":".gameModeAdventureDescription"),value:Th.ADVENTURE},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{})),n}),[i,c,u],[l,n]),f=(0,r.useNotifyMountComplete)();return a.createElement(Fx,{title:i(".gameModeTitle"),disabled:m,options:p,onMountComplete:f,value:(0,r.useFacetMap)((e=>e.gameMode),[],[e]),onChange:(0,r.useFacetCallback)(((e,t)=>n=>{const a=e.gameMode;e.gameMode=n,u&&t.trackOptionChanged(cA.GameModeChanged,a,n)}),[u],[e,d])})}`,
+                            `/**
              * The game mode dropdown.
              *
              * @param param0
@@ -402,7 +583,10 @@ async function applyMods() {
                     ),
                 });
             }`
-                    ).replace(`function(e){e[e.UNKNOWN=-1]="UNKNOWN",e[e.SURVIVAL=0]="SURVIVAL",e[e.CREATIVE=1]="CREATIVE",e[e.ADVENTURE=2]="ADVENTURE"}(Th||(Th={})),`, `(function (e) {
+                        )
+                        .replace(
+                            `function(e){e[e.UNKNOWN=-1]="UNKNOWN",e[e.SURVIVAL=0]="SURVIVAL",e[e.CREATIVE=1]="CREATIVE",e[e.ADVENTURE=2]="ADVENTURE"}(Th||(Th={})),`,
+                            `(function (e) {
                     // Modified to add more game modes.
                     (e[(e.UNKNOWN = -1)] = "UNKNOWN"),
                         (e[(e.SURVIVAL = 0)] = "SURVIVAL"),
@@ -415,12 +599,14 @@ async function applyMods() {
                         (e[(e.GM7 = 7)] = "GM7"),
                         (e[(e.GM8 = 8)] = "GM8"),
                         (e[(e.GM9 = 9)] = "GM9");
-                })(Th || (Th = {})),`);
+                })(Th || (Th = {})),`
+                        );
                 }
                 if (settings.addGeneratorTypeDropdown) {
-                    distData = distData.replace(
-                        `E&&!s?a.createElement(r.Mount,{when:n},a.createElement(r.DeferredMount,null,a.createElement(tR,{label:c(".generatorTypeLabel"),options:[{value:Qh.Overworld,label:c(".vanillaWorldGeneratorLabel"),description:c(".vanillaWorldGeneratorDescription")},{value:Qh.Flat,label:c(".flatWorldGeneratorLabel"),description:c(".flatWorldGeneratorDescription")},{value:Qh.Void,label:c(".voidWorldGeneratorLabel"),description:c(".voidWorldGeneratorDescription")}],value:b.value,onChange:b.onChange}))):null`,
-                        `// Modified to add this dropdown
+                    distData = distData
+                        .replace(
+                            `E&&!s?a.createElement(r.Mount,{when:n},a.createElement(r.DeferredMount,null,a.createElement(tR,{label:c(".generatorTypeLabel"),options:[{value:Qh.Overworld,label:c(".vanillaWorldGeneratorLabel"),description:c(".vanillaWorldGeneratorDescription")},{value:Qh.Flat,label:c(".flatWorldGeneratorLabel"),description:c(".flatWorldGeneratorDescription")},{value:Qh.Void,label:c(".voidWorldGeneratorLabel"),description:c(".voidWorldGeneratorDescription")}],value:b.value,onChange:b.onChange}))):null`,
+                            `// Modified to add this dropdown
                                       a.createElement(
                                           r.Mount,
                                           { when: true /* n */ },
@@ -478,7 +664,10 @@ async function applyMods() {
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
                                       )`
-                    ).replace(`function(e){e[e.Legacy=0]="Legacy",e[e.Overworld=1]="Overworld",e[e.Flat=2]="Flat",e[e.Nether=3]="Nether",e[e.TheEnd=4]="TheEnd",e[e.Void=5]="Void",e[e.Undefined=6]="Undefined"}(Qh||(Qh={})),`, `(function (e) {
+                        )
+                        .replace(
+                            `function(e){e[e.Legacy=0]="Legacy",e[e.Overworld=1]="Overworld",e[e.Flat=2]="Flat",e[e.Nether=3]="Nether",e[e.TheEnd=4]="TheEnd",e[e.Void=5]="Void",e[e.Undefined=6]="Undefined"}(Qh||(Qh={})),`,
+                            `(function (e) {
                     (e[(e.Legacy = 0)] = "Legacy"),
                         (e[(e.Overworld = 1)] = "Overworld"),
                         (e[(e.Flat = 2)] = "Flat"),
@@ -486,11 +675,30 @@ async function applyMods() {
                         (e[(e.TheEnd = 4)] = "TheEnd"),
                         (e[(e.Void = 5)] = "Void"),
                         (e[(e.Undefined = 6)] = "Undefined");
-                })(Qh || (Qh = {})),`);
+                })(Qh || (Qh = {})),`
+                        );
                 }
                 if (settings.allowForChangingSeeds) {
                     distData = distData.replace(
-                        `ER=({advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o})=>{const{t:i}=Og("CreateNewWorld.advanced"),{t:c}=Og("CreateNewWorld.all"),s=(0,a.useContext)(lT)!==rT.CREATE,u=Tv($A),d=Gr(),m=(0,r.useSharedFacet)(Cf),p=(0,r.useSharedFacet)(jg),f=(0,r.useFacetMap)((e=>e.worldSeed),[],[e]),g=(0,r.useFacetMap)((e=>e.isClipboardCopySupported),[],[m]),E=(0,r.useFacetCallback)(((e,t,n)=>()=>{t.copyToClipboard(e),n.queueSnackbar(i(".copyToClipboard"))}),[i],[f,m,p]),h=s?E:()=>d.push("/create-new-world/seed-templates"),v=s?"":i(".worldSeedPlaceholder"),b=i(s?".worldSeedCopyButton":".worldSeedButton"),y=(0,r.useFacetMap)(((e,t,n)=>t||n&&u&&!s&&e.generatorType!=Qh.Overworld),[u,s],[e,l,t]);return o?a.createElement(r.DeferredMount,null,a.createElement(Fl,{data:g},(e=>s&&!e?a.createElement($O,{disabled:s,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-text-field"}):a.createElement($O.WithButton,{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},value:f,onChange:n,placeholder:v,buttonNarrationHint:i(".narrationTemplatesButtonNarrationHint"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-with-button"})))):a.createElement(r.DeferredMount,null,a.createElement($O,{disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked")}))},`,
+                        `ER=({advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o})=>{const{t:i}=Og("CreateNewWorld.advanced"),{t:c}=Og("CreateNewWorld.all"),s=(0,a.useContext)(lT)!==rT.CREATE,u=Tv($A),d=Gr(),m=(0,r.useSharedFacet)(Cf),p=(0,r.useSharedFacet)(jg),f=(0,r.useFacetMap)((e=>e.worldSeed),[],[e]),g=(0,r.useFacetMap)((e=>e.isClipboardCopySupported),[],[m]),E=(0,r.useFacetCallback)(((e,t,n)=>()=>{t.copyToClipboard(e),n.queueSnackbar(i(".copyToClipboard"))}),[i],[f,m,p]),h=s?E:()=>d.push("/create-new-world/seed-templates"),v=s?"":i(".worldSeedPlaceholder"),b=i(s?".worldSeedCopyButton":".worldSeedButton"),y=(0,r.useFacetMap)(((e,t,n)=>t||n&&u&&!s&&e.generatorType!=Qh.Overworld),[u,s],[e,l,t]);return o?a.createElement(r.DeferredMount,null,a.createElement(Fl,{data:g},(e=>s&&!e?a.createElement($O,{disabled:s,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
+                            settings.maxTextLengthOverride === ""
+                                ? 1000000
+                                : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                ? 1000000
+                                : settings.maxTextLengthOverride
+                        },value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-text-field"}):a.createElement($O.WithButton,{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
+                            settings.maxTextLengthOverride === ""
+                                ? 1000000
+                                : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                ? 1000000
+                                : settings.maxTextLengthOverride
+                        },value:f,onChange:n,placeholder:v,buttonNarrationHint:i(".narrationTemplatesButtonNarrationHint"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-with-button"})))):a.createElement(r.DeferredMount,null,a.createElement($O,{disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:${
+                            settings.maxTextLengthOverride === ""
+                                ? 1000000
+                                : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                ? 1000000
+                                : settings.maxTextLengthOverride
+                        },value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked")}))},`,
                         `ER = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: n, isSeedChangeLocked: l, showSeedTemplates: o }) => {
                     const { t: i } = Og("CreateNewWorld.advanced"),
                         { t: c } = Og("CreateNewWorld.all"),
@@ -522,7 +730,13 @@ async function applyMods() {
                                             disabled: s,
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription"),
-                                            maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},
+                                            maxLength: ${
+                                                settings.maxTextLengthOverride === ""
+                                                    ? 1000000
+                                                    : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                                    ? 1000000
+                                                    : settings.maxTextLengthOverride
+                                            },
                                             value: f,
                                             onChange: n,
                                             placeholder: i(".worldSeedPlaceholder"),
@@ -537,7 +751,13 @@ async function applyMods() {
                                             disabled: false /* y */, // Modified
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription"),
-                                            maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},
+                                            maxLength: ${
+                                                settings.maxTextLengthOverride === ""
+                                                    ? 1000000
+                                                    : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                                    ? 1000000
+                                                    : settings.maxTextLengthOverride
+                                            },
                                             value: f,
                                             onChange: n,
                                             placeholder: v,
@@ -554,7 +774,13 @@ async function applyMods() {
                                   disabled: y,
                                   label: i(".worldSeedLabel"),
                                   description: i(".worldSeedDescription"),
-                                  maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : BigInt(settings.maxTextLengthOverride) > 1000000n ? 1000000 : settings.maxTextLengthOverride},
+                                  maxLength: ${
+                                      settings.maxTextLengthOverride === ""
+                                          ? 1000000
+                                          : BigInt(settings.maxTextLengthOverride) > 1000000n
+                                          ? 1000000
+                                          : settings.maxTextLengthOverride
+                                  },
                                   value: f,
                                   onChange: n,
                                   placeholder: i(".worldSeedPlaceholder"),
@@ -981,12 +1207,18 @@ async function applyMods() {
                     }
                 }
                 if (origData !== distData) {
-                    if (entry.getFullname().endsWith(".js")) {
-                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
-                    } else if (entry.getFullname().endsWith(".css")) {
-                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
-                    } else if (entry.getFullname().endsWith(".html")) {
-                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.8.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
+                    if (entry.data.filename.endsWith(".js")) {
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                            settings
+                        )}\n${distData}`;
+                    } else if (entry.data.filename.endsWith(".css")) {
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                            settings
+                        )} */\n${distData}`;
+                    } else if (entry.data.filename.endsWith(".html")) {
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                            settings
+                        )} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
                     console.log(`Entry ${entry.name} has been successfully modified.`);
@@ -999,7 +1231,9 @@ async function applyMods() {
             }
         }
     );
+    $("#apply_mods").prop("disabled", false);
     $("#download").prop("disabled", false);
+    return true;
 }
 
 async function download() {

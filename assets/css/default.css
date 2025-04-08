@@ -715,7 +715,8 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .mcdropdown {
-    & > #dropdowncontents {
+    & > #dropdowncontents,
+    .dropdowncontents {
         border-image: url("/assets/images/ui/dropdown/dropdown_background.png") 2 2
             2 2 fill / 2px 2px 2px 2px;
         padding: 3px;
@@ -801,9 +802,12 @@ ul:not(:not(.horizontal-nav)) {
         }
     }
 
-    & > #dropdownbutton {
+    & > #dropdownbutton,
+    .dropdownbutton {
         & > #cv,
-        #cvsel {
+        #cvsel,
+        .cv,
+        .cvsel {
             right: 7px; top: 10px; position: absolute
         }
     }
@@ -1185,11 +1189,11 @@ ul:not(:not(.horizontal-nav)) {
 
 .btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages),
 .radio_button_container_label:hover:enabled:not(.noinvert):not(.buttonhascoloredimages) {
-    & > :not(.preventinvert, #cv, #cvsel) {
+    & > :not(.preventinvert, #cv, #cvsel, .cv, .cvsel) {
         filter: invert(100%);
     }
 
-    & > :not(:not(#cv, #cvsel)):not(.preventinvert) {
+    & > :not(:not(#cv, #cvsel, .cv, .cvsel)):not(.preventinvert) {
         filter: brightness(1000000%);
     }
 }
