@@ -402,7 +402,20 @@ async function applyMods() {
                     ),
                 });
             }`
-                    );
+                    ).replace(`function(e){e[e.UNKNOWN=-1]="UNKNOWN",e[e.SURVIVAL=0]="SURVIVAL",e[e.CREATIVE=1]="CREATIVE",e[e.ADVENTURE=2]="ADVENTURE"}(Th||(Th={})),`, `(function (e) {
+                    // Modified to add more game modes.
+                    (e[(e.UNKNOWN = -1)] = "UNKNOWN"),
+                        (e[(e.SURVIVAL = 0)] = "SURVIVAL"),
+                        (e[(e.CREATIVE = 1)] = "CREATIVE"),
+                        (e[(e.ADVENTURE = 2)] = "ADVENTURE"),
+                        (e[(e.GM3 = 3)] = "GM3"),
+                        (e[(e.GM4 = 4)] = "GM4"),
+                        (e[(e.DEFAULT = 5)] = "DEFAULT"),
+                        (e[(e.SPECTATOR = 6)] = "SPECTATOR"),
+                        (e[(e.GM7 = 7)] = "GM7"),
+                        (e[(e.GM8 = 8)] = "GM8"),
+                        (e[(e.GM9 = 9)] = "GM9");
+                })(Th || (Th = {})),`);
                 }
                 if (settings.addGeneratorTypeDropdown) {
                     distData = distData.replace(
@@ -465,7 +478,15 @@ async function applyMods() {
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
                                       )`
-                    );
+                    ).replace(`function(e){e[e.Legacy=0]="Legacy",e[e.Overworld=1]="Overworld",e[e.Flat=2]="Flat",e[e.Nether=3]="Nether",e[e.TheEnd=4]="TheEnd",e[e.Void=5]="Void",e[e.Undefined=6]="Undefined"}(Qh||(Qh={})),`, `(function (e) {
+                    (e[(e.Legacy = 0)] = "Legacy"),
+                        (e[(e.Overworld = 1)] = "Overworld"),
+                        (e[(e.Flat = 2)] = "Flat"),
+                        (e[(e.Nether = 3)] = "Nether"),
+                        (e[(e.TheEnd = 4)] = "TheEnd"),
+                        (e[(e.Void = 5)] = "Void"),
+                        (e[(e.Undefined = 6)] = "Undefined");
+                })(Qh || (Qh = {})),`);
                 }
                 if (settings.allowForChangingSeeds) {
                     distData = distData.replace(
@@ -860,11 +881,11 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.getFullname().endsWith(".js")) {
-                        distData = "// Modified by 8Crafter's Ore UI Customizer: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
+                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
                     } else if (entry.getFullname().endsWith(".css")) {
-                        distData = "/* Modified by 8Crafter's Ore UI Customizer: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
+                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
                     } else if (entry.getFullname().endsWith(".html")) {
-                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
+                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
                     }
                     entry.replaceText(distData);
                     console.log(`Entry ${entry.name} has been successfully modified.`);
