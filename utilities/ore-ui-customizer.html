@@ -247,11 +247,13 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.7.3</h1>
+                <h1>8Crafter's Ore UI Customizer v0.8.0</h1>
                 <h4>Instructions</h4>
                 <ul style="text-align: left; list-style: decimal">
                     <li>
-                        Copmress your unmodified <code>gui</code> folder into a .zip file.
+                        Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or <code>dist</code>, it HAS to be the entire <code>gui</code> folder.).
+                        <br />
+                        IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be UNMODIFIED, or else it will not detect the parts to replace properly, if you have modifed it, make a backup of it, and repair your Minecraft installation.
                         <ul style="text-align: left; list-style: circle">
                             <li>
                                 <b>Windows (Bedrock Launcher):</b>
@@ -263,7 +265,7 @@
                                 <b>Windows (IOBit Unlocker):</b>
                                 If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock launcher, please use the
                                 bedrock launcher method instead if you are using bedrock launcher), go to
-                                <code>%ProgramData%/Packages/Microsoft.MinecraftUWP_8wekyb3d8bbwe/data</code>. Then, right click on the <code>gui</code> folder,
+                                <code>%programfiles%/WindowsApps</code>. Then open the folder that starts with <code>Microsoft.MinecraftUWP</code>. Then open the <code>data</code> folder. Then, right click on the <code>gui</code> folder,
                                 and click on <code>Compress to... > ZIP File</code>.
                             </li>
                             <li>

@@ -742,7 +742,7 @@ async function applyMods() {
                             focusOnSelectedItem: !0,
                         }),
                         a.createElement(r.Mount, { when: y }, a.createElement(a_, { onExportTemplate: l, onClearPlayerData: o })),
-                        a.createElement(r.DeferredMount, null, a.createElement(rawValueEditor, { rawData })),
+                        a.createElement(r.DeferredMount, null, a.createElement(rawValueEditor, { rawData: e })),
                         a.createElement(() =>
                             a.createElement(
                                 a.Fragment,
@@ -793,7 +793,7 @@ async function applyMods() {
                                             return a.createElement(js, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
                                         },
                                         null,
-                                        "rawData: " + JSON.stringify(Object.getOwnPropertyDescriptors(rawData.get()), undefined, 2)
+                                        "rawData: " + JSON.stringify({...Object.getOwnPropertyDescriptors(rawData.get()), general: {...Object.getOwnPropertyDescriptor(rawData.get(), "general"), value: Object.getOwnPropertyDescriptors(rawData.get().general)}}, undefined, 2)
                                     )
                                 ),
                                 a.createElement($O, {
@@ -821,13 +821,19 @@ async function applyMods() {
              * @param {Object} param0
              * @param {RawWorldData} param0.rawData
              */
-            function rawValueEditor ({ rawData }) {
+            function rawValueEditor ({ rawData: e }) {
                 const { t: c } = wi("CreateNewWorld.general") /* ,
                 s = 1 == (0, r.useFacetUnwrap)(n) ? ".editor" : "",
                 u = (0, r.useFacetMap)((e) => e.worldName, [], [o]),
                 d = (0, r.useFacetCallback)((e) => (t) => (e.worldName = t), [], [o]) */,
+                    rawData = (0, r.useFacetMap)((e) => e, [], [e]),
+                    PHD = (0, r.useFacetMap)((e) => e.general, [], [e]),
+                    p = (0, r.useFacetMap)((e) => e.general, [], [e]),
+                    s = (0, r.useFacetMap)((e) => e.scriptingCoding, [], [e]),
+                    g = (0, r.useFacetMap)((e) => e.playerHasDied, [], [p]),
                     playerPermissionsChange = (0, r.useFacetCallback)((e) => (t) => (e.multiplayer.playerPermissions = Number(t)), [], [rawData]);
                 // e.achievementsPermanentlyDisabled = false; // Modified
+                rawData.get().general.playerHasDied = false;
                 return a.createElement(
                     a.Fragment,
                     null,
@@ -837,8 +843,9 @@ async function applyMods() {
                         a.createElement(fu, null, "Raw Value Editor"),
                         a.createElement($O, {
                             label: "playerPermissions",
+                            description: "?. (multiplayer.playerPermissions)",
                             gamepadIndex: 1,
-                            placeholder: typeof rawData.get().multiplayer.playerPermissions, // Modified
+                            placeholder: typeof rawData.get().multiplayer.playerPermissions,
                             maxLength: 3000,
                             value: rawData.get().multiplayer
                                 .playerPermissions,
@@ -847,21 +854,115 @@ async function applyMods() {
                             disabled: false,
                             title: "Player Permissions",
                         }),
-                        a.createElement(Nx, {
-                            title: "achievementsDisabled",
-                            soundEffectPressed: "ui.hardcore_toggle_press",
+                        a.createElement($O, {
+                            label: "playerAccess",
+                            description: "?. (multiplayer.playerAccess)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().multiplayer.playerAccess,
+                            maxLength: 3000,
+                            value: rawData.get().multiplayer
+                                .playerAccess,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.multiplayer.playerAccess = Number(t)), [], [rawData]),
+                            filterProfanity: !1,
                             disabled: false,
-                            description: "Whether or not achievements are permanently disabled.",
-                            value: rawData.get().achievementsDisabled,
-                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.achievementsDisabled = !t), [], [rawData]),
+                        }),
+                        a.createElement($O, {
+                            label: "gameMode",
+                            description: "?. (general.gameMode)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().general.gameMode,
+                            maxLength: 3000,
+                            value: rawData.get().general
+                                .gameMode,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.general.gameMode = Number(t)), [], [rawData]),
+                            filterProfanity: !1,
+                            disabled: false,
+                        }),
+                        a.createElement($O, {
+                            label: "difficulty",
+                            description: "?. (general.difficulty)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().general.difficulty,
+                            maxLength: 3000,
+                            value: rawData.get().general
+                                .difficulty,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.general.difficulty = Number(t)), [], [rawData]),
+                            filterProfanity: !1,
+                            disabled: false,
+                        }),
+                        a.createElement($O, {
+                            label: "generatorType",
+                            description: "?. (advanced.generatorType)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().advanced.generatorType,
+                            maxLength: 3000,
+                            value: rawData.get().advanced
+                                .generatorType,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.advanced.generatorType = Number(t)), [], [rawData]),
+                            filterProfanity: !1,
+                            disabled: false,
+                        }),
+                        a.createElement($O, {
+                            label: "simulationDistance",
+                            description: "?. (advanced.simulationDistance)",
+                            gamepadIndex: 1,
+                            placeholder: typeof rawData.get().advanced.simulationDistance,
+                            maxLength: 3000,
+                            value: rawData.get().advanced
+                                .simulationDistance,
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.advanced.simulationDistance = Number(t)), [], [rawData]),
+                            filterProfanity: !1,
+                            disabled: false,
                         }),
                         a.createElement(Nx, {
-                            title: "achievementsPermanentlyDisabled",
+                            title: "achievementsDisabled (read-only)",
+                            disabled: true,
+                            description: "Whether or not achievements are disabled. (read-only)",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.achievementsDisabled, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsDisabled = t), [], [rawData]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "achievementsPermanentlyDisabled (read-only)",
                             soundEffectPressed: "ui.hardcore_toggle_press",
+                            disabled: true,
+                            description: "Whether or not achievements are permanently disabled. (read-only)",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.achievementsPermanentlyDisabled, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.achievementsPermanentlyDisabled = t), [], [rawData]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "isUsingTemplate (read-only)",
+                            disabled: true,
+                            description: "isUsingTemplate (read-only)",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.isUsingTemplate, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isUsingTemplate = t), [], [rawData]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "isLockedTemplate",
                             disabled: false,
-                            description: "Whether or not achievements are permanently disabled.",
-                            value: rawData.get().achievementsPermanentlyDisabled,
-                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.achievementsPermanentlyDisabled = !t), [], [rawData]),
+                            description: "isLockedTemplate",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.isLockedTemplate, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.isLockedTemplate = t), [], [rawData]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "playerHasDied (read-only)",
+                            disabled: true,
+                            description: "readonly general.playerHasDied",
+                            value: (0, r.useFacetMap)((e) => e.playerHasDied, [], [p]),
+                            onChange: (0, r.useFacetCallback)((e) => (t) => (e.playerHasDied = t), [], [p]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "consoleCommandsEnabled (read-only)",
+                            disabled: true,
+                            description: "scriptingCoding.consoleCommandsEnabled",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.consoleCommandsEnabled, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.consoleCommandsEnabled = t), [], [rawData]),
+                        }),
+                        a.createElement(Nx, {
+                            title: "codeBuilderEnabled (read-only)",
+                            disabled: true,
+                            description: "scriptingCoding.codeBuilderEnabled (read-only)",
+                            value: (0, r.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.codeBuilderEnabled, [], [e]),
+                            onChange: (0, r.useFacetCallback)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.codeBuilderEnabled = t), [], [rawData]),
                         })
                     )
                 );
@@ -881,11 +982,11 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.getFullname().endsWith(".js")) {
-                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
+                        distData = "// Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer\n" + distData;
                     } else if (entry.getFullname().endsWith(".css")) {
-                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
+                        distData = "/* Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n" + distData;
                     } else if (entry.getFullname().endsWith(".html")) {
-                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.7.3: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
+                        distData = "<!-- Modified by 8Crafter's Ore UI Customizer v0.8.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n" + distData;
                     }
                     entry.replaceText(distData);
                     console.log(`Entry ${entry.name} has been successfully modified.`);
