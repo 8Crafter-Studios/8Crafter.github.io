@@ -66,7 +66,7 @@ $(function onDocumentLoad() {
         await validateZipFile();
         $(this).val("");
         $("#imported_file_name").css("color", "inherit");
-        $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
+        $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${currentImportedFile.size} bytes`);
         $("#file-import-input").prop("disabled", false);
     });
     $("#hardcore_mode_toggle_always_clickable")
@@ -1208,15 +1208,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.9.2: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
