@@ -1252,7 +1252,7 @@ async function applyMods() {
                     )
                 );
             }`
-                    );
+                    ).replace(`e&&t.push({label:".debugTabLabel",image:mP,value:"debug"}),`, `t.push({label:".debugTabLabel",image:mP,value:"debug"}),`);
                 }
                 if (settings.maxTextLengthOverride !== "") {
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
@@ -1267,15 +1267,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.11.1: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.11.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.11.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
