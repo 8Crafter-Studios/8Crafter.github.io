@@ -715,6 +715,7 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .mcdropdown {
+	text-align: left;
     & > #dropdowncontents,
     .dropdowncontents {
         border-image: url("/assets/images/ui/dropdown/dropdown_background.png") 2 2
