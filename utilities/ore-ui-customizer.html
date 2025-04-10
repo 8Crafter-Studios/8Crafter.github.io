@@ -75,8 +75,10 @@
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
         <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js"></script>
+        <script src='../assets/js/spectrum.js'></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
+        <link rel='stylesheet' href='../assets/css/spectrum.css' />
         <!--
     <link href="/assets/css/home.css" rel="stylesheet">-->
 
@@ -226,70 +228,67 @@
             </header>
         </autofill_from_file>
         <autofill_from_file src="/components/settings_menu.component.js"></autofill_from_file>
-        <main>
-            <center
-                style="
-                    width: calc(100% - 60px);
-                    height: calc(100% - 60px - var(--header-height));
-                    padding: 30px 0px;
-                    position: relative;
-                    left: 30px;
-                    color: white;
-                "
+        <div id="customizer_settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none">
+            <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5"></div>
+            <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; z-index: 1">
+                <button
+                    type="button"
+                    onclick="$('#customizer_settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0'); this.style.width = '60px'}else{$(this).text('Hide'); $(this).attr('mode', '1'); this.style.width = '70px'}"
+                    class="btn nsel"
+                    style="float: left; width: 70px"
+                    id="customer_settings_left_sidebar_toggle_button"
+                    ontouchstart=""
+                    mode="1"
+                >
+                    Hide
+                </button>
+            </div>
+            <div style="border-left: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; right: 0px; z-index: 1">
+                <button type="button" class="btn nsel" id="customizer_settings_hide_button" onclick="$('#customizer_settings_menu').slideToggle()">
+                    Close
+                </button>
+            </div>
+            <div
+                id="customizer_settings_left_sidebar"
+                class="no_margins"
+                style="width: 70px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc"
             >
-                <!-- 
-                <div class="form-group">
-                    <div class="form-group-header">
-                        <label for="mcUsername">Minecraft Username for Owner</label>
-                    </div>
-                    <div class="form-group-body">
-                        <input type="text" class="form-control" placeholder="Username" id="mcUsername" ontouchstart style="width: 100%;">
-                    </div>
-                    <br>
-                    <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
-                </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.11.2</h1>
-                <h4>Instructions</h4>
-                <ul style="text-align: left; list-style: decimal">
-                    <li>
-                        Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or <code>dist</code>, it HAS to be the entire
-                        <code>gui</code> folder.).
-                        <br />
-                        IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be UNMODIFIED, or else it will not detect
-                        the parts to replace properly, if you have modifed it, make a backup of it, and repair your Minecraft installation.
-                        <ul style="text-align: left; list-style: circle">
-                            <li>
-                                <b>Windows (Bedrock Launcher):</b>
-                                If you are on windows and using Minecraft Bedrock Launcher, go to
-                                <code>%appdata%/.minecraft_bedrock/versions</code>, open the folder for the version that is your current Minecraft version, and
-                                open the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
-                                <code>Compress to... > ZIP File</code>.
-                            </li>
-                            <li>
-                                <b>Windows (IOBit Unlocker):</b>
-                                If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock launcher, please use the
-                                bedrock launcher method instead if you are using bedrock launcher), go to
-                                <code>%programfiles%/WindowsApps</code>. Then open the folder that starts with <code>Microsoft.MinecraftUWP</code>. Then open
-                                the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
-                                <code>Compress to... > ZIP File</code>.
-                            </li>
-                            <li>
-                                <b>Android</b>
-                                If you are on Android, go to <code>base.apk/assests</code>. Then select the <code>gui</code>
-                                folder, and compress it into a .zip file.
-                            </li>
-                        </ul>
-                    </li>
-                    <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
-                    <li>Upload the .zip file containing your unmodified gui folder.</li>
-                    <li>Choose your desired options below.</li>
-                    <li>Click the "Apply Mods" button at the bottom of the screen.</li>
-                    <li>Click the "Download" button at the bottom of the screen.</li>
-                    <li>Download the .zip file containing your modified gui folder.</li>
-                    <li>Extract the .zip file containing your modified gui folder.</li>
-                    <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
-                </ul>
-                <hr />
+                <label
+                    ontouchstart=""
+                    for="customizer_settings_section_radio_general"
+                    class="radio_button_container_label"
+                    style="width: -webkit-fill-available"
+                >
+                    <input
+                        type="radio"
+                        name="customizer_settings_section"
+                        style="display: none"
+                        class="no-remove-disabled nsel"
+                        id="customizer_settings_section_radio_general"
+                        title="General"
+                        checked
+                    />
+                    <div class="no-remove-disabled nsel">General</div>
+                </label>
+                <label
+                    ontouchstart=""
+                    for="customizer_settings_section_radio_colors"
+                    class="radio_button_container_label"
+                    style="width: -webkit-fill-available"
+                >
+                    <input
+                        type="radio"
+                        name="customizer_settings_section"
+                        style="display: none"
+                        class="no-remove-disabled nsel"
+                        id="customizer_settings_section_radio_colors"
+                        title="Colors"
+                    />
+                    <div class="no-remove-disabled nsel">Colors</div>
+                </label>
+            </div>
+            <settings_section id="general_customizer_settings_section" class="settings_section">
+                <center><h1>General Options</h1></center>
                 <form id="options_box" style="text-align: left; width: fit-content">
                     <div
                         class="mctogglecontainer nsel"
@@ -472,6 +471,95 @@
                     <br />
                     <input type="reset" class="btn nsel" id="resetOreUICustomizerOptions" form="options_box" value="Reset Options To Defaults" />
                 </form>
+            </settings_section>
+            <settings_section id="colors_customizer_settings_section" class="settings_section">
+                <center><h1>General Options</h1></center>
+                <form id="options_box" style="text-align: left; width: fit-content">
+                    <div class="form-group">
+                        <div class="form-group-header">
+                            <label for="colors_customizer_settings_section_green10">
+                                green10
+                                <br />
+                                Default: #A0E081
+                            </label>
+                        </div>
+                        <div class="form-group-body">
+                            <input type="text" class="spectrum-colorpicker-color-override-option" value="#A0E081" id="colors_customizer_settings_section_green10" ontouchstart style="width: 100%" />
+                        </div>
+                        <br />
+                        <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
+                    </div>
+                    <br />
+                </form>
+            </settings_section>
+        </div>
+        <main>
+            <center
+                style="
+                    width: calc(100% - 60px);
+                    height: calc(100% - 60px - var(--header-height));
+                    padding: 30px 0px;
+                    position: relative;
+                    left: 30px;
+                    color: white;
+                "
+            >
+                <!-- 
+                <div class="form-group">
+                    <div class="form-group-header">
+                        <label for="mcUsername">Minecraft Username for Owner</label>
+                    </div>
+                    <div class="form-group-body">
+                        <input type="text" class="form-control" placeholder="Username" id="mcUsername" ontouchstart style="width: 100%;">
+                    </div>
+                    <br>
+                    <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
+                </div> -->
+                <h1>8Crafter's Ore UI Customizer v0.12.0</h1>
+                <h4>Instructions</h4>
+                <ul style="text-align: left; list-style: decimal">
+                    <li>
+                        Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or <code>dist</code>, it HAS to be the entire
+                        <code>gui</code> folder.).
+                        <br />
+                        IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be UNMODIFIED, or else it will not detect
+                        the parts to replace properly, if you have modifed it, make a backup of it, and repair your Minecraft installation.
+                        <ul style="text-align: left; list-style: circle">
+                            <li>
+                                <b>Windows (Bedrock Launcher):</b>
+                                If you are on windows and using Minecraft Bedrock Launcher, go to
+                                <code>%appdata%/.minecraft_bedrock/versions</code>, open the folder for the version that is your current Minecraft version, and
+                                open the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
+                                <code>Compress to... > ZIP File</code>.
+                            </li>
+                            <li>
+                                <b>Windows (IOBit Unlocker):</b>
+                                If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock launcher, please use the
+                                bedrock launcher method instead if you are using bedrock launcher), go to
+                                <code>%programfiles%/WindowsApps</code>. Then open the folder that starts with <code>Microsoft.MinecraftUWP</code>. Then open
+                                the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
+                                <code>Compress to... > ZIP File</code>.
+                            </li>
+                            <li>
+                                <b>Android</b>
+                                If you are on Android, go to <code>base.apk/assests</code>. Then select the <code>gui</code>
+                                folder, and compress it into a .zip file.
+                            </li>
+                        </ul>
+                    </li>
+                    <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
+                    <li>Upload the .zip file containing your unmodified gui folder.</li>
+                    <li>Choose your desired options below.</li>
+                    <li>Click the "Apply Mods" button at the bottom of the screen.</li>
+                    <li>Click the "Download" button at the bottom of the screen.</li>
+                    <li>Download the .zip file containing your modified gui folder.</li>
+                    <li>Extract the .zip file containing your modified gui folder.</li>
+                    <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
+                </ul>
+                <hr />
+                <button type="button" class="btn nsel" id="customizer_settings_show_button" onclick="$('#customizer_settings_menu').slideToggle()">
+                    Show Options
+                </button>
                 <hr />
                 <center style="width: 100%; margin-top: 30px">
                     <div class="text-center mx-auto my-2" style="color: inherit">
@@ -518,7 +606,14 @@
                                         ontouchstart=""
                                         onclick="$(this).find('input[type=\'radio\']').prop('checked', true)"
                                     >
-                                        <input type="radio" id="gui_preset_none" name="gui_preset" value="none" class="mcradio guiPresetDropdownOptionInput" checked />
+                                        <input
+                                            type="radio"
+                                            id="gui_preset_none"
+                                            name="gui_preset"
+                                            value="none"
+                                            class="mcradio guiPresetDropdownOptionInput"
+                                            checked
+                                        />
                                         <div class="mcradiocheckbox"></div>
                                         <label for="gui_preset_none">None (Use Imported .zip File)</label>
                                     </div>
@@ -620,4 +715,3 @@
         </template>
     </body>
 </html>
-

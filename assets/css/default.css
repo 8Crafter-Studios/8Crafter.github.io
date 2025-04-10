@@ -3,19 +3,19 @@
 }
 
 @container style(--use_noto_sans_font: false) {
-		* {
-    		font-family: "Mojangles";
-		}
-		only_visible_on_fonts[Mojangles] {
+    * {
+        font-family: "Mojangles";
+    }
+    only_visible_on_fonts[Mojangles] {
         display: contents;
     }
 }
 
 @container style(--use_noto_sans_font: true) {
-		* {
-    		font-family: "NotoSansArabic-Regular";
-		}
-		only_visible_on_fonts[NotoSans] {
+    * {
+        font-family: "NotoSansArabic-Regular";
+    }
+    only_visible_on_fonts[NotoSans] {
         display: contents;
     }
 }
@@ -23,88 +23,65 @@
 @font-face {
     font-family: "Mojangles";
     src: url("/assets/fonts/Mojangles.ttf");
-    unicode-range: U+000D, U+0020-007E, U+00A0-00FF, U+0131, U+0141-0142,
-        U+0152-0153, U+0160-0161, U+0178, U+017D-017E, U+0192, U+02C6-02C7,
-        U+02D8-02DD, U+0394, U+03A9, U+03C0, U+2013-2014, U+2018-201A,
-        U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+2074,
-        U+20AC, U+2122, U+2202, U+220F, U+2211-2212, U+221A, U+221E, U+222B,
-        U+2248, U+2260, U+2264-2265, U+25CA, U+FB01-FB02;
+    unicode-range: U+000D, U+0020-007E, U+00A0-00FF, U+0131, U+0141-0142, U+0152-0153, U+0160-0161, U+0178, U+017D-017E, U+0192, U+02C6-02C7, U+02D8-02DD,
+        U+0394, U+03A9, U+03C0, U+2013-2014, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+2074, U+20AC, U+2122, U+2202, U+220F,
+        U+2211-2212, U+221A, U+221E, U+222B, U+2248, U+2260, U+2264-2265, U+25CA, U+FB01-FB02;
 }
 
 @font-face {
     font-family: "Minecraft-Five";
     src: url("/assets/fonts/Minecraft-Five-48bb3.otf");
-    unicode-range: U+000D, U+0020-003F, U+0041-007E, U+00A0-00A6, U+00A8-00B1,
-        U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF,
-        U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386,
-        U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491,
-        U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31,
-        U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E,
-        U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026,
-        U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F,
-        U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+    unicode-range: U+000D, U+0020-003F, U+0041-007E, U+00A0-00A6, U+00A8-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF, U+0218-021B,
+        U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B,
+        U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A,
+        U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF,
+        U+FB01-FB02;
 }
 
 @font-face {
     font-family: "Minecraft-Five-Bold";
     src: url("/assets/fonts/Minecraft-Five-Bold-4ded8.otf");
-    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1,
-        U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF,
-        U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386,
-        U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491,
-        U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31,
-        U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E,
-        U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026,
-        U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F,
-        U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+01FC-01FF, U+0218-021B,
+        U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B,
+        U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A,
+        U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF,
+        U+FB01-FB02;
     font-weight: bold;
 }
 
 @font-face {
     font-family: "Minecraft-Seven";
     src: url("/assets/fonts/Minecraft-Seven-66398.otf");
-    unicode-range: U+000D, U+0020-007E, U+00A0-00B1, U+00B4, U+00B6-00B8,
-        U+00BA-00BB, U+00BF-0148, U+014A-017E, U+0192, U+01FC-01FF, U+0218-021B,
-        U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A,
-        U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03,
-        U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41,
-        U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3,
-        U+2013-2015, U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030,
-        U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212,
-        U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+    unicode-range: U+000D, U+0020-007E, U+00A0-00B1, U+00B4, U+00B6-00B8, U+00BA-00BB, U+00BF-0148, U+014A-017E, U+0192, U+01FC-01FF, U+0218-021B, U+0237,
+        U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B,
+        U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A,
+        U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF,
+        U+FB01-FB02;
 }
 
 @font-face {
     font-family: "Minecraft-Seven-v4";
     src: url("/assets/fonts/Minecraft-Seven-v4-c1725.ttf");
-    unicode-range: U+0020-007E, U+00A0-00AC, U+00AE-017E, U+0192, U+01FC-01FF,
-        U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-038A,
-        U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03,
-        U+1E0A-1E0B, U+1E1E-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57,
-        U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015,
-        U+2017-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126,
-        U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+3000, U+F6C3, U+F8FF,
-        U+FB01-FB02;
+    unicode-range: U+0020-007E, U+00A0-00AC, U+00AE-017E, U+0192, U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-038A, U+038C,
+        U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61,
+        U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2017-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F,
+        U+2211-2212, U+221E, U+25CA, U+3000, U+F6C3, U+F8FF, U+FB01-FB02;
 }
 
 @font-face {
     font-family: "Minecraft-Ten";
     src: url("/assets/fonts/Minecraft-Ten-ed29a.otf");
-    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1,
-        U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+0192,
-        U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD,
-        U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F,
-        U+0490-0491, U+1E02-1E03, U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23,
-        U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B,
-        U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015, U+2018-201A, U+201C-201E,
-        U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126,
-        U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3, U+F8FF, U+FB01-FB02;
+    unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1, U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+0192, U+01FC-01FF,
+        U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD, U+0384-0386, U+0388-038A, U+038C, U+038E-03A1, U+03A3-03CE, U+0400-045F, U+0490-0491, U+1E02-1E03,
+        U+1E0A-1E0B, U+1E1E-1E1F, U+1E22-1E23, U+1E30-1E31, U+1E40-1E41, U+1E56-1E57, U+1E60-1E61, U+1E6A-1E6B, U+1E80-1E85, U+1E9E, U+1EF2-1EF3, U+2013-2015,
+        U+2018-201A, U+201C-201E, U+2020-2022, U+2026, U+2030, U+2039-203A, U+2044, U+20AC, U+2122, U+2126, U+2206, U+220F, U+2211-2212, U+221E, U+25CA, U+F6C3,
+        U+F8FF, U+FB01-FB02;
 }
 
 @font-face {
     font-family: "NotoSansArabic-Regular";
-		font-size-adjust: 0.1%;
-    src: url("/assets/fonts/NotoSansArabic-Regular-9137a.ttf");/* 
+    font-size-adjust: 0.1%;
+    src: url("/assets/fonts/NotoSansArabic-Regular-9137a.ttf"); /* 
     unicode-range: U+000D, U+0020-007E, U+00A0-00A6, U+00A8-00A9, U+00AB-00B1,
         U+00B4, U+00B6-00B8, U+00BB, U+00BF-0148, U+014A-017E, U+0192,
         U+01FC-01FF, U+0218-021B, U+0237, U+02C6-02C7, U+02C9, U+02D8-02DD,
@@ -180,7 +157,7 @@
 }
 
 [hidden]:not(.no-override-display-when-hidden) {
-	  display: none !important;
+    display: none !important;
 }
 
 :root {
@@ -203,11 +180,11 @@
 }
 
 :root.use_noto_sans_font {
-	--use_noto_sans_font: true;
+    --use_noto_sans_font: true;
 }
 
 :root:not(.use_noto_sans_font) {
-	--use_noto_sans_font: false;
+    --use_noto_sans_font: false;
 }
 
 .filter_invert {
@@ -238,7 +215,7 @@
     --display_contents_on_not_light_theme: contents;
     --display_contents_on_not_blue_theme: contents;
     --theme: "dark";
-    --theme_bg_url_2: url(/assets/images/wallpapers/4650736.png)
+    --theme_bg_url_2: url(/assets/images/wallpapers/4650736.png);
 }
 
 .light_theme {
@@ -252,7 +229,7 @@
     --display_contents_on_not_dark_theme: contents;
     --display_contents_on_not_blue_theme: contents;
     --theme: "light";
-    --theme_bg_url_2: url(/assets/images/wallpapers/10949934.jpg)
+    --theme_bg_url_2: url(/assets/images/wallpapers/10949934.jpg);
 }
 
 .blue_theme {
@@ -266,7 +243,7 @@
     --display_contents_on_not_dark_theme: contents;
     --display_contents_on_not_light_theme: contents;
     --theme: "blue";
-    --theme_bg_url_2: url(/assets/images/wallpapers/10949934.jpg)
+    --theme_bg_url_2: url(/assets/images/wallpapers/10949934.jpg);
 }
 
 only_visible_dark_theme {
@@ -321,14 +298,14 @@ only_visible_on_themes[light] {
 
 .invert_color_text:after {
     /* This value is the OPPOSITE color of our background */
-    color: rgb(0, 255, 255); 
+    color: rgb(0, 255, 255);
     mix-blend-mode: difference;
 }
 
 html {
     ---theme-var-switcher--html-bg-color: var(--root-bg-color-dark);
     background-color: var(---theme-var-switcher--html-bg-color);
-    color: var(---theme-var-switcher--root-text-color)
+    color: var(---theme-var-switcher--root-text-color);
 }
 
 body {
@@ -372,8 +349,8 @@ autofill_from_file {
 }
 
 card-grid:not([type1]) {
-	display: grid;
-	/* grid-template: max-content; */
+    display: grid;
+    /* grid-template: max-content; */
     /* flex-direction: row; */
     column-gap: 1em;
     grid-template-columns: repeat(auto-fill, minmax(min(350px, 100%), 1fr));
@@ -392,9 +369,8 @@ page_background {
 }
 
 page_background[theme_color_bg] {
-
     background-color: var(---theme-var-switcher--html-bg-color);
-    color: var(---theme-var-switcher--root-text-color)
+    color: var(---theme-var-switcher--root-text-color);
 }
 
 purple_border_background {
@@ -425,7 +401,7 @@ footer.off-screen {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10000;/* 
+    z-index: 10000; /* 
     padding: 0.5em;
     padding-left: 1em; */
     height: auto;
@@ -479,22 +455,22 @@ ul:not(:not(.vertical-nav)) {
 
     & > li a:hover,
     & > li .navbar-dropdown:hover .navbar-dropbtn {
-        & > [name=cv] {
+        & > [name="cv"] {
             display: none;
-        };
-        & > [name=cvsel] {
+        }
+        & > [name="cvsel"] {
             display: block;
-        };
+        }
     }
 
     & > li a:not(:hover),
     & > li .navbar-dropdown:not(:hover) .navbar-dropbtn {
-        & > [name=cv] {
+        & > [name="cv"] {
             display: block;
-        };
-        & > [name=cvsel] {
+        }
+        & > [name="cvsel"] {
             display: none;
-        };
+        }
     }
 
     & > li a:hover {
@@ -519,7 +495,6 @@ ul:not(:not(.horizontal-nav)) {
     & > li {
         float: left;
         line-height: 20px;
-				
     }
 
     & > li a {
@@ -535,23 +510,23 @@ ul:not(:not(.horizontal-nav)) {
     & > li .navbar-dropdown:hover .navbar-dropbtn,
     & > li .navbar-dropdown:hover .navbar-dropdown-content a:hover {
         background-color: #111;
-        & > [name=cv] {
+        & > [name="cv"] {
             display: none;
-        };
-        & > [name=cvsel] {
+        }
+        & > [name="cvsel"] {
             display: block;
-        };
+        }
     }
 
     & > li a:not(:hover):not(.active),
     & > li .navbar-dropdown:not(:hover) .navbar-dropbtn,
     & > li .navbar-dropdown:hover .navbar-dropdown-content a:hover {
-        & > [name=cv] {
+        & > [name="cv"] {
             display: block;
-        };
-        & > [name=cvsel] {
+        }
+        & > [name="cvsel"] {
             display: none;
-        };
+        }
     }
 
     & > li a:hover {
@@ -579,18 +554,17 @@ ul:not(:not(.horizontal-nav)) {
     background-color: #6b6b6b80;
 }
 
-
-
-.navbar-dropdown {/* 
+.navbar-dropdown {
+    /* 
     float: left; */
     overflow: hidden;
 }
 
 .navbar-dropdown .navbar-dropbtn {
-    font-size: 16px;  
+    font-size: 16px;
     border: none;
     outline: none;
-    color: white;/* 
+    color: white; /* 
     padding: 14px 16px; */
     background-color: inherit;
     font-family: inherit;
@@ -602,11 +576,11 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .navbar-dropdown-content {
-    display: none;/* 
-    position: absolute; *//* 
+    display: none; /* 
+    position: absolute; */ /* 
     background-color: #333; */
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
     z-index: 1;
 }
 
@@ -650,6 +624,7 @@ ul:not(:not(.horizontal-nav)) {
     display: flow-root;
     height: 100%;
     overflow: auto;
+    padding: 0px 5px;
 }
 
 .no_margins {
@@ -690,10 +665,15 @@ ul:not(:not(.horizontal-nav)) {
     color: white;
 }
 
-.alert.success {background-color: #04AA6D;}
-.alert.info {background-color: #2196F3;}
-.alert.warning {background-color: #ff9800;}
-
+.alert.success {
+    background-color: #04aa6d;
+}
+.alert.info {
+    background-color: #2196f3;
+}
+.alert.warning {
+    background-color: #ff9800;
+}
 
 .closebtn {
     margin-left: 15px;
@@ -715,11 +695,15 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .mcdropdown {
-	text-align: left;
+    text-align: left;
+    margin-top: 5px;
+    & > #dropdownbutton,
+    .dropdownbutton {
+        margin-top: 4px;
+    }
     & > #dropdowncontents,
     .dropdowncontents {
-        border-image: url("/assets/images/ui/dropdown/dropdown_background.png") 2 2
-            2 2 fill / 2px 2px 2px 2px;
+        border-image: url("/assets/images/ui/dropdown/dropdown_background.png") 2 2 2 2 fill / 2px 2px 2px 2px;
         padding: 3px;
         padding-left: 2px;
         padding-right: 2px;
@@ -760,9 +744,7 @@ ul:not(:not(.horizontal-nav)) {
             background-image: url("/assets/images/ui/dropdown/dropDownHoverBG.png");
         }
 
-        &
-            > div:not(.mcdropdownoption)
-            > .mcdropdownoption:hover:has(> input:checked) {
+        & > div:not(.mcdropdownoption) > .mcdropdownoption:hover:has(> input:checked) {
             & > .mcradiocheckbox:not(.disabled-toggle-checkbox) {
                 background-image: url("/assets/images/ui/radio/radio_on_hover.png");
             }
@@ -781,9 +763,7 @@ ul:not(:not(.horizontal-nav)) {
             }
         }
 
-        &
-            > div:not(.mcdropdownoption)
-            > .mcdropdownoption:hover:not(:has(> input:checked)) {
+        & > div:not(.mcdropdownoption) > .mcdropdownoption:hover:not(:has(> input:checked)) {
             & > .mcradiocheckbox:not(.disabled-toggle-checkbox) {
                 background-image: url("/assets/images/ui/radio/radio_off_hover.png");
             }
@@ -809,14 +789,16 @@ ul:not(:not(.horizontal-nav)) {
         #cvsel,
         .cv,
         .cvsel {
-            right: 7px; top: 10px; position: absolute
+            right: 7px;
+            top: 10px;
+            position: absolute;
         }
     }
 }
 
 .mcdropdownoption {
     & > label {
-        vertical-align:0.15em;
+        vertical-align: 0.15em;
     }
 }
 
@@ -856,14 +838,14 @@ ul:not(:not(.horizontal-nav)) {
 .mctogglecontainer:has(> input:not(:not(.disabled-toggle-checkbox))) {
     cursor: default;
     & > label {
-        cursor: inherit
+        cursor: inherit;
     }
 }
 
 .mctogglecontainer:has(> input:not(.disabled-toggle-checkbox)) {
     cursor: pointer;
     & > label {
-        cursor: inherit
+        cursor: inherit;
     }
 }
 
@@ -993,7 +975,8 @@ ul:not(:not(.horizontal-nav)) {
     -webkit-user-drag: none;
 }
 
-.purpleBorder {/* 
+.purpleBorder {
+    /* 
     position: relative;
     display: inline-block;
     padding: 6px 12px;
@@ -1014,7 +997,7 @@ ul:not(:not(.horizontal-nav)) {
     border-radius: 0px;
     -webkit-appearance: none;
     -moz-appearance: none;
-    appearance: none;/* 
+    appearance: none; /* 
     --border-image-light: url("/assets/images/ui/buttons/button_borderless_light.png");
     --border-image-dark: url("/assets/images/ui/buttons/button_borderless_dark.png");
     --border-image-lighthover: url("/assets/images/ui/buttons/button_borderless_lighthover.png");
@@ -1040,12 +1023,11 @@ ul:not(:not(.horizontal-nav)) {
         --border-image-darkpressed
     );
     ---theme-var-switcher--btn-text-color: var(--btn-text-color-dark); */
-    border-image: url("/assets/images/ui/backgrounds/purpleBorder.png")
-        4 4 4 4 fill / 4px 4px 4px 4px;
+    border-image: url("/assets/images/ui/backgrounds/purpleBorder.png") 4 4 4 4 fill / 4px 4px 4px 4px;
     background-color: rgba(27, 12, 27, 255);
     background-clip: padding-box;
     padding: 5px;
-    image-rendering: pixelated;/* 
+    image-rendering: pixelated; /* 
     color: var(---theme-var-switcher--btn-text-color); */
 }
 
@@ -1090,18 +1072,10 @@ ul:not(:not(.horizontal-nav)) {
     --btn-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--border-image: var(--border-image-dark);
     ---theme-var-switcher--border-image-hover: var(--border-image-darkhover);
-    ---theme-var-switcher--border-image-pressednohover: var(
-        --border-image-darkpressednohover
-    );
-    ---theme-var-switcher--border-image-pressed: var(
-        --border-image-darkpressed
-    );
+    ---theme-var-switcher--border-image-pressednohover: var(--border-image-darkpressednohover);
+    ---theme-var-switcher--border-image-pressed: var(--border-image-darkpressed);
     ---theme-var-switcher--btn-text-color: var(--btn-text-color-dark);
-    border-image: var(
-            ---theme-var-switcher--border-image,
-            var(--border-image-light)
-        )
-        1 1 1 1 fill / 1px 1px 1px 1px;
+    border-image: var(---theme-var-switcher--border-image, var(--border-image-light)) 1 1 1 1 fill / 1px 1px 1px 1px;
     padding: 5px;
     image-rendering: pixelated;
     color: var(---theme-var-switcher--btn-text-color);
@@ -1167,11 +1141,7 @@ ul:not(:not(.horizontal-nav)) {
 .radio_button_container_label.focus {
     /*
   box-shadow: 0 0 0 0.2em rgba(3, 102, 214, 0.3)*/
-    border-image: var(
-            ---theme-var-switcher--border-image-hover,
-            var(--border-image-lighthover)
-        )
-        1 1 1 1 fill / 1px 1px 1px 1px;
+    border-image: var(---theme-var-switcher--border-image-hover, var(--border-image-lighthover)) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:hover:enabled,
@@ -1181,11 +1151,7 @@ ul:not(:not(.horizontal-nav)) {
   background-image: linear-gradient(-180deg, #f0f3f6 0%, #e6ebf1 90%);
   background-position: -.5em;
   border-color: rgba(27, 31, 35, 0.35)*/
-    border-image: var(
-            ---theme-var-switcher--border-image-hover,
-            var(--border-image-lighthover)
-        )
-        1 1 1 1 fill / 1px 1px 1px 1px;
+    border-image: var(---theme-var-switcher--border-image-hover, var(--border-image-lighthover)) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:hover:enabled:not(.noinvert):not(.buttonhascoloredimages),
@@ -1212,11 +1178,7 @@ ul:not(:not(.horizontal-nav)) {
   border-color: rgba(27, 31, 35, 0.35);
   box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
 
-    border-image: var(
-            ---theme-var-switcher--border-image-pressednohover,
-            var(--border-image-lightpressednohover)
-        )
-        1 1 1 1 fill / 1px 1px 1px 1px;
+    border-image: var(---theme-var-switcher--border-image-pressednohover, var(--border-image-lightpressednohover)) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:active:hover:enabled,
@@ -1232,11 +1194,7 @@ ul:not(:not(.horizontal-nav)) {
   border-color: rgba(27, 31, 35, 0.35);
   box-shadow: inset 0 0.15em 0.3em rgba(27, 31, 35, 0.15)*/
 
-    border-image: var(
-            ---theme-var-switcher--border-image-pressed,
-            var(--border-image-lightpressed)
-        )
-        1 1 1 1 fill / 1px 1px 1px 1px;
+    border-image: var(---theme-var-switcher--border-image-pressed, var(--border-image-lightpressed)) 1 1 1 1 fill / 1px 1px 1px 1px;
 }
 
 .btn:disabled,
@@ -1261,31 +1219,31 @@ ul:not(:not(.horizontal-nav)) {
 
 .form-control,
 .form-select {
-  min-height: 34px;
-  padding: 6px 8px;
-  font-size: 16px;
-  line-height: 20px;
-  color: #FFFFFF;  
-  vertical-align: middle;/*
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 16px;
+    line-height: 20px;
+    color: #ffffff;
+    vertical-align: middle; /*
   background-color: #fff;
   background-repeat: no-repeat;
-  background-position: right 8px center;*//*
-  border: 1px solid #d1d5da;*//*
+  background-position: right 8px center;*/ /*
+  border: 1px solid #d1d5da;*/ /*
   border-radius: 3px;
-  outline: none;*//*
+  outline: none;*/ /*
   box-shadow: inset 0 1px 2px rgba(27, 31, 35, 0.075);*/
-  border-image: url('/assets/images/ui/textboxes/edit_box_indent.png') 2 1 2 1 fill / 4px 2px 4px 2px;
-  padding: 4px 5px 4px 5px;
-  image-rendering: pixelated;
+    border-image: url("/assets/images/ui/textboxes/edit_box_indent.png") 2 1 2 1 fill / 4px 2px 4px 2px;
+    padding: 4px 5px 4px 5px;
+    image-rendering: pixelated;
 }
 
 .form-control::placeholder {
-  color: white;
-	opacity: 0.5;
+    color: white;
+    opacity: 0.5;
 }
 
 .form-control:enabled:hover::placeholder {
-  opacity: 1 !important;
+    opacity: 1 !important;
 }
 /*
 .form-control.focus,
@@ -1298,13 +1256,19 @@ ul:not(:not(.horizontal-nav)) {
 }*/
 
 .form-control:enabled:hover {
-  border-image: url('/assets/images/ui/textboxes/edit_box_indent_hover.png') 2 1 2 1 fill / 4px 2px 4px 2px;
+    border-image: url("/assets/images/ui/textboxes/edit_box_indent_hover.png") 2 1 2 1 fill / 4px 2px 4px 2px;
+}
+
+.form-group {
+    margin-top: 5px;
+    & > .form-group-body {
+        margin-top: 4px;
+    }
 }
 
 @media (min-width: 768px) {
-
-  .form-control,
-  .form-select {
-    font-size: 14px
-  }
+    .form-control,
+    .form-select {
+        font-size: 14px;
+    }
 }

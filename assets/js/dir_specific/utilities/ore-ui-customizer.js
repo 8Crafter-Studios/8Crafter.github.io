@@ -32,6 +32,11 @@ let currentPreset = "none";
  */
 let currentImportedFile = undefined;
 
+/**
+ * @type {HTMLElement}
+ */
+let currentColorPickerTarget = undefined;
+
 $(function onDocumentLoad() {
     $("#list-wrapper").on("dragenter", function (event) {
         event.preventDefault();
@@ -120,7 +125,9 @@ $(function onDocumentLoad() {
                 $("#imported_file_name").text("No file imported.");
             } else {
                 $("#imported_file_name").css("color", "yellow");
-                $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
+                $("#imported_file_name").text(
+                    `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+                );
                 await validateZipFile();
                 $("#imported_file_name").css("color", "inherit");
                 $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
@@ -134,24 +141,72 @@ $(function onDocumentLoad() {
             $("#imported_file_name").css("color", "orange");
             $("#imported_file_name").text(`Loading...`);
             const response = await fetch(currentPresets[currentPreset].url);
-            if(response.status === 404) {
+            if (response.status === 404) {
                 console.error(`404 while loading PRESET: ${currentPresets[currentPreset].displayName}`, currentPresets[currentPreset].url);
                 $("#imported_file_name").css("color", "red");
                 $("#imported_file_name").text(`Failed to load PRESET: ${currentPresets[currentPreset].displayName}`);
                 return;
             }
-            currentImportedFile = new File(
-                [await response.blob()],
-                currentPresets[currentPreset].url.split("/").pop()
-            );
+            currentImportedFile = new File([await response.blob()], currentPresets[currentPreset].url.split("/").pop());
             $("#imported_file_name").css("color", "yellow");
-            $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
+            $("#imported_file_name").text(
+                `Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+            );
             // $("#apply_mods").prop("disabled", false);
             await validateZipFile();
             $("#imported_file_name").css("color", "inherit");
             $("#imported_file_name").text(`Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
         }
     });
+    $('input[name="customizer_settings_section"]').change(() => {
+        try {
+            if ($("#customizer_settings_section_radio_general").prop("checked")) {
+                $("#general_customizer_settings_section").get(0).style.display = "";
+                $("#colors_customizer_settings_section").get(0).style.display = "none";
+            } else if ($("#customizer_settings_section_radio_colors").prop("checked")) {
+                $("#general_customizer_settings_section").get(0).style.display = "none";
+                $("#colors_customizer_settings_section").get(0).style.display = "";
+            } else {
+                $("#general_customizer_settings_section").get(0).style.display = "none";
+                $("#colors_customizer_settings_section").get(0).style.display = "none";
+            }
+        } catch (e) {
+            console.error(e, e.stack);
+        }
+    });
+    // b.each((i, e)=>console.log([e, $(e), (()=>{try{return $(e).data()}catch{return 0;}})()]))
+    $(".spectrum-colorpicker-color-override-option").each((i, element) => $(element).spectrum({
+        allowEmpty: true,
+        noColorSelectedText: "Do not replace color.",
+        // preferredFormat: (element.getAttribute("format") ?? "hex"),
+        beforeShow: (color, element) => {
+            try {
+                $(".sp-picker-container select").val(color.getFormat());
+            } catch (e) {
+                console.error(e, e.stack);
+            }
+            currentColorPickerTarget = element;
+        },
+        showAlpha: true,
+        showInitial: true,
+        showInput: true,
+        showPalette: true,
+        showSelectionPalette: true,
+        localStorageKey: "ore-ui-customizer",
+    }));
+    $(".sp-picker-container").append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
+        <option value="hex">HEX</option>
+        <option value="hex3">HEX3</option>
+        <option value="hex6">HEX6</option>
+        <option value="hex8">HEX8</option>
+        <option value="prgb">PRGB</option>
+        <option value="rgb">RGB</option>
+        <option value="hsv">HSV</option>
+        <option value="hsl">HSL</option>
+        <option value="none">name</option>
+        <option value="none">none</option>
+    </select>`);
+    // $(".sp-choose").addClass("btn btn-primary");
 });
 
 /**
@@ -163,17 +218,17 @@ const formatFileSizeMetric = (fileSize) => {
     let size = Math.abs(fileSize);
 
     if (Number.isNaN(size)) {
-        return 'Invalid file size';
+        return "Invalid file size";
     }
 
     if (size === 0) {
-        return '0 bytes';
+        return "0 bytes";
     }
 
-    const units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'RB', 'QB'];
+    const units = ["bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
     let quotient = Math.floor(Math.log10(size) / 3);
     quotient = quotient < units.length ? quotient : units.length - 1;
-    size /= (1000 ** quotient);
+    size /= 1000 ** quotient;
 
     return `${+size.toFixed(2)} ${units[quotient]}`;
 };
@@ -202,13 +257,16 @@ async function validateZipFile() {
             failed = 1;
             if (zipFs.entries.findIndex((entry) => entry.data?.filename === "dist/") !== -1) {
                 // Repair the zip directory structure.
-                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "dist/"), zipFs.addDirectory("gui")); // adding a / to the end of the string for addDirectory causes it to show "Local Disk" inside of the zip file on windows.
+                zipFs.move(
+                    zipFs.entries.find((entry) => entry.data?.filename === "dist/"),
+                    zipFs.addDirectory("gui")
+                ); // adding a / to the end of the string for addDirectory causes it to show "Local Disk" inside of the zip file on windows.
                 failed = 2;
                 $("#import_files_error").css("color", "yellow");
                 $("#import_files_error").text(
                     `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file was structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the dist folder instead of the gui folder.`
                 );
-                $("#import_files_error").prop("hidden", false);/* 
+                $("#import_files_error").prop("hidden", false); /* 
                 $("#import_files_error").text(
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
                 );
@@ -216,18 +274,21 @@ async function validateZipFile() {
                 $("#download").prop("disabled", true); */
             } else if (zipFs.entries.findIndex((entry) => entry.data?.filename === "hbui/") !== -1) {
                 // Repair the zip directory structure.
-                zipFs.move(zipFs.entries.find((entry) => entry.data?.filename === "hbui/"), zipFs.addDirectory("gui/dist"));
+                zipFs.move(
+                    zipFs.entries.find((entry) => entry.data?.filename === "hbui/"),
+                    zipFs.addDirectory("gui/dist")
+                );
                 failed = 2;
                 $("#import_files_error").css("color", "yellow");
                 $("#import_files_error").text(
                     `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file was structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the hbui folder instead of the gui folder.`
                 );
-                $("#import_files_error").prop("hidden", false);/* 
+                $("#import_files_error").prop("hidden", false); /* 
                 $("#import_files_error").text(
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
                 );
                 $("#apply_mods").prop("disabled", true);
-                $("#download").prop("disabled", true); *//* 
+                $("#download").prop("disabled", true); */ /* 
                 $("#import_files_error").css("color", "red");
                 $("#import_files_error").text(
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file is structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the hbui folder instead of the gui folder.`
@@ -235,7 +296,7 @@ async function validateZipFile() {
                 $("#import_files_error").prop("hidden", false);
                 $("#apply_mods").prop("disabled", true);
                 $("#download").prop("disabled", true); */
-            }else{
+            } else {
                 $("#import_files_error").css("color", "red");
                 $("#import_files_error").text(`Invalid zip file folder structure. Missing gui/ folder. The gui/ folder must be at the root of the zip file.`);
                 $("#import_files_error").prop("hidden", false);
@@ -262,6 +323,8 @@ async function validateZipFile() {
         return true;
     }
 }
+
+// {green10:"#a0e081",green20:"#86d562",green30:"#6cc349",green40:"#52a535",green50:"#3c8527",green60:"#2a641c",green70:"#1d4d13",green80:"#153a0e",green90:"#112f0b",green100:"#0f2b0a",white:"#ffffff",black:"#000000",gray10:"#f4f6f9",gray20:"#e6e8eb",gray30:"#d0d1d4",gray40:"#b1b2b5",gray50:"#8c8d90",gray60:"#58585a",gray70:"#48494a",gray80:"#313233",gray90:"#242425",gray100:"#1e1e1f",red10:"#ff8080",red20:"#d93636",red30:"#b31b1b",red40:"#d54242",red50:"#ca3636",red60:"#c02d2d",red70:"#b62525",red80:"#ad1d1d",red90:"#a31616",red100:"#990f0f",orange10:"#ffb366",orange20:"#d3791f",orange30:"#a65b11",yellow10:"#ffe866",yellow20:"#e5c317",yellow30:"#8a7500",gold10:"#fff0c5",gold20:"#ffd783",gold30:"#f8af2b",gold40:"#ce8706",gold50:"#ae7100",blue10:"#8cb3ff",blue20:"#2e6be5",blue30:"#1452cc",blackOpacity10:"rgba(0, 0, 0, 0.1)",blackOpacity20:"rgba(0, 0, 0, 0.2)",blackOpacity25:"rgba(0, 0, 0, 0.25)",blackOpacity30:"rgba(0, 0, 0, 0.3)",blackOpacity40:"rgba(0, 0, 0, 0.4)",blackOpacity50:"rgba(0, 0, 0, 0.5)",blackOpacity60:"rgba(0, 0, 0, 0.6)",blackOpacity70:"rgba(0, 0, 0, 0.7)",blackOpacity80:"rgba(0, 0, 0, 0.8)",blackOpacity90:"rgba(0, 0, 0, 0.9)",blackOpacity100:"rgba(0, 0, 0, 1)",whiteOpacity10:"rgba(255, 255, 255, 0.1)",whiteOpacity20:"rgba(255, 255, 255, 0.2)",whiteOpacity30:"rgba(255, 255, 255, 0.3)",whiteOpacity40:"rgba(255, 255, 255, 0.4)",whiteOpacity50:"rgba(255, 255, 255, 0.5)",whiteOpacity60:"rgba(255, 255, 255, 0.6)",whiteOpacity70:"rgba(255, 255, 255, 0.7)",whiteOpacity80:"rgba(255, 255, 255, 0.8)",whiteOpacity90:"rgba(255, 255, 255, 0.9)",pink10:"#FB95E2",pink20:"#FFB1EC",pink30:"#E833C2",pink40:"#F877DC",purple40:"#643ACB",deepBlue10:"#AC90F3",deepBlue20:"#9471E0",deepBlue40:"#8557F8",deepBlue50:"#7345E5",deepBlue60:"#5D2CC6",deepBlue70:"#4A1CAC",deepBlue100:"#050029",deepBlueOpacity50:"rgba(5, 0, 41, 0.5)"}
 
 function getSettings() {
     // Temporary placeholders
@@ -364,10 +427,10 @@ function getSettings() {
 async function applyMods() {
     $("#apply_mods").prop("disabled", true);
     $("#download").prop("disabled", true);
-    if(!await validateZipFile()){
+    if (!(await validateZipFile())) {
         console.error("applyMods - validateZipFile failed");
         return false;
-    };
+    }
     const settings = getSettings();
     zipFs.entries.map(
         /** @param {zip.ZipFileEntry | zip.ZipDirectoryEntry} entry */ async (entry) => {
@@ -805,9 +868,10 @@ async function applyMods() {
                     );
                 }
                 if (settings.addDebugTab) {
-                    distData = distData.replace(
-                        `function n_({worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i}){const c=(0,r.useSharedFacet)(Nf),s=(0,r.useFacetMap)((({allBiomes:e})=>e),[],[c]),u=(0,r.useFacetMap)((e=>e.isLockedTemplate),[],[e]),d=(0,r.useFacetMap)((e=>e.achievementsDisabled),[],[e]),m=(0,r.useFacetMap)((({spawnDimensionId:e})=>e),[],[c]),p=(0,r.useFacetMap)((e=>mL(e,(e=>({label:e.label,dimension:e.dimension,value:e.id})))),[],[s]),f=(0,r.useFacetMap)(((e,t)=>QC(e,(e=>e.dimension===t))),[],[p,m]),g=(0,r.useFacetMap)((e=>e.spawnBiomeId),[],[c]),E=(0,r.useFacetMap)((e=>e.defaultSpawnBiome||e.isBiomeOverrideActive),[],[c]),h=(0,r.useSharedFacet)(al),v=(0,r.useFacetMap)((e=>XC(e.platform)),[],[h]),b=(0,a.useContext)(lT)!==rT.CREATE,y=(0,r.useFacetMap)((e=>e&&b),[b],[v]);return a.createElement(r.DeferredMountProvider,null,a.createElement(UO,{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i},a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Flat nether",gamepad:{index:0},value:(0,r.useFacetMap)((e=>e.flatNether),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.flatNether=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Enable game version override",gamepad:{index:1},value:(0,r.useFacetMap)((e=>e.enableGameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.enableGameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement($O,{label:"Game version override",gamepadIndex:2,placeholder:"0.0.0",maxLength:30,disabled:(0,r.useFacetMap)((e=>!e.enableGameVersionOverride),[],[c]),value:(0,r.useFacetMap)((e=>e.gameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.gameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(NP,{title:"World biome settings"})),a.createElement(Nx,{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:{index:3},disabled:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),value:(0,r.useFacetMap)((e=>e.defaultSpawnBiome),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.defaultSpawnBiome=t}),[],[c])}),a.createElement(r.DeferredMount,null,a.createElement(Fx,{onMountComplete:(0,r.useNotifyMountComplete)(),title:"Spawn dimension filter",disabled:E,wrapToggleText:!0,options:[{label:"Overworld",value:0},{label:"Nether",value:1}],value:m,onChange:(0,r.useFacetCallback)((e=>t=>{e.spawnDimensionId=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(vx,{title:"Spawn biome",options:f,onItemSelect:(0,r.useFacetCallback)((e=>t=>e.spawnBiomeId=t),[],[c]),disabled:E,value:(0,r.useFacetMap)(((e,t)=>t.filter((t=>t.value===e)).length>0?e:t[0].value),[],[g,f]),focusOnSelectedItem:!0})),a.createElement(Nx,{title:"Biome override",description:"Set the world to a selected biome. This will override the Spawn biome!",gamepad:{index:6},value:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.isBiomeOverrideActive=t}),[],[c])}),a.createElement(vx,{title:"Biome override",description:"Select biome to be used in the entire world",options:p,disabled:(0,r.useFacetMap)((e=>!e.isBiomeOverrideActive),[],[c]),onItemSelect:(0,r.useFacetCallback)((e=>t=>{e.biomeOverrideId=t}),[],[c]),value:(0,r.useFacetMap)((e=>e.biomeOverrideId),[],[c]),focusOnSelectedItem:!0}),a.createElement(r.Mount,{when:y},a.createElement(a_,{onExportTemplate:l,onClearPlayerData:o}))))}`,
-                        `/**
+                    distData = distData
+                        .replace(
+                            `function n_({worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i}){const c=(0,r.useSharedFacet)(Nf),s=(0,r.useFacetMap)((({allBiomes:e})=>e),[],[c]),u=(0,r.useFacetMap)((e=>e.isLockedTemplate),[],[e]),d=(0,r.useFacetMap)((e=>e.achievementsDisabled),[],[e]),m=(0,r.useFacetMap)((({spawnDimensionId:e})=>e),[],[c]),p=(0,r.useFacetMap)((e=>mL(e,(e=>({label:e.label,dimension:e.dimension,value:e.id})))),[],[s]),f=(0,r.useFacetMap)(((e,t)=>QC(e,(e=>e.dimension===t))),[],[p,m]),g=(0,r.useFacetMap)((e=>e.spawnBiomeId),[],[c]),E=(0,r.useFacetMap)((e=>e.defaultSpawnBiome||e.isBiomeOverrideActive),[],[c]),h=(0,r.useSharedFacet)(al),v=(0,r.useFacetMap)((e=>XC(e.platform)),[],[h]),b=(0,a.useContext)(lT)!==rT.CREATE,y=(0,r.useFacetMap)((e=>e&&b),[b],[v]);return a.createElement(r.DeferredMountProvider,null,a.createElement(UO,{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i},a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Flat nether",gamepad:{index:0},value:(0,r.useFacetMap)((e=>e.flatNether),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.flatNether=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Enable game version override",gamepad:{index:1},value:(0,r.useFacetMap)((e=>e.enableGameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.enableGameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement($O,{label:"Game version override",gamepadIndex:2,placeholder:"0.0.0",maxLength:30,disabled:(0,r.useFacetMap)((e=>!e.enableGameVersionOverride),[],[c]),value:(0,r.useFacetMap)((e=>e.gameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.gameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(NP,{title:"World biome settings"})),a.createElement(Nx,{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:{index:3},disabled:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),value:(0,r.useFacetMap)((e=>e.defaultSpawnBiome),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.defaultSpawnBiome=t}),[],[c])}),a.createElement(r.DeferredMount,null,a.createElement(Fx,{onMountComplete:(0,r.useNotifyMountComplete)(),title:"Spawn dimension filter",disabled:E,wrapToggleText:!0,options:[{label:"Overworld",value:0},{label:"Nether",value:1}],value:m,onChange:(0,r.useFacetCallback)((e=>t=>{e.spawnDimensionId=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(vx,{title:"Spawn biome",options:f,onItemSelect:(0,r.useFacetCallback)((e=>t=>e.spawnBiomeId=t),[],[c]),disabled:E,value:(0,r.useFacetMap)(((e,t)=>t.filter((t=>t.value===e)).length>0?e:t[0].value),[],[g,f]),focusOnSelectedItem:!0})),a.createElement(Nx,{title:"Biome override",description:"Set the world to a selected biome. This will override the Spawn biome!",gamepad:{index:6},value:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.isBiomeOverrideActive=t}),[],[c])}),a.createElement(vx,{title:"Biome override",description:"Select biome to be used in the entire world",options:p,disabled:(0,r.useFacetMap)((e=>!e.isBiomeOverrideActive),[],[c]),onItemSelect:(0,r.useFacetCallback)((e=>t=>{e.biomeOverrideId=t}),[],[c]),value:(0,r.useFacetMap)((e=>e.biomeOverrideId),[],[c]),focusOnSelectedItem:!0}),a.createElement(r.Mount,{when:y},a.createElement(a_,{onExportTemplate:l,onClearPlayerData:o}))))}`,
+                            `/**
              * The function for the Debug tab of the create and edit world screens.
              *
              * @param {object} param0
@@ -1252,7 +1316,8 @@ async function applyMods() {
                     )
                 );
             }`
-                    ).replace(`e&&t.push({label:".debugTabLabel",image:mP,value:"debug"}),`, `t.push({label:".debugTabLabel",image:mP,value:"debug"}),`);
+                        )
+                        .replace(`e&&t.push({label:".debugTabLabel",image:mP,value:"debug"}),`, `t.push({label:".debugTabLabel",image:mP,value:"debug"}),`);
                 }
                 if (settings.maxTextLengthOverride !== "") {
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
@@ -1267,15 +1332,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.11.2: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
