@@ -178,7 +178,7 @@ $(function onDocumentLoad() {
     $(".spectrum-colorpicker-color-override-option").each((i, element) => $(element).spectrum({
         allowEmpty: true,
         noColorSelectedText: "Do not replace color.",
-        // preferredFormat: (element.getAttribute("format") ?? "hex"),
+        preferredFormat: (/^#([0-9a-fA-F]{3}){1,2}$/.test(element.value) ? "hex" : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value) ? "hex8" : /^hsl/.test(element.value) ? "hsl" : /^hsv/.test(element.value) ? "hsl" : /^rgb/.test(element.value) ? "rgb" : /^hsb/.test(element.value) ? "hsb" : element.getAttribute("format") ?? "rgb"),
         beforeShow: (color, element) => {
             try {
                 $(".sp-picker-container select").val(color.getFormat());
@@ -1428,15 +1428,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
