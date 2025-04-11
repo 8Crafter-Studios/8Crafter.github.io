@@ -324,7 +324,23 @@ async function validateZipFile() {
     }
 }
 
-// {green10:"#a0e081",green20:"#86d562",green30:"#6cc349",green40:"#52a535",green50:"#3c8527",green60:"#2a641c",green70:"#1d4d13",green80:"#153a0e",green90:"#112f0b",green100:"#0f2b0a",white:"#ffffff",black:"#000000",gray10:"#f4f6f9",gray20:"#e6e8eb",gray30:"#d0d1d4",gray40:"#b1b2b5",gray50:"#8c8d90",gray60:"#58585a",gray70:"#48494a",gray80:"#313233",gray90:"#242425",gray100:"#1e1e1f",red10:"#ff8080",red20:"#d93636",red30:"#b31b1b",red40:"#d54242",red50:"#ca3636",red60:"#c02d2d",red70:"#b62525",red80:"#ad1d1d",red90:"#a31616",red100:"#990f0f",orange10:"#ffb366",orange20:"#d3791f",orange30:"#a65b11",yellow10:"#ffe866",yellow20:"#e5c317",yellow30:"#8a7500",gold10:"#fff0c5",gold20:"#ffd783",gold30:"#f8af2b",gold40:"#ce8706",gold50:"#ae7100",blue10:"#8cb3ff",blue20:"#2e6be5",blue30:"#1452cc",blackOpacity10:"rgba(0, 0, 0, 0.1)",blackOpacity20:"rgba(0, 0, 0, 0.2)",blackOpacity25:"rgba(0, 0, 0, 0.25)",blackOpacity30:"rgba(0, 0, 0, 0.3)",blackOpacity40:"rgba(0, 0, 0, 0.4)",blackOpacity50:"rgba(0, 0, 0, 0.5)",blackOpacity60:"rgba(0, 0, 0, 0.6)",blackOpacity70:"rgba(0, 0, 0, 0.7)",blackOpacity80:"rgba(0, 0, 0, 0.8)",blackOpacity90:"rgba(0, 0, 0, 0.9)",blackOpacity100:"rgba(0, 0, 0, 1)",whiteOpacity10:"rgba(255, 255, 255, 0.1)",whiteOpacity20:"rgba(255, 255, 255, 0.2)",whiteOpacity30:"rgba(255, 255, 255, 0.3)",whiteOpacity40:"rgba(255, 255, 255, 0.4)",whiteOpacity50:"rgba(255, 255, 255, 0.5)",whiteOpacity60:"rgba(255, 255, 255, 0.6)",whiteOpacity70:"rgba(255, 255, 255, 0.7)",whiteOpacity80:"rgba(255, 255, 255, 0.8)",whiteOpacity90:"rgba(255, 255, 255, 0.9)",pink10:"#FB95E2",pink20:"#FFB1EC",pink30:"#E833C2",pink40:"#F877DC",purple40:"#643ACB",deepBlue10:"#AC90F3",deepBlue20:"#9471E0",deepBlue40:"#8557F8",deepBlue50:"#7345E5",deepBlue60:"#5D2CC6",deepBlue70:"#4A1CAC",deepBlue100:"#050029",deepBlueOpacity50:"rgba(5, 0, 41, 0.5)"}
+/*
+const colorMap = {green10:"#a0e081",green20:"#86d562",green30:"#6cc349",green40:"#52a535",green50:"#3c8527",green60:"#2a641c",green70:"#1d4d13",green80:"#153a0e",green90:"#112f0b",green100:"#0f2b0a",white:"#ffffff",black:"#000000",gray10:"#f4f6f9",gray20:"#e6e8eb",gray30:"#d0d1d4",gray40:"#b1b2b5",gray50:"#8c8d90",gray60:"#58585a",gray70:"#48494a",gray80:"#313233",gray90:"#242425",gray100:"#1e1e1f",red10:"#ff8080",red20:"#d93636",red30:"#b31b1b",red40:"#d54242",red50:"#ca3636",red60:"#c02d2d",red70:"#b62525",red80:"#ad1d1d",red90:"#a31616",red100:"#990f0f",orange10:"#ffb366",orange20:"#d3791f",orange30:"#a65b11",yellow10:"#ffe866",yellow20:"#e5c317",yellow30:"#8a7500",gold10:"#fff0c5",gold20:"#ffd783",gold30:"#f8af2b",gold40:"#ce8706",gold50:"#ae7100",blue10:"#8cb3ff",blue20:"#2e6be5",blue30:"#1452cc",blackOpacity10:"rgba(0, 0, 0, 0.1)",blackOpacity20:"rgba(0, 0, 0, 0.2)",blackOpacity25:"rgba(0, 0, 0, 0.25)",blackOpacity30:"rgba(0, 0, 0, 0.3)",blackOpacity40:"rgba(0, 0, 0, 0.4)",blackOpacity50:"rgba(0, 0, 0, 0.5)",blackOpacity60:"rgba(0, 0, 0, 0.6)",blackOpacity70:"rgba(0, 0, 0, 0.7)",blackOpacity80:"rgba(0, 0, 0, 0.8)",blackOpacity90:"rgba(0, 0, 0, 0.9)",blackOpacity100:"rgba(0, 0, 0, 1)",whiteOpacity10:"rgba(255, 255, 255, 0.1)",whiteOpacity20:"rgba(255, 255, 255, 0.2)",whiteOpacity30:"rgba(255, 255, 255, 0.3)",whiteOpacity40:"rgba(255, 255, 255, 0.4)",whiteOpacity50:"rgba(255, 255, 255, 0.5)",whiteOpacity60:"rgba(255, 255, 255, 0.6)",whiteOpacity70:"rgba(255, 255, 255, 0.7)",whiteOpacity80:"rgba(255, 255, 255, 0.8)",whiteOpacity90:"rgba(255, 255, 255, 0.9)",pink10:"#FB95E2",pink20:"#FFB1EC",pink30:"#E833C2",pink40:"#F877DC",purple40:"#643ACB",deepBlue10:"#AC90F3",deepBlue20:"#9471E0",deepBlue40:"#8557F8",deepBlue50:"#7345E5",deepBlue60:"#5D2CC6",deepBlue70:"#4A1CAC",deepBlue100:"#050029",deepBlueOpacity50:"rgba(5, 0, 41, 0.5)"};
+console.log(Object.entries(colorMap).map(v=>`                    <div class="form-group">
+                        <div class="form-group-header">
+                            <label for="colors_customizer_settings_section_${v[0]}">
+                                ${v[0]}
+                                <br />
+                                Default: ${v[1]}
+                            </label>
+                        </div>
+                        <div class="form-group-body">
+                            <input type="text" class="spectrum-colorpicker-color-override-option" value="${v[1]}" id="colors_customizer_settings_section_${v[0]}" ontouchstart style="width: 100%" />
+                        </div>
+                    </div>
+                    <br />`).join("\n"));
+console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}: $("#colors_customizer_settings_section_${v[0]}").val(),`).join("\n"));
+*/
 
 function getSettings() {
     // Temporary placeholders
@@ -393,33 +409,108 @@ function getSettings() {
         /**
          * These are replacements for the UI colors.
          *
-         * @type {Record<`#${string}`, `#${string}`>}
+         * @type {Record<string, string>}
          *
          * @todo Make this functional.
          */
         colorReplacements: {
-            /**
-             * Gray 80
-             *
-             * This is used as the solid background for many Ore UI menus.
-             *
-             * @type {`#${string}`}
-             */
-            "#313233": "#006188",
-            /**
-             * Gray 70
-             *
-             * This is used for the main part of a pressed button.
-             *
-             * @type {`#${string}`}
-             */
-            "#48494a": "#007eaf",
-            "#3c8527": "#27856e",
-            "#e6e8eb": "#6200ff",
-            "#58585a": "#2c6387",
-            "#242425": "#003347",
-            "#1e1e1f": "#002c3d",
-            "#8c8d90": "#1fbfff",
+            // /**
+            //  * Gray 80
+            //  *
+            //  * This is used as the solid background for many Ore UI menus.
+            //  */
+            // "#313233": "#006188",
+            // /**
+            //  * Gray 70
+            //  *
+            //  * This is used for the main part of a pressed button.
+            //  */
+            // "#48494a": "#007eaf",
+            // "#3c8527": "#27856e",
+            // "#e6e8eb": "#6200ff",
+            // "#58585a": "#2c6387",
+            // "#242425": "#003347",
+            // "#1e1e1f": "#002c3d",
+            // "#8c8d90": "#1fbfff",
+            "#a0e081": $("#colors_customizer_settings_section_green10").val(),
+            "#86d562": $("#colors_customizer_settings_section_green20").val(),
+            "#6cc349": $("#colors_customizer_settings_section_green30").val(),
+            "#52a535": $("#colors_customizer_settings_section_green40").val(),
+            "#3c8527": $("#colors_customizer_settings_section_green50").val(),
+            "#2a641c": $("#colors_customizer_settings_section_green60").val(),
+            "#1d4d13": $("#colors_customizer_settings_section_green70").val(),
+            "#153a0e": $("#colors_customizer_settings_section_green80").val(),
+            "#112f0b": $("#colors_customizer_settings_section_green90").val(),
+            "#0f2b0a": $("#colors_customizer_settings_section_green100").val(),
+            "#ffffff": $("#colors_customizer_settings_section_white").val(),
+            "#000000": $("#colors_customizer_settings_section_black").val(),
+            "#f4f6f9": $("#colors_customizer_settings_section_gray10").val(),
+            "#e6e8eb": $("#colors_customizer_settings_section_gray20").val(),
+            "#d0d1d4": $("#colors_customizer_settings_section_gray30").val(),
+            "#b1b2b5": $("#colors_customizer_settings_section_gray40").val(),
+            "#8c8d90": $("#colors_customizer_settings_section_gray50").val(),
+            "#58585a": $("#colors_customizer_settings_section_gray60").val(),
+            "#48494a": $("#colors_customizer_settings_section_gray70").val(),
+            "#313233": $("#colors_customizer_settings_section_gray80").val(),
+            "#242425": $("#colors_customizer_settings_section_gray90").val(),
+            "#1e1e1f": $("#colors_customizer_settings_section_gray100").val(),
+            "#ff8080": $("#colors_customizer_settings_section_red10").val(),
+            "#d93636": $("#colors_customizer_settings_section_red20").val(),
+            "#b31b1b": $("#colors_customizer_settings_section_red30").val(),
+            "#d54242": $("#colors_customizer_settings_section_red40").val(),
+            "#ca3636": $("#colors_customizer_settings_section_red50").val(),
+            "#c02d2d": $("#colors_customizer_settings_section_red60").val(),
+            "#b62525": $("#colors_customizer_settings_section_red70").val(),
+            "#ad1d1d": $("#colors_customizer_settings_section_red80").val(),
+            "#a31616": $("#colors_customizer_settings_section_red90").val(),
+            "#990f0f": $("#colors_customizer_settings_section_red100").val(),
+            "#ffb366": $("#colors_customizer_settings_section_orange10").val(),
+            "#d3791f": $("#colors_customizer_settings_section_orange20").val(),
+            "#a65b11": $("#colors_customizer_settings_section_orange30").val(),
+            "#ffe866": $("#colors_customizer_settings_section_yellow10").val(),
+            "#e5c317": $("#colors_customizer_settings_section_yellow20").val(),
+            "#8a7500": $("#colors_customizer_settings_section_yellow30").val(),
+            "#fff0c5": $("#colors_customizer_settings_section_gold10").val(),
+            "#ffd783": $("#colors_customizer_settings_section_gold20").val(),
+            "#f8af2b": $("#colors_customizer_settings_section_gold30").val(),
+            "#ce8706": $("#colors_customizer_settings_section_gold40").val(),
+            "#ae7100": $("#colors_customizer_settings_section_gold50").val(),
+            "#8cb3ff": $("#colors_customizer_settings_section_blue10").val(),
+            "#2e6be5": $("#colors_customizer_settings_section_blue20").val(),
+            "#1452cc": $("#colors_customizer_settings_section_blue30").val(),
+            "rgba(0, 0, 0, 0.1)": $("#colors_customizer_settings_section_blackOpacity10").val(),
+            "rgba(0, 0, 0, 0.2)": $("#colors_customizer_settings_section_blackOpacity20").val(),
+            "rgba(0, 0, 0, 0.25)": $("#colors_customizer_settings_section_blackOpacity25").val(),
+            "rgba(0, 0, 0, 0.3)": $("#colors_customizer_settings_section_blackOpacity30").val(),
+            "rgba(0, 0, 0, 0.4)": $("#colors_customizer_settings_section_blackOpacity40").val(),
+            "rgba(0, 0, 0, 0.5)": $("#colors_customizer_settings_section_blackOpacity50").val(),
+            "rgba(0, 0, 0, 0.6)": $("#colors_customizer_settings_section_blackOpacity60").val(),
+            "rgba(0, 0, 0, 0.7)": $("#colors_customizer_settings_section_blackOpacity70").val(),
+            "rgba(0, 0, 0, 0.8)": $("#colors_customizer_settings_section_blackOpacity80").val(),
+            "rgba(0, 0, 0, 0.9)": $("#colors_customizer_settings_section_blackOpacity90").val(),
+            "rgba(0, 0, 0, 1)": $("#colors_customizer_settings_section_blackOpacity100").val(),
+            "rgba(255, 255, 255, 0.1)": $("#colors_customizer_settings_section_whiteOpacity10").val(),
+            "rgba(255, 255, 255, 0.2)": $("#colors_customizer_settings_section_whiteOpacity20").val(),
+            "rgba(255, 255, 255, 0.3)": $("#colors_customizer_settings_section_whiteOpacity30").val(),
+            "rgba(255, 255, 255, 0.4)": $("#colors_customizer_settings_section_whiteOpacity40").val(),
+            "rgba(255, 255, 255, 0.5)": $("#colors_customizer_settings_section_whiteOpacity50").val(),
+            "rgba(255, 255, 255, 0.6)": $("#colors_customizer_settings_section_whiteOpacity60").val(),
+            "rgba(255, 255, 255, 0.7)": $("#colors_customizer_settings_section_whiteOpacity70").val(),
+            "rgba(255, 255, 255, 0.8)": $("#colors_customizer_settings_section_whiteOpacity80").val(),
+            "rgba(255, 255, 255, 0.9)": $("#colors_customizer_settings_section_whiteOpacity90").val(),
+            "#FB95E2": $("#colors_customizer_settings_section_pink10").val(),
+            "#FFB1EC": $("#colors_customizer_settings_section_pink20").val(),
+            "#E833C2": $("#colors_customizer_settings_section_pink30").val(),
+            "#F877DC": $("#colors_customizer_settings_section_pink40").val(),
+            "#643ACB": $("#colors_customizer_settings_section_purple40").val(),
+            "#AC90F3": $("#colors_customizer_settings_section_deepBlue10").val(),
+            "#9471E0": $("#colors_customizer_settings_section_deepBlue20").val(),
+            "#8557F8": $("#colors_customizer_settings_section_deepBlue40").val(),
+            "#7345E5": $("#colors_customizer_settings_section_deepBlue50").val(),
+            "#5D2CC6": $("#colors_customizer_settings_section_deepBlue60").val(),
+            "#4A1CAC": $("#colors_customizer_settings_section_deepBlue70").val(),
+            "#050029": $("#colors_customizer_settings_section_deepBlue100").val(),
+            "rgba(5, 0, 41, 0.5)": $("#colors_customizer_settings_section_deepBlueOpacity50").val(),
         },
     };
 }
@@ -1319,6 +1410,11 @@ async function applyMods() {
                         )
                         .replace(`e&&t.push({label:".debugTabLabel",image:mP,value:"debug"}),`, `t.push({label:".debugTabLabel",image:mP,value:"debug"}),`);
                 }
+                Object.entries(settings.colorReplacements).forEach(([key, value]) => {
+                    if(value !== "" && value !== undefined && value !== null && value !== key) {
+                        distData = distData.replaceAll(key, value);
+                    }
+                })
                 if (settings.maxTextLengthOverride !== "") {
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
                     for (const textLengthValue of textLengthValues) {
@@ -1332,15 +1428,15 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.12.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.13.0: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
