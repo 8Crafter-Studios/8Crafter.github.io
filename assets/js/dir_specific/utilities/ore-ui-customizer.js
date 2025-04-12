@@ -3,6 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
+const format_version = "0.14.0";
 /**
  * @type {File}
  */
@@ -515,6 +516,93 @@ function getSettings() {
     };
 }
 
+/**
+ * 
+ * @param {HTMLElement} target 
+ * @param {{hueShift?: number, saturationShift?: number, lightnessShift?: number, brightnessShift?: number, redShift?: number, greenShift?: number, blueShift?: number, alphaShift?: number, setHue?: number, setSaturation?: number, setLightness?: number, setBrightness?: number, setRed?: number, setGreen?: number, setBlue?: number, setAlpha?: number}} filterOptions
+ */
+function applyColorFilterToColorOverride(target, filterOptions) {
+    const elem = $(target);
+    if (filterOptions.hueShift) {
+        const str = elem.spectrum("get").toHsvString();
+        let val = Number(str.match(/(?<=\()[0-9.]+(?=, )/)[0]) + filterOptions.hueShift;
+        if(val > 360) {
+            val = val % 360;
+        } else if(val < 0) {
+            val = 360 + (val % 360);
+        }
+        elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=, )/, String(val)));
+    }
+    if (filterOptions.saturationShift) {
+        const str = elem.spectrum("get").toHsvString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.saturationShift)))));
+    }
+    if (filterOptions.lightnessShift) {
+        const str = elem.spectrum("get").toHslString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.lightnessShift)))));
+    }
+    if (filterOptions.brightnessShift) {
+        const str = elem.spectrum("get").toHsvString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.brightnessShift)))));
+    }
+    if (filterOptions.redShift) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=\))/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\()[0-9.]+(?=, )/)[0]) + filterOptions.redShift)))));
+    }
+    if (filterOptions.greenShift) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.greenShift)))));
+    }
+    if (filterOptions.blueShift) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.blueShift)))));
+    }
+    if (filterOptions.alphaShift) {
+        const str = elem.spectrum("get").toRgbString();
+        if(str.startsWith('rgba')) {
+            elem.spectrum("set", str.replace(/(?<=, )[0-9.]+(?=\))/, String(Math.min(1, Math.max(0, Number(str.match(/(?<=, )[0-9.]+(?=\))/)[0]) + filterOptions.alphaShift)))));
+        } else {
+            elem.spectrum("set", str.replace("rgb(", "rgba(").replace(")", String(Math.min(1, Math.max(0, Number(1 + filterOptions.alphaShift)))) + ")"));
+        }
+    }
+    if (filterOptions.setHue) {
+        const str = elem.spectrum("get").toHsvString();
+        elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=, )/, String(filterOptions.setHue)));
+    }
+    if (filterOptions.setSaturation) {
+        const str = elem.spectrum("get").toHsvString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(filterOptions.setSaturation)));
+    }
+    if (filterOptions.setLightness) {
+        const str = elem.spectrum("get").toHslString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(filterOptions.setLightness)));
+    }
+    if (filterOptions.setBrightness) {
+        const str = elem.spectrum("get").toHsvString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(filterOptions.setBrightness)));
+    }
+    if (filterOptions.setRed) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=\))/, String(filterOptions.setRed)));
+    }
+    if (filterOptions.setGreen) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(filterOptions.setGreen)));
+    }
+    if (filterOptions.setBlue) {
+        const str = elem.spectrum("get").toRgbString();
+        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(filterOptions.setBlue)));
+    }
+    if (filterOptions.setAlpha) {
+        const str = elem.spectrum("get").toRgbString();
+        if(str.startsWith('rgba')) {
+            elem.spectrum("set", str.replace(/(?<=, )[0-9.]+(?=\))/, String(filterOptions.setAlpha)));
+        } else {
+            elem.spectrum("set", str.replace("rgb(", "rgba(").replace(")", String(filterOptions.setAlpha) + ")"));
+        }
+    }
+}
+
 async function applyMods() {
     $("#apply_mods").prop("disabled", true);
     $("#download").prop("disabled", true);
@@ -523,10 +611,29 @@ async function applyMods() {
         return false;
     }
     const settings = getSettings();
-    zipFs.entries.map(
+    var addedCount = 0n;
+    var removedCount = 0n;
+    var modifiedCount = 0n;
+    var unmodifiedCount = 0n;
+    var editedCount = 0n;
+    var renamedCount = 0n;
+    zipFs.entries.forEach(
         /** @param {zip.ZipFileEntry | zip.ZipDirectoryEntry} entry */ async (entry) => {
-            if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)/.test(entry.data?.filename)) {
-                return entry;
+            if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename)) {
+                let origName = entry.name;
+                entry.rename(entry.name.split("/").pop().replaceAll("%40", "@"));
+                console.log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
+                modifiedCount++;
+                renamedCount++;
+                return 3;
+            }
+            if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename)) {
+                unmodifiedCount++;
+                return 0;
+            }
+            if (entry.data.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
+                unmodifiedCount++;
+                return -2;
             }
 
             if (entry.directory === void false) {
@@ -1428,29 +1535,57 @@ async function applyMods() {
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             settings
                         )}\n${distData}`;
                     } else if (entry.data.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             settings
                         )} */\n${distData}`;
                     } else if (entry.data.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v0.13.1: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             settings
                         )} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
                     console.log(`Entry ${entry.name} has been successfully modified.`);
+                    modifiedCount++;
+                    editedCount++;
+                    return 1;
                 } else {
-                    console.log(`Entry ${entry.name} has not been modified.`);
+                    // console.log(`Entry ${entry.name} has not been modified.`);
+                    unmodifiedCount++;
+                    return 2;
                 }
             } else {
                 console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.filename);
-                return entry;
+                unmodifiedCount++;
+                return -1;
             }
         }
     );
+    try {
+        zipFs.addBlob("/gui/dist/hbui/assets/8crafter.gif", new Blob(await fetch("/assets/image/ore-ui-customizer/8crafter.gif").then((r) => r.blob())));
+        console.log("Added /gui/dist/hbui/assets/8crafter.gif");
+        addedCount++;
+    } catch (e) {
+        console.error(e);
+    }
+    try {
+        zipFs.addText("/gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
+const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
+        console.log("Added /gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
+        addedCount++;
+    } catch (e) {
+        console.error(e);
+    }
+    console.log(`Added entries: ${addedCount}.`);
+    console.log(`Removed entries: ${deletedCount}.`);
+    console.log(`Modified entries: ${modifiedCount}.`);
+    console.log(`Unmodified entries: ${unmodifiedCount}.`);
+    console.log(`Edited ${editedCount} entries.`);
+    console.log(`Renamed ${renamedCount} entries.`);
+    console.log(`Total entries: ${zipFs.entries.length}.`);
     $("#apply_mods").prop("disabled", false);
     $("#download").prop("disabled", false);
     return true;
