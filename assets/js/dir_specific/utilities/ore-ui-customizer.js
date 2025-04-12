@@ -3,7 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
-const format_version = "0.14.0";
+const format_version = "0.15.0";
 /**
  * @type {File}
  */
@@ -407,6 +407,7 @@ function getSettings() {
          * @type {boolean}
          */
         addDebugTab: $("#add_debug_tab").prop("checked"),
+        add8CrafterUtilitiesMainMenuButton: true,
         /**
          * These are replacements for the UI colors.
          *
@@ -1521,7 +1522,11 @@ async function applyMods() {
                     if(value !== "" && value !== undefined && value !== null && value !== key) {
                         distData = distData.replaceAll(key, value);
                     }
-                })
+                });
+                distData = distData.replace(/(?<=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/, `
+        <script defer="defer" src="/hbui/customOverlays.js"></script>
+        <script defer="defer" src="/hbui/class_path.js"></script>`).replace(/(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet" \/>)/, `
+        <link href="/hbui/customOverlays.css" rel="stylesheet" />`);
                 if (settings.maxTextLengthOverride !== "") {
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
                     for (const textLengthValue of textLengthValues) {
@@ -1532,6 +1537,71 @@ async function applyMods() {
                             }`
                         );
                     }
+                }
+                if (settings.add8CrafterUtilitiesMainMenuButton) {
+                    distData = distData.replace(
+                        `a.createElement(r.Mount,{when:E},a.createElement(a.Fragment,null,a.createElement($v.Divider,null),a.createElement(gI,{onClick:e,screenAnalyticsId:u})))`, 
+                        `a.createElement(
+                                                    r.Mount,
+                                                    { when: true },
+                                                    a.createElement(
+                                                        a.Fragment,
+                                                        null,
+                                                        a.createElement($v.Divider, null),
+                                                        a.createElement(() =>
+                                                            a.createElement(
+                                                                function ({ onClick: e, selected: t, disabled: n, focusGridIndex: r, role: l = "inherit" }) {
+                                                                    return a.createElement(
+                                                                        a.Fragment,
+                                                                        null,
+                                                                        a.createElement(
+                                                                            lc,
+                                                                            {
+                                                                                disabled: n,
+                                                                                // focusGridIndex: r,
+                                                                                inputLegend: "8Crafter Utilities",
+                                                                                // narrationText: "8Crafter Utilities Button",
+                                                                                onClick: e,
+                                                                                role: l,
+                                                                                selected: t,
+                                                                            },
+                                                                            a.createElement(xc, {
+                                                                                className: "QQfwv",
+                                                                                imageRendering: "pixelated",
+                                                                                src: "assets/8crafter.gif",
+                                                                                isAnimated: true,
+                                                                            })
+                                                                        )
+                                                                    );
+                                                                },
+                                                                {
+                                                                    onClick: (0, r.useFacetCallback)(
+                                                                        () => () => {
+                                                                            if (mainMenu8CrafterUtilities.style.display === "none") {
+                                                                                mainMenu8CrafterUtilities.style.display = "block";
+                                                                            } else {
+                                                                                mainMenu8CrafterUtilities.style.display = "none";
+                                                                            }
+                                                                        },
+                                                                        ["", [], () => {}],
+                                                                        []
+                                                                    ),
+                                                                }
+                                                            )
+                                                        )
+                                                    )
+                                                ),
+                                                a.createElement(
+                                                    r.Mount,
+                                                    { when: E },
+                                                    a.createElement(
+                                                        a.Fragment,
+                                                        null,
+                                                        a.createElement($v.Divider, null),
+                                                        a.createElement(gI, { onClick: e, screenAnalyticsId: u })
+                                                    )
+                                                )`
+                    )
                 }
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
@@ -1565,8 +1635,80 @@ async function applyMods() {
         }
     );
     try {
-        zipFs.addBlob("/gui/dist/hbui/assets/8crafter.gif", new Blob(await fetch("/assets/image/ore-ui-customizer/8crafter.gif").then((r) => r.blob())));
+        zipFs.addBlob("/gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/images/ore-ui-customizer/8crafter.gif").then((r) => r.blob()));
         console.log("Added /gui/dist/hbui/assets/8crafter.gif");
+        addedCount++;
+        // Toggle
+        zipFs.addBlob("/gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/images/ui/toggle/toggle_off_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/toggle_off_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/toggle_off.png", await fetch("/assets/images/ui/toggle/toggle_off.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/toggle_off.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/toggle_on_hover.png", await fetch("/assets/images/ui/toggle/toggle_on_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/toggle_on_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/toggle_on.png", await fetch("/assets/images/ui/toggle/toggle_on.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/toggle_on.png");
+        addedCount++;
+        // Radio
+        zipFs.addBlob("/gui/dist/hbui/assets/radio_off_hover.png", await fetch("/assets/images/ui/radio/radio_off_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/radio_off_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/radio_off.png", await fetch("/assets/images/ui/radio/radio_off.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/radio_off.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/radio_on_hover.png", await fetch("/assets/images/ui/radio/radio_on_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/radio_on_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/radio_on.png", await fetch("/assets/images/ui/radio/radio_on.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/radio_on.png");
+        addedCount++;
+        // Checkbox
+        // to-do
+        // Textboxes
+        zipFs.addBlob("/gui/dist/hbui/assets/edit_box_indent_hover.png", await fetch("/assets/images/ui/textboxes/edit_box_indent_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/edit_box_indent_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/edit_box_indent.png", await fetch("/assets/images/ui/textboxes/edit_box_indent.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/edit_box_indent.png");
+        addedCount++;
+        // Buttons
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_dark.png", await fetch("/assets/images/ui/buttons/button_borderless_dark.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_dark.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_light.png", await fetch("/assets/images/ui/buttons/button_borderless_light.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_light.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_default.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_light_blue.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_darkhover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkhover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_darkhover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_lighthover.png", await fetch("/assets/images/ui/buttons/button_borderless_lighthover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_lighthover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressed.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_darkpressed.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressed.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_lightpressed.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressednohover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressednohover.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
         addedCount++;
     } catch (e) {
         console.error(e);
@@ -1579,8 +1721,21 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
     } catch (e) {
         console.error(e);
     }
+    try {
+        zipFs.addBlob("/gui/dist/hbui/customOverlays.js", await fetch("/assets/oreui/customOverlays.js").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/customOverlays.js");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/customOverlays.css", await fetch("/assets/oreui/customOverlays.css").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/customOverlays.css");
+        addedCount++;
+        zipFs.addBlob("/gui/dist/hbui/class_path.js", await fetch("/assets/oreui/class_path.js").then((r) => r.blob()));
+        console.log("Added /gui/dist/hbui/class_path.js");
+        addedCount++;
+    } catch (e) {
+        console.error(e);
+    }
     console.log(`Added entries: ${addedCount}.`);
-    console.log(`Removed entries: ${deletedCount}.`);
+    console.log(`Removed entries: ${removedCount}.`);
     console.log(`Modified entries: ${modifiedCount}.`);
     console.log(`Unmodified entries: ${unmodifiedCount}.`);
     console.log(`Edited ${editedCount} entries.`);
