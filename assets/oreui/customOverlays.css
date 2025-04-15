@@ -4,6 +4,42 @@
     line-height: 1em;
 } */
 
+@font-face {
+    font-family: Consolas;
+    src: url(/hbui/fonts/consola.ttf);
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Consolas;
+    src: url(/hbui/fonts/consolab.ttf);
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: Consolas;
+    src: url(/hbui/fonts/consolai.ttf);
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: Consolas;
+    src: url(/hbui/fonts/consolaz.ttf);
+    font-weight: bold;
+    font-style: italic;
+}
+
+#consoleOverlayElement * {
+    font-family: Consolas;
+}
+
+.reverse_m2lNR_rightPadding {
+    margin-right: -0.2rem
+}
+
 @media (max-width: 762px) {
     .full-sized-nav {
         display: none;
@@ -62,12 +98,12 @@
 :root {
     --vw: calc(0px + 100vw);
     --vh: calc(0px + 100vh);
-    --root-bg-color-light: hsl(0, 0%, 93%);
-    --root-bg-color-dark: hsl(0, 0%, 7%);
-    --root-bg-color-BlueTheme: hsl(197, 71%, 73%);
-    --root-text-color-light: hsl(0, 0%, 0%);
-    --root-text-color-dark: hsl(0, 0%, 100%);
-    --root-text-color-BlueTheme: hsl(197, 71%, 27%);
+    --root-bg-color-light: #ededed;
+    --root-bg-color-dark: #121212;
+    --root-bg-color-BlueTheme: #89cfeb;
+    --root-text-color-light: #000000;
+    --root-text-color-dark: #ffffff;
+    --root-text-color-BlueTheme: #145a76;
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
     --header-height: 102px;
     --body-height: 0px;
@@ -97,11 +133,11 @@
 .filter_sepia {
     --filter_sepia: 1;
     /* filter: hue-rotate(0,5.) */
-}
+}/* 
 
 :root {
     filter: invert(var(--filter_invert, 0)) grayscale(var(--filter_grayscale, 0)) sepia(var(--filter_sepia, 0)) hue-rotate(var(--hue-rotate-deg));
-}
+} */
 
 .dark_theme {
     --dark_theme_display_contents: contents;
@@ -203,7 +239,7 @@ only_visible_on_themes[light] {
 
 html {
     ---theme-var-switcher--html-bg-color: var(--root-bg-color-dark);
-    background-color: var(---theme-var-switcher--html-bg-color);
+    /* background-color: var(---theme-var-switcher--html-bg-color); */
     color: var(---theme-var-switcher--root-text-color);
 }
 
@@ -932,6 +968,7 @@ ul:not(:not(.horizontal-nav)) {
 
 .btn,
 .radio_button_container_label {
+    font-family: Consolas;
     position: relative;
     display: inline-block;
     padding: 6px 12px;
@@ -967,9 +1004,9 @@ ul:not(:not(.horizontal-nav)) {
     --border-image-BlueThemepressednohover: url("assets/button_borderless_light_blue_pressed.png");
     --border-image-BlueThemepressed: url("assets/button_borderless_light_blue_hover_pressed.png");
     --border-image-disabled: url("assets/disabledButton.png");
-    --btn-text-color-light: hsl(0, 0%, 0%);
-    --btn-text-color-dark: hsl(0, 0%, 100%);
-    --btn-text-color-BlueTheme: hsl(197, 71%, 27%);
+    --btn-text-color-light: #000000;
+    --btn-text-color-dark: #ffffff;
+    --btn-text-color-BlueTheme: #145a76;
     ---theme-var-switcher--border-image: var(--border-image-dark);
     ---theme-var-switcher--border-image-hover: var(--border-image-darkhover);
     ---theme-var-switcher--border-image-pressednohover: var(--border-image-darkpressednohover);

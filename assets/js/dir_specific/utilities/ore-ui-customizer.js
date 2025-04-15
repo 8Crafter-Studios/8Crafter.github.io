@@ -3,7 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
-const format_version = "0.15.1";
+const format_version = "0.16.0";
 /**
  * @type {File}
  */
@@ -1523,9 +1523,12 @@ async function applyMods() {
                         distData = distData.replaceAll(key, value);
                     }
                 });
-                distData = distData.replace(/(?<=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/, `
+                distData = distData.replace(/(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
+        <script defer="defer" src="/hbui/class_path.js"></script>
+        <script defer="defer" src="/hbui/css.js"></script>
+        <script defer="defer" src="/hbui/JSONB.js"></script>
         <script defer="defer" src="/hbui/customOverlays.js"></script>
-        <script defer="defer" src="/hbui/class_path.js"></script>`).replace(/(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet">)/, `
+        `).replace(/(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet">)/, `
         <link href="/hbui/customOverlays.css" rel="stylesheet" />`);
                 if (settings.maxTextLengthOverride !== "") {
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
@@ -1564,6 +1567,7 @@ async function applyMods() {
                                                                                 onClick: e,
                                                                                 role: l,
                                                                                 selected: t,
+                                                                                className: "reverse_m2lNR_rightPadding",
                                                                             },
                                                                             a.createElement(xc, {
                                                                                 className: "QQfwv",
@@ -1730,6 +1734,36 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
         addedCount++;
         zipFs.addBlob("gui/dist/hbui/class_path.js", await fetch("/assets/oreui/class_path.js").then((r) => r.blob()));
         console.log("Added gui/dist/hbui/class_path.js");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/css.js", await fetch("/assets/oreui/css.js").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/css.js");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetch("/assets/oreui/JSONB.js").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/JSONB.js");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/JSONB.d.ts");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_new_white_right.png", await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/assets/chevron_new_white_right.png");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_down.png", await fetch("/assets/oreui/assets/chevron_white_down.png").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/assets/chevron_white_down.png");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_up.png", await fetch("/assets/oreui/assets/chevron_white_up.png").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/assets/chevron_white_up.png");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/fonts/consola.ttf", await fetch("/assets/oreui/fonts/consola.ttf").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/fonts/consola.ttf");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/fonts/consolab.ttf", await fetch("/assets/oreui/fonts/consolab.ttf").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/fonts/consolab.ttf");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/fonts/consolai.ttf", await fetch("/assets/oreui/fonts/consolai.ttf").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/fonts/consolai.ttf");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/fonts/consolaz.ttf", await fetch("/assets/oreui/fonts/consolaz.ttf").then((r) => r.blob()));
+        console.log("Added gui/dist/hbui/fonts/consolaz.ttf");
         addedCount++;
     } catch (e) {
         console.error(e);
