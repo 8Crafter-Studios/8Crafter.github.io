@@ -175,13 +175,14 @@ $(async function onDocumentLoad(){
         // console.log(1.4)
     }
     // console.log(1.5)
-    if(new URLSearchParams(window.location.search).get('hide_under_construction_alert')=='true'){
+    // Commented out because the website is no longer under construction.
+    /* if(new URLSearchParams(window.location.search).get('hide_under_construction_alert')=='true'){
         try{
             $("#under_construction_alert")[0].style.display='none';
         }catch(e){
             console.error(e, e.stack)
         }
-    };
+    }; */
     try{
         const resizeObserver = new ResizeObserver(event => {
             const rule = document.styleSheets[0].cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex(r=>r.selectorText==":root"));

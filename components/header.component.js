@@ -7,14 +7,14 @@ export default function getComponent(tabIndex = -1){
               This website requires JavaScript to function, please allow JavaScript on this website.
           </div>
       </noscript>
-      <div id="under_construction_alert" class="alert">
+      <!-- <div id="under_construction_alert" class="alert">
           <span
               class="closebtn"
               onclick="this.parentElement.style.display='none'; {const urlParams = new URLSearchParams(window.location.search); urlParams.set('hide_under_construction_alert', 'true'); window.history.pushState({ id: '100' }, 'Page', window.location.pathname + '?' + urlParams.toString());}"
               >&times;</span
           >
           This website is currently under construction.
-      </div>
+      </div> -->
       <ul class="horizontal-nav full-sized-nav">
         <li class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a></li>
         <li${tabIndex==0?' class="active"':""}><a href="/index.html" rel="keep-params">Home</a></li>
