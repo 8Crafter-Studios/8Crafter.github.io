@@ -634,7 +634,7 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
     evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
     summary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
     summary.style.cursor = "pointer";
-    summary.style.display = "block";
+    summary.style.display = "flex";
     if (isRoot) {
         summary.style.paddingLeft = "22px";
     }
@@ -1822,6 +1822,63 @@ Held Key Codes: ${heldKeyCodes}`;
             childList: true,
             attributes: true,
             subtree: true,
+        });
+    });
+    document.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+        if(!element.className.includes("interactive") && getComputedStyle(element).cursor !== "pointer") return;
+        element.addEventListener("mouseover", function (event) {
+            element.classList.add("hovered");
+            if(element.classList.contains("J3E01")) {
+                element.classList.add("CndCq")
+            } else if(element.classList.contains("A9EUw")) {
+                element.classList.add("MaRsn")
+            } else if(element.classList.contains("koZyA")) {
+                element.classList.add("uZ4Jk")
+            }
+        });
+        element.addEventListener("mouseout", function (event) {
+            element.classList.remove("hovered");
+            if(element.classList.contains("J3E01")) {
+                element.classList.remove("CndCq")
+            } else if(element.classList.contains("A9EUw")) {
+                element.classList.remove("MaRsn")
+            } else if(element.classList.contains("koZyA")) {
+                element.classList.remove("uZ4Jk")
+            }
+            element.classList.remove("pressed");
+            if(element.classList.contains("LtoW3")) {
+                element.classList.remove("fYLl1")
+            } else if(element.classList.contains("J3E01")) {
+                element.classList.remove("W_NP7")
+            } else if(element.classList.contains("A9EUw")) {
+                element.classList.remove("ZQArf")
+            } else if(element.classList.contains("koZyA")) {
+                element.classList.remove("f7Wn5")
+            }
+        });
+        element.addEventListener("mousedown", function (event) {
+            element.classList.add("pressed");
+            if(element.classList.contains("LtoW3")) {
+                element.classList.add("fYLl1")
+            } else if(element.classList.contains("J3E01")) {
+                element.classList.add("W_NP7")
+            } else if(element.classList.contains("A9EUw")) {
+                element.classList.add("ZQArf")
+            } else if(element.classList.contains("koZyA")) {
+                element.classList.add("f7Wn5")
+            }
+        });
+        element.addEventListener("mouseup", function (event) {
+            element.classList.remove("pressed");
+            if(element.classList.contains("LtoW3")) {
+                element.classList.remove("fYLl1")
+            } else if(element.classList.contains("J3E01")) {
+                element.classList.remove("W_NP7")
+            } else if(element.classList.contains("A9EUw")) {
+                element.classList.remove("ZQArf")
+            } else if(element.classList.contains("koZyA")) {
+                element.classList.remove("f7Wn5")
+            }
         });
     });
 })();

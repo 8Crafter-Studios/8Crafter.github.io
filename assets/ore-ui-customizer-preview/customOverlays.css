@@ -4,6 +4,11 @@
     line-height: 1em;
 } */
 
+* {
+    scrollbar-width: none;
+    -webkit-user-drag: none;
+}
+
 @font-face {
     font-family: Consolas;
     src: url(/hbui/fonts/consola.ttf);
