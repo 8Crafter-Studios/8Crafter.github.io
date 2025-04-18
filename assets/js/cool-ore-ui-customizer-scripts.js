@@ -140,3 +140,48 @@ setInterval(() => {
         element.style.fontSize = (Math.floor(Math.random() * fontSizeVariation) + 10) + "px";
     });
 }, 100);
+
+// Test for force enable achievements (Doesn't work.).
+setInterval(()=>{
+    try {
+        __EditWorldAllData__.worldData.get().achievementsPermanentlyDisabled = false;
+        __EditWorldAllData__.worldData.get().achievementsDisabled = false;
+    } catch {}
+}, 1);
+
+// Make every div element shake.
+setInterval(() => {
+    try {
+        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+            let x = Math.floor(Math.random() * 3) - 1;
+            let y = Math.floor(Math.random() * 3) - 1;
+            element.style.transform = `translate(${x}px, ${y}px)`;
+        });
+    } catch {}
+}, 1);
+
+// Make every div element shift a small amount every millisecond.
+setInterval(() => {
+    try {
+        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+            let x = Math.floor(Math.random() * 3) - 1;
+            let y = Math.floor(Math.random() * 3) - 1;
+            x += Number(element.style.transform?.match(/translateX\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
+            y += Number(element.style.transform?.match(/translateY\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
+            element.style.transform = `translate(${x}px, ${y}px)`;
+        });
+    } catch {}
+}, 1);
+
+// Make every div element shift a medium amount every millisecond.
+setInterval(() => {
+    try {
+        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+            let x = Math.floor(Math.random() * 33) - 16;
+            let y = Math.floor(Math.random() * 33) - 16;
+            x += Number(element.style.transform?.match(/translateX\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
+            y += Number(element.style.transform?.match(/translateY\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
+            element.style.transform = `translate(${x}px, ${y}px)`;
+        });
+    } catch {}
+}, 1);

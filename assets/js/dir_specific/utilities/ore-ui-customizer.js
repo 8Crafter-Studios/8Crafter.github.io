@@ -3,7 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
-const format_version = "0.16.0";
+const format_version = "0.17.0";
 /**
  * @type {File}
  */
@@ -176,26 +176,42 @@ $(function onDocumentLoad() {
         }
     });
     // b.each((i, e)=>console.log([e, $(e), (()=>{try{return $(e).data()}catch{return 0;}})()]))
-    $(".spectrum-colorpicker-color-override-option").each((i, element) => $(element).spectrum({
-        allowEmpty: true,
-        noColorSelectedText: "Do not replace color.",
-        preferredFormat: (/^#([0-9a-fA-F]{3}){1,2}$/.test(element.value) ? "hex" : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value) ? "hex8" : /^hsl/.test(element.value) ? "hsl" : /^hsv/.test(element.value) ? "hsl" : /^rgb/.test(element.value) ? "rgb" : /^hsb/.test(element.value) ? "hsb" : element.getAttribute("format") ?? "rgb"),
-        beforeShow: (color, element) => {
-            try {
-                $(".sp-picker-container select").val(color.getFormat());
-            } catch (e) {
-                console.error(e, e.stack);
-            }
-            currentColorPickerTarget = element;
-        },
-        showAlpha: true,
-        showInitial: true,
-        showInput: true,
-        showPalette: true,
-        showSelectionPalette: true,
-        localStorageKey: "ore-ui-customizer",
-    }));
-    $(".sp-picker-container").append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
+    $(".spectrum-colorpicker-color-override-option").each((i, element) =>
+        $(element).spectrum({
+            allowEmpty: true,
+            noColorSelectedText: "Do not replace color.",
+            preferredFormat: /^#([0-9a-fA-F]{3}){1,2}$/.test(element.value)
+                ? "hex"
+                : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value)
+                ? "hex8"
+                : /^hsl/.test(element.value)
+                ? "hsl"
+                : /^hsv/.test(element.value)
+                ? "hsl"
+                : /^rgb/.test(element.value)
+                ? "rgb"
+                : /^hsb/.test(element.value)
+                ? "hsb"
+                : element.getAttribute("format") ?? "rgb",
+            beforeShow: (color, element) => {
+                try {
+                    $(".sp-picker-container select").val(color.getFormat());
+                } catch (e) {
+                    console.error(e, e.stack);
+                }
+                currentColorPickerTarget = element;
+            },
+            showAlpha: true,
+            showInitial: true,
+            showInput: true,
+            showPalette: true,
+            showSelectionPalette: true,
+            localStorageKey: "ore-ui-customizer",
+        })
+    );
+    $(
+        ".sp-picker-container"
+    ).append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
         <option value="hex">HEX</option>
         <option value="hex3">HEX3</option>
         <option value="hex6">HEX6</option>
@@ -208,6 +224,54 @@ $(function onDocumentLoad() {
         <option value="none">none</option>
     </select>`);
     // $(".sp-choose").addClass("btn btn-primary");
+    try {
+        var oreUIPreviewIframe = $("#ore-ui-preview-iframe");
+        var oreUIPreviewIframeContainer = $("#ore-ui-preview-iframe-container");
+        var oreUIPreviewIframeHeight = oreUIPreviewIframe.outerHeight();
+        var oreUIPreviewIframeWidth = oreUIPreviewIframe.outerWidth();
+
+        function resize(event, ui) {
+            try {
+                var scale, origin;
+
+                scale = Math.min(ui.size.width / oreUIPreviewIframeWidth, ui.size.height / oreUIPreviewIframeHeight);
+                console.log(scale, ui.size.width, ui.size.height, oreUIPreviewIframeWidth, oreUIPreviewIframeHeight);
+
+                oreUIPreviewIframe.css({
+                    transform:
+                        `translate(${-(oreUIPreviewIframeWidth / 2 - ui.size.width / 2)}px, ${-(oreUIPreviewIframeHeight / 2 - ui.size.height / 2)}px) ` +
+                        "scale(" +
+                        scale +
+                        ")",
+                });
+            } catch (e) {
+                console.error(e, e.stack);
+            }
+        }
+
+        oreUIPreviewIframeContainer.resizable({
+            resize,
+        });
+
+        resize(null, {
+            size: {
+                width: oreUIPreviewIframeContainer.width(),
+                height: oreUIPreviewIframeContainer.height(),
+            },
+        });
+        const oreUIPreviewIframeResizeObserver = new ResizeObserver((e) => oreUIPreviewIframeContainer.trigger("resize"));
+        oreUIPreviewIframeResizeObserver.observe(oreUIPreviewIframeContainer.get(0));
+        oreUIPreviewIframeContainer.on("resize", () =>
+            resize(null, {
+                size: {
+                    width: oreUIPreviewIframeContainer.width(),
+                    height: oreUIPreviewIframeContainer.height(),
+                },
+            })
+        );
+    } catch (e) {
+        console.error(e, e.stack);
+    }
 });
 
 /**
@@ -518,8 +582,8 @@ function getSettings() {
 }
 
 /**
- * 
- * @param {HTMLElement} target 
+ *
+ * @param {HTMLElement} target
  * @param {{hueShift?: number, saturationShift?: number, lightnessShift?: number, brightnessShift?: number, redShift?: number, greenShift?: number, blueShift?: number, alphaShift?: number, setHue?: number, setSaturation?: number, setLightness?: number, setBrightness?: number, setRed?: number, setGreen?: number, setBlue?: number, setAlpha?: number}} filterOptions
  */
 function applyColorFilterToColorOverride(target, filterOptions) {
@@ -527,41 +591,77 @@ function applyColorFilterToColorOverride(target, filterOptions) {
     if (filterOptions.hueShift) {
         const str = elem.spectrum("get").toHsvString();
         let val = Number(str.match(/(?<=\()[0-9.]+(?=, )/)[0]) + filterOptions.hueShift;
-        if(val > 360) {
+        if (val > 360) {
             val = val % 360;
-        } else if(val < 0) {
+        } else if (val < 0) {
             val = 360 + (val % 360);
         }
         elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=, )/, String(val)));
     }
     if (filterOptions.saturationShift) {
         const str = elem.spectrum("get").toHsvString();
-        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.saturationShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(
+                /(?<=\([0-9.]+, )[0-9.]+(?=, )/,
+                String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.saturationShift)))
+            )
+        );
     }
     if (filterOptions.lightnessShift) {
         const str = elem.spectrum("get").toHslString();
-        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.lightnessShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(
+                /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
+                String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.lightnessShift)))
+            )
+        );
     }
     if (filterOptions.brightnessShift) {
         const str = elem.spectrum("get").toHsvString();
-        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.brightnessShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(
+                /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
+                String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.brightnessShift)))
+            )
+        );
     }
     if (filterOptions.redShift) {
         const str = elem.spectrum("get").toRgbString();
-        elem.spectrum("set", str.replace(/(?<=\()[0-9.]+(?=\))/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\()[0-9.]+(?=, )/)[0]) + filterOptions.redShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(/(?<=\()[0-9.]+(?=\))/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\()[0-9.]+(?=, )/)[0]) + filterOptions.redShift))))
+        );
     }
     if (filterOptions.greenShift) {
         const str = elem.spectrum("get").toRgbString();
-        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, )[0-9.]+(?=, )/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.greenShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(
+                /(?<=\([0-9.]+, )[0-9.]+(?=, )/,
+                String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)[0]) + filterOptions.greenShift)))
+            )
+        );
     }
     if (filterOptions.blueShift) {
         const str = elem.spectrum("get").toRgbString();
-        elem.spectrum("set", str.replace(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.blueShift)))));
+        elem.spectrum(
+            "set",
+            str.replace(
+                /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
+                String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)[0]) + filterOptions.blueShift)))
+            )
+        );
     }
     if (filterOptions.alphaShift) {
         const str = elem.spectrum("get").toRgbString();
-        if(str.startsWith('rgba')) {
-            elem.spectrum("set", str.replace(/(?<=, )[0-9.]+(?=\))/, String(Math.min(1, Math.max(0, Number(str.match(/(?<=, )[0-9.]+(?=\))/)[0]) + filterOptions.alphaShift)))));
+        if (str.startsWith("rgba")) {
+            elem.spectrum(
+                "set",
+                str.replace(/(?<=, )[0-9.]+(?=\))/, String(Math.min(1, Math.max(0, Number(str.match(/(?<=, )[0-9.]+(?=\))/)[0]) + filterOptions.alphaShift))))
+            );
         } else {
             elem.spectrum("set", str.replace("rgb(", "rgba(").replace(")", String(Math.min(1, Math.max(0, Number(1 + filterOptions.alphaShift)))) + ")"));
         }
@@ -596,12 +696,93 @@ function applyColorFilterToColorOverride(target, filterOptions) {
     }
     if (filterOptions.setAlpha) {
         const str = elem.spectrum("get").toRgbString();
-        if(str.startsWith('rgba')) {
+        if (str.startsWith("rgba")) {
             elem.spectrum("set", str.replace(/(?<=, )[0-9.]+(?=\))/, String(filterOptions.setAlpha)));
         } else {
             elem.spectrum("set", str.replace("rgb(", "rgba(").replace(")", String(filterOptions.setAlpha) + ")"));
         }
     }
+}
+
+function stringToRegexString(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function makeRegexRobustToWhitespace(regexString) {
+    return regexString.replace(/\s+/g, "\\s*");
+}
+
+async function refreshOreUIPreview(menuHTMLFileName = "index_playscreen_worldstab.html") {
+    const newData = {
+        newHTML: await fetch(`../assets/ore-ui-customizer-preview/${menuHTMLFileName}`).then((response) => response.text()),
+        newIndexCSS: await fetch("../assets/ore-ui-customizer-preview/index-ffb39.css").then((response) => response.text()),
+        // newGameplayCSS: await fetch("../assets/ore-ui-customizer-preview/gameplay-41f5f.css").then((response) => response.text()),
+        // newEditorCSS: await fetch("../assets/ore-ui-customizer-preview/editor-7ac5c.css").then((response) => response.text()),
+        newMenusThemeCSS: await fetch("../assets/ore-ui-customizer-preview/menus-theme.css").then((response) => response.text()),
+        newGameplayThemeCSS: await fetch("../assets/ore-ui-customizer-preview/gameplay-theme.css").then((response) => response.text()),
+        newCustomOverlaysCSS: await fetch("../assets/ore-ui-customizer-preview/customOverlays.css").then((response) => response.text()),
+        oreUICustomizer8CrafterConfigJS: await fetch("../assets/ore-ui-customizer-preview/oreUICustomizer8CrafterConfig.js").then((response) =>
+            response.text()
+        ),
+        classPathJS: await fetch("../assets/ore-ui-customizer-preview/class_path.js").then((response) => response.text()),
+        cssJS: await fetch("../assets/ore-ui-customizer-preview/css.js").then((response) => response.text()),
+        customOverlaysJS: await fetch("../assets/ore-ui-customizer-preview/customOverlays.js").then((response) => response.text()),
+        indexJS: await fetch("../assets/ore-ui-customizer-preview/index-d6df7.js").then((response) => response.text()),
+    };
+    for (const k in newData) {
+        /** @type {keyof typeof newData} */
+        const key = k;
+        newData[key] = newData[key].replaceAll("/hbui/", "/assets/ore-ui-customizer-preview/");
+    }
+
+    const settings = getSettings();
+
+    // Color Replacements
+    for (const k in newData) {
+        /** @type {keyof typeof newData} */
+        const key = k;
+        for (const [color, replacementColor] of Object.entries(settings.colorReplacements)) {
+            if (color === replacementColor) continue;
+            newData[key] = newData[key].replaceAll(color, replacementColor);
+        }
+    }
+
+    newData.newHTML = newData.newHTML.replaceAll(`/assets/ore-ui-customizer-preview/index-ffb39.css`, `data:text/css;base64,${btoa(newData.newIndexCSS)}`);
+    // newData.newHTML = newData.newHTML.replaceAll(`./gameplay-41f5f.css`, `data:text/css;base64,${btoa(newData.newGameplayCSS)}`);
+    // newData.newHTML = newData.newHTML.replaceAll(`./editor-7ac5c.css`, `data:text/css;base64,${btoa(newData.newEditorCSS)}`);
+    newData.newHTML = newData.newHTML.replaceAll(`/assets/ore-ui-customizer-preview/menus-theme.css`, `data:text/css;base64,${btoa(newData.newMenusThemeCSS)}`);
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/gameplay-theme.css`,
+        `data:text/css;base64,${btoa(newData.newGameplayThemeCSS)}`
+    );
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/customOverlays.css`,
+        `data:text/css;base64,${btoa(newData.newCustomOverlaysCSS)}`
+    );
+
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/oreUICustomizer8CrafterConfig.js`,
+        `data:text/javascript,${encodeURIComponent(newData.oreUICustomizer8CrafterConfigJS)}`
+    );
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/class_path.js`,
+        `data:text/javascript,${encodeURIComponent(newData.classPathJS)}`
+    );
+    newData.newHTML = newData.newHTML.replaceAll(`/assets/ore-ui-customizer-preview/css.js`, `data:text/javascript,${encodeURIComponent(newData.cssJS)}`);
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/customOverlays.js`,
+        `data:text/javascript,${encodeURIComponent(newData.customOverlaysJS)}`
+    );
+    newData.newHTML = newData.newHTML.replaceAll(
+        `/assets/ore-ui-customizer-preview/index-d6df7.js`,
+        `data:text/javascript,${encodeURIComponent(newData.indexJS)}`
+    );
+
+    // $("#ore-ui-preview-iframe").contents().remove();
+    /** @type {HTMLIFrameElement} */
+    const iframe = $("#ore-ui-preview-iframe").get(0);
+    iframe.srcdoc = newData.newHTML;
+    // $("#ore-ui-preview-iframe").contents().find("body").css("--base1Scale", "2px");
 }
 
 async function applyMods() {
@@ -618,6 +799,10 @@ async function applyMods() {
     var unmodifiedCount = 0n;
     var editedCount = 0n;
     var renamedCount = 0n;
+    /**
+     * @type {{[filename: string]: string[]}}
+     */
+    var allFailedReplaces = {};
     zipFs.entries.forEach(
         /** @param {zip.ZipFileEntry | zip.ZipDirectoryEntry} entry */ async (entry) => {
             if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename)) {
@@ -638,29 +823,346 @@ async function applyMods() {
             }
 
             if (entry.directory === void false) {
+                /**
+                 * @type {string}
+                 */
                 const origData = await entry.getText();
                 let distData = origData;
+                /**
+                 * @type {{[filename: string]: string[]}}
+                 */
+                let failedReplaces = [];
+                let extractedFunctionNames = {
+                    translationStringResolver: "wi",
+                    headerFunciton: "fu",
+                    headerSpacingFunction: "Gc",
+                    editWorldTextFunction: "Dk",
+                    jsText: "js",
+                    navbarButtonFunction: "lc",
+                    navbarButtonImageFunction: "xc",
+                };
+
+                extractedFunctionNames.translationStringResolver =
+                    origData.match(/([a-zA-Z0-9_\$]{2})\("TitleBar.Buttons.Close"\)/)?.[1] ?? extractedFunctionNames.translationStringResolver;
+
+                extractedFunctionNames.headerFunciton =
+                    origData.match(/a\.createElement\(([a-zA-Z0-9_\$]{2}),null,n\("\.microsoftSignInButtonTitle"\)\),/)?.[1] ??
+                    extractedFunctionNames.headerFunciton;
+
+                extractedFunctionNames.headerSpacingFunction =
+                    origData.match(/a\.createElement\(([a-zA-Z0-9_\$]{2}),\{size:1\}\),/)?.[1] ?? extractedFunctionNames.headerSpacingFunction;
+
+                extractedFunctionNames.editWorldTextFunction =
+                    origData.match(/([a-zA-Z0-9_\$]{2})\.Text=function\(\{children:e,align:t\}\)/)?.[1] ?? extractedFunctionNames.editWorldTextFunction;
+
+                extractedFunctionNames.jsText =
+                    origData.match(/a\.createElement\(([a-zA-Z0-9_\$]{2}),\{type:"body",variant:"dimmer"\}/)?.[1] ?? extractedFunctionNames.jsText;
+
+                extractedFunctionNames.navbarButtonFunction =
+                    origData.match(/return a\.createElement\(([a-zA-Z0-9_\$]{2}),\{className:"r5Ne9"/)?.[1] ?? extractedFunctionNames.navbarButtonFunction;
+
+                extractedFunctionNames.navbarButtonImageFunction =
+                    origData.match(/a\.createElement\(([a-zA-Z0-9_\$]{2}),\{className:"GNMZ6"/)?.[1] ?? extractedFunctionNames.navbarButtonImageFunction;
+
+                /**
+                 * Lists of regexes to use for certain modifications.
+                 */
+                const replacerRegexes = {
+                    hardcoreModeToggleAlwaysClickable: {
+                        /**
+                         * Replacing the hardcore mode toggle (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            /function ([a-zA-Z0-9_\$]{2})\(\s*?\{\s*?generalData\s*?:\s*?e\s*?,\s*?isLockedTemplate\s*?:\s*?t\s*?\}\s*?\)\s*?\{\s*?const\s*?\{\s*?t\s*?:\s*?n\s*?\}\s*?=\s*?([a-zA-Z0-9_\$]{2})\("CreateNewWorld\.general"\)\s*?,\s*?l\s*?=\s*?([a-zA-Z0-9_\$]{2})\(\)\s*?,\s*?o\s*?=\s*?\(\s*?0\s*?,\s*?a\s*?\.\s*?useContext\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?===\s*?([a-zA-Z0-9_\$]{2})\.CREATE\s*?,\s*?i=\s*?\(\s*?0\s*?,\s*?r\.useSharedFacet\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?,\s*?c\s*?=\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?\(\s*?e\s*?,\s*?t\s*?,\s*?n\s*?\)\s*?=>\s*?n\s*?\|\|\s*?t\s*?\|\|\s*?!o\s*?\|\|\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.SURVIVAL\s*?&&\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.ADVENTURE\s*?\)\s*?,\s*?\[\s*?o\s*?\]\s*?,\s*?\[\s*?e\s*?,\s*?t\s*?,\s*?i\s*?\]\s*?\)\s*?;\s*?return \s*?a\.createElement\(\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?\{\s*?title\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeTitle"\)\s*?,\s*?soundEffectPressed\s*?:\s*?"ui\.hardcore_toggle_press"\s*?,\s*?disabled\s*?:\s*?c\s*?,\s*?description\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeDescription"\)\s*?,\s*?value\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?e\.isHardcore\s*?\)\s*?,\s*?\[\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?onChange\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetCallback\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?t\s*?=>\s*?\{\s*?e\.isHardcore\s*?=\s*?t\s*?,\s*?l\(\s*?t\s*?\?\s*?"ui\.hardcore_enable"\s*?:\s*?"ui\.hardcore_disable"\s*?\)\s*?\}\s*?\)\s*?,\s*?\[\s*?l\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?gamepad\s*?:\s*?\{\s*?index\s*?:\s*?4\s*?\}\s*?,\s*?imgSrc\s*?:\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?"data-testid"\s*?:\s*?"hardcore-mode-toggle"\s*?\}\s*?\)\s*?\}/g,
+                        ],
+                    },
+                    allowDisablingEnabledExperimentalToggles: {
+                        /**
+                         * Replacing experimental toggle generation code (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `function ([a-zA-Z0-9_\$]{2})\\(\\{experimentalFeature:e,gamepadIndex:t,disabled:n,achievementsDisabledMessages:l,areAllTogglesDisabled:o\\}\\)\\{const\\{gt:i\\}=function\\(\\)\\{const\\{translate:e,formatDate:t\\}=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\);return\\(0,a\\.useMemo\\)\\(\\(\\(\\)=>\\(\\{f:\\{formatDate:t\\},gt:\\(t,n\\)=>\\{var a;return null!==\\(a=e\\(t,n\\)\\)&&void 0!==a\\?a:t\\}\\}\\)\\),\\[e,t\\]\\)\\}\\(\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.id\\),\\[\\],\\[e\\]\\),u=\\(0,r\\.useFacetUnwrap\\)\\(s\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.title\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetUnwrap\\)\\(d\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.description\\),\\[\\],\\[e\\]\\),f=\\(0,r\\.useFacetUnwrap\\)\\(p\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isEnabled\\),\\[\\],\\[e\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>e\\|\\|t\\.isTogglePermanentlyDisabled\\),\\[\\],\\[\\(0,r\\.useFacetWrap\\)\\(n\\),e\\]\\),h=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{n&&t\\?([a-zA-Z0-9_\$]{2})\\.set\\(\\{userTriedToActivateToggle:!0,doSetToggleValue:\\(\\)=>e\\.isEnabled=n,userHasAcceptedBetaFeatures:!1\\}\\):e\\.isEnabled=n\\}\\),\\[\\],\\[e,o\\]\\),v=c\\("\\.narrationSuffixDisablesAchievements"\\),b=\\(0,r\\.useFacetMap\\)\\(\\(e=>0===e\\.length\\?c\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[c\\],\\[l\\]\\);return null!=u\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:m!==r\\.NO_VALUE\\?i\\(m\\):"",description:f!==r\\.NO_VALUE\\?i\\(f\\):"",gamepad:\\{index:t\\},value:g,disabled:E,onChange:h,onNarrationText:v,offNarrationText:b\\}\\):null\\}`
+                            ),
+                        ],
+                    },
+                    addMoreDefaultGameModes: {
+                        /**
+                         * Replacing game mode dropdown code (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `function ([a-zA-Z0-9_\$]{2})\\(\\{generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o\\}\\)\\{const\\{t:i\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.general"\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),u=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,d=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>e\\|\\|t\\|\\|n\\),\\[\\],\\[t,s,o\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>\\{const n=\\[(?:[a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeSurvivalLabel"\\),description:i\\("\\.gameModeSurvivalDescription"\\),value:([a-zA-Z0-9_\$]{2})\\.SURVIVAL\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\),\\{label:i\\("\\.gameModeCreativeLabel"\\),description:i\\("\\.gameModeCreativeDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.CREATIVE,narrationSuffix:c\\("\\.narrationSuffixDisablesAchievements"\\)\\}\\];return\\(u\\|\\|t\\)&&n\\.push\\(([a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeAdventureLabel"\\),description:i\\(t\\?"\\.gameModeAdventureTemplateDescription":"\\.gameModeAdventureDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.ADVENTURE\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\)\\),n\\}\\),\\[i,c,u\\],\\[l,n\\]\\),f=\\(0,r\\.useNotifyMountComplete\\)\\(\\);return a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:i\\("\\.gameModeTitle"\\),disabled:m,options:p,onMountComplete:f,value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameMode\\),\\[\\],\\[e\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{const a=e\\.gameMode;e\\.gameMode=n,u&&t\\.trackOptionChanged\\(([a-zA-Z0-9_\$]{2})\\.GameModeChanged,a,n\\)\\}\\),\\[u\\],\\[e,d\\]\\)\\}\\)\\}`
+                            ),
+                        ],
+                        /**
+                         * Replacing game mode id enumeration (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        1: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `function\\(e\\)\\{e\\[e\\.UNKNOWN=-1\\]="UNKNOWN",e\\[e\\.SURVIVAL=0\\]="SURVIVAL",e\\[e\\.CREATIVE=1\\]="CREATIVE",e\\[e\\.ADVENTURE=2\\]="ADVENTURE"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\(([a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
+                            ),
+                        ],
+                    },
+                    addGeneratorTypeDropdown: {
+                        /**
+                         * Adding the generator type dropdown (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `E&&!s\\?a\\.createElement\\(r\\.Mount,\\{when:n\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:c\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_\$]{2})\\.Overworld,label:c\\("\\.vanillaWorldGeneratorLabel"\\),description:c\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Flat,label:c\\("\\.flatWorldGeneratorLabel"\\),description:c\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Void,label:c\\("\\.voidWorldGeneratorLabel"\\),description:c\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:b\\.value,onChange:b\\.onChange\\}\\)\\)\\):null`
+                            ),
+                        ],
+                        /**
+                         * Replacing generator type id enumeration (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        1: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `function\\(e\\)\\{e\\[e\\.Legacy=0\\]="Legacy",e\\[e\\.Overworld=1\\]="Overworld",e\\[e\\.Flat=2\\]="Flat",e\\[e\\.Nether=3\\]="Nether",e\\[e\\.TheEnd=4\\]="TheEnd",e\\[e\\.Void=5\\]="Void",e\\[e\\.Undefined=6\\]="Undefined"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\((?:[a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
+                            ),
+                        ],
+                    },
+                    /**
+                     * Allow for changing the seed in the edit world screen (v1).
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     *
+                     * #### Partially Supported:
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     */
+                    allowForChangingSeeds: {
+                        /**
+                         * Replacing the seed text box in the advanced edit world tab (v1).
+                         *
+                         * ### Minecraft version support:
+                         *
+                         * #### Fully Supported:
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `([a-zA-Z0-9_\$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o\\}\\)=>\\{const\\{t:i\\}=([a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:c\\}=(?:[a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.all"\\),s=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,u=([a-zA-Z0-9_\$]{2})\\(([a-zA-Z0-9_\$]{2})\\),d=([a-zA-Z0-9_\$]{2})\\(\\),m=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),p=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),f=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[m\\]\\),E=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t,n\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),n\\.queueSnackbar\\(i\\("\\.copyToClipboard"\\)\\)\\}\\),\\[i\\],\\[f,m,p\\]\\),h=s\\?E:\\(\\)=>d\\.push\\("/create-new-world/seed-templates"\\),v=s\\?"":i\\("\\.worldSeedPlaceholder"\\),b=i\\(s\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),y=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>t\\|\\|n&&u&&!s&&e\\.generatorType!=([a-zA-Z0-9_\$]{2})\\.Overworld\\),\\[u,s\\],\\[e,l,t\\]\\);return o\\?a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{data:g\\},\\(e=>s&&!e\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{disabled:s,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):a\\.createElement\\((?:[a-zA-Z0-9_\$]{2})\\.WithButton,\\{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:v,buttonNarrationHint:i\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
+                            ),
+                        ],
+                    },
+                    /**
+                     * Adds the debug tab to the create and edit world screens.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     *
+                     * #### Partially Supported:
+                     * - 1.21.60/61/62 (index-41cdf.js) {Only adds debug tab, does not modify it.}
+                     * - 1.21.60.27/28 preview (index-41cdf.js) {Only adds debug tab, does not modify it.}
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.60
+                     */
+                    addDebugTab: {
+                        /**
+                         * Replacing the debug tab of the create and edit world screens (v1).
+                         *
+                         * Known supported Minecraft versions:
+                         *
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             */
+                            new RegExp(
+                                `function ([a-zA-Z0-9_\$]{2})\\(\\{worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i\\}\\)\\{const c=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),s=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),u=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[e\\]\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\)\\)\\),\\[\\],\\[s\\]\\),f=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[p,m\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[c\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),h=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),v=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e\\.platform\\)\\),\\[\\],\\[h\\]\\),b=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,y=\\(0,r\\.useFacetMap\\)\\(\\(e=>e&&b\\),\\[b\\],\\[v\\]\\);return a\\.createElement\\(r\\.DeferredMountProvider,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Flat nether",gamepad:\\{index:0\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[c\\]\\),onChange` +
+                                    `:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatNether=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Enable game version override",gamepad:\\{index:1\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.enableGameVersionOverride\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.enableGameVersionOverride=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:"Game version override",gamepadIndex:2,placeholder:"0\\.0\\.0",maxLength:30,disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.enableGameVersionOverride\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameVersionOverride\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.gameVersionOverride=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),` +
+                                    `a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"World biome settings"\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:\\{index:3\\},disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.defaultSpawnBiome=t\\}\\),\\[\\],\\[c\\]\\)\\}\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onMountComplete:\\(0,r\\.useNotifyMountComplete\\)\\(\\),title:"Spawn dimension filter",disabled:E,wrapToggleText:!0,options:\\[\\{label:"Overworld",value:0\\},\\{label:"Nether",value:1\\}\\],value:m,onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.spawnDimensionId=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Spawn biome",options:f,onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>e\\.spawnBiomeId=t\\),\\[\\],\\[c\\]\\),disabled:E,value:\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>t\\.filter\\(\\(t=>t\\.value===e\\)\\)\\.length>0\\?e:t\\[0\\]\\.value\\),\\[\\],\\[g,f\\]\\),focusOnSelectedItem:!0\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",description:"Set the world to a selected biome\\. This will override the Spawn biome!",gamepad:\\{index:6\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.isBiomeOverrideActive=t\\}\\),\\[\\],\\[c\\]\\)\\}\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",description:"Select biome to be used in the entire world",options:p,disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.biomeOverrideId=t\\}\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.biomeOverrideId\\),\\[\\],\\[c\\]\\),focusOnSelectedItem:!0\\}\\),a\\.createElement\\(r\\.Mount,\\{when:y\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onExportTemplate:l,onClearPlayerData:o\\}\\)\\)\\)\\)\\}`
+                            ),
+                        ],
+                        /**
+                         * Unhiding the debug tab of the create and edit world screens (v1).
+                         *
+                         * ### Minecraft version support:
+                         *
+                         * #### Fully Supported:
+                         * - 1.21.60/61/62 (index-41cdf.js)
+                         * - 1.21.60.27/28 preview (index-41cdf.js)
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.60
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.80.22 preview
+                         * - 1.21.70.xx preview
+                         */
+                        1: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.60/61/62 (index-41cdf.js)
+                             * - 1.21.60.27/28 preview (index-41cdf.js)
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             */
+                            new RegExp(`e&&([tr])\\.push\\(\\{label:"\\.debugTabLabel",image:([a-zA-Z0-9_\$]{2}),value:"debug"\\}\\),`),
+                        ],
+                    },
+                    add8CrafterUtilitiesMainMenuButton: {
+                        /**
+                         * Adding the 8Crafter Utilities main menu button to the top right corner of the screen, in the navbar (v1).
+                         *
+                         * ### Minecraft version support:
+                         *
+                         * #### Fully Supported:
+                         * - 1.21.60/61/62 (index-41cdf.js)
+                         * - 1.21.60.27/28 preview (index-41cdf.js)
+                         * - 1.21.70/71/72 (index-d6df7.js)
+                         * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         *
+                         * #### Support Unknown:
+                         * - < 1.21.60
+                         * - \> 1.21.80.22 preview
+                         * - 1.21.70.xx preview
+                         */
+                        0: [
+                            /**
+                             * Known supported Minecraft versions:
+                             *
+                             * - 1.21.60/61/62 (index-41cdf.js)
+                             * - 1.21.60.27/28 preview (index-41cdf.js)
+                             * - 1.21.70/71/72 (index-d6df7.js)
+                             * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             */
+                            new RegExp(
+                                `a\\.createElement\\(r\\.Mount,\\{when:E\\},a\\.createElement\\(a\\.Fragment,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2})\\.Divider,null\\),a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onClick:[eo],screenAnalyticsId:u\\}\\)\\)\\)`
+                            ),
+                        ],
+                    },
+                };
                 if (settings.hardcoreModeToggleAlwaysClickable) {
-                    distData = distData.replace(
-                        /function hA\(\s*?\{\s*?generalData\s*?:\s*?e\s*?,\s*?isLockedTemplate\s*?:\s*?t\s*?\}\s*?\)\s*?\{\s*?const\s*?\{\s*?t\s*?:\s*?n\s*?\}\s*?=\s*?wi\("CreateNewWorld\.general"\)\s*?,\s*?l\s*?=\s*?ea\(\)\s*?,\s*?o\s*?=\s*?\(\s*?0\s*?,\s*?a\s*?\.\s*?useContext\s*?\)\s*?\(\s*?lT\s*?\)\s*?===\s*?rT\.CREATE\s*?,\s*?i=\s*?\(\s*?0\s*?,\s*?r\.useSharedFacet\s*?\)\s*?\(\s*?Gh\s*?\)\s*?,\s*?c\s*?=\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?\(\s*?e\s*?,\s*?t\s*?,\s*?n\s*?\)\s*?=>\s*?n\s*?\|\|\s*?t\s*?\|\|\s*?!o\s*?\|\|\s*?e\.gameMode\s*?!==\s*?Th\.SURVIVAL\s*?&&\s*?e\.gameMode\s*?!==\s*?Th\.ADVENTURE\s*?\)\s*?,\s*?\[\s*?o\s*?\]\s*?,\s*?\[\s*?e\s*?,\s*?t\s*?,\s*?i\s*?\]\s*?\)\s*?;\s*?return \s*?a\.createElement\(\s*?Nx\s*?,\s*?\{\s*?title\s*?:\s*?n\("\.hardcoreModeTitle"\)\s*?,\s*?soundEffectPressed\s*?:\s*?"ui\.hardcore_toggle_press"\s*?,\s*?disabled\s*?:\s*?c\s*?,\s*?description\s*?:\s*?n\("\.hardcoreModeDescription"\)\s*?,\s*?value\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?e\.isHardcore\s*?\)\s*?,\s*?\[\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?onChange\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetCallback\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?t\s*?=>\s*?\{\s*?e\.isHardcore\s*?=\s*?t\s*?,\s*?l\(\s*?t\s*?\?\s*?"ui\.hardcore_enable"\s*?:\s*?"ui\.hardcore_disable"\s*?\)\s*?\}\s*?\)\s*?,\s*?\[\s*?l\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?gamepad\s*?:\s*?\{\s*?index\s*?:\s*?4\s*?\}\s*?,\s*?imgSrc\s*?:\s*?uA\s*?,\s*?"data-testid"\s*?:\s*?"hardcore-mode-toggle"\s*?\}\s*?\)\s*?\}/g,
-                        `/**
+                    let successfullyReplaced = false;
+                    for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `/**
              * The hardcore mode toggle.
              *
              * @param {Object} param0
              * @param {unknown} param0.generalData
              * @param {boolean} param0.isLockedTemplate
              */
-            function hA({ generalData: e, isLockedTemplate: t }) {
-                const { t: n } = wi("CreateNewWorld.general"),
-                    l = ea(),
-                    o = (0, a.useContext)(lT) === rT.CREATE,
-                    i = (0, r.useSharedFacet)(Gh),
-                    c = (0, r.useFacetMap)((e, t, n) => n || t || !o || (e.gameMode !== Th.SURVIVAL && e.gameMode !== Th.ADVENTURE), [o], [e, t, i]);
-                return a.createElement(Nx, {
-                    title: n(".hardcoreModeTitle"),
+            function $1({ generalData: e, isLockedTemplate: t }) {
+                const { t: n } = $2("CreateNewWorld.general"),
+                    l = $3(),
+                    o = (0, a.useContext)($4) === $5.CREATE,
+                    i = (0, r.useSharedFacet)($6),
+                    c = (0, r.useFacetMap)((e, t, n) => n || t || !o || (e.gameMode !== $7.SURVIVAL && e.gameMode !== $8.ADVENTURE), [o], [e, t, i]);
+                return a.createElement($9, {
+                    title: $10(".hardcoreModeTitle"),
                     soundEffectPressed: "ui.hardcore_toggle_press",
                     disabled: false /* c */, // Modified to make the hardcore mode toggle always be enabled.
-                    description: n(".hardcoreModeDescription"),
+                    description: $11(".hardcoreModeDescription"),
                     value: (0, r.useFacetMap)((e) => e.isHardcore, [], [e]),
                     onChange: (0, r.useFacetCallback)(
                         (e) => (t) => {
@@ -670,16 +1172,26 @@ async function applyMods() {
                         [e]
                     ),
                     gamepad: { index: 4 },
-                    imgSrc: uA,
+                    imgSrc: $12,
                     "data-testid": "hardcore-mode-toggle",
                 });
             }`
-                    );
+                            );
+                            successfullyReplaced = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
+                        failedReplaces.push("hardcoreModeToggleAlwaysClickable");
+                    }
                 }
                 if (settings.allowDisablingEnabledExperimentalToggles) {
-                    distData = distData.replace(
-                        `function BA({experimentalFeature:e,gamepadIndex:t,disabled:n,achievementsDisabledMessages:l,areAllTogglesDisabled:o}){const{gt:i}=function(){const{translate:e,formatDate:t}=(0,a.useContext)(gl);return(0,a.useMemo)((()=>({f:{formatDate:t},gt:(t,n)=>{var a;return null!==(a=e(t,n))&&void 0!==a?a:t}})),[e,t])}(),{t:c}=wi("CreateNewWorld.all"),s=(0,r.useFacetMap)((e=>e.id),[],[e]),u=(0,r.useFacetUnwrap)(s),d=(0,r.useFacetMap)((e=>e.title),[],[e]),m=(0,r.useFacetUnwrap)(d),p=(0,r.useFacetMap)((e=>e.description),[],[e]),f=(0,r.useFacetUnwrap)(p),g=(0,r.useFacetMap)((e=>e.isEnabled),[],[e]),E=(0,r.useFacetMap)(((e,t)=>e||t.isTogglePermanentlyDisabled),[],[(0,r.useFacetWrap)(n),e]),h=(0,r.useFacetCallback)(((e,t)=>n=>{n&&t?xf.set({userTriedToActivateToggle:!0,doSetToggleValue:()=>e.isEnabled=n,userHasAcceptedBetaFeatures:!1}):e.isEnabled=n}),[],[e,o]),v=c(".narrationSuffixDisablesAchievements"),b=(0,r.useFacetMap)((e=>0===e.length?c(".narrationSuffixEnablesAchievements"):void 0),[c],[l]);return null!=u?a.createElement(Nx,{title:m!==r.NO_VALUE?i(m):"",description:f!==r.NO_VALUE?i(f):"",gamepad:{index:t},value:g,disabled:E,onChange:h,onNarrationText:v,offNarrationText:b}):null}`,
-                        `/**
+                    let successfullyReplaced = false;
+                    for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `/**
              * Handles the gneration of an experimental toggle, and the education edition toggle.
              *
              * @param {object} param0
@@ -689,9 +1201,9 @@ async function applyMods() {
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {unknown} param0.areAllTogglesDisabled
              */
-            function BA({ experimentalFeature: e, gamepadIndex: t, disabled: n, achievementsDisabledMessages: l, areAllTogglesDisabled: o }) {
+            function $1({ experimentalFeature: e, gamepadIndex: t, disabled: n, achievementsDisabledMessages: l, areAllTogglesDisabled: o }) {
                 const { gt: i } = (function () {
-                        const { translate: e, formatDate: t } = (0, a.useContext)(gl);
+                        const { translate: e, formatDate: t } = (0, a.useContext)($2);
                         return (0, a.useMemo)(
                             () => ({
                                 f: { formatDate: t },
@@ -703,7 +1215,7 @@ async function applyMods() {
                             [e, t]
                         );
                     })(),
-                    { t: c } = wi("CreateNewWorld.all"),
+                    { t: c } = ${extractedFunctionNames.translationStringResolver}("CreateNewWorld.all"),
                     s = (0, r.useFacetMap)((e) => e.id, [], [e]),
                     u = (0, r.useFacetUnwrap)(s),
                     d = (0, r.useFacetMap)((e) => e.title, [], [e]),
@@ -715,7 +1227,7 @@ async function applyMods() {
                     h = (0, r.useFacetCallback)(
                         (e, t) => (n) => {
                             n && t
-                                ? xf.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (e.isEnabled = n), userHasAcceptedBetaFeatures: !1 })
+                                ? $3.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (e.isEnabled = n), userHasAcceptedBetaFeatures: !1 })
                                 : (e.isEnabled = n);
                         },
                         [],
@@ -724,7 +1236,7 @@ async function applyMods() {
                     v = c(".narrationSuffixDisablesAchievements"),
                     b = (0, r.useFacetMap)((e) => (0 === e.length ? c(".narrationSuffixEnablesAchievements") : void 0), [c], [l]);
                 return null != u
-                    ? a.createElement(Nx, {
+                    ? a.createElement($4, {
                           title: m !== r.NO_VALUE ? i(m) : "",
                           description: f !== r.NO_VALUE ? i(f) : "",
                           gamepad: { index: t },
@@ -736,13 +1248,24 @@ async function applyMods() {
                       })
                     : null;
             }`
-                    );
+                            );
+                            successfullyReplaced = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
+                        failedReplaces.push("allowDisablingEnabledExperimentalToggles");
+                    }
                 }
+                // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
                 if (settings.addMoreDefaultGameModes) {
-                    distData = distData
-                        .replace(
-                            `function bA({generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o}){const{t:i}=wi("CreateNewWorld.general"),{t:c}=wi("CreateNewWorld.all"),s=(0,r.useSharedFacet)(Gh),u=(0,a.useContext)(lT)!==rT.CREATE,d=(0,r.useSharedFacet)(bh),m=(0,r.useFacetMap)(((e,t,n)=>e||t||n),[],[t,s,o]),p=(0,r.useFacetMap)(((e,t)=>{const n=[mA({label:i(".gameModeSurvivalLabel"),description:i(".gameModeSurvivalDescription"),value:Th.SURVIVAL},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{}),{label:i(".gameModeCreativeLabel"),description:i(".gameModeCreativeDescription"),value:Th.CREATIVE,narrationSuffix:c(".narrationSuffixDisablesAchievements")}];return(u||t)&&n.push(mA({label:i(".gameModeAdventureLabel"),description:i(t?".gameModeAdventureTemplateDescription":".gameModeAdventureDescription"),value:Th.ADVENTURE},1===e.length?{narrationSuffix:c(".narrationSuffixEnablesAchievements")}:{})),n}),[i,c,u],[l,n]),f=(0,r.useNotifyMountComplete)();return a.createElement(Fx,{title:i(".gameModeTitle"),disabled:m,options:p,onMountComplete:f,value:(0,r.useFacetMap)((e=>e.gameMode),[],[e]),onChange:(0,r.useFacetCallback)(((e,t)=>n=>{const a=e.gameMode;e.gameMode=n,u&&t.trackOptionChanged(cA.GameModeChanged,a,n)}),[u],[e,d])})}`,
-                            `/**
+                    let successfullyReplacedA = false;
+                    let successfullyReplacedB = false;
+                    for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `/**
              * The game mode dropdown.
              *
              * @param param0
@@ -752,91 +1275,91 @@ async function applyMods() {
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {boolean} param0.isHardcoreMode
              */
-            function bA({ generalData: e, isLockedTemplate: t, isUsingTemplate: n, achievementsDisabledMessages: l, isHardcoreMode: o }) {
-                const { t: i } = wi("CreateNewWorld.general"),
-                    { t: c } = wi("CreateNewWorld.all"),
-                    s = (0, r.useSharedFacet)(Gh),
-                    u = (0, a.useContext)(lT) !== rT.CREATE,
-                    d = (0, r.useSharedFacet)(bh),
+            function $1({ generalData: e, isLockedTemplate: t, isUsingTemplate: n, achievementsDisabledMessages: l, isHardcoreMode: o }) {
+                const { t: i } = ${extractedFunctionNames.translationStringResolver}("CreateNewWorld.general"),
+                    { t: c } = ${extractedFunctionNames.translationStringResolver}("CreateNewWorld.all"),
+                    s = (0, r.useSharedFacet)($2),
+                    u = (0, a.useContext)($3) !== $4.CREATE,
+                    d = (0, r.useSharedFacet)($5),
                     m = (0, r.useFacetMap)((e, t, n) => e || t || n, [], [t, s, o]),
                     p = (0, r.useFacetMap)(
                         (e, t) => {
                             const n = [/* 
-                                mA(
-                                    { label: i(".gameModeUnknownLabel"), description: i(".gameModeUnknownDescription"), value: Th.UNKNOWN },
+                                $6(
+                                    { label: i(".gameModeUnknownLabel"), description: i(".gameModeUnknownDescription"), value: $7.UNKNOWN },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
-                                mA(
-                                    { label: i(".gameModeSurvivalLabel"), description: i(".gameModeSurvivalDescription"), value: Th.SURVIVAL },
+                                $6(
+                                    { label: i(".gameModeSurvivalLabel"), description: i(".gameModeSurvivalDescription"), value: $7.SURVIVAL },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 {
                                     label: i(".gameModeCreativeLabel"),
                                     description: i(".gameModeCreativeDescription"),
-                                    value: Th.CREATIVE,
+                                    value: $7.CREATIVE,
                                     narrationSuffix: c(".narrationSuffixDisablesAchievements"),
                                 },
-                                mA(
+                                $6(
                                     {
                                         label: i(".gameModeAdventureLabel"),
                                         description: i(t ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
-                                        value: Th.ADVENTURE,
+                                        value: $7.ADVENTURE,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),/* 
-                                mA(
+                                $6(
                                     {
                                         label: "Game Mode 3",
                                         description: "Secret game mode 3.",
-                                        value: Th.GM3,
+                                        value: $7.GM3,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),
-                                mA(
+                                $6(
                                     {
                                         label: "Game Mode 4",
                                         description: "Secret game mode 4.",
-                                        value: Th.GM4,
+                                        value: $7.GM4,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
-                                mA(
+                                $6(
                                     {
                                         label: "Default",
                                         description: "Default game mode, might break things if you set the default game mode to itself.",
-                                        value: Th.DEFAULT,
+                                        value: $7.DEFAULT,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),
-                                mA(
+                                $6(
                                     {
                                         label: "Spectator",
                                         description: "Spectator mode.",
-                                        value: Th.SPECTATOR,
+                                        value: $7.SPECTATOR,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),/* 
-                                mA(
+                                $6(
                                     {
                                         label: "Game Mode 7",
                                         description: "Secret game mode 7.",
-                                        value: Th.GM7,
+                                        value: $7.GM7,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),
-                                mA(
+                                $6(
                                     {
                                         label: "Game Mode 8",
                                         description: "Secret game mode 8.",
-                                        value: Th.GM8,
+                                        value: $7.GM8,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ),
-                                mA(
+                                $6(
                                     {
                                         label: "Game Mode 9",
                                         description: "Secret game mode 9.",
-                                        value: Th.GM9,
+                                        value: $7.GM9,
                                     },
                                     1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
@@ -844,11 +1367,11 @@ async function applyMods() {
                             return (
                                 (u || t) &&
                                     n.push(
-                                        mA(
+                                        $6(
                                             {
                                                 label: i(".gameModeAdventureLabel"),
                                                 description: i(t ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
-                                                value: Th.ADVENTURE,
+                                                value: $7.ADVENTURE,
                                             },
                                             1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
                                         )
@@ -861,7 +1384,7 @@ async function applyMods() {
                         [l, n]
                     ),
                     f = (0, r.useNotifyMountComplete)();
-                return a.createElement(Fx, {
+                return a.createElement($8, {
                     title: i(".gameModeTitle"),
                     disabled: m,
                     options: p,
@@ -870,17 +1393,23 @@ async function applyMods() {
                     onChange: (0, r.useFacetCallback)(
                         (e, t) => (n) => {
                             const a = e.gameMode;
-                            (e.gameMode = n), u && t.trackOptionChanged(cA.GameModeChanged, a, n);
+                            (e.gameMode = n), u && t.trackOptionChanged($9.GameModeChanged, a, n);
                         },
                         [u],
                         [e, d]
                     ),
                 });
             }`
-                        )
-                        .replace(
-                            `function(e){e[e.UNKNOWN=-1]="UNKNOWN",e[e.SURVIVAL=0]="SURVIVAL",e[e.CREATIVE=1]="CREATIVE",e[e.ADVENTURE=2]="ADVENTURE"}(Th||(Th={})),`,
-                            `(function (e) {
+                            );
+                            successfullyReplacedA = true;
+                            break;
+                        }
+                    }
+                    for (const regex of replacerRegexes.addMoreDefaultGameModes[1]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `(function (e) {
                     // Modified to add more game modes.
                     (e[(e.UNKNOWN = -1)] = "UNKNOWN"),
                         (e[(e.SURVIVAL = 0)] = "SURVIVAL"),
@@ -893,55 +1422,70 @@ async function applyMods() {
                         (e[(e.GM7 = 7)] = "GM7"),
                         (e[(e.GM8 = 8)] = "GM8"),
                         (e[(e.GM9 = 9)] = "GM9");
-                })(Th || (Th = {})),`
-                        );
+                })($1 || ($2 = {})),`
+                            );
+                            successfullyReplacedB = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename)) {
+                        if (!successfullyReplacedA) {
+                            failedReplaces.push("addMoreDefaultGameModes_dropdown");
+                        }
+                        if (!successfullyReplacedB) {
+                            failedReplaces.push("addMoreDefaultGameModes_enumeration");
+                        }
+                    }
                 }
                 if (settings.addGeneratorTypeDropdown) {
-                    distData = distData
-                        .replace(
-                            `E&&!s?a.createElement(r.Mount,{when:n},a.createElement(r.DeferredMount,null,a.createElement(tR,{label:c(".generatorTypeLabel"),options:[{value:Qh.Overworld,label:c(".vanillaWorldGeneratorLabel"),description:c(".vanillaWorldGeneratorDescription")},{value:Qh.Flat,label:c(".flatWorldGeneratorLabel"),description:c(".flatWorldGeneratorDescription")},{value:Qh.Void,label:c(".voidWorldGeneratorLabel"),description:c(".voidWorldGeneratorDescription")}],value:b.value,onChange:b.onChange}))):null`,
-                            `// Modified to add this dropdown
+                    let successfullyReplacedA = false;
+                    let successfullyReplacedB = false;
+                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `// Modified to add this dropdown
                                       a.createElement(
                                           r.Mount,
                                           { when: true /* n */ },
                                           a.createElement(
                                               r.DeferredMount,
                                               null,
-                                              a.createElement(tR, {
+                                              a.createElement($1, {
                                                   label: c(".generatorTypeLabel"),
                                                   options: [
                                                       {
-                                                          value: Qh.Legacy,
+                                                          value: $2.Legacy,
                                                           label: "Legacy",
                                                           description: "The old world type.",
                                                       },
                                                       {
-                                                          value: Qh.Overworld,
+                                                          value: $2.Overworld,
                                                           label: c(".vanillaWorldGeneratorLabel"),
                                                           description: c(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: Qh.Flat,
+                                                          value: $2.Flat,
                                                           label: c(".flatWorldGeneratorLabel"),
                                                           description: c(".flatWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: Qh.Nether,
+                                                          value: $2.Nether,
                                                           label: "Nether",
                                                           description: c(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: Qh.TheEnd,
+                                                          value: $2.TheEnd,
                                                           label: "The End",
                                                           description: c(".vanillaWorldGeneratorDescription"),
                                                       }, */
                                                       {
-                                                          value: Qh.Void,
+                                                          value: $2.Void,
                                                           label: c(".voidWorldGeneratorLabel"),
                                                           description: c(".voidWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: Qh.Undefined,
+                                                          value: $2.Undefined,
                                                           label: "Undefined",
                                                           description: c(".vanillaWorldGeneratorDescription"),
                                                       }, */
@@ -958,10 +1502,16 @@ async function applyMods() {
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
                                       )`
-                        )
-                        .replace(
-                            `function(e){e[e.Legacy=0]="Legacy",e[e.Overworld=1]="Overworld",e[e.Flat=2]="Flat",e[e.Nether=3]="Nether",e[e.TheEnd=4]="TheEnd",e[e.Void=5]="Void",e[e.Undefined=6]="Undefined"}(Qh||(Qh={})),`,
-                            `(function (e) {
+                            );
+                            successfullyReplacedA = true;
+                            break;
+                        }
+                    }
+                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[1]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `(function (e) {
                     (e[(e.Legacy = 0)] = "Legacy"),
                         (e[(e.Overworld = 1)] = "Overworld"),
                         (e[(e.Flat = 2)] = "Flat"),
@@ -969,20 +1519,35 @@ async function applyMods() {
                         (e[(e.TheEnd = 4)] = "TheEnd"),
                         (e[(e.Void = 5)] = "Void"),
                         (e[(e.Undefined = 6)] = "Undefined");
-                })(Qh || (Qh = {})),`
-                        );
+                })($1 || ($1 = {})),`
+                            );
+                            successfullyReplacedB = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename)) {
+                        if (!successfullyReplacedA) {
+                            failedReplaces.push("addGeneratorTypeDropdown_dropdown");
+                        }
+                        if (!successfullyReplacedB) {
+                            failedReplaces.push("addGeneratorTypeDropdown_enumeration");
+                        }
+                    }
                 }
                 if (settings.allowForChangingSeeds) {
-                    distData = distData.replace(
-                        `ER=({advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o})=>{const{t:i}=Og("CreateNewWorld.advanced"),{t:c}=Og("CreateNewWorld.all"),s=(0,a.useContext)(lT)!==rT.CREATE,u=Tv($A),d=Gr(),m=(0,r.useSharedFacet)(Cf),p=(0,r.useSharedFacet)(jg),f=(0,r.useFacetMap)((e=>e.worldSeed),[],[e]),g=(0,r.useFacetMap)((e=>e.isClipboardCopySupported),[],[m]),E=(0,r.useFacetCallback)(((e,t,n)=>()=>{t.copyToClipboard(e),n.queueSnackbar(i(".copyToClipboard"))}),[i],[f,m,p]),h=s?E:()=>d.push("/create-new-world/seed-templates"),v=s?"":i(".worldSeedPlaceholder"),b=i(s?".worldSeedCopyButton":".worldSeedButton"),y=(0,r.useFacetMap)(((e,t,n)=>t||n&&u&&!s&&e.generatorType!=Qh.Overworld),[u,s],[e,l,t]);return o?a.createElement(r.DeferredMount,null,a.createElement(Fl,{data:g},(e=>s&&!e?a.createElement($O,{disabled:s,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-text-field"}):a.createElement($O.WithButton,{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:v,buttonNarrationHint:i(".narrationTemplatesButtonNarrationHint"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked"),"data-testid":"world-seed-with-button"})))):a.createElement(r.DeferredMount,null,a.createElement($O,{disabled:y,label:i(".worldSeedLabel"),description:i(".worldSeedDescription"),maxLength:32,value:f,onChange:n,placeholder:i(".worldSeedPlaceholder"),disabledNarrationSuffix:c(".narrationSuffixTemplateLocked")}))},`,
-                        `ER = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: n, isSeedChangeLocked: l, showSeedTemplates: o, worldData: wd }) => {
-                    const { t: i } = Og("CreateNewWorld.advanced"),
-                        { t: c } = Og("CreateNewWorld.all"),
-                        s = (0, a.useContext)(lT) !== rT.CREATE,
-                        u = Tv($A),
-                        d = Gr(),
-                        m = (0, r.useSharedFacet)(Cf),
-                        p = (0, r.useSharedFacet)(jg),
+                    let successfullyReplaced = false;
+                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `$1 = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: n, isSeedChangeLocked: l, showSeedTemplates: o, worldData: wd }) => {
+                    const { t: i } = $2("CreateNewWorld.advanced"),
+                        { t: c } = $2("CreateNewWorld.all"),
+                        s = (0, a.useContext)($3) !== $4.CREATE,
+                        u = $5($6),
+                        d = $7(),
+                        m = (0, r.useSharedFacet)($8),
+                        p = (0, r.useSharedFacet)($9),
                         f = (0, r.useFacetMap)((e) => e.worldSeed, [], [e]),
                         g = (0, r.useFacetMap)((e) => e.isClipboardCopySupported, [], [m]),
                         E = (0, r.useFacetCallback)(
@@ -995,14 +1560,14 @@ async function applyMods() {
                         h = s ? E : () => d.push("/create-new-world/seed-templates"),
                         v = s ? "" : i(".worldSeedPlaceholder"),
                         b = i(s ? ".worldSeedCopyButton" : ".worldSeedButton"),
-                        y = (0, r.useFacetMap)((e, t, n) => t || (n && u && !s && e.generatorType != Qh.Overworld), [u, s], [e, l, t]);
+                        y = (0, r.useFacetMap)((e, t, n) => t || (n && u && !s && e.generatorType != $10.Overworld), [u, s], [e, l, t]);
                     return (/* o
                         ?  */a.createElement(
                               r.DeferredMount,
                               null,
-                              a.createElement(Fl, { data: g }, (e) =>
+                              a.createElement($11, { data: g }, (e) =>
                                   /* s && !e
-                                      ? a.createElement($O, {
+                                      ? a.createElement($12, {
                                             disabled: s,
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription"),
@@ -1019,7 +1584,7 @@ async function applyMods() {
                                             disabledNarrationSuffix: c(".narrationSuffixTemplateLocked"),
                                             "data-testid": "world-seed-text-field",
                                         })
-                                      :  */a.createElement($O.WithButton, {
+                                      :  */a.createElement($12.WithButton, {
                                             buttonInputLegend: b,
                                             buttonText: b,
                                             buttonOnClick: h,
@@ -1046,7 +1611,7 @@ async function applyMods() {
                         : a.createElement(
                               r.DeferredMount,
                               null,
-                              a.createElement($O, {
+                              a.createElement($12, {
                                   disabled: y,
                                   label: i(".worldSeedLabel"),
                                   description: i(".worldSeedDescription"),
@@ -1064,13 +1629,23 @@ async function applyMods() {
                               })
                           ) */);
                 },`
-                    );
+                            );
+                            successfullyReplaced = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
+                        failedReplaces.push("allowForChangingSeeds");
+                    }
                 }
                 if (settings.addDebugTab) {
-                    distData = distData
-                        .replace(
-                            `function n_({worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i}){const c=(0,r.useSharedFacet)(Nf),s=(0,r.useFacetMap)((({allBiomes:e})=>e),[],[c]),u=(0,r.useFacetMap)((e=>e.isLockedTemplate),[],[e]),d=(0,r.useFacetMap)((e=>e.achievementsDisabled),[],[e]),m=(0,r.useFacetMap)((({spawnDimensionId:e})=>e),[],[c]),p=(0,r.useFacetMap)((e=>mL(e,(e=>({label:e.label,dimension:e.dimension,value:e.id})))),[],[s]),f=(0,r.useFacetMap)(((e,t)=>QC(e,(e=>e.dimension===t))),[],[p,m]),g=(0,r.useFacetMap)((e=>e.spawnBiomeId),[],[c]),E=(0,r.useFacetMap)((e=>e.defaultSpawnBiome||e.isBiomeOverrideActive),[],[c]),h=(0,r.useSharedFacet)(al),v=(0,r.useFacetMap)((e=>XC(e.platform)),[],[h]),b=(0,a.useContext)(lT)!==rT.CREATE,y=(0,r.useFacetMap)((e=>e&&b),[b],[v]);return a.createElement(r.DeferredMountProvider,null,a.createElement(UO,{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i},a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Flat nether",gamepad:{index:0},value:(0,r.useFacetMap)((e=>e.flatNether),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.flatNether=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(Nx,{title:"Enable game version override",gamepad:{index:1},value:(0,r.useFacetMap)((e=>e.enableGameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.enableGameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement($O,{label:"Game version override",gamepadIndex:2,placeholder:"0.0.0",maxLength:30,disabled:(0,r.useFacetMap)((e=>!e.enableGameVersionOverride),[],[c]),value:(0,r.useFacetMap)((e=>e.gameVersionOverride),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.gameVersionOverride=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(NP,{title:"World biome settings"})),a.createElement(Nx,{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:{index:3},disabled:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),value:(0,r.useFacetMap)((e=>e.defaultSpawnBiome),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.defaultSpawnBiome=t}),[],[c])}),a.createElement(r.DeferredMount,null,a.createElement(Fx,{onMountComplete:(0,r.useNotifyMountComplete)(),title:"Spawn dimension filter",disabled:E,wrapToggleText:!0,options:[{label:"Overworld",value:0},{label:"Nether",value:1}],value:m,onChange:(0,r.useFacetCallback)((e=>t=>{e.spawnDimensionId=t}),[],[c])})),a.createElement(r.DeferredMount,null,a.createElement(vx,{title:"Spawn biome",options:f,onItemSelect:(0,r.useFacetCallback)((e=>t=>e.spawnBiomeId=t),[],[c]),disabled:E,value:(0,r.useFacetMap)(((e,t)=>t.filter((t=>t.value===e)).length>0?e:t[0].value),[],[g,f]),focusOnSelectedItem:!0})),a.createElement(Nx,{title:"Biome override",description:"Set the world to a selected biome. This will override the Spawn biome!",gamepad:{index:6},value:(0,r.useFacetMap)((e=>e.isBiomeOverrideActive),[],[c]),onChange:(0,r.useFacetCallback)((e=>t=>{e.isBiomeOverrideActive=t}),[],[c])}),a.createElement(vx,{title:"Biome override",description:"Select biome to be used in the entire world",options:p,disabled:(0,r.useFacetMap)((e=>!e.isBiomeOverrideActive),[],[c]),onItemSelect:(0,r.useFacetCallback)((e=>t=>{e.biomeOverrideId=t}),[],[c]),value:(0,r.useFacetMap)((e=>e.biomeOverrideId),[],[c]),focusOnSelectedItem:!0}),a.createElement(r.Mount,{when:y},a.createElement(a_,{onExportTemplate:l,onClearPlayerData:o}))))}`,
-                            `/**
+                    let successfullyReplacedA = false;
+                    let successfullyReplacedB = false;
+                    for (const regex of replacerRegexes.addDebugTab[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                ``,
+                                `/**
              * The function for the Debug tab of the create and edit world screens.
              *
              * @param {object} param0
@@ -1081,7 +1656,7 @@ async function applyMods() {
              * @param {unknown} param0.onClearPlayerData
              * @param {boolean} param0.isEditorWorld
              */
-            function n_({
+            function $1({
                 worldData: e,
                 achievementsDisabledMessages: t,
                 onUnlockTemplateSettings: n,
@@ -1089,25 +1664,25 @@ async function applyMods() {
                 onClearPlayerData: o,
                 isEditorWorld: i,
             }) {
-                const c = (0, r.useSharedFacet)(Nf),
+                const c = (0, r.useSharedFacet)($2),
                     s = (0, r.useFacetMap)(({ allBiomes: e }) => e, [], [c]),
                     u = (0, r.useFacetMap)((e) => e.isLockedTemplate, [], [e]),
                     d = (0, r.useFacetMap)((e) => e.achievementsDisabled, [], [e]),
                     m = (0, r.useFacetMap)(({ spawnDimensionId: e }) => e, [], [c]),
-                    p = (0, r.useFacetMap)((e) => mL(e, (e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
-                    f = (0, r.useFacetMap)((e, t) => QC(e, (e) => e.dimension === t), [], [p, m]),
+                    p = (0, r.useFacetMap)((e) => $3(e, (e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
+                    f = (0, r.useFacetMap)((e, t) => $4(e, (e) => e.dimension === t), [], [p, m]),
                     g = (0, r.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, r.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
-                    h = (0, r.useSharedFacet)(al),
-                    v = (0, r.useFacetMap)((e) => XC(e.platform), [], [h]),
-                    b = (0, a.useContext)(lT) !== rT.CREATE,
+                    h = (0, r.useSharedFacet)($5),
+                    v = (0, r.useFacetMap)((e) => $6(e.platform), [], [h]),
+                    b = (0, a.useContext)($7) !== $8.CREATE,
                     y = (0, r.useFacetMap)((e) => e && b, [b], [v]),
                     rawData = (0, r.useFacetMap)((e) => e, [], [e]);
                 return a.createElement(
                     r.DeferredMountProvider,
                     null,
                     a.createElement(
-                        UO,
+                        $9,
                         {
                             isLockedTemplate: u,
                             achievementsDisabled: d,
@@ -1119,7 +1694,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement(Nx, {
+                            a.createElement($10, {
                                 title: "Flat nether",
                                 gamepad: { index: 0 },
                                 value: (0, r.useFacetMap)((e) => e.flatNether, [], [c]),
@@ -1135,7 +1710,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement(Nx, {
+                            a.createElement($10, {
                                 title: "Enable game version override",
                                 gamepad: { index: 1 },
                                 value: (0, r.useFacetMap)((e) => e.enableGameVersionOverride, [], [c]),
@@ -1151,7 +1726,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement($O, {
+                            a.createElement($11, {
                                 label: "Game version override",
                                 gamepadIndex: 2,
                                 placeholder: "0.0.0",
@@ -1167,8 +1742,8 @@ async function applyMods() {
                                 ),
                             })
                         ),
-                        a.createElement(r.DeferredMount, null, a.createElement(NP, { title: "World biome settings" })),
-                        a.createElement(Nx, {
+                        a.createElement(r.DeferredMount, null, a.createElement($12, { title: "World biome settings" })),
+                        a.createElement($10, {
                             title: "Default spawn biome",
                             description: "Using the default spawn biome will mean a random overworld spawn is selected",
                             gamepad: { index: 3 },
@@ -1185,7 +1760,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement(Fx, {
+                            a.createElement($12, {
                                 onMountComplete: (0, r.useNotifyMountComplete)(),
                                 title: "Spawn dimension filter",
                                 disabled: E,
@@ -1207,7 +1782,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement(vx, {
+                            a.createElement($13, {
                                 title: "Spawn biome",
                                 options: f,
                                 onItemSelect: (0, r.useFacetCallback)((e) => (t) => (e.spawnBiomeId = t), [], [c]),
@@ -1216,7 +1791,7 @@ async function applyMods() {
                                 focusOnSelectedItem: !0,
                             })
                         ),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "Biome override",
                             description: "Set the world to a selected biome. This will override the Spawn biome!",
                             gamepad: { index: 6 },
@@ -1229,7 +1804,7 @@ async function applyMods() {
                                 [c]
                             ),
                         }),
-                        a.createElement(vx, {
+                        a.createElement($13, {
                             title: "Biome override",
                             description: "Select biome to be used in the entire world",
                             options: p,
@@ -1244,23 +1819,23 @@ async function applyMods() {
                             value: (0, r.useFacetMap)((e) => e.biomeOverrideId, [], [c]),
                             focusOnSelectedItem: !0,
                         }),
-                        a.createElement(r.Mount, { when: y }, a.createElement(a_, { onExportTemplate: l, onClearPlayerData: o })),
+                        a.createElement(r.Mount, { when: y }, a.createElement($14, { onExportTemplate: l, onClearPlayerData: o })),
                         a.createElement(r.DeferredMount, null, a.createElement(rawValueEditor, { rawData: e })),
                         a.createElement(() =>
                             a.createElement(
                                 a.Fragment,
                                 null,
-                                a.createElement(fu, null, "Debug Info - Raw"),
-                                a.createElement(Gc, { size: 1 }) /* 
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "worldSummary: " + JSON.stringify(e.get(), undefined, 2))),
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "worldData: " + JSON.stringify(u.get(), undefined, 2))),
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "achievementsDisabledMessages: " + JSON.stringify(t.get(), undefined, 2))), */,
+                                a.createElement(${extractedFunctionNames.headerFunciton}, null, "Debug Info - Raw"),
+                                a.createElement(${extractedFunctionNames.headerSpacingFunction}, { size: 1 }) /* 
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(e.get(), undefined, 2))),
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(u.get(), undefined, 2))),
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(t.get(), undefined, 2))), */,
                                 a.createElement(
                                     r.DeferredMount,
                                     null,
                                     a.createElement(
                                         function ({ children: e, align: t }) {
-                                            return a.createElement(js, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
+                                            return a.createElement(${extractedFunctionNames.jsText}, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
                                         },
                                         null,
                                         "rawData: " +
@@ -1274,7 +1849,7 @@ async function applyMods() {
                                             )
                                     )
                                 ),
-                                a.createElement($O, {
+                                a.createElement($11, {
                                     label: "rawData (read-only)",
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
@@ -1292,17 +1867,17 @@ async function applyMods() {
                                     disabled: false,
                                     title: "Raw Data as JSON",
                                 }),
-                                a.createElement(fu, null, "Debug Info - Property Descriptors"),
-                                a.createElement(Gc, { size: 1 }) /* 
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "worldSummary: " + JSON.stringify(Object.getOwnPropertyDescriptors(e.get()), undefined, 2))),
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "worldData: " + JSON.stringify(Object.getOwnPropertyDescriptors(u.get()), undefined, 2))),
-                                a.createElement(r.DeferredMount, null, a.createElement(Dk.Text, null, "achievementsDisabledMessages: " + JSON.stringify(Object.getOwnPropertyDescriptors(t.get()), undefined, 2))), */,
+                                a.createElement(${extractedFunctionNames.headerFunciton}, null, "Debug Info - Property Descriptors"),
+                                a.createElement(${extractedFunctionNames.headerSpacingFunction}, { size: 1 }) /* 
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(Object.getOwnPropertyDescriptors(e.get()), undefined, 2))),
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(Object.getOwnPropertyDescriptors(u.get()), undefined, 2))),
+                                a.createElement(r.DeferredMount, null, a.createElement(${extractedFunctionNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(Object.getOwnPropertyDescriptors(t.get()), undefined, 2))), */,
                                 a.createElement(
                                     r.DeferredMount,
                                     null,
                                     a.createElement(
                                         function ({ children: e, align: t }) {
-                                            return a.createElement(js, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
+                                            return a.createElement(${extractedFunctionNames.jsText}, { type: "body", role: "inherit", align: t, shouldNarrate: !1, whiteSpace: "pre" }, e);
                                         },
                                         null,
                                         "rawData: " +
@@ -1319,7 +1894,7 @@ async function applyMods() {
                                             )
                                     )
                                 ),
-                                a.createElement($O, {
+                                a.createElement($11, {
                                     label: "rawData (Property Descriptors) (read-only)",
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
@@ -1341,7 +1916,7 @@ async function applyMods() {
              * @param {RawWorldData} param0.rawData
              */
             function rawValueEditor({ rawData: e }) {
-                const { t: c } = wi("CreateNewWorld.general") /* ,
+                const { t: c } = ${extractedFunctionNames.translationStringResolver}("CreateNewWorld.general") /* ,
                 s = 1 == (0, r.useFacetUnwrap)(n) ? ".editor" : "",
                 u = (0, r.useFacetMap)((e) => e.worldName, [], [o]),
                 d = (0, r.useFacetCallback)((e) => (t) => (e.worldName = t), [], [o]) */,
@@ -1359,8 +1934,8 @@ async function applyMods() {
                     a.createElement(
                         r.DeferredMount,
                         null,
-                        a.createElement(fu, null, "Raw Value Editor"),
-                        a.createElement($O, {
+                        a.createElement(${extractedFunctionNames.headerFunciton}, null, "Raw Value Editor"),
+                        a.createElement($11, {
                             label: "worldSeed",
                             description: "The seed of the world. (advanced.worldSeed)",
                             gamepadIndex: 1,
@@ -1371,7 +1946,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "playerPermissions",
                             description: "?. (multiplayer.playerPermissions)",
                             gamepadIndex: 1,
@@ -1383,7 +1958,7 @@ async function applyMods() {
                             disabled: false,
                             title: "Player Permissions",
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "playerAccess",
                             description: "?. (multiplayer.playerAccess)",
                             gamepadIndex: 1,
@@ -1394,7 +1969,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "gameMode",
                             description: "?. (general.gameMode)",
                             gamepadIndex: 1,
@@ -1405,7 +1980,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "difficulty",
                             description: "?. (general.difficulty)",
                             gamepadIndex: 1,
@@ -1416,7 +1991,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "generatorType",
                             description: "?. (advanced.generatorType)",
                             gamepadIndex: 1,
@@ -1427,7 +2002,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement($O, {
+                        a.createElement($11, {
                             label: "simulationDistance",
                             description: "?. (advanced.simulationDistance)",
                             gamepadIndex: 1,
@@ -1438,7 +2013,7 @@ async function applyMods() {
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "achievementsDisabled (read-only)",
                             disabled: true,
                             description: "Whether or not achievements are disabled. (read-only)",
@@ -1449,7 +2024,7 @@ async function applyMods() {
                                 [rawData]
                             ),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "achievementsPermanentlyDisabled (read-only)",
                             soundEffectPressed: "ui.hardcore_toggle_press",
                             disabled: true,
@@ -1461,7 +2036,7 @@ async function applyMods() {
                                 [rawData]
                             ),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "isUsingTemplate (read-only)",
                             disabled: true,
                             description: "isUsingTemplate (read-only)",
@@ -1472,7 +2047,7 @@ async function applyMods() {
                                 [rawData]
                             ),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "isLockedTemplate",
                             disabled: false,
                             description: "isLockedTemplate",
@@ -1483,14 +2058,14 @@ async function applyMods() {
                                 [rawData]
                             ),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "playerHasDied (read-only)",
                             disabled: true,
                             description: "readonly general.playerHasDied",
                             value: (0, r.useFacetMap)((e) => e.playerHasDied, [], [p]),
                             onChange: (0, r.useFacetCallback)((e) => (t) => (e.playerHasDied = t), [], [p]),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "consoleCommandsEnabled (read-only)",
                             disabled: true,
                             description: "scriptingCoding.consoleCommandsEnabled",
@@ -1501,7 +2076,7 @@ async function applyMods() {
                                 [rawData]
                             ),
                         }),
-                        a.createElement(Nx, {
+                        a.createElement($10, {
                             title: "codeBuilderEnabled (read-only)",
                             disabled: true,
                             description: "scriptingCoding.codeBuilderEnabled (read-only)",
@@ -1515,42 +2090,75 @@ async function applyMods() {
                     )
                 );
             }`
-                        )
-                        .replace(`e&&t.push({label:".debugTabLabel",image:mP,value:"debug"}),`, `t.push({label:".debugTabLabel",image:mP,value:"debug"}),`);
+                            );
+                            successfullyReplacedA = true;
+                            break;
+                        }
+                    }
+                    for (const regex of replacerRegexes.addDebugTab[1]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(regex, `$1.push({label:".debugTabLabel",image:$2,value:"debug"}),`);
+                            successfullyReplacedB = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename)) {
+                        if (!successfullyReplacedA) {
+                            failedReplaces.push("addDebugTab_replaceTab");
+                        }
+                        if (!successfullyReplacedB) {
+                            failedReplaces.push("addDebugTab_makeVisible");
+                        }
+                    }
                 }
                 Object.entries(settings.colorReplacements).forEach(([key, value]) => {
-                    if(value !== "" && value !== undefined && value !== null && value !== key) {
+                    if (value !== "" && value !== undefined && value !== null && value !== key) {
                         distData = distData.replaceAll(key, value);
                     }
                 });
-                distData = distData.replace(/(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
+                distData = distData
+                    .replace(
+                        /(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/,
+                        `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
         <script defer="defer" src="/hbui/class_path.js"></script>
         <script defer="defer" src="/hbui/css.js"></script>
         <script defer="defer" src="/hbui/JSONB.js"></script>
         <script defer="defer" src="/hbui/customOverlays.js"></script>
-        `).replace(/(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet">)/, `
-        <link href="/hbui/customOverlays.css" rel="stylesheet" />`);
+        `
+                    )
+                    .replace(
+                        /(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet">)/,
+                        `
+        <link href="/hbui/customOverlays.css" rel="stylesheet" />`
+                    );
                 if (settings.maxTextLengthOverride !== "") {
+                    const origDistData = distData;
                     const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
                     for (const textLengthValue of textLengthValues) {
                         distData = distData.replace(
                             textLengthValue[0],
                             `maxLength: ${
-                                BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1]
+                                settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */
                             }`
                         );
                     }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && distData === origDistData) {
+                        failedReplaces.push("maxTextLengthOverride");
+                    }
                 }
                 if (settings.add8CrafterUtilitiesMainMenuButton) {
-                    distData = distData.replace(
-                        `a.createElement(r.Mount,{when:E},a.createElement(a.Fragment,null,a.createElement($v.Divider,null),a.createElement(gI,{onClick:e,screenAnalyticsId:u})))`, 
-                        `a.createElement(
+                    let successfullyReplaced = false;
+                    for (const regex of replacerRegexes.add8CrafterUtilitiesMainMenuButton[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `a.createElement(
                                                     r.Mount,
                                                     { when: true },
                                                     a.createElement(
                                                         a.Fragment,
                                                         null,
-                                                        a.createElement($v.Divider, null),
+                                                        a.createElement($1.Divider, null),
                                                         a.createElement(() =>
                                                             a.createElement(
                                                                 function ({ onClick: e, selected: t, disabled: n, focusGridIndex: r, role: l = "inherit" }) {
@@ -1558,7 +2166,7 @@ async function applyMods() {
                                                                         a.Fragment,
                                                                         null,
                                                                         a.createElement(
-                                                                            lc,
+                                                                            ${extractedFunctionNames.navbarButtonFunction},
                                                                             {
                                                                                 disabled: n,
                                                                                 // focusGridIndex: r,
@@ -1569,7 +2177,7 @@ async function applyMods() {
                                                                                 selected: t,
                                                                                 className: "reverse_m2lNR_rightPadding",
                                                                             },
-                                                                            a.createElement(xc, {
+                                                                            a.createElement(${extractedFunctionNames.navbarButtonImageFunction}, {
                                                                                 className: "QQfwv",
                                                                                 imageRendering: "pixelated",
                                                                                 src: "assets/8crafter.gif",
@@ -1601,12 +2209,20 @@ async function applyMods() {
                                                     a.createElement(
                                                         a.Fragment,
                                                         null,
-                                                        a.createElement($v.Divider, null),
-                                                        a.createElement(gI, { onClick: e, screenAnalyticsId: u })
+                                                        a.createElement($1.Divider, null),
+                                                        a.createElement($2, { onClick: e, screenAnalyticsId: u })
                                                     )
                                                 )`
-                    )
+                            );
+                            successfullyReplaced = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
+                        failedReplaces.push("allowForChangingSeeds");
+                    }
                 }
+                if (failedReplaces.length > 0) allFailedReplaces[entry.data.filename] = failedReplaces;
                 if (origData !== distData) {
                     if (entry.data.filename.endsWith(".js")) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
@@ -1671,55 +2287,97 @@ async function applyMods() {
         // Checkbox
         // to-do
         // Textboxes
-        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetch("/assets/images/ui/textboxes/edit_box_indent_hover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/edit_box_indent_hover.png",
+            await fetch("/assets/images/ui/textboxes/edit_box_indent_hover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/edit_box_indent_hover.png");
         addedCount++;
         zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetch("/assets/images/ui/textboxes/edit_box_indent.png").then((r) => r.blob()));
         console.log("Added gui/dist/hbui/assets/edit_box_indent.png");
         addedCount++;
         // Buttons
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetch("/assets/images/ui/buttons/button_borderless_dark.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_dark.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_dark.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_dark.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetch("/assets/images/ui/buttons/button_borderless_light.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_light.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_light.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_light.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_default.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_light_blue_default.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_default.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkhover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_darkhover.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_darkhover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetch("/assets/images/ui/buttons/button_borderless_lighthover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_lighthover.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_lighthover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_light_blue_hover.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressed.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_darkpressed.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_darkpressed.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressed.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_lightpressed.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_lightpressed.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_lightpressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressednohover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_darkpressednohover.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_darkpressednohover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressednohover.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_lightpressednohover.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_lightpressednohover.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/button_borderless_light_blue_pressed.png",
+            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
         addedCount++;
     } catch (e) {
         console.error(e);
     }
     try {
-        zipFs.addText("gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
-const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
+        zipFs.addText(
+            "gui/dist/hbui/oreUICustomizer8CrafterConfig.js",
+            `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
+const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
+        );
         console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
         addedCount++;
     } catch (e) {
@@ -1744,7 +2402,10 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
         zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
         console.log("Added gui/dist/hbui/JSONB.d.ts");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/chevron_new_white_right.png", await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob()));
+        zipFs.addBlob(
+            "gui/dist/hbui/assets/chevron_new_white_right.png",
+            await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob())
+        );
         console.log("Added gui/dist/hbui/assets/chevron_new_white_right.png");
         addedCount++;
         zipFs.addBlob("gui/dist/hbui/assets/chevron_white_down.png", await fetch("/assets/oreui/assets/chevron_white_down.png").then((r) => r.blob()));
@@ -1767,6 +2428,21 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
         addedCount++;
     } catch (e) {
         console.error(e);
+    }
+    if (Object.keys(allFailedReplaces).length > 0) {
+        console.warn(
+            "Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:",
+            allFailedReplaces
+        );
+        $("#import_files_error").css("color", "yellow");
+        const originalWarning = $("#import_files_error").text();
+        const newWarning = `<b>Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:</b>
+<pre>${Object.entries(allFailedReplaces)
+            .map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v, null, 4)}`)
+            .join("\n")}</pre>`;
+        $("#import_files_error").append([newWarning]);
+        // $("#import_files_error").text(originalWarning + (originalWarning.length > 0 ? "\n\n" : "") + newWarning);
+        $("#import_files_error").prop("hidden", false);
     }
     console.log(`Added entries: ${addedCount}.`);
     console.log(`Removed entries: ${removedCount}.`);

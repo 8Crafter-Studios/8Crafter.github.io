@@ -170,7 +170,7 @@
     --root-text-color-dark: hsl(0, 0%, 100%);
     --root-text-color-BlueTheme: hsl(197, 71%, 27%);
     ---theme-var-switcher--root-text-color: var(--root-text-color-dark);
-    --header-height: 102px;
+    --header-height: 44px; /* 102px when under construction alert is visible */
     --body-height: 0px;
     --footer-height: 52px;
     --filter_invert: 0;
