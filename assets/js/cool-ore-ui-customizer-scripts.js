@@ -185,3 +185,8 @@ setInterval(() => {
         });
     } catch {}
 }, 1);
+
+
+
+// Print Emoji File (MOVE THIS TO `a2.txt`!)
+${se}let str = ""; for(let i = 0; i <= 0xff; i++){str += String.fromCharCode(0xE200 + i)}; send(str)
