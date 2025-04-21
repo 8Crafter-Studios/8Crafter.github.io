@@ -3,7 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
-const format_version = "0.17.3";
+const format_version = "0.18.0";
 /**
  * @type {File}
  */
@@ -66,6 +66,9 @@ $(function onDocumentLoad() {
         $("#import_files_error").prop("hidden", true);
         $("#apply_mods").prop("disabled", true);
         $("#download").prop("disabled", true);
+        $("#download_in_new_tab_button").prop("disabled", true);
+        $("#download_in_new_tab_link_open_button").prop("disabled", true);
+        $("#download_in_new_tab_link").removeAttr("href");
         zipFile = files[0];
         currentImportedFile = zipFile;
         $("#imported_file_name").css("color", "yellow");
@@ -114,6 +117,9 @@ $(function onDocumentLoad() {
         const selectedInput = $(event.currentTarget).find("input")[0];
         if (selectedInput.value === currentPreset) return;
         $("#download").prop("disabled", true);
+        $("#download_in_new_tab_button").prop("disabled", true);
+        $("#download_in_new_tab_link_open_button").prop("disabled", true);
+        $("#download_in_new_tab_link").removeAttr("href");
         currentPreset = selectedInput.value;
         $("#gui_preset").find(".guiPresetDropdownButtonSelectedOptionTextDisplay").text(currentPresets[currentPreset].displayName);
         if (selectedInput.value === "none") {
@@ -336,7 +342,10 @@ async function validateZipFile() {
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
                 );
                 $("#apply_mods").prop("disabled", true);
-                $("#download").prop("disabled", true); */
+                $("#download").prop("disabled", true);
+                $("#download_in_new_tab_button").prop("disabled", true);
+        $("#download_in_new_tab_link_open_button").prop("disabled", true);
+        $("#download_in_new_tab_link").removeAttr("href"); */
             } else if (zipFs.entries.findIndex((entry) => entry.data?.filename === "hbui/") !== -1) {
                 // Repair the zip directory structure.
                 zipFs.move(
@@ -353,14 +362,20 @@ async function validateZipFile() {
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file is structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the dist folder instead of the gui folder.`
                 );
                 $("#apply_mods").prop("disabled", true);
-                $("#download").prop("disabled", true); */ /* 
+                $("#download").prop("disabled", true);
+                $("#download_in_new_tab_button").prop("disabled", true);
+        $("#download_in_new_tab_link_open_button").prop("disabled", true);
+        $("#download_in_new_tab_link").removeAttr("href"); */ /* 
                 $("#import_files_error").css("color", "red");
                 $("#import_files_error").text(
                     `Invalid zip file folder structure. You must have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file is structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You have zipped the hbui folder instead of the gui folder.`
                 );
                 $("#import_files_error").prop("hidden", false);
                 $("#apply_mods").prop("disabled", true);
-                $("#download").prop("disabled", true); */
+                $("#download").prop("disabled", true);
+                $("#download_in_new_tab_button").prop("disabled", true);
+        $("#download_in_new_tab_link_open_button").prop("disabled", true);
+        $("#download_in_new_tab_link").removeAttr("href"); */
             } else {
                 $("#import_files_error").css("color", "red");
                 $("#import_files_error").text(`Invalid zip file folder structure. Missing gui/ folder. The gui/ folder must be at the root of the zip file.`);
@@ -788,6 +803,9 @@ async function refreshOreUIPreview(menuHTMLFileName = "index_playscreen_worldsta
 async function applyMods() {
     $("#apply_mods").prop("disabled", true);
     $("#download").prop("disabled", true);
+    $("#download_in_new_tab_button").prop("disabled", true);
+    $("#download_in_new_tab_link_open_button").prop("disabled", true);
+    $("#download_in_new_tab_link").removeAttr("href");
     if (!(await validateZipFile())) {
         console.error("applyMods - validateZipFile failed");
         return false;
@@ -2453,6 +2471,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
     console.log(`Total entries: ${zipFs.entries.length}.`);
     $("#apply_mods").prop("disabled", false);
     $("#download").prop("disabled", false);
+    $("#download_in_new_tab_button").prop("disabled", false);
     return true;
 }
 
@@ -2467,4 +2486,19 @@ async function download() {
     a.href = url;
     a.download = "gui-mod.zip";
     a.click();
+}
+
+async function downloadInNewTab() {
+    if (zipFs === undefined) {
+        throw new Error("zipFs is undefined");
+    }
+
+    const blob = await zipFs.exportBlob();
+    const url = URL.createObjectURL(blob);
+    const a = $("#download_in_new_tab_link")[0];
+    a.href = url;
+    a.download = "gui-mod.zip";
+    a.target = "_blank";
+    $(a).prop("disabled", false);
+    $("#download_in_new_tab_link_open_button").prop("disabled", false);
 }

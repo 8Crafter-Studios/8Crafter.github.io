@@ -2085,7 +2085,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.17.3</h1>
+                <h1>8Crafter's Ore UI Customizer v0.18.0</h1>
                 <h4>Instructions</h4>
                 <ul style="text-align: left; list-style: decimal">
                     <li>
@@ -2221,9 +2221,19 @@
                         <button type="button" class="btn nsel" id="apply_mods" disabled onclick="applyMods()">Apply Mods</button>
                         <button type="button" class="btn nsel" id="download" disabled onclick="download()">Download</button>
                         <br />
-                        <button type="button" class="btn nsel" id="changelogs-link-button" onclick="window.open('./ore-ui-customizer-changelogs', '_self')">
-                            Changelogs
-                        </button>
+                        <a href="./ore-ui-customizer-changelogs.html">
+                            <button type="button" class="btn nsel" id="changelogs-link-button" onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')">
+                                Changelogs
+                            </button>
+                        </a>
+                        <br />
+                        <br />
+                        <br />
+                        <p>If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices it could take up to 2 minutes for the file to actually download.</p>
+                        <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="downloadInNewTab()">Generate Download Link</button>
+                        <a target="_blank" id="download_in_new_tab_link">
+                            <button type="button" class="btn nsel" id="download_in_new_tab_link_open_button" disabled>Open Generated Download Link</button>
+                        </a>
                     </div>
                     <purple-border_background ba></purple-border_background>
                     <!-- 
