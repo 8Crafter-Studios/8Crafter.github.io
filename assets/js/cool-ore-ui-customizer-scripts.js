@@ -124,9 +124,9 @@ document.body.querySelectorAll("*").forEach((/** @type {HTMLElement} */ element)
     element.style.fontSize = (Math.floor(Math.random() * 30) + 10) + "px";
 });
 
-// Make everything have a random font size every second.
-setInterval(() => {
-    document.body.querySelectorAll("*").forEach((/** @type {HTMLElement} */ element) => {
+// Make everything have a random font size ten times every second.
+setInterval(function randomizeAllFontSizes(){
+    document.body.querySelectorAll("*").forEach(function randomizeElementFontSize(/** @type {HTMLElement} */ element){
         element.style.fontSize = (Math.floor(Math.random() * 30) + 10) + "px";
     });
 }, 100);
@@ -150,9 +150,9 @@ setInterval(()=>{
 }, 1);
 
 // Make every div element shake.
-setInterval(() => {
+setInterval(function shakeDivElements(){
     try {
-        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+        document.body.querySelectorAll("div").forEach(function shakeDivElement(/** @type {HTMLElement} */ element){
             let x = Math.floor(Math.random() * 3) - 1;
             let y = Math.floor(Math.random() * 3) - 1;
             element.style.transform = `translate(${x}px, ${y}px)`;
@@ -161,9 +161,9 @@ setInterval(() => {
 }, 1);
 
 // Make every div element shift a small amount every millisecond.
-setInterval(() => {
+setInterval(function shiftDivElementsRandomly_small(){
     try {
-        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+        document.body.querySelectorAll("div").forEach(function shiftDivElement(/** @type {HTMLElement} */ element){
             let x = Math.floor(Math.random() * 3) - 1;
             let y = Math.floor(Math.random() * 3) - 1;
             x += Number(element.style.transform?.match(/translateX\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
@@ -174,9 +174,9 @@ setInterval(() => {
 }, 1);
 
 // Make every div element shift a medium amount every millisecond.
-setInterval(() => {
+setInterval(function shiftDivElementsRandomly_medium(){
     try {
-        document.body.querySelectorAll("div").forEach((/** @type {HTMLElement} */ element) => {
+        document.body.querySelectorAll("div").forEach(function shiftDivElement(/** @type {HTMLElement} */ element){
             let x = Math.floor(Math.random() * 33) - 16;
             let y = Math.floor(Math.random() * 33) - 16;
             x += Number(element.style.transform?.match(/translateX\(([0-9\-\.]+)px\)/)?.[1] ?? 0);
