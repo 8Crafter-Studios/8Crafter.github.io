@@ -1272,3 +1272,56 @@ ul:not(:not(.horizontal-nav)) {
         font-size: 14px;
     }
 }
+
+.collapsible-group {
+    border: 1px solid #d1d5da;
+}
+
+.collapsible-group:first-of-type:not(.collapsible-group-collapsed) {
+    & > .collapsible-group-header {
+        border-bottom: 1px solid #d1d5da;
+    }
+    & > .collapsible-group-content {
+        display: block;
+    }
+}
+
+.collapsible-group:not(:first-of-type),
+.collapsible-group.collapsible-group-collapsed {
+    & > .collapsible-group-header {
+        border-bottom: 1px solid #d1d5da;
+    }
+    & > .collapsible-group-content {
+        display: none;
+    }
+}
+
+.collapsible-group-header {
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    & > h1, h2, h3, h4, h5, h6 {
+        display: inline-block;
+    }
+}
+
+.collapsible-group-header-arrow {
+    float: left;
+    display: inline;
+    height: round(down, 1em, 11px);
+    position: absolute;
+    left: round(down, 1em, 11px);
+    image-rendering: pixelated;
+}
+
+.collapsible-group-content {
+    text-align: left;
+    padding: 8px;
+}
+
+.collapsible-group:not(:has(> .collapsible-group-content-collapsed)) .collapsible-group-header {
+    border-bottom: 1px solid #d1d5da;
+}
