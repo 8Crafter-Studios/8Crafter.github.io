@@ -23,6 +23,31 @@
     });
 })();
 
+// RGB Ore UI Super Fast With 1000x Saturation
+(async function cycleHueRotate(
+    stopOnCondition = function () {
+        return false;
+    },
+    interval = 1,
+    step = 5
+) {
+    let val = 0;
+    return new Promise(function resolve() {
+        let id = setInterval(function () {
+            if (stopOnCondition() == true) {
+                clearInterval(id);
+                resolve(true);
+                return;
+            }
+
+            val += step;
+            val %= 360;
+
+            document.body.style.filter = `hue-rotate(${val}deg) saturate(1000)`;
+        }, interval);
+    });
+})();
+
 // Spinning Ore UI
 (async function spinBody(
     stopOnCondition = function () {

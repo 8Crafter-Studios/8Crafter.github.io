@@ -153,27 +153,50 @@
                 "
             >
                 <inlinecontainer>
-                    <div style="position: absolute;">
-                    <button
-                        type="button"
-                        class="btn nsel"
-                        id="expand_all_changelogs_button"
-                        onclick="$('.collapsible-group.collapsible-group-collapsed > .collapsible-group-header').trigger('click')"
-                        style="float: left; left: 0;"
-                    >
-                        Expand All
-                    </button>
-                    <button
-                        type="button"
-                        class="btn nsel"
-                        id="collapse_all_changelogs_button"
-                        onclick="$('.collapsible-group:not(.collapsible-group-collapsed) > .collapsible-group-header').trigger('click')"
-                        style="float: left; left: 0; margin-left: 10px;"
-                    >
-                        Collapse All
-                    </button></div>
+                    <div style="position: absolute">
+                        <button
+                            type="button"
+                            class="btn nsel"
+                            id="expand_all_changelogs_button"
+                            onclick="$('.collapsible-group.collapsible-group-collapsed > .collapsible-group-header').trigger('click')"
+                            style="float: left; left: 0"
+                        >
+                            Expand All
+                        </button>
+                        <button
+                            type="button"
+                            class="btn nsel"
+                            id="collapse_all_changelogs_button"
+                            onclick="$('.collapsible-group:not(.collapsible-group-collapsed) > .collapsible-group-header').trigger('click')"
+                            style="float: left; left: 0; margin-left: 10px"
+                        >
+                            Collapse All
+                        </button>
+                    </div>
                     <h1>Changelogs - 8Crafter's Ore UI Customizer</h1>
                 </inlinecontainer>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
+                        <h2>v0.19.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>
+                                The customizer now makes the following options always toggleable:
+                                <ul>
+                                    <li>Starting Map</li>
+                                    <li>Bonus Chest</li>
+                                    <li>Flat World</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>Fixed a bug where the max text length override was not working on all text boxes.</li>
+                        </ul>
+                    </div>
+                </div>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
                         <h2>v0.18.0</h2>

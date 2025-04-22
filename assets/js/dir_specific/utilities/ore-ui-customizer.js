@@ -3,7 +3,7 @@ const currentPresets = {
     "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
 };
-const format_version = "0.18.0";
+const format_version = "0.19.0";
 /**
  * @type {File}
  */
@@ -1589,13 +1589,7 @@ async function applyMods() {
                                             disabled: s,
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription"),
-                                            maxLength: ${
-                                                settings.maxTextLengthOverride === ""
-                                                    ? 1000000
-                                                    : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                                    ? 1000000
-                                                    : settings.maxTextLengthOverride
-                                            },
+                                            maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
                                             value: f,
                                             onChange: n,
                                             placeholder: i(".worldSeedPlaceholder"),
@@ -1610,13 +1604,7 @@ async function applyMods() {
                                             disabled: false /* y */, // Modified
                                             label: i(".worldSeedLabel"),
                                             description: i(".worldSeedDescription") + (s ? " Please go to the Debug tab if you want to change the seed, as any changes made in this text box will not be saved." : ""),
-                                            maxLength: ${
-                                                settings.maxTextLengthOverride === ""
-                                                    ? 1000000
-                                                    : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                                    ? 1000000
-                                                    : settings.maxTextLengthOverride
-                                            },
+                                            maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
                                             value: f,
                                             onChange: n,
                                             placeholder: v,
@@ -1633,13 +1621,7 @@ async function applyMods() {
                                   disabled: y,
                                   label: i(".worldSeedLabel"),
                                   description: i(".worldSeedDescription"),
-                                  maxLength: ${
-                                      settings.maxTextLengthOverride === ""
-                                          ? 1000000
-                                          : BigInt(settings.maxTextLengthOverride) > 1000000n
-                                          ? 1000000
-                                          : settings.maxTextLengthOverride
-                                  },
+                                  maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
                                   value: f,
                                   onChange: n,
                                   placeholder: i(".worldSeedPlaceholder"),
@@ -1778,7 +1760,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement($12, {
+                            a.createElement($13, {
                                 onMountComplete: (0, r.useNotifyMountComplete)(),
                                 title: "Spawn dimension filter",
                                 disabled: E,
@@ -1800,7 +1782,7 @@ async function applyMods() {
                         a.createElement(
                             r.DeferredMount,
                             null,
-                            a.createElement($13, {
+                            a.createElement($14, {
                                 title: "Spawn biome",
                                 options: f,
                                 onItemSelect: (0, r.useFacetCallback)((e) => (t) => (e.spawnBiomeId = t), [], [c]),
@@ -1822,7 +1804,7 @@ async function applyMods() {
                                 [c]
                             ),
                         }),
-                        a.createElement($13, {
+                        a.createElement($14, {
                             title: "Biome override",
                             description: "Select biome to be used in the entire world",
                             options: p,
@@ -1837,7 +1819,7 @@ async function applyMods() {
                             value: (0, r.useFacetMap)((e) => e.biomeOverrideId, [], [c]),
                             focusOnSelectedItem: !0,
                         }),
-                        a.createElement(r.Mount, { when: y }, a.createElement($14, { onExportTemplate: l, onClearPlayerData: o })),
+                        a.createElement(r.Mount, { when: y }, a.createElement($15, { onExportTemplate: l, onClearPlayerData: o })),
                         a.createElement(r.DeferredMount, null, a.createElement(rawValueEditor, { rawData: e })),
                         a.createElement(() =>
                             a.createElement(
@@ -2149,13 +2131,31 @@ async function applyMods() {
                         `
         <link href="/hbui/customOverlays.css" rel="stylesheet" />`
                     );
+                distData = distData.replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                ).replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                ).replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                );
                 if (settings.maxTextLengthOverride !== "") {
                     const origDistData = distData;
-                    const textLengthValues = distData.matchAll(/maxLength: ([0-9]+)/gs);
-                    for (const textLengthValue of textLengthValues) {
+                    const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
+                    const values = [...textLengthValues];
+                    console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
+                    for (const textLengthValue of values) {
                         distData = distData.replace(
                             textLengthValue[0],
-                            `maxLength: ${
+                            `maxLength${textLengthValue[1]}${
                                 settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */
                             }`
                         );
@@ -2163,6 +2163,8 @@ async function applyMods() {
                     if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && distData === origDistData) {
                         failedReplaces.push("maxTextLengthOverride");
                     }
+                }else{
+                    console.warn("maxTextLengthOverride is empty");
                 }
                 if (settings.add8CrafterUtilitiesMainMenuButton) {
                     let successfullyReplaced = false;
