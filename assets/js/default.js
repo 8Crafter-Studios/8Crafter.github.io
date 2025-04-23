@@ -394,7 +394,7 @@ class SoundEffects {
     }
 })();
 (async () => {
-    const file = await (await fetch("/assets/sounds/ui/toast.ogg")).blob();
+    const file = await (await fetch("/assets/sounds/ui/Toast.ogg")).blob();
     const reader = new FileReader();
 
     reader.addEventListener(
