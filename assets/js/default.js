@@ -231,7 +231,7 @@ class SoundEffects {
     static audioElements = {
         pop: new Audio(new URL("../sounds/ui/click/Click_stereo.ogg.mp3", SoundEffects.scriptSrc)),
         release: new Audio(new URL("../sounds/ui/click/Release.ogg.mp3", SoundEffects.scriptSrc)),
-        toast: new Audio(new URL("../sounds/ui/toast.ogg", SoundEffects.scriptSrc)),
+        toast: new Audio(new URL("../sounds/ui/Toast.ogg", SoundEffects.scriptSrc)),
     };
     static dataURLs = {};
     static audioElementsB = {
@@ -357,7 +357,7 @@ class SoundEffects {
 (async () => ({
     pop: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/click/Click_stereo.ogg.mp3")).arrayBuffer()),
     release: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/click/Release.ogg.mp3")).arrayBuffer()),
-    toast: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/toast.ogg")).arrayBuffer()),
+    toast: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/Toast.ogg")).arrayBuffer()),
 }))().then((o) => (SoundEffects.audioBuffers = o));
 (async () => {
     const file = await (await fetch("/assets/sounds/ui/click/Click_stereo.ogg.mp3")).blob();
