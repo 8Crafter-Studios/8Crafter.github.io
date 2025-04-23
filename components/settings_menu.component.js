@@ -10,9 +10,9 @@ export default function getComponent(){
           <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video" checked>
           <div class="no-remove-disabled nsel">Video</div>
         </label>
-        <label ontouchstart="" for="settings_section_radio_test" class="radio_button_container_label" style="width: -webkit-fill-available;">
-          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_test" title="test">
-          <div class="no-remove-disabled nsel">Test</div>
+        <label ontouchstart="" for="settings_section_radio_audio" class="radio_button_container_label" style="width: -webkit-fill-available;">
+          <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_audio" title="Audio">
+          <div class="no-remove-disabled nsel">Audio</div>
         </label>
       </div>
       <settings_section id="video_settings_section" class="settings_section">
@@ -44,7 +44,7 @@ export default function getComponent(){
         <mcslider>
           <label for="hue_rotate_deg_slider">Hue Rotate Degrees: 0deg</label>
           <br>
-          <input id="hue_rotate_deg_slider" name="hue_rotate_deg_slider" type="range" min="0" max="360" step="1" value="1" oninput="let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Degrees: )\\d+(?:\\.\\d+)?(?=deg)/, $(this).val()))">
+          <input id="hue_rotate_deg_slider" name="hue_rotate_deg_slider" type="range" min="0" max="360" step="1" value="0" oninput="{let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Degrees: )\\d+(?:\\.\\d+)?(?=deg)/, $(this).val()))}">
         </mcslider>
         <br>
         <div class="mcdropdown nsel" id="themeDropdown" style="display: inline-block">
@@ -93,6 +93,66 @@ export default function getComponent(){
         	<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="save_zoom_change">Save Zoom Change</button>
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="reset_zoom" onclick="$('#zoom_text_box').val('100'); $('#confirm_zoom_change').click(); $('#save_zoom_change').click()">Reset Zoom</button>
         </div>
+      </settings_section>
+      <settings_section id="audio_settings_section" class="settings_section">
+        <center><h1>Audio</h1></center>
+        <mcslider>
+          <label for="master_volume_slider">Master Volume: 0%</label>
+          <br>
+          <input id="master_volume_slider" name="master_volume_slider" type="range" min="0" max="100" step="1" value="100" oninput="{let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Volume: )\\d+(?:\\.\\d+)?(?=%)/, $(this).val()))}">
+        </mcslider>
+        <br>
+        <mcslider>
+          <label for="master_volume_slider">UI Volume: 0%</label>
+          <br>
+          <input id="ui_volume_slider" name="ui_volume_slider" type="range" min="0" max="100" step="1" value="100" oninput="{let parentElement = $(this).parent().find('label'); parentElement.text(parentElement.text().replace(/(?<=Volume: )\\d+(?:\\.\\d+)?(?=%)/, $(this).val()))}">
+        </mcslider>
+        <br>
+        <div class="mcdropdown nsel" id="defaultButtonSoundEffectDropdown" style="display: inline-block">
+          Default Button Sound Effect
+          <br>
+          <button id="dropdownbutton" class="btn" type="button" ontouchstart="" style="min-width: 250px; text-align: left;" onclick="if($(this).parent().find('#dropdowncontents').prop('hidden')){$(this).find('#cv').prop('hidden', true); $(this).find('#cvsel').prop('hidden', false); $(this).parent().find('#dropdowncontents').prop('hidden', false)}else{$(this).find('#cv').prop('hidden', false); $(this).find('#cvsel').prop('hidden', true); $(this).parent().find('#dropdowncontents').prop('hidden', true)}">
+            <span id="defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay">Pop (Default)</span>
+            <div style="width: 11px; height: 11px; margin: 0px; padding: 0px; display: inline-block;"></div>
+            <img id="cv" src="/assets/images/ui/dropdown/dropdown_chevron.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute">
+            <img id="cvsel" src="/assets/images/ui/dropdown/dropdown_chevron_up.png" inert class="nsel" style="right: 7px; top: 10px; position: absolute" hidden>
+          </button>
+          <div id="dropdowncontents" hidden style="display: flex;">
+            <div style="flex-grow: 1; width: 0;">
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_pop" name="defaultButtonSoundEffectDropdown" value="pop" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_pop">Pop (Default)</label>
+              </div>
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_popB" name="defaultButtonSoundEffectDropdown" value="popB" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_popB">Pop (Audio Buffer)</label>
+              </div>
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_release" name="defaultButtonSoundEffectDropdown" value="release" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_release">Release</label>
+              </div>
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_releaseB" name="defaultButtonSoundEffectDropdown" value="releaseB" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_releaseB">Release (Audio Buffer)</label>
+              </div>
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_toast" name="defaultButtonSoundEffectDropdown" value="toast" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_toast">Toast</label>
+              </div>
+              <div class="mcdropdownoption defaultButtonSoundEffectDropdownOption" ontouchstart="" onclick="$(this).find('input[type=\\'radio\\']').prop('checked', true)">
+                <input type="radio" id="defaultButtonSoundEffectDropdownOption_toastB" name="defaultButtonSoundEffectDropdown" value="toastB" class="mcradio defaultButtonSoundEffectDropdownOptionInput">
+                <div class="mcradiocheckbox"></div>
+                <label for="defaultButtonSoundEffectDropdownOption_toastB">Toast (Audio Buffer)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
       </settings_section>
     </div>`
 }

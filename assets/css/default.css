@@ -1170,7 +1170,7 @@ ul:not(:not(.horizontal-nav)) {
 .btn[aria-selected="true"],
 [open] > .btn,
 .radio_button_container_label:has(> input:checked),
-.radio_button_container_label:active:enabled,
+.radio_button_container_label:active:not([disabled]):not(:has(> input:disabled))
 .radio_button_container_label.selected {
     /*
   background-color: #e9ecef;
@@ -1186,7 +1186,7 @@ ul:not(:not(.horizontal-nav)) {
 .btn[aria-selected="true"],
 [open] > .btn,
 .radio_button_container_label:hover:has(> input:checked),
-.radio_button_container_label:active:hover:enabled,
+.radio_button_container_label:active:hover:not([disabled]):not(:has(> input:disabled)),
 .radio_button_container_label.selectedhover {
     /*
   background-color: #e9ecef;

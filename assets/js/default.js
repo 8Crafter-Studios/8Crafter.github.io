@@ -1,5 +1,20 @@
 import("./JSONB.js");
 /**
+ * The volume options.
+ *
+ * Each category *should* be between 0 and 100 (inclusive).
+ *
+ * @type {{[category in typeof volumeCategories[number]]: number}}
+ */
+const volume = {
+    master: 100,
+    ui: 100,
+};
+/**
+ * @type {`${keyof typeof SoundEffects["audioElementsB"]}${"" | "B"}`}
+ */
+let defaultButtonSoundEffect = "pop";
+/**
  *
  * @param {()=>boolean} stopOnCondition
  * @param {number} interval
@@ -60,16 +75,20 @@ function forEachRuleCallback(callbackfn) {
     return null;
 }
 /**
+ * Saves a setting.
  *
- * @param {string} key
- * @param {any} value
+ * @param {string} key The ID of the setting.
+ * @param {any} value The new value for the settings. Should be a value that can be serialized by `JSON.stringify`.
+ * @throws {DOMException} Throws a "QuotaExceededError" DOMException exception if the new value couldn't be set. (Setting could fail if, e.g., the user has disabled storage for the site, or if the quota has been exceeded.)
  */
 function saveSetting(key, value) {
     window.localStorage.setItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`, JSON.stringify(value));
 }
 /**
+ * Gets a setting.
  *
- * @param {string} key
+ * @param {string} key The ID of the setting.
+ * @returns {string | null} The value of the setting, or `null` if the setting hasn't been set.
  */
 function getSetting(key) {
     return JSON.parse(window.localStorage.getItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`) ?? "null");
@@ -166,6 +185,233 @@ function changeThemeCSS(theme) {
         $(":root").removeClass("dark_theme blue_theme");
     }
 }
+
+// Sound Effects
+/**
+ * @type {["master", "ui"]}
+ */
+const volumeCategories = ["master", "ui"];
+const volumeCategoryDisplayMapping = {
+    master: "Master",
+    ui: "UI",
+};
+/**
+ * Get the volume of a volume category.
+ *
+ * @param {typeof volumeCategories[number]} category The volume category to get the volume of.
+ * @returns {number} The volume of the volume category. Between 0 and 100 (inclusive).
+ */
+function getAudioCategoryVolume(category) {
+    if (!volumeCategories.includes(category)) {
+        throw new TypeError("Invalid Audio Volume Category: " + JSON.stringify(category));
+    }
+    if (category === "master") {
+        return volume.master;
+    }
+    return volume[category] * (volume.master / 100);
+}
+async function readableStreamToBlob(readableStream) {
+    const reader = readableStream.getReader();
+    const chunks = [];
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+            break;
+        }
+        chunks.push(value);
+    }
+    return new Blob(chunks);
+}
+const audioCtx = new AudioContext();
+class SoundEffects {
+    /**
+     * @type {string}
+     */
+    static scriptSrc = document.currentScript.src;
+    static audioElements = {
+        pop: new Audio(new URL("../sounds/ui/click/Click_stereo.ogg.mp3", SoundEffects.scriptSrc)),
+        release: new Audio(new URL("../sounds/ui/click/Release.ogg.mp3", SoundEffects.scriptSrc)),
+        toast: new Audio(new URL("../sounds/ui/toast.ogg", SoundEffects.scriptSrc)),
+    };
+    static dataURLs = {};
+    static audioElementsB = {
+        get pop() {
+            return new Audio(SoundEffects.dataURLs.pop);
+        },
+        get release() {
+            return new Audio(SoundEffects.dataURLs.release);
+        },
+        get toast() {
+            return new Audio(SoundEffects.dataURLs.toast);
+        },
+    };
+    /**
+     * @type {{pop: AudioBuffer; release: AudioBuffer; toast: AudioBuffer;}}
+     */
+    static audioBuffers = {};
+    /**
+     * Plays the pop sound effect.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
+     */
+    static async pop(options = { volumeCategory: "ui", volume: undefined }) {
+        const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
+        const audioElement = this.audioElementsB.pop;
+        audioElement.volume = volume;
+        return await audioElement.play();
+    }
+    /**
+     * Plays the pop sound effect using an audio buffer.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
+     */
+    static async popB(options = { volumeCategory: "ui", volume: undefined }) {
+        return await this.playBuffer(this.audioBuffers.pop, options);
+    }
+    /**
+     * Plays the release sound effect.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
+     */
+    static async release(options = { volumeCategory: "ui", volume: undefined }) {
+        const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
+        const audioElement = this.audioElementsB.release;
+        audioElement.volume = volume;
+        return await audioElement.play();
+    }
+    /**
+     * Plays the release sound effect using an audio buffer.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
+     */
+    static async releaseB(options = { volumeCategory: "ui", volume: undefined }) {
+        return await this.playBuffer(this.audioBuffers.release, options);
+    }
+    /**
+     * Plays the toast sound effect.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
+     */
+    static async toast(options = { volumeCategory: "ui", volume: undefined }) {
+        const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
+        const audioElement = this.audioElementsB.toast;
+        audioElement.volume = volume;
+        return await audioElement.play();
+    }
+    /**
+     * Plays the toast sound effect using an audio buffer.
+     *
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
+     */
+    static async toastB(options = { volumeCategory: "ui", volume: undefined }) {
+        return await this.playBuffer(this.audioBuffers.toast, options);
+    }
+    /**
+     * Play an audio buffer.
+     *
+     * @param {AudioBuffer | null} audioBuffer The audio buffer to play.
+     * @param {object} [options = {volumeCategory: "ui", volume: undefined}] The options to use.
+     * @param {typeof volumeCategories[number]} [options.volumeCategory = "ui"] The volume category to use.
+     * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
+     * @returns {Promise<{source: AudioScheduledSourceNode, ev: Event}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
+     */
+    static playBuffer(audioBuffer, options = { volumeCategory: "ui", volume: undefined }) {
+        const volume = -1 + (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
+        // create an AudioBufferSourceNode
+        const source = audioCtx.createBufferSource();
+
+        // set the AudioBuffer
+        source.buffer = audioBuffer;
+
+        const sourceB = audioCtx.createGain();
+        sourceB.gain.value = volume;
+        source.connect(sourceB);
+        sourceB.connect(audioCtx.destination);
+
+        // connect it to the default sound output
+        source.connect(audioCtx.destination);
+
+        // start playback
+        source.start();
+        return new Promise((resolve) => (source.onended = (ev) => resolve({ source, ev })));
+    }
+}
+(async () => ({
+    pop: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/click/Click_stereo.ogg.mp3")).arrayBuffer()),
+    release: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/click/Release.ogg.mp3")).arrayBuffer()),
+    toast: await audioCtx.decodeAudioData(await (await fetch("/assets/sounds/ui/toast.ogg")).arrayBuffer()),
+}))().then((o) => (SoundEffects.audioBuffers = o));
+(async () => {
+    const file = await (await fetch("/assets/sounds/ui/click/Click_stereo.ogg.mp3")).blob();
+    const reader = new FileReader();
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.pop = reader.result;
+        },
+        false
+    );
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+})();
+(async () => {
+    const file = await (await fetch("/assets/sounds/ui/click/Release.ogg.mp3")).blob();
+    const reader = new FileReader();
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.release = reader.result;
+        },
+        false
+    );
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+})();
+(async () => {
+    const file = await (await fetch("/assets/sounds/ui/toast.ogg")).blob();
+    const reader = new FileReader();
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.toast = reader.result;
+        },
+        false
+    );
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+})();
+
+// On Load
 $(async function onDocumentLoad() {
     // console.log(1)
     const autofill_from_file_elements = document.getElementsByTagName("autofill_from_file");
@@ -260,6 +506,32 @@ $(async function onDocumentLoad() {
             Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:"))
         );
         rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $("#hue_rotate_deg_slider").val());
+    });
+    volumeCategories.forEach((category) => {
+        const slider = $(`#${category}_volume_slider`);
+        const loadedValue = getSetting(`${category}_volume`) ?? 100;
+        volume[category] = loadedValue;
+        slider.parent().find("label").text(`${volumeCategoryDisplayMapping[category]} Volume: ${loadedValue}%`);
+        slider.val(loadedValue);
+        slider.on("input", () => {
+            const value = $(`#${category}_volume_slider`).val();
+            saveSetting(`${category}_volume`, value);
+            volume[category] = value;
+        });
+    });
+    defaultButtonSoundEffect = getSetting("defaultButtonSoundEffect") ?? "pop";
+    const defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay = $("#defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay");
+    defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text($(".defaultButtonSoundEffectDropdownOption:has(input[value='" + defaultButtonSoundEffect + "']) label").text());
+    $(".defaultButtonSoundEffectDropdownOption input[value='" + defaultButtonSoundEffect + "']").prop("checked", true);
+    $(".defaultButtonSoundEffectDropdownOption").click((event) => {
+        const input = $(event.currentTarget).find("input")[0];
+        const label = $(event.currentTarget).find("label")[0];
+        const value = input.value;
+        saveSetting("defaultButtonSoundEffect", value);
+        defaultButtonSoundEffect = value;
+        if(defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text() === label.textContent) return;
+        SoundEffects[defaultButtonSoundEffect]();
+        defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text(label.textContent);
     });
     try {
         if (getSetting("use_noto_sans_font") == true) {
@@ -372,11 +644,14 @@ $(async function onDocumentLoad() {
     });
     $('input[name="settings_section"]').change(() => {
         try {
-            if ($("#settings_section_radio_video").prop("checked")) {
-                $("#video_settings_section").get(0).style.display = "";
-            } else {
-                $("#video_settings_section").get(0).style.display = "none";
-            }
+            const id = $('input[name="settings_section"]:checked').attr("id").slice(23);
+            $("#settings_menu > settings_section").each((_i, section) => {
+                if ($(section).attr("id").slice(0, -17) === id) {
+                    $(section).get(0).style.display = "";
+                } else {
+                    $(section).get(0).style.display = "none";
+                }
+            });
         } catch (e) {
             console.error(e, e.stack);
         }
@@ -404,19 +679,31 @@ $(async function onDocumentLoad() {
     });
     $(".collapsible-group > .collapsible-group-header *").attr("inert", true);
     const collapsibeGroupHeaders = $(".collapsible-group > .collapsible-group-header");
-    collapsibeGroupHeaders.find("> h1, h2, h3, h4, h5, h6").prepend('<img src="/assets/images/ui/glyphs/chevron_new_white_right.png" class="collapsible-group-header-arrow"></img>');
+    collapsibeGroupHeaders
+        .find("> h1, h2, h3, h4, h5, h6")
+        .prepend('<img src="/assets/images/ui/glyphs/chevron_new_white_right.png" class="collapsible-group-header-arrow"></img>');
 
     const collapsibeGroupsThatNeedExpanding = $(".collapsible-group:first-of-type():not(.collapsible-group-collapsed), .collapsible-group.start-not-collapsed");
     collapsibeGroupsThatNeedExpanding.removeClass("collapsible-group-collapsed");
     collapsibeGroupsThatNeedExpanding.find("> .collapsible-group-content").removeClass("collapsible-group-content-collapsed");
     collapsibeGroupsThatNeedExpanding.find("> .collapsible-group-content").css("display", "");
-    collapsibeGroupsThatNeedExpanding.find("> .collapsible-group-header").find("> h1, h2, h3, h4, h5, h6").find("> .collapsible-group-header-arrow").css("transform", "rotate(90deg)");
+    collapsibeGroupsThatNeedExpanding
+        .find("> .collapsible-group-header")
+        .find("> h1, h2, h3, h4, h5, h6")
+        .find("> .collapsible-group-header-arrow")
+        .css("transform", "rotate(90deg)");
 
-    const collapsibeGroupsThatNeedCollapsing = $(".collapsible-group:not(:first-of-type()):not(.start-not-collapsed), .collapsible-group.collapsible-group-collapsed");
+    const collapsibeGroupsThatNeedCollapsing = $(
+        ".collapsible-group:not(:first-of-type()):not(.start-not-collapsed), .collapsible-group.collapsible-group-collapsed"
+    );
     collapsibeGroupsThatNeedCollapsing.addClass("collapsible-group-collapsed");
     collapsibeGroupsThatNeedCollapsing.find("> .collapsible-group-content").addClass("collapsible-group-content-collapsed");
     collapsibeGroupsThatNeedCollapsing.find("> .collapsible-group-content").css("display", "none");
-    collapsibeGroupsThatNeedCollapsing.find("> .collapsible-group-header").find("> h1, h2, h3, h4, h5, h6").find("> .collapsible-group-header-arrow").css("transform", "rotate(0deg)");
+    collapsibeGroupsThatNeedCollapsing
+        .find("> .collapsible-group-header")
+        .find("> h1, h2, h3, h4, h5, h6")
+        .find("> .collapsible-group-header-arrow")
+        .css("transform", "rotate(0deg)");
 
     collapsibeGroupHeaders.click((e) => {
         e.preventDefault = true;
@@ -436,6 +723,17 @@ $(async function onDocumentLoad() {
             });
         }
     });
+    $(
+        ".btn, .mcdropdownoption:not(.defaultButtonSoundEffectDropdownOption), .radio_button_container_label, a:has(> .settings_button:not(.silent)), .mctogglecontainer, .horizontal-nav > li > a, .vertical-nav > li > a, .vertical-nav > li > div > a"
+    )
+        .filter(":not(.silent):not(.soundEffectBound):not(.defaultButtonSoundEffectBound)")
+        .each((index, element) => {
+            if ($(element).hasClass("silent") || $(element).hasClass("soundEffectBound") || $(element).hasClass("defaultButtonSoundEffectBound")) return;
+            const elem = $(element);
+            elem.addClass("soundEffectBound");
+            elem.addClass("defaultButtonSoundEffectBound");
+            $(element).mousedown(() => SoundEffects[defaultButtonSoundEffect]());
+        });
 });
 class PurpleBorderBackgroundElement extends HTMLElement {
     constructor() {
@@ -464,3 +762,4 @@ class PurpleBorderBackgroundElement extends HTMLElement {
 }
 
 customElements.define("purple-border_background", PurpleBorderBackgroundElement);
+

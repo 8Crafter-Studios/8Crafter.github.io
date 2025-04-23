@@ -241,7 +241,7 @@ $(function onDocumentLoad() {
                 var scale, origin;
 
                 scale = Math.min(ui.size.width / oreUIPreviewIframeWidth, ui.size.height / oreUIPreviewIframeHeight);
-                console.log(scale, ui.size.width, ui.size.height, oreUIPreviewIframeWidth, oreUIPreviewIframeHeight);
+                // console.log(scale, ui.size.width, ui.size.height, oreUIPreviewIframeWidth, oreUIPreviewIframeHeight);
 
                 oreUIPreviewIframe.css({
                     transform:
