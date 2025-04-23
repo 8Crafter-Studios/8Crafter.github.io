@@ -724,7 +724,7 @@ $(async function onDocumentLoad() {
         }
     });
     $(
-        ".btn, .mcdropdownoption:not(.defaultButtonSoundEffectDropdownOption), .radio_button_container_label, a:has(> .settings_button:not(.silent)), .mctogglecontainer, .horizontal-nav > li > a, .vertical-nav > li > a, .vertical-nav > li > div > a"
+        ".btn, .mcdropdownoption:not(.defaultButtonSoundEffectDropdownOption), .radio_button_container_label, a:has(> .settings_button:not(.silent)), .mctogglecontainer, .horizontal-nav > li > a, .horizontal-nav > li > div > div > a, .vertical-nav > li > a, .vertical-nav > li > div > div > a"
     )
         .filter(":not(.silent):not(.soundEffectBound):not(.defaultButtonSoundEffectBound)")
         .each((index, element) => {
