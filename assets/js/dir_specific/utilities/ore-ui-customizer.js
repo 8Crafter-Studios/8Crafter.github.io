@@ -1,9 +1,10 @@
 const currentPresets = {
     none: { displayName: "None (Use Imported .zip File)", url: "" },
-    "v1.21.70-71_PC": { displayName: "v1.27.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
-    "v1.21.70-71_Android": { displayName: "v1.27.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+    "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+    "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+    "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
 };
-const format_version = "0.19.0";
+const format_version = "0.20.0";
 /**
  * @type {File}
  */
@@ -894,6 +895,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         0: [
                             /**
@@ -901,6 +903,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             /function ([a-zA-Z0-9_\$]{2})\(\s*?\{\s*?generalData\s*?:\s*?e\s*?,\s*?isLockedTemplate\s*?:\s*?t\s*?\}\s*?\)\s*?\{\s*?const\s*?\{\s*?t\s*?:\s*?n\s*?\}\s*?=\s*?([a-zA-Z0-9_\$]{2})\("CreateNewWorld\.general"\)\s*?,\s*?l\s*?=\s*?([a-zA-Z0-9_\$]{2})\(\)\s*?,\s*?o\s*?=\s*?\(\s*?0\s*?,\s*?a\s*?\.\s*?useContext\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?===\s*?([a-zA-Z0-9_\$]{2})\.CREATE\s*?,\s*?i=\s*?\(\s*?0\s*?,\s*?r\.useSharedFacet\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?,\s*?c\s*?=\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?\(\s*?e\s*?,\s*?t\s*?,\s*?n\s*?\)\s*?=>\s*?n\s*?\|\|\s*?t\s*?\|\|\s*?!o\s*?\|\|\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.SURVIVAL\s*?&&\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.ADVENTURE\s*?\)\s*?,\s*?\[\s*?o\s*?\]\s*?,\s*?\[\s*?e\s*?,\s*?t\s*?,\s*?i\s*?\]\s*?\)\s*?;\s*?return \s*?a\.createElement\(\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?\{\s*?title\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeTitle"\)\s*?,\s*?soundEffectPressed\s*?:\s*?"ui\.hardcore_toggle_press"\s*?,\s*?disabled\s*?:\s*?c\s*?,\s*?description\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeDescription"\)\s*?,\s*?value\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?e\.isHardcore\s*?\)\s*?,\s*?\[\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?onChange\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetCallback\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?t\s*?=>\s*?\{\s*?e\.isHardcore\s*?=\s*?t\s*?,\s*?l\(\s*?t\s*?\?\s*?"ui\.hardcore_enable"\s*?:\s*?"ui\.hardcore_disable"\s*?\)\s*?\}\s*?\)\s*?,\s*?\[\s*?l\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?gamepad\s*?:\s*?\{\s*?index\s*?:\s*?4\s*?\}\s*?,\s*?imgSrc\s*?:\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?"data-testid"\s*?:\s*?"hardcore-mode-toggle"\s*?\}\s*?\)\s*?\}/g,
                         ],
@@ -913,6 +916,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         0: [
                             /**
@@ -920,6 +924,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `function ([a-zA-Z0-9_\$]{2})\\(\\{experimentalFeature:e,gamepadIndex:t,disabled:n,achievementsDisabledMessages:l,areAllTogglesDisabled:o\\}\\)\\{const\\{gt:i\\}=function\\(\\)\\{const\\{translate:e,formatDate:t\\}=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\);return\\(0,a\\.useMemo\\)\\(\\(\\(\\)=>\\(\\{f:\\{formatDate:t\\},gt:\\(t,n\\)=>\\{var a;return null!==\\(a=e\\(t,n\\)\\)&&void 0!==a\\?a:t\\}\\}\\)\\),\\[e,t\\]\\)\\}\\(\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.id\\),\\[\\],\\[e\\]\\),u=\\(0,r\\.useFacetUnwrap\\)\\(s\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.title\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetUnwrap\\)\\(d\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.description\\),\\[\\],\\[e\\]\\),f=\\(0,r\\.useFacetUnwrap\\)\\(p\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isEnabled\\),\\[\\],\\[e\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>e\\|\\|t\\.isTogglePermanentlyDisabled\\),\\[\\],\\[\\(0,r\\.useFacetWrap\\)\\(n\\),e\\]\\),h=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{n&&t\\?([a-zA-Z0-9_\$]{2})\\.set\\(\\{userTriedToActivateToggle:!0,doSetToggleValue:\\(\\)=>e\\.isEnabled=n,userHasAcceptedBetaFeatures:!1\\}\\):e\\.isEnabled=n\\}\\),\\[\\],\\[e,o\\]\\),v=c\\("\\.narrationSuffixDisablesAchievements"\\),b=\\(0,r\\.useFacetMap\\)\\(\\(e=>0===e\\.length\\?c\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[c\\],\\[l\\]\\);return null!=u\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:m!==r\\.NO_VALUE\\?i\\(m\\):"",description:f!==r\\.NO_VALUE\\?i\\(f\\):"",gamepad:\\{index:t\\},value:g,disabled:E,onChange:h,onNarrationText:v,offNarrationText:b\\}\\):null\\}`
@@ -934,6 +939,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         0: [
                             /**
@@ -941,6 +947,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `function ([a-zA-Z0-9_\$]{2})\\(\\{generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o\\}\\)\\{const\\{t:i\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.general"\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),u=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,d=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>e\\|\\|t\\|\\|n\\),\\[\\],\\[t,s,o\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>\\{const n=\\[([a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeSurvivalLabel"\\),description:i\\("\\.gameModeSurvivalDescription"\\),value:([a-zA-Z0-9_\$]{2})\\.SURVIVAL\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\),\\{label:i\\("\\.gameModeCreativeLabel"\\),description:i\\("\\.gameModeCreativeDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.CREATIVE,narrationSuffix:c\\("\\.narrationSuffixDisablesAchievements"\\)\\}\\];return\\(u\\|\\|t\\)&&n\\.push\\((?:[a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeAdventureLabel"\\),description:i\\(t\\?"\\.gameModeAdventureTemplateDescription":"\\.gameModeAdventureDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.ADVENTURE\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\)\\),n\\}\\),\\[i,c,u\\],\\[l,n\\]\\),f=\\(0,r\\.useNotifyMountComplete\\)\\(\\);return a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:i\\("\\.gameModeTitle"\\),disabled:m,options:p,onMountComplete:f,value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameMode\\),\\[\\],\\[e\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{const a=e\\.gameMode;e\\.gameMode=n,u&&t\\.trackOptionChanged\\(([a-zA-Z0-9_\$]{2})\\.GameModeChanged,a,n\\)\\}\\),\\[u\\],\\[e,d\\]\\)\\}\\)\\}`
@@ -953,6 +960,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         1: [
                             /**
@@ -960,6 +968,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `function\\(e\\)\\{e\\[e\\.UNKNOWN=-1\\]="UNKNOWN",e\\[e\\.SURVIVAL=0\\]="SURVIVAL",e\\[e\\.CREATIVE=1\\]="CREATIVE",e\\[e\\.ADVENTURE=2\\]="ADVENTURE"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\(([a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
@@ -974,6 +983,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         0: [
                             /**
@@ -981,9 +991,10 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
-                                `E&&!s\\?a\\.createElement\\(r\\.Mount,\\{when:n\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:c\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_\$]{2})\\.Overworld,label:c\\("\\.vanillaWorldGeneratorLabel"\\),description:c\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Flat,label:c\\("\\.flatWorldGeneratorLabel"\\),description:c\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Void,label:c\\("\\.voidWorldGeneratorLabel"\\),description:c\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:b\\.value,onChange:b\\.onChange\\}\\)\\)\\):null`
+                                `(?:[a-zA-Z0-9_\$]{1})&&!(?:[a-zA-Z0-9_\$]{1})\\?a\\.createElement\\(r\\.Mount,\\{when:([a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:([a-zA-Z0-9_\$]{1})\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_\$]{2})\\.Overworld,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.vanillaWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Flat,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.flatWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Void,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.voidWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:([a-zA-Z0-9_\$]{1})\\.value,onChange:(?:[a-zA-Z0-9_\$]{1})\\.onChange\\}\\)\\)\\):null`
                             ),
                         ],
                         /**
@@ -993,6 +1004,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         1: [
                             /**
@@ -1000,6 +1012,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `function\\(e\\)\\{e\\[e\\.Legacy=0\\]="Legacy",e\\[e\\.Overworld=1\\]="Overworld",e\\[e\\.Flat=2\\]="Flat",e\\[e\\.Nether=3\\]="Nether",e\\[e\\.TheEnd=4\\]="TheEnd",e\\[e\\.Void=5\\]="Void",e\\[e\\.Undefined=6\\]="Undefined"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\((?:[a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
@@ -1014,6 +1027,7 @@ async function applyMods() {
                      * #### Fully Supported:
                      * - 1.21.70/71/72 (index-d6df7.js)
                      * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
                      *
                      * #### Partially Supported:
                      *
@@ -1029,6 +1043,7 @@ async function applyMods() {
                          * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          *
                          * #### Partially Supported:
                          *
@@ -1041,6 +1056,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `([a-zA-Z0-9_\$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o\\}\\)=>\\{const\\{t:i\\}=([a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:c\\}=(?:[a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.all"\\),s=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,u=([a-zA-Z0-9_\$]{2})\\(([a-zA-Z0-9_\$]{2})\\),d=([a-zA-Z0-9_\$]{2})\\(\\),m=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),p=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),f=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[m\\]\\),E=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t,n\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),n\\.queueSnackbar\\(i\\("\\.copyToClipboard"\\)\\)\\}\\),\\[i\\],\\[f,m,p\\]\\),h=s\\?E:\\(\\)=>d\\.push\\("/create-new-world/seed-templates"\\),v=s\\?"":i\\("\\.worldSeedPlaceholder"\\),b=i\\(s\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),y=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>t\\|\\|n&&u&&!s&&e\\.generatorType!=([a-zA-Z0-9_\$]{2})\\.Overworld\\),\\[u,s\\],\\[e,l,t\\]\\);return o\\?a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{data:g\\},\\(e=>s&&!e\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{disabled:s,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):a\\.createElement\\((?:[a-zA-Z0-9_\$]{2})\\.WithButton,\\{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:v,buttonNarrationHint:i\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
@@ -1055,6 +1071,7 @@ async function applyMods() {
                      * #### Fully Supported:
                      * - 1.21.70/71/72 (index-d6df7.js)
                      * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
                      *
                      * #### Partially Supported:
                      * - 1.21.60/61/62 (index-41cdf.js) {Only adds debug tab, does not modify it.}
@@ -1071,6 +1088,7 @@ async function applyMods() {
                          *
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
                          */
                         0: [
                             /**
@@ -1078,6 +1096,7 @@ async function applyMods() {
                              *
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
                                 `function ([a-zA-Z0-9_\$]{2})\\(\\{worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i\\}\\)\\{const c=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),s=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),u=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[e\\]\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\)\\)\\),\\[\\],\\[s\\]\\),f=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[p,m\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[c\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),h=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),v=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e\\.platform\\)\\),\\[\\],\\[h\\]\\),b=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,y=\\(0,r\\.useFacetMap\\)\\(\\(e=>e&&b\\),\\[b\\],\\[v\\]\\);return a\\.createElement\\(r\\.DeferredMountProvider,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Flat nether",gamepad:\\{index:0\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[c\\]\\),onChange` +
@@ -1152,7 +1171,7 @@ async function applyMods() {
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
                              */
                             new RegExp(
-                                `a\\.createElement\\(r\\.Mount,\\{when:E\\},a\\.createElement\\(a\\.Fragment,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2})\\.Divider,null\\),a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onClick:[eo],screenAnalyticsId:u\\}\\)\\)\\)`
+                                `a\\.createElement\\(r\\.Mount,\\{when:([a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(a\\.Fragment,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2})\\.Divider,null\\),a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onClick:([eo]),screenAnalyticsId:([a-zA-Z0-9_\$]{1})\\}\\)\\)\\)`
                             ),
                         ],
                     },
@@ -1465,51 +1484,51 @@ async function applyMods() {
                                 `// Modified to add this dropdown
                                       a.createElement(
                                           r.Mount,
-                                          { when: true /* n */ },
+                                          { when: true /* $1 */ },
                                           a.createElement(
                                               r.DeferredMount,
                                               null,
-                                              a.createElement($1, {
-                                                  label: c(".generatorTypeLabel"),
+                                              a.createElement($2, {
+                                                  label: $3(".generatorTypeLabel"),
                                                   options: [
                                                       {
-                                                          value: $2.Legacy,
+                                                          value: $4.Legacy,
                                                           label: "Legacy",
                                                           description: "The old world type.",
                                                       },
                                                       {
-                                                          value: $2.Overworld,
-                                                          label: c(".vanillaWorldGeneratorLabel"),
-                                                          description: c(".vanillaWorldGeneratorDescription"),
+                                                          value: $4.Overworld,
+                                                          label: $3(".vanillaWorldGeneratorLabel"),
+                                                          description: $3(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: $2.Flat,
-                                                          label: c(".flatWorldGeneratorLabel"),
-                                                          description: c(".flatWorldGeneratorDescription"),
+                                                          value: $4.Flat,
+                                                          label: $3(".flatWorldGeneratorLabel"),
+                                                          description: $3(".flatWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: $2.Nether,
+                                                          value: $4.Nether,
                                                           label: "Nether",
-                                                          description: c(".vanillaWorldGeneratorDescription"),
+                                                          description: $3(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: $2.TheEnd,
+                                                          value: $4.TheEnd,
                                                           label: "The End",
-                                                          description: c(".vanillaWorldGeneratorDescription"),
+                                                          description: $3(".vanillaWorldGeneratorDescription"),
                                                       }, */
                                                       {
-                                                          value: $2.Void,
-                                                          label: c(".voidWorldGeneratorLabel"),
-                                                          description: c(".voidWorldGeneratorDescription"),
+                                                          value: $4.Void,
+                                                          label: $3(".voidWorldGeneratorLabel"),
+                                                          description: $3(".voidWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: $2.Undefined,
+                                                          value: $4.Undefined,
                                                           label: "Undefined",
-                                                          description: c(".vanillaWorldGeneratorDescription"),
+                                                          description: $3(".vanillaWorldGeneratorDescription"),
                                                       }, */
                                                   ],
-                                                  value: b.value,
-                                                  onChange: b.onChange,
+                                                  value: $5.value,
+                                                  onChange: $5.onChange,
                                               }) /* 
                                               (e[(e.Legacy = 0)] = "Legacy"),
                                                 (e[(e.Overworld = 1)] = "Overworld"),
@@ -2127,26 +2146,29 @@ async function applyMods() {
         `
                     )
                     .replace(
-                        /(?<=<link href="\/hbui\/gameplay-theme\.css" rel="stylesheet">)/,
+                        /(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/,
                         `
         <link href="/hbui/customOverlays.css" rel="stylesheet" />`
                     );
-                distData = distData.replace(
-                    new RegExp(
-                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                    ),
-                    `false`
-                ).replace(
-                    new RegExp(
-                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                    ),
-                    `false`
-                ).replace(
-                    new RegExp(
-                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                    ),
-                    `false`
-                );
+                distData = distData
+                    .replace(
+                        new RegExp(
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                        ),
+                        `false`
+                    )
+                    .replace(
+                        new RegExp(
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                        ),
+                        `false`
+                    )
+                    .replace(
+                        new RegExp(
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                        ),
+                        `false`
+                    );
                 if (settings.maxTextLengthOverride !== "") {
                     const origDistData = distData;
                     const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
@@ -2163,7 +2185,7 @@ async function applyMods() {
                     if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && distData === origDistData) {
                         failedReplaces.push("maxTextLengthOverride");
                     }
-                }else{
+                } else {
                     console.warn("maxTextLengthOverride is empty");
                 }
                 if (settings.add8CrafterUtilitiesMainMenuButton) {
@@ -2178,7 +2200,7 @@ async function applyMods() {
                                                     a.createElement(
                                                         a.Fragment,
                                                         null,
-                                                        a.createElement($1.Divider, null),
+                                                        a.createElement($2.Divider, null),
                                                         a.createElement(() =>
                                                             a.createElement(
                                                                 function ({ onClick: e, selected: t, disabled: n, focusGridIndex: r, role: l = "inherit" }) {
@@ -2225,12 +2247,12 @@ async function applyMods() {
                                                 ),
                                                 a.createElement(
                                                     r.Mount,
-                                                    { when: E },
+                                                    { when: $1 },
                                                     a.createElement(
                                                         a.Fragment,
                                                         null,
-                                                        a.createElement($1.Divider, null),
-                                                        a.createElement($2, { onClick: e, screenAnalyticsId: u })
+                                                        a.createElement($2.Divider, null),
+                                                        a.createElement($3, { onClick: $4, screenAnalyticsId: $5 })
                                                     )
                                                 )`
                             );
@@ -2239,7 +2261,7 @@ async function applyMods() {
                         }
                     }
                     if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
-                        failedReplaces.push("allowForChangingSeeds");
+                        failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
                     }
                 }
                 if (failedReplaces.length > 0) allFailedReplaces[entry.data.filename] = failedReplaces;
