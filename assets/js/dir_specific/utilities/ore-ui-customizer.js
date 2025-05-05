@@ -4,7 +4,7 @@ const currentPresets = {
     "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
     "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
 };
-const format_version = "0.20.0";
+const format_version = "0.21.0";
 /**
  * @type {File}
  */

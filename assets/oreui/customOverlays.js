@@ -182,6 +182,730 @@ var heldKeyCodes = [];
 globalThis.onConsoleLogCallbacks = globalThis.onConsoleLogCallbacks ?? [];
 
 /**
+ * Joins a realm by name.
+ *
+ * @param {string} realmName The name of the realm to join.
+ * @returns {{success: boolean, message: string, stack?: string, error?: Error}} The result.
+ *
+ * @description
+ * 1. Switches to the realms tab, it it is not already open.
+ * 2. Waits for the realms list to load.
+ * 3. Finds the realm in the realms list and clicks on it.
+ * 4. Waits for the realm details to load.
+ * 5. Clicks the realm play button.
+ *
+ * @example
+ * ```javascript
+ * autoJoinRealm("Asteria").then(console.log);
+ * ```
+ */
+async function autoJoinRealm(realmName) {
+    try {
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='play-screen-tab-bar-realms']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join realm: ${realmName}; Failed to find realms tab button. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join realm: ${realmName}; Failed to find realms tab button. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        document.querySelector("div[data-testid='play-screen-tab-bar-realms']").dispatchEvent(new Event("click"));
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='realm-list-item-joined-realm']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join realm: ${realmName}; Failed to load realms. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join realm: ${realmName}; Failed to load realms. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        for (let i = 0; i < 100; i++) {
+            for (const div of document.querySelectorAll("div[data-testid='realm-list-item-joined-realm'] > div > div > div > div > div")) {
+                if (div.textContent === realmName) {
+                    const button = div.parentElement.parentElement.parentElement.parentElement.parentElement;
+                    button.dispatchEvent(new Event("click"));
+                    for (let i = 0; i < 100; i++) {
+                        if (document.querySelector("div[data-testid='play-realm-button']") !== null) {
+                            break;
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join realm: ${realmName}; Failed to find the realm play button. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join realm: ${realmName}; Failed to find the realm play button. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    const playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
+                    const playRealmButtonSection = playRealmButton.parentElement.parentElement.parentElement;
+                    const playRealmButtonSectionRealmNameSpan = playRealmButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                    for (let i = 0; i < 100; i++) {
+                        if (playRealmButtonSectionRealmNameSpan.textContent === realmName) {
+                            await new Promise((resolve) => setTimeout(resolve, 100));
+                            playRealmButton.dispatchEvent(new Event("click"));
+                            console.log(`Joined realm: ${realmName}`);
+                            return {
+                                success: true,
+                                message: `Joined realm: ${realmName}`,
+                            };
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join realm: ${realmName}; Failed to load realm details. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join realm: ${realmName}; Failed to load realm details. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                }
+            }
+            if (i >= 99) {
+                console.error(`Failed to join realm: ${realmName}; Failed to find realm in realm list. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join realm: ${realmName}; Failed to find realm in realm list. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    } catch (e) {
+        console.error(e.message, e.stack);
+        return {
+            success: false,
+            message: e.message,
+            stack: e.stack,
+            error: e,
+        };
+    }
+}
+
+/**
+ * Joins a server by name.
+ *
+ * @param {string} serverName The name of the server to join.
+ * @returns {{success: boolean, message: string, stack?: string, error?: Error}} The result.
+ *
+ * @description
+ * 1. Switches to the servers tab, it it is not already open.
+ * 2. Waits for the servers list to load.
+ * 3. Finds the realm in the servers list and clicks on it.
+ * 4. Waits for the server details to load.
+ * 5. Clicks the server play button.
+ */
+async function autoJoinServer(serverName) {
+    try {
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='play-screen-tab-bar-servers']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        document.querySelector("div[data-testid='play-screen-tab-bar-servers']").dispatchEvent(new Event("click"));
+        for (let i = 0; i < 100; i++) {
+            const addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1];
+            if (addServerButtonClass !== null) {
+                const addServerButton = Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find(
+                    (div) => div.textContent === "Add server"
+                )?.parentElement.parentElement.parentElement.parentElement.parentElement;
+                const addServerButtonContainer = addServerButton?.parentElement;
+                const serversList = addServerButtonContainer?.parentElement;
+                if (serversList !== undefined) {
+                    if (
+                        (serversList.querySelector(`> div.${addServerButton.classList.item(0)} div.vanilla-neutralAlpha60-text > div`) ??
+                            Array.from(
+                                serversList
+                                    .querySelectorAll(`> div.${addServerButton.classList.item(0)} div.vanilla-neutralAlpha60-text`)
+                                    .find((div) => !div.querySelector("div"))
+                            )) !== null
+                    ) {
+                        break;
+                    }
+                }
+            }
+            if (i >= 99) {
+                console.error(`Failed to join server: ${serverName}; Failed to load servers. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join server: ${serverName}; Failed to load servers. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        const addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1];
+        const addServerButton = Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")
+            ?.parentElement.parentElement.parentElement.parentElement.parentElement;
+        const addServerButtonContainer = addServerButton?.parentElement;
+        const serversList = addServerButtonContainer?.parentElement;
+        for (let i = 0; i < 100; i++) {
+            for (const div of [
+                ...Array.from(serversList.querySelectorAll(`> div.${addServerButton.classList.item(0)} * div.vanilla-neutralAlpha60-text > div`)),
+                ...Array.from(serversList.querySelectorAll(`> div.${addServerButton.classList.item(0)} * div.vanilla-neutralAlpha60-text`)).filter(
+                    (div) => !div.querySelector("div")
+                ),
+            ]) {
+                if (div.textContent === serverName) {
+                    const button = div.parentElement.parentElement.parentElement.parentElement.classList.contains(addServerButton.classList.item(0))
+                        ? div.parentElement.parentElement.parentElement.parentElement
+                        : div.parentElement.parentElement.parentElement.parentElement.parentElement;
+                    button.dispatchEvent(new Event("click"));
+                    for (let i = 0; i < 100; i++) {
+                        if (document.querySelector("div[data-testid='server-play-button']") !== null) {
+                            break;
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join server: ${serverName}; Failed to find the server play button. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join server: ${serverName}; Failed to find the server play button. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    const playServerButton = document.querySelector("div[data-testid='server-play-button']");
+                    const playServerButtonSection = playServerButton.parentElement.parentElement.parentElement;
+                    const playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                    for (let i = 0; i < 100; i++) {
+                        if (playServerButtonSectionServerNameSpan.textContent === serverName) {
+                            playServerButton.dispatchEvent(new Event("click"));
+                            console.log(`Joined server: ${serverName}`);
+                            return {
+                                success: true,
+                                message: `Joined server: ${serverName}`,
+                            };
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join server: ${serverName}; Failed to load server details. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join server: ${serverName}; Failed to load server details. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                }
+            }
+            if (i >= 99) {
+                console.error(`Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    } catch (e) {
+        console.error(e.message, e.stack);
+        return {
+            success: false,
+            message: e.message,
+            stack: e.stack,
+            error: e,
+        };
+    }
+}
+
+/**
+ * Joins a world by name.
+ *
+ * @param {string} worldName The name of the world to join.
+ * @returns {{success: boolean, message: string, stack?: string, error?: Error}} The result.
+ *
+ * @description
+ * 1. Switches to the worlds tab, it it is not already open.
+ * 2. Waits for the worlds list to load.
+ * 3. Finds the realm in the worlds list and clicks on it.
+ * 4. Waits for the world details to load.
+ * 5. Clicks the world play button.
+ */
+async function autoJoinWorld(worldName) {
+    try {
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='play-screen-tab-bar-all']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        document.querySelector("div[data-testid='play-screen-tab-bar-all']").dispatchEvent(new Event("click"));
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join world: ${worldName}; Failed to load worlds. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join world: ${worldName}; Failed to load worlds. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        const worldsList = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']").parentElement.parentElement;
+        for (let i = 0; i < 100; i++) {
+            for (const div of Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
+                /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid"))
+            )) {
+                if (div.querySelector("div.vanilla-neutral-text")?.textContent === worldName) {
+                    // await new Promise((resolve) => setTimeout(resolve, 100));
+                    div.dispatchEvent(new Event("click"));
+                    console.log(`Joined world: ${worldName}`);
+                    return {
+                        success: true,
+                        message: `Joined world: ${worldName}`,
+                    };
+                }
+            }
+            if (i >= 99) {
+                console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    } catch (e) {
+        console.error(e.message, e.stack);
+        return {
+            success: false,
+            message: e.message,
+            stack: e.stack,
+            error: e,
+        };
+    }
+}
+
+async function enableAutoJoinForOpenServer() {
+    if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-realms']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='play-realm-button']") !== null
+    ) {
+        const playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
+        const playRealmButtonSection = playRealmButton.parentElement.parentElement.parentElement;
+        const playRealmButtonSectionRealmNameSpan = playRealmButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        window.localStorage.setItem("autoJoinName", playRealmButtonSectionRealmNameSpan.textContent);
+        window.localStorage.setItem("autoJoinType", "realm");
+        try {
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = playRealmButtonSectionRealmNameSpan.textContent;
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "Realm";
+        } catch {}
+        promptForConfirmation(`Successfully enabled auto rejoin for the following realm: ${playRealmButtonSectionRealmNameSpan.textContent}`, "OK", "");
+    } else if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-servers']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='server-play-button']") !== null
+    ) {
+        const playServerButton = document.querySelector("div[data-testid='server-play-button']");
+        const playServerButtonSection = playServerButton.parentElement.parentElement.parentElement;
+        const playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        window.localStorage.setItem("autoJoinName", playServerButtonSectionServerNameSpan.textContent);
+        window.localStorage.setItem("autoJoinType", "server");
+        try {
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = playServerButtonSectionServerNameSpan.textContent;
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "Server";
+        } catch {}
+        promptForConfirmation(`Successfully enabled auto rejoin for the following server: ${playServerButtonSectionServerNameSpan.textContent}`, "OK", "");
+    } else if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-all']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null
+    ) {
+        const worldsList = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']").parentElement.parentElement;
+        const worlds = Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
+            /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid"))
+        );
+        const r = await buttonSelectionMenu({
+            body: "Select a world to enable auto rejoin for.",
+            buttons: worlds.map((world) => [world.querySelector("div.vanilla-neutral-text").textContent]),
+            style: "1column",
+        });
+        if (r.canceled) return;
+        const world = worlds[r.selection];
+        const worldName = world.querySelector("div.vanilla-neutral-text").textContent;
+        window.localStorage.setItem("autoJoinName", worldName);
+        window.localStorage.setItem("autoJoinType", "world");
+        try {
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = worldName;
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "World";
+        } catch {}
+        promptForConfirmation(`Successfully enabled auto rejoin for the following world: ${worldName}`, "OK", "");
+    } else {
+        promptForConfirmation(
+            "Failed to enable auto rejoin, no realm or server play button was found.\nPlease either go to the worlds tab, select a realm, or select a server. Then try again.\nNote: If the currently selected realm is not active, then it will not be detected as selected.",
+            "OK",
+            ""
+        );
+    }
+}
+
+/**
+ * Prompts the user with a confirmation dialog.
+ *
+ * @param {string} message The message to prompt the user with.
+ * @param {string} [button1="Confirm"] The text of the first button. Defaults to "Confirm".
+ * @param {string} [button2="Cancel"] The text of the second button. Defaults to "Cancel".
+ * @param {string} [button3] The text of the third button. Defaults to undefined. If undefined, there will be no third button.
+ * @param {(container: HTMLDivElement, resolve: (result: 0|1|2) => void, reject: (error: any) => void) => void} [additionalModificationsCallback=()=>{}] A callback function that will be called after the dialog is created.
+ * @returns {Promise<0|1|2>} A promise that resovles with `1` if the user clicked the first button and `0` if the user clicked the second button.
+ * @throws {any} If the additionalModificationsCallback throws an error.
+ */
+async function promptForConfirmation(message, button1 = "Confirm", button2 = "Cancel", button3, additionalModificationsCallback = async () => {}) {
+    return new Promise(async (resolve, reject) => {
+        const container = document.createElement("div");
+        ("background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; backdrop-filter: blur(5px); border: 5px solid #87CEEb;");
+        container.style.position = "fixed";
+        container.style.top = "12.5vh";
+        container.style.left = "12.5vw";
+        container.style.width = "75vw";
+        container.style.height = "75vh";
+        container.style.zIndex = "20000000";
+        container.style.backgroundColor = "#00000080";
+        container.style.color = "#FFFFFFFF";
+        container.style.backdropFilter = "blur(5px)";
+        container.style.border = "5px solid #87CEEb";
+        const messageElement = document.createElement("pre");
+        messageElement.textContent = message;
+        messageElement.style.position = "absolute";
+        messageElement.style.top = "0";
+        messageElement.style.left = "0";
+        messageElement.style.width = "100%";
+        messageElement.style.height = "90%";
+        messageElement.style.overflow = "auto";
+        messageElement.style.padding = "10px";
+        messageElement.style.fontSize = `2em`;
+        messageElement.style.fontFamily = "Minecraft Seven v4";
+        messageElement.style.whiteSpace = "pre-wrap";
+        messageElement.style.overflowWrap = "anywhere";
+        container.appendChild(messageElement);
+        const button1Element = document.createElement("button");
+        button1Element.textContent = button1;
+        button1Element.style.position = "absolute";
+        button1Element.style.bottom = button3 ? "25%" : "0";
+        button1Element.style.left = "0";
+        button1Element.style.width = button2 ? "50%" : "100%";
+        button1Element.style.height = "25%";
+        button1Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+        button1Element.style.fontFamily = "Minecraft Seven v4";
+        button1Element.classList.add("btn");
+        button1Element.classList.add("btn-primary");
+        button1Element.addEventListener("click", () => {
+            container.setAttribute("data-closed", "true");
+            container.remove();
+            resolve(1);
+        });
+        container.appendChild(button1Element);
+        if (button2) {
+            const button2Element = document.createElement("button");
+            button2Element.textContent = button2;
+            button2Element.style.position = "absolute";
+            button2Element.style.bottom = button3 ? "25%" : "0";
+            button2Element.style.right = "0";
+            button2Element.style.width = "50%";
+            button2Element.style.height = "25%";
+            button2Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+            button2Element.style.fontFamily = "Minecraft Seven v4";
+            button2Element.classList.add("btn");
+            button2Element.classList.add("btn-danger");
+            button2Element.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                container.remove();
+                resolve(0);
+            });
+            container.appendChild(button2Element);
+        }
+        if (button3) {
+            const button3Element = document.createElement("button");
+            button3Element.textContent = button3;
+            button3Element.style.position = "absolute";
+            button3Element.style.bottom = "0";
+            button3Element.style.right = "0";
+            button3Element.style.width = "100%";
+            button3Element.style.height = "25%";
+            button3Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+            button3Element.style.fontFamily = "Minecraft Seven v4";
+            button3Element.classList.add("btn");
+            button3Element.classList.add("btn-danger");
+            button3Element.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                container.remove();
+                resolve(2);
+            });
+            container.appendChild(button3Element);
+        }
+        additionalModificationsCallback(container, resolve, reject);
+        document.body.appendChild(container);
+    });
+}
+
+/**
+ * Creates a button selection menu.
+ *
+ * @param {object} options The options for the button selection menu.
+ * @param {string} [options.body] The body of the button selection menu.
+ * @param {[text: string, icon?: string][]} options.buttons The buttons of the button selection menu.
+ * @param {"1column" | "2columns"} [options.style="2columns"] The style of the button selection menu. "1column" means there is only one column. "2columns" means there are two columns.Defaults to "2columns".
+ * @returns {Promise<{canceled: boolean, selection?: number}>} A promise that resolves with the index of the button that was clicked.
+ */
+async function buttonSelectionMenu(options) {
+    return new Promise(async (resolve, reject) => {
+        const outerContainer = document.createElement("div");
+        outerContainer.style.position = "fixed";
+        outerContainer.style.top = "12.5vh";
+        outerContainer.style.left = "12.5vw";
+        outerContainer.style.width = "75vw";
+        outerContainer.style.height = "75vh";
+        outerContainer.style.zIndex = "20000000";
+        outerContainer.style.backgroundColor = "#00000080";
+        outerContainer.style.color = "#FFFFFFFF";
+        outerContainer.style.backdropFilter = "blur(5px)";
+        outerContainer.style.border = "5px solid #87CEEb";
+        const container = document.createElement("div");
+        // container.style.position = "fixed";
+        // container.style.top = "12.5vh";
+        // container.style.left = "12.5vw";
+        container.style.width = "100%";
+        container.style.height = "100%";
+        container.style.overflow = "auto";
+        container.classList.add("addScrollbar");
+        addScrollbarToHTMLElement(container);
+        if (options.body) {
+            const messageElement = document.createElement("pre");
+            messageElement.textContent = options.body;
+            // messageElement.style.position = "absolute";
+            // messageElement.style.top = "0";
+            // messageElement.style.left = "0";
+            messageElement.style.width = "100%";
+            messageElement.style.height = "auto";
+            messageElement.style.overflow = "auto";
+            messageElement.style.padding = "10px";
+            messageElement.style.fontSize = `2em`;
+            messageElement.style.fontFamily = "Minecraft Seven v4";
+            messageElement.style.whiteSpace = "pre-wrap";
+            messageElement.style.overflowWrap = "anywhere";
+            container.appendChild(messageElement);
+        }
+        const closeButtonElement = document.createElement("button");
+        closeButtonElement.type = "button";
+        closeButtonElement.style.position = "absolute";
+        closeButtonElement.style.top = "0";
+        closeButtonElement.style.right = "0";
+        closeButtonElement.style.fontFamily = "Minecraft Seven v2";
+        closeButtonElement.style.fontSize = "50px";
+        closeButtonElement.style.aspectRatio = "1/1";
+        closeButtonElement.style.color = "#000000";
+        closeButtonElement.style.width = "50px";
+        closeButtonElement.style.height = "50px";
+        closeButtonElement.style.zIndex = "1";
+        const closeButtonSpanElement = document.createElement("span");
+        closeButtonSpanElement.style.marginTop = "-5px";
+        closeButtonSpanElement.style.fontFamily = "Minecraft Seven v2";
+        closeButtonSpanElement.textContent = "x";
+        closeButtonElement.appendChild(closeButtonSpanElement);
+        closeButtonElement.addEventListener("click", () => {
+            container.setAttribute("data-closed", "true");
+            outerContainer.remove();
+            resolve({ canceled: true });
+        });
+        outerContainer.appendChild(closeButtonElement);
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.style.width = "100%";
+        buttonsContainer.style.height = "100%";
+        switch (options.style ?? "2columns") {
+            case "1column":
+                buttonsContainer.style.height = options.buttons.length * window.outerHeight * 0.1875 + "px";
+                break;
+            case "2columns":
+                buttonsContainer.style.height = Math.ceil(options.buttons.length / 2) * window.outerHeight * 0.1875 + "px";
+                break;
+        }
+        options.buttons.forEach((button, index) => {
+            const buttonElement = document.createElement("button");
+            buttonElement.textContent = button[0];
+            buttonElement.style.position = "absolute";
+            switch (options.style ?? "2columns") {
+                case "1column":
+                    buttonElement.style.top = index * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.left = "0";
+                    buttonElement.style.width = "100%";
+                    break;
+                case "2columns":
+                    buttonElement.style.top = Math.floor(index / 2) * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.left = index % 2 === 0 ? "0" : "50%";
+                    buttonElement.style.width = "50%";
+                    break;
+            }
+            buttonElement.style.height = `${window.outerHeight * 0.1875}px`;
+            buttonElement.style.fontSize = `${window.outerHeight * 0.0234375}px`;
+            buttonElement.style.fontFamily = "Minecraft Seven v4";
+            buttonElement.classList.add("btn");
+            buttonElement.classList.add("btn-primary");
+            buttonElement.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                outerContainer.remove();
+                resolve({ canceled: false, selection: index });
+            });
+            buttonElement.style.whiteSpace = "pre-wrap";
+            buttonElement.style.overflowWrap = "anywhere";
+            buttonElement.style.lineHeight = `${window.outerHeight * 0.0234375}px`;
+
+            buttonsContainer.appendChild(buttonElement);
+        });
+        container.appendChild(buttonsContainer);
+        outerContainer.appendChild(container);
+        document.body.appendChild(outerContainer);
+    });
+}
+
+if (localStorage.getItem("autoJoinName")) {
+    setTimeout(() => {
+        try {
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = localStorage.getItem("autoJoinName");
+            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = localStorage.getItem("autoJoinType");
+        } catch {}
+    }, 1);
+    switch (localStorage.getItem("autoJoinType")) {
+        case "realm":
+            promptForConfirmation(
+                `Join realm: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container) {
+                    for (let i = 10; i > 0; i--) {
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        if (container.getAttribute("data-closed") === "true") return;
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                    }
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        autoJoinRealm(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case "server":
+            promptForConfirmation(
+                `Join server: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container, resolve, reject) {
+                    for (let i = 10; i > 0; i--) {
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        if (container.getAttribute("data-closed") === "true") return;
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        console.log(container.querySelector("pre").textContent);
+                    }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(0);
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        autoJoinServer(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case "world":
+            promptForConfirmation(
+                `Join world: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container, resolve, reject) {
+                    for (let i = 10; i > 0; i--) {
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                        if (container.getAttribute("data-closed") === "true") return;
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        console.log(container.querySelector("pre").textContent);
+                    }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(0);
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        autoJoinWorld(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case null:
+            promptForConfirmation(`The server type for auto rejoin is missing, as a result auto join will not work.`, "OK", "");
+            break;
+        default:
+            promptForConfirmation(
+                `The server type for auto rejoin is invalid, as a result auto join will not work. It is ${JSON.stringify(
+                    localStorage.getItem("autoJoinType")
+                )}. It should be one of the following: "realm", "server", "world".`,
+                "OK",
+                ""
+            );
+            break;
+    }
+}
+
+/**
  * Validates the CSS or JSON in the CSS Editor text box.
  *
  * @returns {boolean} true if valid, false if invalid
@@ -1300,6 +2024,136 @@ function createCustomTextBox(container) {
     }
 }
 
+/**
+ * Add a scrollbar to an HTML element.
+ *
+ * @param {HTMLElement} element The HTML element to add a scrollbar to.
+ */
+function addScrollbarToHTMLElement(element) {
+    // Add a scrollbar to the div element
+    // element.style.overflowY = "auto";
+
+    element.style.paddingRight = "10px";
+    // Create a scrollbar element
+    var scrollbarParent = document.createElement("div");
+    scrollbarParent.style.position = "absolute";
+    scrollbarParent.style.top = "0px";
+    scrollbarParent.style.right = "0px";
+    scrollbarParent.style.width = "10px";
+    scrollbarParent.style.height = "100%";
+    scrollbarParent.style.margin = "0";
+    scrollbarParent.style.padding = "0";
+    scrollbarParent.style.background = "rgba(100, 100, 100, 1)";
+    scrollbarParent.style.zIndex = "100000000000";
+    scrollbarParent.classList.add("customScrollbarParent");
+    var scrollbar = document.createElement("div");
+    scrollbar.style.position = "absolute";
+    scrollbar.style.top = "0px";
+    scrollbar.style.right = "0px";
+    scrollbar.style.width = "10px";
+    scrollbar.style.height = "100%";
+    scrollbar.style.background = "rgba(255, 255, 255, 1)";
+    scrollbar.style.borderRadius = "5px";
+    scrollbar.style.zIndex = "100000000000";
+    scrollbar.classList.add("customScrollbar");
+
+    // Add the scrollbar to the div element
+    scrollbarParent.appendChild(scrollbar);
+    element.appendChild(scrollbarParent);
+
+    var mouseDownOnScrollbar = false;
+    var mousePosOffset = 0;
+    var totalHeight = 0;
+    var visibleHeight = 0;
+    var scrollPosition = 0;
+    var scrollbarHeight = 0;
+    var scrollbarTop = 0;
+
+    // Add event listeners to the scrollbar
+    scrollbarParent.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
+        mouseDownOnScrollbar = true;
+        mousePosOffset = event.clientY - scrollbarParentClientRect.top - scrollbarTop;
+        var mouseY = Math.min(
+            scrollbarParentClientRect.top + scrollbarParentClientRect.height,
+            Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
+        );
+        totalHeight = element.scrollHeight;
+        visibleHeight = element.clientHeight;
+        scrollPosition = Math.min(
+            Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
+            totalHeight - visibleHeight
+        );
+        element.scrollTop = scrollPosition;
+        scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+        scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+        scrollbar.style.height = scrollbarHeight + "px";
+        scrollbar.style.top = scrollbarTop + "px";
+        scrollbarParent.style.top = element.scrollTop + "px";
+    });
+
+    document.addEventListener("mouseup", function (event) {
+        if (mouseDownOnScrollbar) {
+            event.preventDefault();
+            mouseDownOnScrollbar = false;
+        }
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        if (mouseDownOnScrollbar) {
+            event.preventDefault();
+            var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
+            var mouseY = Math.min(
+                scrollbarParentClientRect.top + scrollbarParentClientRect.height,
+                Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
+            );
+            totalHeight = element.scrollHeight;
+            visibleHeight = element.clientHeight;
+            scrollPosition = Math.min(
+                Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
+                totalHeight - visibleHeight
+            );
+            element.scrollTop = scrollPosition;
+            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+            scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+            scrollbar.style.height = scrollbarHeight + "px";
+            scrollbar.style.top = scrollbarTop + "px";
+            scrollbarParent.style.top = element.scrollTop + "px";
+        }
+    });
+
+    // Update the scrollbar position when the div is scrolled
+    element.addEventListener("scroll", function () {
+        var scrollPosition = element.scrollTop;
+        totalHeight = element.scrollHeight;
+        visibleHeight = element.clientHeight;
+        scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+        scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+        scrollbar.style.height = scrollbarHeight + "px";
+        scrollbar.style.top = scrollbarTop + "px";
+        scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
+        scrollbarParent.style.height = visibleHeight + "px";
+    });
+    const mutationObserver = new MutationObserver(() => {
+        setTimeout(() => {
+            totalHeight = element.scrollHeight;
+            visibleHeight = element.clientHeight;
+            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+            scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+            scrollbar.style.height = scrollbarHeight + "px";
+            scrollbar.style.top = scrollbarTop + "px";
+            scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
+            scrollbarParent.style.height = visibleHeight + "px";
+        }, 10);
+    });
+    mutationObserver.observe(element, {
+        childList: true,
+        attributes: true,
+        subtree: true,
+    });
+}
+
 (() => {
     document.getElementsByTagName("html")[0].classList.add("dark_theme");
 
@@ -1387,6 +2241,7 @@ function createCustomTextBox(container) {
         <button type="button" class="btn nsel selected" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_general" onclick="setMainMenu8CrafterUtilitiesTab('general'); event.preventDefault();">General</button>
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_about" onclick="setMainMenu8CrafterUtilitiesTab('about'); event.preventDefault();">About</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_autoJoin" onclick="setMainMenu8CrafterUtilitiesTab('autoJoin'); event.preventDefault();">Auto Rejoin</button>
     </div>
     <div id="8CrafterUtilitiesMenu_rightSide" style="display: block; height: 100%; width: 70%; border-right: 5px solid #87CEEb; position: absolute; top: 0; right: 0; padding: 1rem; padding-right: 10px; overflow-y: scroll;" class="addScrollbar">
         <div id="8CrafterUtilitiesMenu_general" style="display: block;">
@@ -1394,10 +2249,16 @@ function createCustomTextBox(container) {
                 <h1>8Crafter Utilities</h1>
             </center>
             <p>
-                <span style="white-space: pre-wrap;"><b>Version:</b> v${typeof oreUICustomizerVersion !== "undefined" ? oreUICustomizerVersion : window.oreUICustomizerVersion}</span>
+                <span style="white-space: pre-wrap;"><b>Version:</b> v${
+                    typeof oreUICustomizerVersion !== "undefined" ? oreUICustomizerVersion : window.oreUICustomizerVersion
+                }</span>
             </p>
             <p>
-                <span style="white-space: pre-wrap;"><b>Config:</b> ${JSON.stringify(typeof oreUICustomizerConfig !== "undefined" ? oreUICustomizerConfig : window.oreUICustomizerConfig, undefined, 4)}</span>
+                <span style="white-space: pre-wrap;"><b>Config:</b> ${JSON.stringify(
+                    typeof oreUICustomizerConfig !== "undefined" ? oreUICustomizerConfig : window.oreUICustomizerConfig,
+                    undefined,
+                    4
+                )}</span>
             </p>
         </div>
         <div id="8CrafterUtilitiesMenu_UIs" style="display: none;">
@@ -1429,6 +2290,20 @@ function createCustomTextBox(container) {
             </p>
             <p>
                 Email: 8crafteryt@gmail.com
+            </p>
+        </div>
+        <div id="8CrafterUtilitiesMenu_autoJoin" style="display: none;">
+            <center>
+                <h1>Auto Rejoin</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
+            <button type="button" class="btn nsel disabled" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = 'None'; document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
+            <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
+            <p style="margin-top: 0; margin-bottom: 0;">
+Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
+            </p>
+            <p style="margin-top: 0;">
+Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
             </p>
         </div>
     </div>
@@ -1697,131 +2572,5 @@ Held Key Codes: ${heldKeyCodes}`;
         mousePos.movementY = event.movementY;
     }
     document.addEventListener("mousemove", updateCursorPosition);
-    document.querySelectorAll(".addScrollbar").forEach((/** @type {HTMLElement} */ element) => {
-        // Add a scrollbar to the div element
-        // element.style.overflowY = "auto";
-
-        element.style.paddingRight = "10px";
-        // Create a scrollbar element
-        var scrollbarParent = document.createElement("div");
-        scrollbarParent.style.position = "absolute";
-        scrollbarParent.style.top = "0px";
-        scrollbarParent.style.right = "0px";
-        scrollbarParent.style.width = "10px";
-        scrollbarParent.style.height = "100%";
-        scrollbarParent.style.margin = "0";
-        scrollbarParent.style.padding = "0";
-        scrollbarParent.style.background = "rgba(100, 100, 100, 1)";
-        scrollbarParent.style.zIndex = "100000000000";
-        scrollbarParent.classList.add("customScrollbarParent");
-        var scrollbar = document.createElement("div");
-        scrollbar.style.position = "absolute";
-        scrollbar.style.top = "0px";
-        scrollbar.style.right = "0px";
-        scrollbar.style.width = "10px";
-        scrollbar.style.height = "100%";
-        scrollbar.style.background = "rgba(255, 255, 255, 1)";
-        scrollbar.style.borderRadius = "5px";
-        scrollbar.style.zIndex = "100000000000";
-        scrollbar.classList.add("customScrollbar");
-
-        // Add the scrollbar to the div element
-        scrollbarParent.appendChild(scrollbar);
-        element.appendChild(scrollbarParent);
-
-        var mouseDownOnScrollbar = false;
-        var mousePosOffset = 0;
-        var totalHeight = 0;
-        var visibleHeight = 0;
-        var scrollPosition = 0;
-        var scrollbarHeight = 0;
-        var scrollbarTop = 0;
-
-        // Add event listeners to the scrollbar
-        scrollbarParent.addEventListener("mousedown", function (event) {
-            event.preventDefault();
-            var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
-            mouseDownOnScrollbar = true;
-            mousePosOffset = event.clientY - scrollbarParentClientRect.top - scrollbarTop;
-            var mouseY = Math.min(
-                scrollbarParentClientRect.top + scrollbarParentClientRect.height,
-                Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
-            );
-            totalHeight = element.scrollHeight;
-            visibleHeight = element.clientHeight;
-            scrollPosition = Math.min(
-                Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
-                totalHeight - visibleHeight
-            );
-            element.scrollTop = scrollPosition;
-            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
-            scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-            scrollbar.style.height = scrollbarHeight + "px";
-            scrollbar.style.top = scrollbarTop + "px";
-            scrollbarParent.style.top = element.scrollTop + "px";
-        });
-
-        document.addEventListener("mouseup", function (event) {
-            if (mouseDownOnScrollbar) {
-                event.preventDefault();
-                mouseDownOnScrollbar = false;
-            }
-        });
-
-        document.addEventListener("mousemove", function (event) {
-            if (mouseDownOnScrollbar) {
-                event.preventDefault();
-                var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
-                var mouseY = Math.min(
-                    scrollbarParentClientRect.top + scrollbarParentClientRect.height,
-                    Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
-                );
-                totalHeight = element.scrollHeight;
-                visibleHeight = element.clientHeight;
-                scrollPosition = Math.min(
-                    Math.max(
-                        0,
-                        ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)
-                    ),
-                    totalHeight - visibleHeight
-                );
-                element.scrollTop = scrollPosition;
-                scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
-                scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-                scrollbar.style.height = scrollbarHeight + "px";
-                scrollbar.style.top = scrollbarTop + "px";
-                scrollbarParent.style.top = element.scrollTop + "px";
-            }
-        });
-
-        // Update the scrollbar position when the div is scrolled
-        element.addEventListener("scroll", function () {
-            var scrollPosition = element.scrollTop;
-            totalHeight = element.scrollHeight;
-            visibleHeight = element.clientHeight;
-            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
-            scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-            scrollbar.style.height = scrollbarHeight + "px";
-            scrollbar.style.top = scrollbarTop + "px";
-            scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
-            scrollbarParent.style.height = visibleHeight + "px";
-        });
-        const mutationObserver = new MutationObserver(() => {
-            setTimeout(() => {
-                totalHeight = element.scrollHeight;
-                visibleHeight = element.clientHeight;
-                scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
-                scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-                scrollbar.style.height = scrollbarHeight + "px";
-                scrollbar.style.top = scrollbarTop + "px";
-                scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
-                scrollbarParent.style.height = visibleHeight + "px";
-            }, 10);
-        });
-        mutationObserver.observe(element, {
-            childList: true,
-            attributes: true,
-            subtree: true,
-        });
-    });
+    document.querySelectorAll(".addScrollbar").forEach(addScrollbarToHTMLElement);
 })();
