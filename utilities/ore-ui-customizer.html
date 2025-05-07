@@ -2,7 +2,10 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
-        <meta name="keywords" content="8Crafter, YouTube, Minecraft, MCBE, MCPE, MCEE, Ore UI, Bedrock, Customizer, Custom Themes, Disable Experimental Toggles, Debug Tab, Bedrock Edition" />
+        <meta
+            name="keywords"
+            content="8Crafter, YouTube, Minecraft, MCBE, MCPE, MCEE, Ore UI, Bedrock, Customizer, Custom Themes, Disable Experimental Toggles, Debug Tab, Bedrock Edition"
+        />
         <meta name="theme-color" content="#87ceeb" />
         <meta name="msapplication-TileColor" content="#87ceeb" />
         <meta name="color-scheme" content="dark light" />
@@ -10,7 +13,10 @@
         <meta name="creator" content="Andersen Zahn" />
         <meta name="author" content="Andersen Zahn" />
         <meta property="og:locale" content="en_US" />
-        <meta name="description" content="8Crafter's Ore UI Customizer. This allows you to customize Ore UI in Minecraft Bedrock Edition. You can add custom themes, get the debug tab, disable experimental toggles, and so much more!" />
+        <meta
+            name="description"
+            content="8Crafter's Ore UI Customizer. This allows you to customize Ore UI in Minecraft Bedrock Edition. You can add custom themes, get the debug tab, disable experimental toggles, and so much more!"
+        />
         <meta name="robots" content="all" />
 
         <!--<link rel="preload" as="image" href="../assets/images/ui/toggle/toggle_off.png">-->
@@ -336,7 +342,7 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked')); if (checkbox.prop('checked')) { $('#allow_for_changing_flat_world_preset').removeAttr('disabled'); } else { $('#allow_for_changing_flat_world_preset').attr('disabled', ''); }}"
                         style="display: inline-block"
                     >
                         <input
@@ -408,11 +414,11 @@
                     >
                         <input
                             type="checkbox"
-                            id="allow_changing_seeds"
-                            name="allow_changing_seeds"
+                            id="allow_for_changing_seeds"
+                            name="allow_for_changing_seeds"
                             value="Allow Changing Seeds"
                             class="mctoggle"
-                            title="allow_changing_seeds"
+                            title="allow_for_changing_seeds"
                             form="options_box"
                             checked
                         />
@@ -421,6 +427,33 @@
                             >Allow Changing Seeds<br />This will allow you to change the world seed whenever you want, also works on marketplace worlds that
                             don't let you change the seed.</label
                         >
+                    </div>
+                    <br />
+                    <div
+                        class="mctogglecontainer nsel"
+                        ontouchstart=""
+                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        style="display: inline-block"
+                    >
+                        <input
+                            type="checkbox"
+                            id="allow_for_changing_flat_world_preset"
+                            name="allow_for_changing_flat_world_preset"
+                            value="Allow Changing Flat World Preset"
+                            class="mctoggle"
+                            title="allow_for_changing_flat_world_preset"
+                            form="options_box"
+                            checked
+                        />
+                        <div class="mctoggleswitch"></div>
+                        <label>
+                            Allow Changing Flat World Preset
+                            <br />
+                            This will allow you to change the flat world preset, even after the world has been created.<br />Requires the Add Generator Type
+                            Dropdown option to be enabled.
+                            <br />
+                            Note: This only works in Minecraft versions 1.21.80 and above, and Minecraft Preview versions 1.21.80.20 and above.
+                        </label>
                     </div>
                     <br />
                     <div
@@ -2058,8 +2091,12 @@
                 </form>
                 <button type="button" class="btn nsel" id="ore-ui-preview-button" onclick="refreshOreUIPreview()">Refresh Preview</button>
                 <br />
-                <div id="ore-ui-preview-iframe-container" style="width: 97.5%; aspect-ratio: 16 / 9; margin: 1.25%; overflow: hidden;">
-                    <iframe style="width: 2560px; height: 1440px; border: none;" id="ore-ui-preview-iframe" src="data:text/html,%3Cp%3EPress%20the%20%22Refresh%20Preview%22%20button%20above%20to%20see%20the%20preview.%3C%2Fp%3E"></iframe>
+                <div id="ore-ui-preview-iframe-container" style="width: 97.5%; aspect-ratio: 16 / 9; margin: 1.25%; overflow: hidden">
+                    <iframe
+                        style="width: 2560px; height: 1440px; border: none"
+                        id="ore-ui-preview-iframe"
+                        src="data:text/html,%3Cp%3EPress%20the%20%22Refresh%20Preview%22%20button%20above%20to%20see%20the%20preview.%3C%2Fp%3E"
+                    ></iframe>
                 </div>
             </settings_section>
         </div>
@@ -2085,7 +2122,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.21.0</h1>
+                <h1>8Crafter's Ore UI Customizer v0.22.0</h1>
                 <h4>Instructions</h4>
                 <ul style="text-align: left; list-style: decimal">
                     <li>
@@ -2222,15 +2259,25 @@
                         <button type="button" class="btn nsel" id="download" disabled onclick="download()">Download</button>
                         <br />
                         <a href="./ore-ui-customizer-changelogs.html">
-                            <button type="button" class="btn nsel" id="changelogs-link-button" onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="changelogs-link-button"
+                                onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')"
+                            >
                                 Changelogs
                             </button>
                         </a>
                         <br />
                         <br />
                         <br />
-                        <p>If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices it could take up to 2 minutes for the file to actually download.</p>
-                        <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="downloadInNewTab()">Generate Download Link</button>
+                        <p>
+                            If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices
+                            it could take up to 2 minutes for the file to actually download.
+                        </p>
+                        <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="downloadInNewTab()">
+                            Generate Download Link
+                        </button>
                         <a target="_blank" id="download_in_new_tab_link">
                             <button type="button" class="btn nsel" id="download_in_new_tab_link_open_button" disabled>Open Generated Download Link</button>
                         </a>

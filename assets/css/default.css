@@ -829,20 +829,24 @@ ul:not(:not(.horizontal-nav)) {
         background-image: url("/assets/images/ui/toggle/toggle_off_hover.png");
     }
 
-    & > .mctoggleswitch .disabled-toggle-checkbox {
+    & > .mctoggleswitch.disabled-toggle-checkbox {
         background-image: url("/assets/images/ui/toggle/toggle_off.png");
         filter: brightness(0.5);
     }
 }
 
-.mctogglecontainer:has(> input:not(:not(.disabled-toggle-checkbox))) {
+.mctogglecontainer:has(> input:not(:not(.disabled-toggle-checkbox):not(:disabled))) {
     cursor: default;
+    pointer-events: none;
+    & > .mctoggleswitch {
+        filter: contrast(0.5);
+    }
     & > label {
         cursor: inherit;
     }
 }
 
-.mctogglecontainer:has(> input:not(.disabled-toggle-checkbox)) {
+.mctogglecontainer:has(> input:not(.disabled-toggle-checkbox):not(:disabled)) {
     cursor: pointer;
     & > label {
         cursor: inherit;

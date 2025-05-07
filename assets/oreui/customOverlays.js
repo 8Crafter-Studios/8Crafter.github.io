@@ -801,14 +801,19 @@ if (localStorage.getItem("autoJoinName")) {
                 "Join",
                 "Cancel",
                 "Turn Off Auto Rejoin",
-                async function addCountdown(container) {
+                async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                     for (let i = 10; i > 0; i--) {
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
                         if (container.getAttribute("data-closed") === "true") return;
                         container.querySelector("pre").textContent = container
                             .querySelector("pre")
                             .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        console.log(container.querySelector("pre").textContent);
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
                     }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(1);
                 }
             ).then(async (result) => {
                 switch (result) {
@@ -831,17 +836,18 @@ if (localStorage.getItem("autoJoinName")) {
                 "Cancel",
                 "Turn Off Auto Rejoin",
                 async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                     for (let i = 10; i > 0; i--) {
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
                         if (container.getAttribute("data-closed") === "true") return;
                         container.querySelector("pre").textContent = container
                             .querySelector("pre")
                             .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
                         console.log(container.querySelector("pre").textContent);
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
                     }
                     container.setAttribute("data-closed", "true");
                     container.remove();
-                    resolve(0);
+                    resolve(1);
                 }
             ).then(async (result) => {
                 switch (result) {
@@ -864,17 +870,18 @@ if (localStorage.getItem("autoJoinName")) {
                 "Cancel",
                 "Turn Off Auto Rejoin",
                 async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                     for (let i = 10; i > 0; i--) {
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
                         if (container.getAttribute("data-closed") === "true") return;
                         container.querySelector("pre").textContent = container
                             .querySelector("pre")
                             .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
                         console.log(container.querySelector("pre").textContent);
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
                     }
                     container.setAttribute("data-closed", "true");
                     container.remove();
-                    resolve(0);
+                    resolve(1);
                 }
             ).then(async (result) => {
                 switch (result) {

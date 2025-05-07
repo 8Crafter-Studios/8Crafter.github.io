@@ -2,9 +2,15 @@ const currentPresets = {
     none: { displayName: "None (Use Imported .zip File)", url: "" },
     "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
     "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+    "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
+    "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
     "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
+    "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
+    "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
+    "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
+    // "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
 };
-const format_version = "0.21.0";
+const format_version = "0.22.0";
 /**
  * @type {File}
  */
@@ -472,6 +478,14 @@ function getSettings() {
          */
         allowForChangingSeeds: $("#allow_for_changing_seeds").prop("checked"),
         /**
+         * This will allow you to change the flat world preset, even after the world has been created.
+         *
+         * Note: This option requires that the {@link addGeneratorTypeDropdown} option is enabled.
+         *
+         * @type {boolean}
+         */
+        allowForChangingFlatWorldPreset: $("#allow_for_changing_flat_world_preset").prop("checked") && $("#add_generator_type_dropdown").prop("checked"),
+        /**
          * If specified, this will override the max length of every text box to be the specified value.
          *
          * Leave it blank to not override it.
@@ -887,15 +901,52 @@ async function applyMods() {
                  * Lists of regexes to use for certain modifications.
                  */
                 const replacerRegexes = {
+                    /**
+                     * Make the hardcore mode toggle always clickable.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     *
+                     * #### Partially Supported:
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
                     hardcoreModeToggleAlwaysClickable: {
                         /**
                          * Replacing the hardcore mode toggle (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         0: [
                             /**
@@ -904,19 +955,60 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             /function ([a-zA-Z0-9_\$]{2})\(\s*?\{\s*?generalData\s*?:\s*?e\s*?,\s*?isLockedTemplate\s*?:\s*?t\s*?\}\s*?\)\s*?\{\s*?const\s*?\{\s*?t\s*?:\s*?n\s*?\}\s*?=\s*?([a-zA-Z0-9_\$]{2})\("CreateNewWorld\.general"\)\s*?,\s*?l\s*?=\s*?([a-zA-Z0-9_\$]{2})\(\)\s*?,\s*?o\s*?=\s*?\(\s*?0\s*?,\s*?a\s*?\.\s*?useContext\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?===\s*?([a-zA-Z0-9_\$]{2})\.CREATE\s*?,\s*?i=\s*?\(\s*?0\s*?,\s*?r\.useSharedFacet\s*?\)\s*?\(\s*?([a-zA-Z0-9_\$]{2})\s*?\)\s*?,\s*?c\s*?=\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?\(\s*?e\s*?,\s*?t\s*?,\s*?n\s*?\)\s*?=>\s*?n\s*?\|\|\s*?t\s*?\|\|\s*?!o\s*?\|\|\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.SURVIVAL\s*?&&\s*?e\.gameMode\s*?!==\s*?([a-zA-Z0-9_\$]{2})\.ADVENTURE\s*?\)\s*?,\s*?\[\s*?o\s*?\]\s*?,\s*?\[\s*?e\s*?,\s*?t\s*?,\s*?i\s*?\]\s*?\)\s*?;\s*?return \s*?a\.createElement\(\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?\{\s*?title\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeTitle"\)\s*?,\s*?soundEffectPressed\s*?:\s*?"ui\.hardcore_toggle_press"\s*?,\s*?disabled\s*?:\s*?c\s*?,\s*?description\s*?:\s*?([a-zA-Z0-9_\$]{1})\("\.hardcoreModeDescription"\)\s*?,\s*?value\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetMap\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?e\.isHardcore\s*?\)\s*?,\s*?\[\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?onChange\s*?:\s*?\(\s*?0\s*?,\s*?r\.useFacetCallback\s*?\)\s*?\(\s*?\(\s*?e\s*?=>\s*?t\s*?=>\s*?\{\s*?e\.isHardcore\s*?=\s*?t\s*?,\s*?l\(\s*?t\s*?\?\s*?"ui\.hardcore_enable"\s*?:\s*?"ui\.hardcore_disable"\s*?\)\s*?\}\s*?\)\s*?,\s*?\[\s*?l\s*?\]\s*?,\s*?\[\s*?e\s*?\]\s*?\)\s*?,\s*?gamepad\s*?:\s*?\{\s*?index\s*?:\s*?4\s*?\}\s*?,\s*?imgSrc\s*?:\s*?([a-zA-Z0-9_\$]{2})\s*?,\s*?"data-testid"\s*?:\s*?"hardcore-mode-toggle"\s*?\}\s*?\)\s*?\}/g,
                         ],
                     },
+                    /**
+                     * Allow for disabling the experimental toggles even after the world has been played with them on, also applies to the `Education Edition` toggle.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     *
+                     * #### Partially Supported:
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
                     allowDisablingEnabledExperimentalToggles: {
                         /**
                          * Replacing experimental toggle generation code (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         0: [
                             /**
@@ -925,21 +1017,62 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             new RegExp(
                                 `function ([a-zA-Z0-9_\$]{2})\\(\\{experimentalFeature:e,gamepadIndex:t,disabled:n,achievementsDisabledMessages:l,areAllTogglesDisabled:o\\}\\)\\{const\\{gt:i\\}=function\\(\\)\\{const\\{translate:e,formatDate:t\\}=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\);return\\(0,a\\.useMemo\\)\\(\\(\\(\\)=>\\(\\{f:\\{formatDate:t\\},gt:\\(t,n\\)=>\\{var a;return null!==\\(a=e\\(t,n\\)\\)&&void 0!==a\\?a:t\\}\\}\\)\\),\\[e,t\\]\\)\\}\\(\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.id\\),\\[\\],\\[e\\]\\),u=\\(0,r\\.useFacetUnwrap\\)\\(s\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.title\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetUnwrap\\)\\(d\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.description\\),\\[\\],\\[e\\]\\),f=\\(0,r\\.useFacetUnwrap\\)\\(p\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isEnabled\\),\\[\\],\\[e\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>e\\|\\|t\\.isTogglePermanentlyDisabled\\),\\[\\],\\[\\(0,r\\.useFacetWrap\\)\\(n\\),e\\]\\),h=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{n&&t\\?([a-zA-Z0-9_\$]{2})\\.set\\(\\{userTriedToActivateToggle:!0,doSetToggleValue:\\(\\)=>e\\.isEnabled=n,userHasAcceptedBetaFeatures:!1\\}\\):e\\.isEnabled=n\\}\\),\\[\\],\\[e,o\\]\\),v=c\\("\\.narrationSuffixDisablesAchievements"\\),b=\\(0,r\\.useFacetMap\\)\\(\\(e=>0===e\\.length\\?c\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[c\\],\\[l\\]\\);return null!=u\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:m!==r\\.NO_VALUE\\?i\\(m\\):"",description:f!==r\\.NO_VALUE\\?i\\(f\\):"",gamepad:\\{index:t\\},value:g,disabled:E,onChange:h,onNarrationText:v,offNarrationText:b\\}\\):null\\}`
                             ),
                         ],
                     },
+                    /**
+                     * Make the hardcore mode toggle always clickable (v1).
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     *
+                     * #### Partially Supported:
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
                     addMoreDefaultGameModes: {
                         /**
                          * Replacing game mode dropdown code (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         0: [
                             /**
@@ -948,6 +1081,10 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             new RegExp(
                                 `function ([a-zA-Z0-9_\$]{2})\\(\\{generalData:e,isLockedTemplate:t,isUsingTemplate:n,achievementsDisabledMessages:l,isHardcoreMode:o\\}\\)\\{const\\{t:i\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.general"\\),\\{t:c\\}=${extractedFunctionNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),s=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),u=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,d=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>e\\|\\|t\\|\\|n\\),\\[\\],\\[t,s,o\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>\\{const n=\\[([a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeSurvivalLabel"\\),description:i\\("\\.gameModeSurvivalDescription"\\),value:([a-zA-Z0-9_\$]{2})\\.SURVIVAL\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\),\\{label:i\\("\\.gameModeCreativeLabel"\\),description:i\\("\\.gameModeCreativeDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.CREATIVE,narrationSuffix:c\\("\\.narrationSuffixDisablesAchievements"\\)\\}\\];return\\(u\\|\\|t\\)&&n\\.push\\((?:[a-zA-Z0-9_\$]{2})\\(\\{label:i\\("\\.gameModeAdventureLabel"\\),description:i\\(t\\?"\\.gameModeAdventureTemplateDescription":"\\.gameModeAdventureDescription"\\),value:(?:[a-zA-Z0-9_\$]{2})\\.ADVENTURE\\},1===e\\.length\\?\\{narrationSuffix:c\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\)\\),n\\}\\),\\[i,c,u\\],\\[l,n\\]\\),f=\\(0,r\\.useNotifyMountComplete\\)\\(\\);return a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:i\\("\\.gameModeTitle"\\),disabled:m,options:p,onMountComplete:f,value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameMode\\),\\[\\],\\[e\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t\\)=>n=>\\{const a=e\\.gameMode;e\\.gameMode=n,u&&t\\.trackOptionChanged\\(([a-zA-Z0-9_\$]{2})\\.GameModeChanged,a,n\\)\\}\\),\\[u\\],\\[e,d\\]\\)\\}\\)\\}`
@@ -956,11 +1093,25 @@ async function applyMods() {
                         /**
                          * Replacing game mode id enumeration (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         1: [
                             /**
@@ -969,21 +1120,63 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
                              */
                             new RegExp(
                                 `function\\(e\\)\\{e\\[e\\.UNKNOWN=-1\\]="UNKNOWN",e\\[e\\.SURVIVAL=0\\]="SURVIVAL",e\\[e\\.CREATIVE=1\\]="CREATIVE",e\\[e\\.ADVENTURE=2\\]="ADVENTURE"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\(([a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
                             ),
                         ],
                     },
+                    /**
+                     * Add the generator type dropdown to the advanced tab of the create and edit world screens.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     *
+                     * #### Partially Supported:
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
                     addGeneratorTypeDropdown: {
                         /**
                          * Adding the generator type dropdown (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         0: [
                             /**
@@ -992,6 +1185,10 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             new RegExp(
                                 `(?:[a-zA-Z0-9_\$]{1})&&!(?:[a-zA-Z0-9_\$]{1})\\?a\\.createElement\\(r\\.Mount,\\{when:([a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:([a-zA-Z0-9_\$]{1})\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_\$]{2})\\.Overworld,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.vanillaWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Flat,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.flatWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_\$]{2})\\.Void,label:(?:[a-zA-Z0-9_\$]{1})\\("\\.voidWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:([a-zA-Z0-9_\$]{1})\\.value,onChange:(?:[a-zA-Z0-9_\$]{1})\\.onChange\\}\\)\\)\\):null`
@@ -1000,11 +1197,25 @@ async function applyMods() {
                         /**
                          * Replacing generator type id enumeration (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         1: [
                             /**
@@ -1013,6 +1224,11 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
                              */
                             new RegExp(
                                 `function\\(e\\)\\{e\\[e\\.Legacy=0\\]="Legacy",e\\[e\\.Overworld=1\\]="Overworld",e\\[e\\.Flat=2\\]="Flat",e\\[e\\.Nether=3\\]="Nether",e\\[e\\.TheEnd=4\\]="TheEnd",e\\[e\\.Void=5\\]="Void",e\\[e\\.Undefined=6\\]="Undefined"\\}\\(([a-zA-Z0-9_\$]{2})\\|\\|\\((?:[a-zA-Z0-9_\$]{2})=\\{\\}\\)\\),`
@@ -1028,11 +1244,19 @@ async function applyMods() {
                      * - 1.21.70/71/72 (index-d6df7.js)
                      * - 1.21.70/71/72 dev (index-1fd56.js)
                      * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     * - 1.21.90.21 preview (index-aaad2.js)
                      *
                      * #### Partially Supported:
                      *
                      * #### Not Supported:
                      * - < 1.21.70
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
                      */
                     allowForChangingSeeds: {
                         /**
@@ -1044,11 +1268,19 @@ async function applyMods() {
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
                          *
                          * #### Partially Supported:
                          *
                          * #### Not Supported:
                          * - < 1.21.70
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          */
                         0: [
                             /**
@@ -1057,9 +1289,132 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
                              */
                             new RegExp(
                                 `([a-zA-Z0-9_\$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:n,isSeedChangeLocked:l,showSeedTemplates:o\\}\\)=>\\{const\\{t:i\\}=([a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:c\\}=(?:[a-zA-Z0-9_\$]{2})\\("CreateNewWorld\\.all"\\),s=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,u=([a-zA-Z0-9_\$]{2})\\(([a-zA-Z0-9_\$]{2})\\),d=([a-zA-Z0-9_\$]{2})\\(\\),m=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),p=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),f=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[m\\]\\),E=\\(0,r\\.useFacetCallback\\)\\(\\(\\(e,t,n\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),n\\.queueSnackbar\\(i\\("\\.copyToClipboard"\\)\\)\\}\\),\\[i\\],\\[f,m,p\\]\\),h=s\\?E:\\(\\)=>d\\.push\\("/create-new-world/seed-templates"\\),v=s\\?"":i\\("\\.worldSeedPlaceholder"\\),b=i\\(s\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),y=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t,n\\)=>t\\|\\|n&&u&&!s&&e\\.generatorType!=([a-zA-Z0-9_\$]{2})\\.Overworld\\),\\[u,s\\],\\[e,l,t\\]\\);return o\\?a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{data:g\\},\\(e=>s&&!e\\?a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{disabled:s,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):a\\.createElement\\((?:[a-zA-Z0-9_\$]{2})\\.WithButton,\\{buttonInputLegend:b,buttonText:b,buttonOnClick:h,textDisabled:s,disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:v,buttonNarrationHint:i\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{disabled:y,label:i\\("\\.worldSeedLabel"\\),description:i\\("\\.worldSeedDescription"\\),maxLength:32,value:f,onChange:n,placeholder:i\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:c\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
+                            ),
+                        ],
+                    },
+                    /**
+                     * Allow for changing the flat world preset in the advanced tab of the edit world screen.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Partially Supported:
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.80.20 preview (index-1da13.js)
+                     * - < 1.21.80.3 (index-07a21.js)
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
+                    allowForChangingFlatWorldPreset: {
+                        /**
+                         * Make the flat world toggle and preset selector always enabled in the advanced tab of the edit world screen.
+                         *
+                         * ### Minecraft version support:
+                         *
+                         * #### Fully Supported:
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.80.20 preview (index-1da13.js)
+                         * - < 1.21.80.3 (index-07a21.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
+                         */
+                        0: [
+                            /**
+                             * ### Minecraft version support:
+                             *
+                             * #### Fully Supported:
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
+                             *
+                             * #### Partially Supported:
+                             *
+                             * #### Not Supported:
+                             * - < 1.21.80.20 preview (index-1da13.js)
+                             * - < 1.21.80.3 (index-07a21.js)
+                             *
+                             * #### Support Unknown:
+                             * - \> 1.21.90.21 preview (index-aaad2.js)
+                             */
+                            new RegExp(
+                                `a\\.createElement\\(r\\.Mount,\\{when:(?:[a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.useFlatWorld\\),\\[\\],\\[([a-zA-Z0-9_\$]{1})\\]\\),preset:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.flatWorldPreset\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onValueChanged:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.useFlatWorld=t,t&&e\\.flatWorldPreset\\?([a-zA-Z0-9_\$]{1})\\(([a-zA-Z0-9_\$]{2})\\[e\\.flatWorldPreset\\]\\):(?:[a-zA-Z0-9_\$]{1})\\(""\\)\\}\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onPresetChanged:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatWorldPreset=t,e\\.useFlatWorld\\?(?:[a-zA-Z0-9_\$]{1})\\((?:[a-zA-Z0-9_\$]{2})\\[t\\]\\):(?:[a-zA-Z0-9_\$]{1})\\(""\\)\\}\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:(?:[a-zA-Z0-9_\$]{1}),hideAccordion:\\(0,r\\.useFacetMap\\)\\(\\(e=>null==e\\.flatWorldPreset\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),achievementsDisabledMessages:([a-zA-Z0-9_\$]{1})\\}\\)\\)\\)`
+                            ),
+                        ],
+                        /**
+                         * Make the dropdown for the flat world preset selector always visible when the flat world toggle is enabled in the advanced tab of the edit world screen.
+                         *
+                         * ### Minecraft version support:
+                         *
+                         * #### Fully Supported:
+                         * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.80.20 preview (index-1da13.js)
+                         * - < 1.21.80.3 (index-07a21.js)
+                         *
+                         * #### Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
+                         */
+                        1: [
+                            /**
+                             * ### Minecraft version support:
+                             *
+                             * #### Fully Supported:
+                             * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
+                             *
+                             * #### Partially Supported:
+                             *
+                             * #### Not Supported:
+                             * - < 1.21.80.20 preview (index-1da13.js)
+                             * - < 1.21.80.3 (index-07a21.js)
+                             *
+                             * #### Support Unknown:
+                             * - \> 1.21.90.21 preview (index-aaad2.js)
+                             */
+                            new RegExp(
+                                `return a\\.createElement\\(a\\.Fragment,null,a\\.createElement\\(r\\.Mount,\\{when:(?:[a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onChange:([a-zA-Z0-9_\$]{1}),value:([a-zA-Z0-9_\$]{1}),title:([a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),disabled:([a-zA-Z0-9_\$]{1}),offNarrationText:([a-zA-Z0-9_\$]{1}),onNarrationText:([a-zA-Z0-9_\$]{1}),narrationSuffix:([a-zA-Z0-9_\$]{1})\\}\\)\\),a\\.createElement\\(r\\.Mount,\\{when:(?:[a-zA-Z0-9_\$]{1}),condition:!1\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:(?:[a-zA-Z0-9_\$]{1}),onChange:(?:[a-zA-Z0-9_\$]{1}),disabled:(?:[a-zA-Z0-9_\$]{1}),narrationSuffix:(?:[a-zA-Z0-9_\$]{1}),offNarrationText:(?:[a-zA-Z0-9_\$]{1}),onNarrationText:(?:[a-zA-Z0-9_\$]{1}),onExpandNarrationHint:([a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:([a-zA-Z0-9_\$]{1})\\("\\.title"\\),customSelectionDescription:a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{preset:([a-zA-Z0-9_\$]{1})\\}\\),options:([a-zA-Z0-9_\$]{1}),value:([a-zA-Z0-9_\$]{1}),onItemSelect:e=>l\\(([a-zA-Z0-9_\$]{2})\\[e\\]\\),disabled:(?:[a-zA-Z0-9_\$]{1}),wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:([a-zA-Z0-9_\$]{1})\\}\\)\\)\\)\\)`
                             ),
                         ],
                     },
@@ -1072,23 +1427,46 @@ async function applyMods() {
                      * - 1.21.70/71/72 (index-d6df7.js)
                      * - 1.21.70/71/72 dev (index-1fd56.js)
                      * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
                      *
                      * #### Partially Supported:
                      * - 1.21.60/61/62 (index-41cdf.js) {Only adds debug tab, does not modify it.}
                      * - 1.21.60.27/28 preview (index-41cdf.js) {Only adds debug tab, does not modify it.}
+                     * - 1.21.80.25 preview (index-b3e96.js) {Only adds debug tab, does not modify it.}
+                     * - 1.21.90.21 preview (index-aaad2.js) {Only adds debug tab, does not modify it.}
                      *
                      * #### Not Supported:
                      * - < 1.21.60
+                     *
+                     * ## Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
                      */
                     addDebugTab: {
                         /**
                          * Replacing the debug tab of the create and edit world screens (v1).
                          *
-                         * Known supported Minecraft versions:
+                         * ### Minecraft version support:
                          *
+                         * #### Fully Supported:
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         *
+                         * #### Partially Supported:
+                         *
+                         * #### Not Supported:
+                         * - < 1.21.70
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
+                         *
+                         * ## Support Unknown:
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
+                         * - 1.21.70.xx preview
                          */
                         0: [
                             /**
@@ -1097,11 +1475,15 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             new RegExp(
-                                `function ([a-zA-Z0-9_\$]{2})\\(\\{worldData:e,achievementsDisabledMessages:t,onUnlockTemplateSettings:n,onExportTemplate:l,onClearPlayerData:o,isEditorWorld:i\\}\\)\\{const c=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),s=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),u=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[e\\]\\),d=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[e\\]\\),m=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[c\\]\\),p=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\)\\)\\),\\[\\],\\[s\\]\\),f=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[p,m\\]\\),g=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[c\\]\\),E=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),h=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),v=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e\\.platform\\)\\),\\[\\],\\[h\\]\\),b=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,y=\\(0,r\\.useFacetMap\\)\\(\\(e=>e&&b\\),\\[b\\],\\[v\\]\\);return a\\.createElement\\(r\\.DeferredMountProvider,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,narrationText:"Debug",onUnlockTemplateSettings:n,isEditorWorld:i\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Flat nether",gamepad:\\{index:0\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[c\\]\\),onChange` +
-                                    `:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatNether=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Enable game version override",gamepad:\\{index:1\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.enableGameVersionOverride\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.enableGameVersionOverride=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:"Game version override",gamepadIndex:2,placeholder:"0\\.0\\.0",maxLength:30,disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.enableGameVersionOverride\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameVersionOverride\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.gameVersionOverride=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),` +
-                                    `a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"World biome settings"\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:\\{index:3\\},disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.defaultSpawnBiome=t\\}\\),\\[\\],\\[c\\]\\)\\}\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onMountComplete:\\(0,r\\.useNotifyMountComplete\\)\\(\\),title:"Spawn dimension filter",disabled:E,wrapToggleText:!0,options:\\[\\{label:"Overworld",value:0\\},\\{label:"Nether",value:1\\}\\],value:m,onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.spawnDimensionId=t\\}\\),\\[\\],\\[c\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Spawn biome",options:f,onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>e\\.spawnBiomeId=t\\),\\[\\],\\[c\\]\\),disabled:E,value:\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>t\\.filter\\(\\(t=>t\\.value===e\\)\\)\\.length>0\\?e:t\\[0\\]\\.value\\),\\[\\],\\[g,f\\]\\),focusOnSelectedItem:!0\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",description:"Set the world to a selected biome\\. This will override the Spawn biome!",gamepad:\\{index:6\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.isBiomeOverrideActive=t\\}\\),\\[\\],\\[c\\]\\)\\}\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",description:"Select biome to be used in the entire world",options:p,disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.isBiomeOverrideActive\\),\\[\\],\\[c\\]\\),onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.biomeOverrideId=t\\}\\),\\[\\],\\[c\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.biomeOverrideId\\),\\[\\],\\[c\\]\\),focusOnSelectedItem:!0\\}\\),a\\.createElement\\(r\\.Mount,\\{when:y\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onExportTemplate:l,onClearPlayerData:o\\}\\)\\)\\)\\)\\}`
+                                `function ([a-zA-Z0-9_\$]{2})\\(\\{(?:worldData:e,achievementsDisabledMessages:t,)?onUnlockTemplateSettings:(?:[a-zA-Z0-9_\$]{1}),onExportTemplate:(?:[a-zA-Z0-9_\$]{1}),onClearPlayerData:(?:[a-zA-Z0-9_\$]{1}),isEditorWorld:(?:[a-zA-Z0-9_\$]{1})\\}\\)\\{const (?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),)?(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\)\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_\$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useSharedFacet\\)\\(([a-zA-Z0-9_\$]{2})\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_\$]{2})\\(e\\.platform\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),(?:[a-zA-Z0-9_\$]{1})=\\(0,a\\.useContext\\)\\(([a-zA-Z0-9_\$]{2})\\)!==([a-zA-Z0-9_\$]{2})\\.CREATE,(?:[a-zA-Z0-9_\$]{1})=\\(0,r\\.useFacetMap\\)\\(\\(e=>e&&(?:[a-zA-Z0-9_\$]{1})\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\);return a\\.createElement\\(r\\.DeferredMountProvider,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{(?:isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,)?narrationText:"Debug",onUnlockTemplateSettings:(?:[a-zA-Z0-9_\$]{1}),isEditorWorld:(?:[a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Flat nether",gamepad:\\{index:0\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange` +
+                                    `:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatNether=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Enable game version override",gamepad:\\{index:1\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.enableGameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{label:"Game version override",gamepadIndex:2,placeholder:"0\\.0\\.0",maxLength:30,disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.gameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.gameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\)\\),` +
+                                    `a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"World biome settings"\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",gamepad:\\{index:3\\},disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.defaultSpawnBiome=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onMountComplete:\\(0,r\\.useNotifyMountComplete\\)\\(\\),title:"Spawn dimension filter",disabled:(?:[a-zA-Z0-9_\$]{1}),wrapToggleText:!0,options:\\[\\{label:"Overworld",value:0\\},\\{label:"Nether",value:1\\}\\],value:(?:[a-zA-Z0-9_\$]{1}),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.spawnDimensionId=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\)\\),a\\.createElement\\(r\\.DeferredMount,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{title:"Spawn biome",options:(?:[a-zA-Z0-9_\$]{1}),onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>e\\.spawnBiomeId=t\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:(?:[a-zA-Z0-9_\$]{1}),value:\\(0,r\\.useFacetMap\\)\\(\\(\\(e,t\\)=>t\\.filter\\(\\(t=>t\\.value===e\\)\\)\\.length>0\\?e:t\\[0\\]\\.value\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),focusOnSelectedItem:!0\\}\\)\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",description:"Set the world to a selected biome\\. This will override the Spawn biome!",gamepad:\\{index:6\\},value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.isBiomeOverrideActive=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\)\\}\\),a\\.createElement\\((?:[a-zA-Z0-9_\$]{2}),\\{title:"Biome override",` +
+                                    `description:"Select biome to be used in the entire world",options:(?:[a-zA-Z0-9_\$]{1}),disabled:\\(0,r\\.useFacetMap\\)\\(\\(e=>!e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onItemSelect:\\(0,r\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.biomeOverrideId=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),value:\\(0,r\\.useFacetMap\\)\\(\\(e=>e\\.biomeOverrideId\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),focusOnSelectedItem:!0\\}\\),a\\.createElement\\(r\\.Mount,\\{when:(?:[a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onExportTemplate:(?:[a-zA-Z0-9_\$]{1}),onClearPlayerData:(?:[a-zA-Z0-9_\$]{1})\\}\\)\\)\\)\\)\\}`
                             ),
                         ],
                         /**
@@ -1115,6 +1497,11 @@ async function applyMods() {
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
+                         * - 1.21.90.21 preview (index-aaad2.js)
                          *
                          * #### Partially Supported:
                          *
@@ -1122,7 +1509,7 @@ async function applyMods() {
                          * - < 1.21.60
                          *
                          * #### Support Unknown:
-                         * - \> 1.21.80.22 preview
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          * - 1.21.70.xx preview
                          */
                         1: [
@@ -1134,10 +1521,38 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
+                             * - 1.21.90.21 preview (index-aaad2.js)
                              */
                             new RegExp(`e&&([tr])\\.push\\(\\{label:"\\.debugTabLabel",image:([a-zA-Z0-9_\$]{2}),value:"debug"\\}\\),`),
                         ],
                     },
+                    /**
+                     * Add the 8Crafter Utilities main menu button to the top right corner of the screen, in the navbar.
+                     *
+                     * ### Minecraft version support:
+                     *
+                     * #### Fully Supported:
+                     * - 1.21.70/71/72 (index-d6df7.js)
+                     * - 1.21.70/71/72 dev (index-1fd56.js)
+                     * - 1.21.80.20/21/22 preview (index-1da13.js)
+                     * - 1.21.80.25 preview (index-b3e96.js)
+                     * - 1.21.80.27/28 preview (index-07a21.js)
+                     * - 1.21.80.3 (index-07a21.js)
+                     * - 1.21.90.20 preview (index-fe5c0.js)
+                     *
+                     * #### Partially Supported:
+                     *
+                     * #### Not Supported:
+                     * - < 1.21.70
+                     * - 1.21.90.21 preview (index-aaad2.js)
+                     *
+                     * #### Support Unknown:
+                     * - \> 1.21.90.21 preview (index-aaad2.js)
+                     */
                     add8CrafterUtilitiesMainMenuButton: {
                         /**
                          * Adding the 8Crafter Utilities main menu button to the top right corner of the screen, in the navbar (v1).
@@ -1150,14 +1565,19 @@ async function applyMods() {
                          * - 1.21.70/71/72 (index-d6df7.js)
                          * - 1.21.70/71/72 dev (index-1fd56.js)
                          * - 1.21.80.20/21/22 preview (index-1da13.js)
+                         * - 1.21.80.25 preview (index-b3e96.js)
+                         * - 1.21.80.27/28 preview (index-07a21.js)
+                         * - 1.21.80.3 (index-07a21.js)
+                         * - 1.21.90.20 preview (index-fe5c0.js)
                          *
                          * #### Partially Supported:
                          *
                          * #### Not Supported:
+                         * - 1.21.90.21 preview (index-aaad2.js)
                          *
                          * #### Support Unknown:
                          * - < 1.21.60
-                         * - \> 1.21.80.22 preview
+                         * - \> 1.21.90.21 preview (index-aaad2.js)
                          * - 1.21.70.xx preview
                          */
                         0: [
@@ -1169,6 +1589,10 @@ async function applyMods() {
                              * - 1.21.70/71/72 (index-d6df7.js)
                              * - 1.21.70/71/72 dev (index-1fd56.js)
                              * - 1.21.80.20/21/22 preview (index-1da13.js)
+                             * - 1.21.80.25 preview (index-b3e96.js)
+                             * - 1.21.80.27/28 preview (index-07a21.js)
+                             * - 1.21.80.3 (index-07a21.js)
+                             * - 1.21.90.20 preview (index-fe5c0.js)
                              */
                             new RegExp(
                                 `a\\.createElement\\(r\\.Mount,\\{when:([a-zA-Z0-9_\$]{1})\\},a\\.createElement\\(a\\.Fragment,null,a\\.createElement\\(([a-zA-Z0-9_\$]{2})\\.Divider,null\\),a\\.createElement\\(([a-zA-Z0-9_\$]{2}),\\{onClick:([eo]),screenAnalyticsId:([a-zA-Z0-9_\$]{1})\\}\\)\\)\\)`
@@ -1573,7 +1997,7 @@ async function applyMods() {
                 }
                 if (settings.allowForChangingSeeds) {
                     let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
+                    for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
                         if (regex.test(distData)) {
                             distData = distData.replace(
                                 regex,
@@ -1655,6 +2079,41 @@ async function applyMods() {
                     }
                     if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && !successfullyReplaced) {
                         failedReplaces.push("allowForChangingSeeds");
+                    }
+                }
+                if (settings.allowForChangingFlatWorldPreset) {
+                    let successfullyReplacedA = false;
+                    let successfullyReplacedB = false;
+                    for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[0]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `a.createElement(r.Mount,{when:true},a.createElement($1,{value:(0,r.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,r.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,r.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,r.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,r.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`
+                            );
+                            successfullyReplacedA = true;
+                            break;
+                        }
+                    }
+                    for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
+                        if (regex.test(distData)) {
+                            distData = distData.replace(
+                                regex,
+                                `return a.createElement(a.Fragment,null,a.createElement(r.Mount,{when:false},a.createElement($1,{onChange:$2,value:$3,title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),disabled:$5,offNarrationText:$6,onNarrationText:$7,narrationSuffix:$8})),a.createElement(r.Mount,{when:false,condition:!1},a.createElement($9,{title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),value:$3,onChange:$2,disabled:$5,narrationSuffix:$8,offNarrationText:$6,onNarrationText:$7,onExpandNarrationHint:$10},a.createElement($11,{title:$12(".title"),customSelectionDescription:a.createElement($13,{preset:$14}),options:$15,value:$16,onItemSelect:e=>l($17[e]),disabled:$5,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$18}))))`
+                            );
+                            successfullyReplacedB = true;
+                            break;
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && origData.includes("flatWorldPreset")) {
+                        if (!successfullyReplacedA) {
+                            failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
+                        }
+                        if (!successfullyReplacedB) {
+                            failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
+                        }
+                    }
+                    if (/index-[0-9a-f]{5}\.js$/.test(entry.data.filename) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
+                        failedReplaces.push("allowForChangingFlatWorldPreset");
                     }
                 }
                 if (settings.addDebugTab) {
