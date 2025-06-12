@@ -1329,3 +1329,13 @@ ul:not(:not(.horizontal-nav)) {
 .collapsible-group:not(:has(> .collapsible-group-content-collapsed)) .collapsible-group-header {
     border-bottom: 1px solid #d1d5da;
 }
+
+.youtube-embed {
+  max-width: 700px;
+  aspect-ratio: 16 / 9;
+
+  iframe {
+    width: 100%;
+    height: 100%;
+  }
+}
