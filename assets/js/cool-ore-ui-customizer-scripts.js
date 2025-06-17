@@ -1,15 +1,15 @@
 // RGB Ore UI
 (async function cycleHueRotate(
     stopOnCondition = function () {
-        return false;
+        return globalThis.stopRGB;
     },
-    interval = 20,
-    step = 1
+    interval = 1,
+    step = 20
 ) {
     let val = 0;
-    return new Promise(function resolve() {
+    return new Promise(function resolveA(resolve) {
         let id = setInterval(function () {
-            if (stopOnCondition() == true) {
+            if (stopOnCondition()) {
                 clearInterval(id);
                 resolve(true);
                 return;

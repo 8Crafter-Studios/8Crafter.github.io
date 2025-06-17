@@ -13,5 +13,8 @@
     "express": "^4.21.1",
     "jquery": "^3.7.1",
     "sitemap-generator": "^8.5.1"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.32"
   }
 }

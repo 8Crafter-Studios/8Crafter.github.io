@@ -49,7 +49,7 @@ export default function getComponent(tabIndex = -1){
                 </div>
             </div>
         </li>
-        <li style="float:right;cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px; position: relative; top: 4px;"></div>Settings</a></li>
+        <li style="float:right;cursor:pointer;"><a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px; position: relative; top: 4px;"></div>Settings</a></li>
       </ul>
       <ul class="horizontal-nav compressed-nav">
         <li style="float:left; cursor:pointer;"><a onclick="$('#nav-sidebar').toggle('slide')" style="vertical-align: middle; padding: 0px; height:44px; width:44px;"><div class="menu_threebars_button" title="Menu" style="width: 30px; height: 30px;"></div></a></li>
@@ -90,7 +90,7 @@ export default function getComponent(tabIndex = -1){
                   </div>
               </div>
           </li>
-          <li style="cursor:pointer;"><a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
+          <li style="cursor:pointer;"><a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
         </ul>
       </div>
     </header>`

@@ -144,7 +144,7 @@
                         ></a>
                     </li>
                     <li style="float: right; cursor: pointer">
-                        <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle">
+                        <a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle">
                             <div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
                             Settings
                         </a>
@@ -184,7 +184,7 @@
                         ></a>
                     </li>
                     <li style="float: right; cursor: pointer">
-                        <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle">
+                        <a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle">
                             <div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
                             Settings
                         </a>
@@ -224,7 +224,7 @@
                             ></a>
                         </li>
                         <li style="float: right; cursor: pointer">
-                            <a onclick="$('#settings_menu').slideToggle()" style="vertical-align: middle">
+                            <a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle">
                                 <div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
                                 Settings
                             </a>
@@ -234,8 +234,7 @@
             </header>
         </autofill_from_file>
         <autofill_from_file src="/components/settings_menu.component.js"></autofill_from_file>
-        <div id="customizer_settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none">
-            <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5"></div>
+        <overlay-page id="customizer_settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none">
             <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; z-index: 1">
                 <button
                     type="button"
@@ -250,7 +249,7 @@
                 </button>
             </div>
             <div style="border-left: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; right: 0px; z-index: 1">
-                <button type="button" class="btn nsel" id="customizer_settings_hide_button" onclick="$('#customizer_settings_menu').slideToggle()">
+                <button type="button" class="btn nsel" id="customizer_settings_hide_button" onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()">
                     Close
                 </button>
             </div>
@@ -2099,7 +2098,7 @@
                     ></iframe>
                 </div>
             </settings_section>
-        </div>
+        </overlay-page>
         <main>
             <center
                 style="
@@ -2164,7 +2163,7 @@
                     <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
                 </ul>
                 <hr />
-                <button type="button" class="btn nsel" id="customizer_settings_show_button" onclick="$('#customizer_settings_menu').slideToggle()">
+                <button type="button" class="btn nsel" id="customizer_settings_show_button" onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()">
                     Show Options
                 </button>
                 <hr />

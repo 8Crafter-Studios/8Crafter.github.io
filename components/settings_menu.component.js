@@ -1,7 +1,6 @@
 export default function getComponent(){
 	return `
-    <div id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none;">
-      <div class="use_menu_background overlay_page" style="z-index: -1; opacity: 0.5;"></div>
+    <overlay-page id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none;">
       <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
         <button type="button" onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}" class="btn nsel" style="float: left; width: 60px" id="settings_left_sidebar_toggle_button" ontouchstart="" mode="1">Hide</button>
       </div>
@@ -15,7 +14,7 @@ export default function getComponent(){
           <div class="no-remove-disabled nsel">Audio</div>
         </label>
       </div>
-      <settings_section id="video_settings_section" class="settings_section">
+      <settings-section id="video_settings_section" class="settings_section">
         <center><h1>Video Settings</h1></center>
         <div class="mctogglecontainer nsel" ontouchstart="" onclick="{let checkbox = $(this).find('input[type=\\'checkbox\\']'); checkbox.prop('checked', !checkbox.prop('checked'))}" style="display: inline-block;">
           <input type="checkbox" id="use_noto_sans_font" name="use_noto_sans_font" value="Use Noto Sans Font" class="mctoggle" title="use_noto_sans_font">
@@ -93,8 +92,8 @@ export default function getComponent(){
         	<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="save_zoom_change">Save Zoom Change</button>
 					<button ontouchstart type="button" class="btn no-remove-disabled nsel" id="reset_zoom" onclick="$('#zoom_text_box').val('100'); $('#confirm_zoom_change').click(); $('#save_zoom_change').click()">Reset Zoom</button>
         </div>
-      </settings_section>
-      <settings_section id="audio_settings_section" class="settings_section">
+      </settings-section>
+      <settings-section id="audio_settings_section" class="settings_section">
         <center><h1>Audio</h1></center>
         <mcslider>
           <label for="master_volume_slider">Master Volume: 0%</label>
@@ -153,6 +152,6 @@ export default function getComponent(){
           </div>
         </div>
         <br>
-      </settings_section>
-    </div>`
+      </settings-section>
+    </overlay-page>`
 }

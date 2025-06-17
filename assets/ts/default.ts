@@ -1,4 +1,3 @@
-"use strict";
 import("./JSONB.js");
 import("./index.js");
 /**
@@ -8,14 +7,15 @@ import("./index.js");
  *
  * @type {{[category in typeof volumeCategories[number]]: number}}
  */
-const volume = {
+const volume: { [category in (typeof volumeCategories)[number]]: number } = {
     master: 100,
     ui: 100,
 };
 /**
  * @type {`${keyof typeof SoundEffects["audioElementsB"]}${"" | "B"}`}
  */
-let defaultButtonSoundEffect = "pop";
+let defaultButtonSoundEffect: `${keyof (typeof SoundEffects)["audioElementsB"]}${"" | "B"}` = "pop";
+
 /**
  * Cycles the hue rotate of the root element.
  *
@@ -24,7 +24,7 @@ let defaultButtonSoundEffect = "pop";
  * @param {number} step The step to add to the hue rotate.
  * @returns {Promise<true>}} A promise that resolves when the cycle is stopped.
  */
-async function cycleHueRotate(stopOnCondition = () => false, interval = 20, step = 1) {
+async function cycleHueRotate(stopOnCondition: () => boolean = () => false, interval: number = 20, step: number = 1): Promise<true> {
     let val = 0;
     return new Promise((resolve) => {
         let id = setInterval(() => {
@@ -35,61 +35,75 @@ async function cycleHueRotate(stopOnCondition = () => false, interval = 20, step
             }
             // $("#hue_rotate_deg_slider").val(($("#hue_rotate_deg_slider").val() + 1) % 360);
             // $("#hue_rotate_deg_slider").trigger("input");
+
             val += step;
             val %= 360;
-            const rule = document.styleSheets[0]?.cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:")));
+
+            const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
+                Object.values(document.styleSheets[0].cssRules).findIndex(
+                    (r) => (r as CSSStyleRule).selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:")
+                )
+            ) as CSSStyleRule;
             rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, val.toString());
         }, interval);
     });
 }
 // globalThis.cycleHueRotate = cycleHueRotate;
+
 /**
  * Format file size in metric prefix
  *
  * @param {number | string} fileSize
  * @returns {string}
  */
-const formatFileSizeMetric = (fileSize) => {
+const formatFileSizeMetric = (fileSize: number | string): string => {
     let size = Math.abs(Number(fileSize));
+
     if (Number.isNaN(size)) {
         return "Invalid file size";
     }
+
     if (size === 0) {
         return "0 bytes";
     }
+
     const units = ["bytes", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"];
     let quotient = Math.floor(Math.log10(size) / 3);
     quotient = quotient < units.length ? quotient : units.length - 1;
     size /= 1000 ** quotient;
+
     return `${+size.toFixed(2)} ${units[quotient]}`;
 };
+
 /**
  * Gets a style rule.
  *
  * @param {string} name The name of the style rule.
  * @returns {CSSStyleDeclaration | null} The style rule.
  */
-function getStyleRule(name) {
+function getStyleRule(name: string): CSSStyleDeclaration | null {
     for (var i = 0; i < document.styleSheets.length; i++) {
-        var ix, sheet = document.styleSheets[i];
+        var ix,
+            sheet = document.styleSheets[i]!;
         for (ix = 0; ix < sheet.cssRules.length; ix++) {
-            if (sheet.cssRules[ix].selectorText === name)
-                return sheet.cssRules[ix].style;
+            if ((sheet.cssRules[ix]! as CSSStyleRule).selectorText === name) return (sheet.cssRules[ix] as CSSStyleRule).style;
         }
     }
     return null;
 }
+
 /**
  * Executes a callback for each style rule.
  *
  * @param {(rule: CSSStyleDeclaration, ruleName: string, styleSheet: CSSStyleSheet)=>any} callbackfn The callback function.
  * @returns {null} Returns `null`.
  */
-function forEachRuleCallback(callbackfn) {
+function forEachRuleCallback(callbackfn: (rule: CSSStyleDeclaration, ruleName: string, styleSheet: CSSStyleSheet) => any): null {
     for (var i = 0; i < document.styleSheets.length; i++) {
-        var ix, sheet = document.styleSheets[i];
+        var ix,
+            sheet = document.styleSheets[i]!;
         for (ix = 0; ix < sheet.cssRules.length; ix++) {
-            const rule = sheet.cssRules[ix];
+            const rule: CSSStyleRule = sheet.cssRules[ix] as CSSStyleRule;
             callbackfn(rule.style, rule.selectorText, sheet);
         }
     }
@@ -102,7 +116,7 @@ function forEachRuleCallback(callbackfn) {
  * @param {any} value The new value for the settings. Should be a value that can be serialized by `JSON.stringify`.
  * @throws {DOMException} Throws a "QuotaExceededError" DOMException exception if the new value couldn't be set. (Setting could fail if, e.g., the user has disabled storage for the site, or if the quota has been exceeded.)
  */
-function saveSetting(key, value) {
+function saveSetting(key: string, value: any): void {
     window.localStorage.setItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`, JSON.stringify(value));
 }
 /**
@@ -111,14 +125,14 @@ function saveSetting(key, value) {
  * @param {string} key The ID of the setting.
  * @returns {any | null} The value of the setting, or `null` if the setting hasn't been set.
  */
-function getSetting(key) {
+function getSetting(key: string): any | null {
     return JSON.parse(window.localStorage.getItem(`8CrafterWebsite-${key}(734cf76b-bd45-4935-a129-b1208fa47637)`) ?? "null");
 }
 /**
  *
  * @param {"auto"|"dark"|"light"|"BlueTheme"} theme
  */
-function changeTheme(theme, setCSS = true) {
+function changeTheme(theme: "auto" | "dark" | "light" | "BlueTheme", setCSS = true) {
     if (!["auto", "dark", "light", "BlueTheme"].includes(theme)) {
         throw new TypeError("Invalid Theme: " + JSON.stringify(theme));
     }
@@ -144,16 +158,19 @@ const themeDisplayMappingB = {
     light: "light",
     BlueTheme: "BlueTheme",
 };
+
 // MediaQueryList
 const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
+
 // recommended method for newer browsers: specify event-type as first argument
 darkModePreference.addEventListener("change", (e) => e.matches && changeThemeCSS("auto"));
+
 /**
  * Changes the CSS theme.
  *
  * @param {keyof typeof themeDisplayMapping} theme The theme to change to.
  */
-function changeThemeCSS(theme) {
+function changeThemeCSS(theme: keyof typeof themeDisplayMapping): void {
     if (!["auto", "dark", "light", "BlueTheme"].includes(theme)) {
         throw new TypeError("Invalid CSS Theme Value: " + JSON.stringify(theme));
     }
@@ -161,13 +178,19 @@ function changeThemeCSS(theme) {
         $("#themeDropdown > #dropdowncontents").find(`input[id="${theme}"]`).prop("checked", true);
         $("#themeDropdownButtonSelectedOptionTextDisplay").text(themeDisplayMapping[theme]);
         $("#themeDropdownAutoOptionLabel").text(themeDisplayMapping.auto);
-    }
-    catch (e) {
-        console.error(e?.toString?.(), e?.stack);
+    } catch (e) {
+        console.error(e?.toString?.(), (e as any)?.stack);
     }
     forEachRuleCallback((rule, ruleName, styleSheet) => {
-        if (!!rule?.cssText?.match(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/)) {
-            rule.cssText = rule.cssText.replaceAll(/(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g, theme == "auto" ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : theme);
+        if (
+            !!rule?.cssText?.match(
+                /(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/
+            )
+        ) {
+            rule.cssText = rule.cssText.replaceAll(
+                /(?<=(?:[\n\s;\{]|^)---theme-var-switcher--[a-zA-Z0-9\-_]+[\n\s]*:[\n\s]*var\([\n\s]*--[a-zA-Z0-9\-_]*)(?:light|dark|BlueTheme)(?=[a-zA-Z0-9\-_]*[\n\s]*\)[\n\s]*;?)/g,
+                theme == "auto" ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : theme
+            );
         }
     });
     if (theme == "auto") {
@@ -175,50 +198,46 @@ function changeThemeCSS(theme) {
             $(".btn > span").addClass("preventinvert");
             $(":root").addClass("dark_theme");
             $(":root").removeClass("light_theme blue_theme");
-        }
-        else {
+        } else {
             $(".btn > span").removeClass("preventinvert");
             $(":root").addClass("light_theme");
             $(":root").removeClass("dark_theme blue_theme");
         }
-    }
-    else if (theme == "dark") {
+    } else if (theme == "dark") {
         $(".btn > span").addClass("preventinvert");
         $(":root").addClass("dark_theme");
         $(":root").removeClass("light_theme blue_theme");
-    }
-    else if (theme == "light") {
+    } else if (theme == "light") {
         $(".btn > span").removeClass("preventinvert");
         $(":root").addClass("light_theme");
         $(":root").removeClass("dark_theme blue_theme");
-    }
-    else if (theme == "BlueTheme") {
+    } else if (theme == "BlueTheme") {
         $(".btn > span").removeClass("preventinvert");
         $(":root").addClass("blue_theme");
         $(":root").removeClass("dark_theme light_theme");
-    }
-    else {
+    } else {
         $(".btn > span").removeClass("preventinvert");
         $(":root").addClass("light_theme");
         $(":root").removeClass("dark_theme blue_theme");
     }
 }
+
 // Sound Effects
 /**
  * @type {["master", "ui"]}
  */
-const volumeCategories = ["master", "ui"];
+const volumeCategories: ["master", "ui"] = ["master", "ui"];
 const volumeCategoryDisplayMapping = {
     master: "Master",
     ui: "UI",
-};
+} as const satisfies { [category in (typeof volumeCategories)[number]]: string };
 /**
  * Get the volume of a volume category.
  *
  * @param {typeof volumeCategories[number]} category The volume category to get the volume of.
  * @returns {number} The volume of the volume category. Between 0 and 100 (inclusive).
  */
-function getAudioCategoryVolume(category) {
+function getAudioCategoryVolume(category: (typeof volumeCategories)[number]): number {
     if (!volumeCategories.includes(category)) {
         throw new TypeError("Invalid Audio Volume Category: " + JSON.stringify(category));
     }
@@ -233,7 +252,7 @@ function getAudioCategoryVolume(category) {
  * @param {ReadableStream} readableStream The readable stream to convert to a blob.
  * @returns {Promise<Blob>} A promise that resolves with the blob.
  */
-async function readableStreamToBlob(readableStream) {
+async function readableStreamToBlob(readableStream: ReadableStream): Promise<Blob> {
     const reader = readableStream.getReader();
     const chunks = [];
     while (true) {
@@ -253,17 +272,17 @@ const audioCtx = new AudioContext();
  * A class for playing sound effects.
  */
 class SoundEffects {
-    constructor() { }
+    private constructor() {}
     /**
      * @type {string}
      */
-    static scriptSrc = document.currentScript.src;
+    static scriptSrc: string = (document.currentScript! as HTMLScriptElement).src;
     static audioElements = {
         pop: new Audio(new URL("../sounds/ui/click/Click_stereo.ogg.mp3", SoundEffects.scriptSrc).toString()),
         release: new Audio(new URL("../sounds/ui/click/Release.ogg.mp3", SoundEffects.scriptSrc).toString()),
         toast: new Audio(new URL("../sounds/ui/Toast.ogg", SoundEffects.scriptSrc).toString()),
     };
-    static dataURLs = {};
+    static dataURLs: { pop: string; release: string; toast: string } = {} as any;
     static audioElementsB = {
         get pop() {
             return new Audio(SoundEffects.dataURLs.pop);
@@ -278,7 +297,7 @@ class SoundEffects {
     /**
      * @type {{pop: AudioBuffer; release: AudioBuffer; toast: AudioBuffer;}}
      */
-    static audioBuffers = {};
+    static audioBuffers: { pop: AudioBuffer; release: AudioBuffer; toast: AudioBuffer } = {} as any;
     /**
      * Plays the pop sound effect.
      *
@@ -287,7 +306,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
      */
-    static async pop(options = { volumeCategory: "ui", volume: undefined }) {
+    static async pop(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<void> {
         const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
         const audioElement = this.audioElementsB.pop;
         audioElement.volume = volume;
@@ -301,7 +322,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
      */
-    static async popB(options = { volumeCategory: "ui", volume: undefined }) {
+    static async popB(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<{ source: AudioScheduledSourceNode; ev: Event }> {
         return await this.playBuffer(this.audioBuffers.pop, options);
     }
     /**
@@ -312,7 +335,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
      */
-    static async release(options = { volumeCategory: "ui", volume: undefined }) {
+    static async release(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<void> {
         const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
         const audioElement = this.audioElementsB.release;
         audioElement.volume = volume;
@@ -326,7 +351,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
      */
-    static async releaseB(options = { volumeCategory: "ui", volume: undefined }) {
+    static async releaseB(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<{ source: AudioScheduledSourceNode; ev: Event }> {
         return await this.playBuffer(this.audioBuffers.release, options);
     }
     /**
@@ -337,7 +364,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<void>} A promise that resolves when the audio has finished playing.
      */
-    static async toast(options = { volumeCategory: "ui", volume: undefined }) {
+    static async toast(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<void> {
         const volume = (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
         const audioElement = this.audioElementsB.toast;
         audioElement.volume = volume;
@@ -351,7 +380,9 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<{source: AudioScheduledSourceNode; ev: Event;}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
      */
-    static async toastB(options = { volumeCategory: "ui", volume: undefined }) {
+    static async toastB(
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<{ source: AudioScheduledSourceNode; ev: Event }> {
         return await this.playBuffer(this.audioBuffers.toast, options);
     }
     /**
@@ -363,18 +394,25 @@ class SoundEffects {
      * @param {number} [options.volume = undefined] The volume to use. If undefined, the volume of the volume category will be used. If specified it will override the volume of the volume category. Should be a float between 0 and 100 (inclusive).
      * @returns {Promise<{source: AudioScheduledSourceNode, ev: Event}>} A promise that resolves with the audio source and event when the audio buffer has finished playing.
      */
-    static playBuffer(audioBuffer, options = { volumeCategory: "ui", volume: undefined }) {
+    static playBuffer(
+        audioBuffer: AudioBuffer | null,
+        options: { volumeCategory?: (typeof volumeCategories)[number]; volume?: number } = { volumeCategory: "ui", volume: undefined }
+    ): Promise<{ source: AudioScheduledSourceNode; ev: Event }> {
         const volume = -1 + (options?.volume ?? getAudioCategoryVolume(options?.volumeCategory ?? "ui")) / 100;
         // create an AudioBufferSourceNode
         const source = audioCtx.createBufferSource();
+
         // set the AudioBuffer
         source.buffer = audioBuffer;
+
         const sourceB = audioCtx.createGain();
         sourceB.gain.value = volume;
         source.connect(sourceB);
         sourceB.connect(audioCtx.destination);
+
         // connect it to the default sound output
         source.connect(audioCtx.destination);
+
         // start playback
         source.start();
         return new Promise((resolve) => (source.onended = (ev) => resolve({ source, ev })));
@@ -388,10 +426,16 @@ class SoundEffects {
 (async () => {
     const file = await (await fetch("/assets/sounds/ui/click/Click_stereo.ogg.mp3")).blob();
     const reader = new FileReader();
-    reader.addEventListener("load", () => {
-        // convert image file to base64 string
-        SoundEffects.dataURLs.pop = reader.result;
-    }, false);
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.pop = reader.result as string;
+        },
+        false
+    );
+
     if (file) {
         reader.readAsDataURL(file);
     }
@@ -399,10 +443,16 @@ class SoundEffects {
 (async () => {
     const file = await (await fetch("/assets/sounds/ui/click/Release.ogg.mp3")).blob();
     const reader = new FileReader();
-    reader.addEventListener("load", () => {
-        // convert image file to base64 string
-        SoundEffects.dataURLs.release = reader.result;
-    }, false);
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.release = reader.result as string;
+        },
+        false
+    );
+
     if (file) {
         reader.readAsDataURL(file);
     }
@@ -410,33 +460,52 @@ class SoundEffects {
 (async () => {
     const file = await (await fetch("/assets/sounds/ui/Toast.ogg")).blob();
     const reader = new FileReader();
-    reader.addEventListener("load", () => {
-        // convert image file to base64 string
-        SoundEffects.dataURLs.toast = reader.result;
-    }, false);
+
+    reader.addEventListener(
+        "load",
+        () => {
+            // convert image file to base64 string
+            SoundEffects.dataURLs.toast = reader.result as string;
+        },
+        false
+    );
+
     if (file) {
         reader.readAsDataURL(file);
     }
 })();
+
+/**
+ * The current color scheme.
+ *
+ * - `0`: Auto
+ * - `1`: Dark
+ * - `2`: Light
+ * - `3`: Blue
+ */
+declare var colorScheme: number;
+
 // On Load
 $(async function onDocumentLoad() {
     // console.log(1)
     const autofill_from_file_elements = document.getElementsByTagName("autofill_from_file");
     const autofill_from_file_elements_fill_promises = [];
     for (let i = 0; i < autofill_from_file_elements.length; i++) {
-        let v = autofill_from_file_elements.item(i);
+        let v: Element = autofill_from_file_elements.item(i)!;
         const path = $(v).attr("src");
         if (path === undefined) {
             console.error("autofill_from_file element has no src attribute");
             continue;
         }
         // console.log(1.1)
-        autofill_from_file_elements_fill_promises.push((async () => {
-            v.outerHTML = path.endsWith(".js")
-                ? (await import(path)).default(...JSON.parse($(v).attr("params") ?? "[]"))
-                : await (await fetch(new Request(path))).text();
-            // console.log(1.2)
-        })());
+        autofill_from_file_elements_fill_promises.push(
+            (async () => {
+                v.outerHTML = path.endsWith(".js")
+                    ? (await import(path)).default(...JSON.parse($(v).attr("params") ?? "[]"))
+                    : await (await fetch(new Request(path))).text();
+                // console.log(1.2)
+            })()
+        );
         // console.log(1.3)
     }
     for await (let r of autofill_from_file_elements_fill_promises) {
@@ -453,51 +522,50 @@ $(async function onDocumentLoad() {
     }; */
     try {
         const resizeObserver = new ResizeObserver((event) => {
-            const rule = document.styleSheets[0]?.cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root"));
-            rule.style.cssText = rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()?.toString());
+            const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
+                Object.values(document.styleSheets[0].cssRules).findIndex((r) => (r as CSSStyleRule).selectorText == ":root")
+            )! as CSSStyleRule;
+            rule.style.cssText = rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0]!.target).height()?.toString()!);
             // console.log($(event[0].target).height(), rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()))
         });
-        resizeObserver.observe($("header").get(0));
-    }
-    catch (e) {
-        console.error(e, e?.stack);
+        resizeObserver.observe($("header").get(0)!);
+    } catch (e) {
+        console.error(e, (e as any)?.stack);
     }
     try {
         const resizeObserverB = new ResizeObserver((event) => {
-            const rule = document.styleSheets[0]?.cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root"));
-            rule.style.cssText = rule.style.cssText.replace(/(?<=--body-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()?.toString());
+            const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
+                Object.values(document.styleSheets[0].cssRules).findIndex((r) => (r as CSSStyleRule).selectorText == ":root")
+            )! as CSSStyleRule;
+            rule.style.cssText = rule.style.cssText.replace(/(?<=--body-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0]!.target).height()?.toString()!);
             // console.log($(event[0].target).height(), rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()))
         });
-        resizeObserverB.observe($("body").get(0));
-    }
-    catch (e) {
-        console.error(e, e?.stack);
+        resizeObserverB.observe($("body").get(0)!);
+    } catch (e) {
+        console.error(e, (e as any)?.stack);
     }
     try {
         const resizeObserverC = new ResizeObserver((event) => {
-            const rule = document.styleSheets[0]?.cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root"));
-            rule.style.cssText = rule.style.cssText.replace(/(?<=--footer-height: )\d+(?:\.\d+)?(?=px;)/, ($(event[0].target).height() + 20).toString());
+            const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
+                Object.values(document.styleSheets[0].cssRules).findIndex((r) => (r as CSSStyleRule).selectorText == ":root")
+            )! as CSSStyleRule;
+            rule.style.cssText = rule.style.cssText.replace(/(?<=--footer-height: )\d+(?:\.\d+)?(?=px;)/, ($(event[0]!.target).height()! + 20).toString());
             // console.log($(event[0].target).height(), rule.style.cssText.replace(/(?<=--header-height: )\d+(?:\.\d+)?(?=px;)/, $(event[0].target).height()))
         });
-        resizeObserverC.observe($("footer.main-footer").get(0));
-    }
-    catch (e) {
-        console.error(e, e?.stack);
+        resizeObserverC.observe($("footer.main-footer").get(0)!);
+    } catch (e) {
+        console.error(e, (e as any)?.stack);
     }
     globalThis.colorScheme = Number(window.localStorage.getItem("8CrafterWebsite-ColorScheme(734cf76b-bd45-4935-a129-b1208fa47637)") ?? 0);
     if (colorScheme == 0) {
         changeThemeCSS("auto");
-    }
-    else if (colorScheme == 1) {
+    } else if (colorScheme == 1) {
         changeThemeCSS("dark");
-    }
-    else if (colorScheme == 2) {
+    } else if (colorScheme == 2) {
         changeThemeCSS("light");
-    }
-    else if (colorScheme == 3) {
+    } else if (colorScheme == 3) {
         changeThemeCSS("BlueTheme");
-    }
-    else {
+    } else {
         /*
         console.error("Invalid value for variable colorScheme: " + JSON.stringify(
             colorScheme,
@@ -518,8 +586,10 @@ $(async function onDocumentLoad() {
     }
     $("#hue_rotate_deg_slider").on("input", () => {
         saveSetting("hue_rotate_deg", $("#hue_rotate_deg_slider").val());
-        const rule = document.styleSheets[0]?.cssRules.item(Object.values(document.styleSheets[0].cssRules).findIndex((r) => r.selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:")));
-        rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $("#hue_rotate_deg_slider").val()?.toString());
+        const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
+            Object.values(document.styleSheets[0].cssRules).findIndex((r) => (r as CSSStyleRule).selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:"))
+        )! as CSSStyleRule;
+        rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $("#hue_rotate_deg_slider").val()?.toString()!);
     });
     volumeCategories.forEach((category) => {
         const slider = $(`#${category}_volume_slider`);
@@ -528,33 +598,33 @@ $(async function onDocumentLoad() {
         slider.parent().find("label").text(`${volumeCategoryDisplayMapping[category]} Volume: ${loadedValue}%`);
         slider.val(loadedValue);
         slider.on("input", () => {
-            const value = $(`#${category}_volume_slider`).val();
+            const value: number = $(`#${category}_volume_slider`).val() as number;
             saveSetting(`${category}_volume`, value);
             volume[category] = value;
         });
     });
     defaultButtonSoundEffect = getSetting("defaultButtonSoundEffect") ?? "pop";
     const defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay = $("#defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay");
-    defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text($(".defaultButtonSoundEffectDropdownOption:has(input[value='" + defaultButtonSoundEffect + "']) label").text());
+    defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text(
+        $(".defaultButtonSoundEffectDropdownOption:has(input[value='" + defaultButtonSoundEffect + "']) label").text()
+    );
     $(".defaultButtonSoundEffectDropdownOption input[value='" + defaultButtonSoundEffect + "']").prop("checked", true);
     $(".defaultButtonSoundEffectDropdownOption").click((event) => {
-        const input = $(event.currentTarget).find("input")[0];
-        const label = $(event.currentTarget).find("label")[0];
-        const value = input.value;
+        const input = $(event.currentTarget).find("input")[0]!;
+        const label = $(event.currentTarget).find("label")[0]!;
+        const value = input.value as typeof defaultButtonSoundEffect;
         saveSetting("defaultButtonSoundEffect", value);
         defaultButtonSoundEffect = value;
-        if (defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text() === label.textContent)
-            return;
+        if (defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text() === label.textContent) return;
         SoundEffects[defaultButtonSoundEffect]();
-        defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text(label.textContent);
+        defaultButtonSoundEffectDropdownButtonSelectedOptionTextDisplay.text(label.textContent!);
     });
     try {
         if (getSetting("use_noto_sans_font") == true) {
             $("#use_noto_sans_font").prop("checked", true);
             $(":root").addClass("use_noto_sans_font");
         }
-    }
-    catch { }
+    } catch {}
     if (getSetting("filter_sepia_enabled") == true) {
         $("#filter_sepia_enabled").prop("checked", true);
         $(":root").addClass("filter_sepia");
@@ -573,127 +643,121 @@ $(async function onDocumentLoad() {
     }
     if (!!getSetting("zoom")) {
         $("#zoom_text_box").val(getSetting("zoom").slice(0, -1));
-        $(":root")[0].style.zoom = getSetting("zoom");
+        $(":root")[0]!.style.zoom = getSetting("zoom");
     }
     $(".themeDropdownOption").click((event) => {
-        changeTheme($(event.currentTarget).find("input")[0].id);
+        changeTheme($(event.currentTarget).find("input")[0]!.id as keyof typeof themeDisplayMapping);
     });
     $("#use_noto_sans_font")
         .parent()
         .click(() => {
-        saveSetting("use_noto_sans_font", $("#use_noto_sans_font").prop("checked"));
-        if ($("#use_noto_sans_font").prop("checked")) {
-            $(":root").addClass("use_noto_sans_font");
-        }
-        else {
-            $(":root").removeClass("use_noto_sans_font");
-        }
-    });
+            saveSetting("use_noto_sans_font", $("#use_noto_sans_font").prop("checked"));
+            if ($("#use_noto_sans_font").prop("checked")) {
+                $(":root").addClass("use_noto_sans_font");
+            } else {
+                $(":root").removeClass("use_noto_sans_font");
+            }
+        });
     $("#use_noto_sans_font").click((e) => {
         e.preventDefault();
         $("#use_noto_sans_font").prop("checked", !$("#use_noto_sans_font").prop("checked"));
         saveSetting("use_noto_sans_font", $("#use_noto_sans_font").prop("checked"));
         if ($("#use_noto_sans_font").prop("checked")) {
             $(":root").addClass("use_noto_sans_font");
-        }
-        else {
+        } else {
             $(":root").removeClass("use_noto_sans_font");
         }
     });
     $("#filter_invert_enabled")
         .parent()
         .click(() => {
-        saveSetting("filter_invert_enabled", $("#filter_invert_enabled").prop("checked"));
-        if ($("#filter_invert_enabled").prop("checked")) {
-            $(":root").addClass("filter_invert");
-        }
-        else {
-            $(":root").removeClass("filter_invert");
-        }
-    });
+            saveSetting("filter_invert_enabled", $("#filter_invert_enabled").prop("checked"));
+            if ($("#filter_invert_enabled").prop("checked")) {
+                $(":root").addClass("filter_invert");
+            } else {
+                $(":root").removeClass("filter_invert");
+            }
+        });
     $("#filter_invert_enabled").click((e) => {
         e.preventDefault();
         $("#filter_invert_enabled").prop("checked", !$("#filter_invert_enabled").prop("checked"));
         saveSetting("filter_invert_enabled", $("#filter_invert_enabled").prop("checked"));
         if ($("#filter_invert_enabled").prop("checked")) {
             $(":root").addClass("filter_invert");
-        }
-        else {
+        } else {
             $(":root").removeClass("filter_invert");
         }
     });
     $("#filter_sepia_enabled")
         .parent()
         .click(() => {
-        saveSetting("filter_sepia_enabled", $("#filter_sepia_enabled").prop("checked"));
-        if ($("#filter_sepia_enabled").prop("checked")) {
-            $(":root").addClass("filter_sepia");
-        }
-        else {
-            $(":root").removeClass("filter_sepia");
-        }
-    });
+            saveSetting("filter_sepia_enabled", $("#filter_sepia_enabled").prop("checked"));
+            if ($("#filter_sepia_enabled").prop("checked")) {
+                $(":root").addClass("filter_sepia");
+            } else {
+                $(":root").removeClass("filter_sepia");
+            }
+        });
     $("#filter_sepia_enabled").click((e) => {
         e.preventDefault();
         $("#filter_sepia_enabled").prop("checked", !$("#filter_sepia_enabled").prop("checked"));
         saveSetting("filter_sepia_enabled", $("#filter_sepia_enabled").prop("checked"));
         if ($("#filter_sepia_enabled").prop("checked")) {
             $(":root").addClass("filter_sepia");
-        }
-        else {
+        } else {
             $(":root").removeClass("filter_sepia");
         }
     });
     $("#filter_grayscale_enabled")
         .parent()
         .click(() => {
-        saveSetting("filter_grayscale_enabled", $("#filter_grayscale_enabled").prop("checked"));
-        if ($("#filter_grayscale_enabled").prop("checked")) {
-            $(":root").addClass("filter_grayscale");
-        }
-        else {
-            $(":root").removeClass("filter_grayscale");
-        }
-    });
+            saveSetting("filter_grayscale_enabled", $("#filter_grayscale_enabled").prop("checked"));
+            if ($("#filter_grayscale_enabled").prop("checked")) {
+                $(":root").addClass("filter_grayscale");
+            } else {
+                $(":root").removeClass("filter_grayscale");
+            }
+        });
     $("#filter_grayscale_enabled").click((e) => {
         e.preventDefault();
         $("#filter_grayscale_enabled").prop("checked", !$("#filter_grayscale_enabled").prop("checked"));
         saveSetting("filter_grayscale_enabled", $("#filter_grayscale_enabled").prop("checked"));
         if ($("#filter_grayscale_enabled").prop("checked")) {
             $(":root").addClass("filter_grayscale");
-        }
-        else {
+        } else {
             $(":root").removeClass("filter_grayscale");
         }
     });
     $('input[name="settings_section"]').change(() => {
         try {
-            const id = $('input[name="settings_section"]:checked').attr("id").slice(23);
+            const id = $('input[name="settings_section"]:checked').attr("id")!.slice(23);
             $("overlay-page#settings_menu > settings-section").each((_i, section) => {
-                if ($(section).attr("id").slice(0, -17) === id) {
-                    $(section).get(0).style.display = "";
-                }
-                else {
-                    $(section).get(0).style.display = "none";
+                if ($(section).attr("id")!.slice(0, -17) === id) {
+                    $(section).get(0)!.style.display = "";
+                } else {
+                    $(section).get(0)!.style.display = "none";
                 }
             });
-        }
-        catch (e) {
-            console.error(e, e?.stack);
+        } catch (e) {
+            console.error(e, (e as any)?.stack);
         }
     });
     $("#confirm_zoom_change").click(() => {
-        $(":root")[0].style.zoom = $("#zoom_text_box").val() + "%";
+        $(":root")[0]!.style.zoom = $("#zoom_text_box").val() + "%";
     });
     $("#save_zoom_change").click(() => {
         saveSetting("zoom", $("#zoom_text_box").val() + "%");
     });
     // $('#link_button_list').scrollTop(-$('#link_button_list')[0].scrollHeight);
+
     // all <a> tags containing a certain rel=""
     // source: https://stackoverflow.com/a/15579157/16872762
     $("a[rel~='keep-params']").click(function (e) {
         e.preventDefault();
-        var params = window.location.search, dest = $(this).attr("href") + params;
+
+        var params = window.location.search,
+            dest = $(this).attr("href") + params;
+
         // in my experience, a short timeout has helped overcome browser bugs
         window.setTimeout(function () {
             window.location.href = dest;
@@ -704,6 +768,7 @@ $(async function onDocumentLoad() {
     collapsibeGroupHeaders
         .find("> h1, h2, h3, h4, h5, h6")
         .prepend('<img src="/assets/images/ui/glyphs/chevron_new_white_right.png" class="collapsible-group-header-arrow"></img>');
+
     const collapsibeGroupsThatNeedExpanding = $(".collapsible-group:first-of-type():not(.collapsible-group-collapsed), .collapsible-group.start-not-collapsed");
     collapsibeGroupsThatNeedExpanding.removeClass("collapsible-group-collapsed");
     collapsibeGroupsThatNeedExpanding.find("> .collapsible-group-content").removeClass("collapsible-group-content-collapsed");
@@ -713,7 +778,10 @@ $(async function onDocumentLoad() {
         .find("> h1, h2, h3, h4, h5, h6")
         .find("> .collapsible-group-header-arrow")
         .css("transform", "rotate(90deg)");
-    const collapsibeGroupsThatNeedCollapsing = $(".collapsible-group:not(:first-of-type()):not(.start-not-collapsed), .collapsible-group.collapsible-group-collapsed");
+
+    const collapsibeGroupsThatNeedCollapsing = $(
+        ".collapsible-group:not(:first-of-type()):not(.start-not-collapsed), .collapsible-group.collapsible-group-collapsed"
+    );
     collapsibeGroupsThatNeedCollapsing.addClass("collapsible-group-collapsed");
     collapsibeGroupsThatNeedCollapsing.find("> .collapsible-group-content").addClass("collapsible-group-content-collapsed");
     collapsibeGroupsThatNeedCollapsing.find("> .collapsible-group-content").css("display", "none");
@@ -722,6 +790,7 @@ $(async function onDocumentLoad() {
         .find("> h1, h2, h3, h4, h5, h6")
         .find("> .collapsible-group-header-arrow")
         .css("transform", "rotate(0deg)");
+
     collapsibeGroupHeaders.click((e) => {
         e.preventDefault();
         const parent = $(e.target).parent();
@@ -732,8 +801,7 @@ $(async function onDocumentLoad() {
             content.slideDown();
             content.removeClass("collapsible-group-content-collapsed");
             parent.removeClass("collapsible-group-collapsed");
-        }
-        else {
+        } else {
             header.find("> h1, h2, h3, h4, h5, h6").find("> .collapsible-group-header-arrow").css("transform", "rotate(0deg)");
             content.slideUp(() => {
                 content.addClass("collapsible-group-content-collapsed");
@@ -741,22 +809,23 @@ $(async function onDocumentLoad() {
             });
         }
     });
-    $(".btn, .mcdropdownoption:not(.defaultButtonSoundEffectDropdownOption), .radio_button_container_label, a:has(> .settings_button:not(.silent)), .mctogglecontainer, .horizontal-nav > li > a, .horizontal-nav > li > div > div > a, .vertical-nav > li > a, .vertical-nav > li > div > div > a")
+    $(
+        ".btn, .mcdropdownoption:not(.defaultButtonSoundEffectDropdownOption), .radio_button_container_label, a:has(> .settings_button:not(.silent)), .mctogglecontainer, .horizontal-nav > li > a, .horizontal-nav > li > div > div > a, .vertical-nav > li > a, .vertical-nav > li > div > div > a"
+    )
         .filter(":not(.silent):not(.soundEffectBound):not(.defaultButtonSoundEffectBound)")
         .each((index, element) => {
-        if ($(element).hasClass("silent") || $(element).hasClass("soundEffectBound") || $(element).hasClass("defaultButtonSoundEffectBound"))
-            return;
-        const elem = $(element);
-        elem.addClass("soundEffectBound");
-        elem.addClass("defaultButtonSoundEffectBound");
-        $(element).mousedown(() => SoundEffects[defaultButtonSoundEffect]());
-    });
+            if ($(element).hasClass("silent") || $(element).hasClass("soundEffectBound") || $(element).hasClass("defaultButtonSoundEffectBound")) return;
+            const elem = $(element);
+            elem.addClass("soundEffectBound");
+            elem.addClass("defaultButtonSoundEffectBound");
+            $(element).mousedown(() => SoundEffects[defaultButtonSoundEffect]());
+        });
 });
 class PurpleBorderBackgroundElement extends HTMLElement {
-    constructor() {
+    public constructor() {
         super();
         this.attachShadow({ mode: "open" });
-        this.shadowRoot.innerHTML = `
+        this.shadowRoot!.innerHTML = `
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceL.png" style="height: calc(100% - 1.75vw); width: 1vw; left: 0px; top: 0.875vw; z-index: -5;
     position: absolute; image-rendering: pixelated;">
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceR.png" style="height: calc(100% - 1.75vw); width: 1vw; right: 0px; top: 0.875vw; z-index: -5;
@@ -777,4 +846,6 @@ class PurpleBorderBackgroundElement extends HTMLElement {
     position: absolute; image-rendering: pixelated;">`;
     }
 }
+
 customElements.define("purple-border_background", PurpleBorderBackgroundElement);
+

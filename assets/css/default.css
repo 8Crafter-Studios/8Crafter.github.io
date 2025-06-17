@@ -401,7 +401,7 @@ footer.off-screen {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10000; /* 
+    z-index: 10001; /* 
     padding: 0.5em;
     padding-left: 1em; */
     height: auto;
@@ -609,15 +609,49 @@ ul:not(:not(.horizontal-nav)) {
     display: block;
 }
 
-.overlay_page {
+.overlay_page, overlay-page {
     z-index: 9999;
     width: 100%;
-    height: -webkit-fill-available;
+    height: calc(100vh - var(--header-height));
     position: fixed;
     border: 0px;
     margin: 0px;
     padding: 0px;
     padding-top: var(--header-height);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.overlay_page.active_overlay_page, overlay-page.active_overlay_page {
+    z-index: 10000;
+}
+
+.overlay_page_background {
+    z-index: -1;
+    opacity: 0.5;
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    background-image: url("/assets/images/ui/backgrounds/menubackground.png");
+    image-rendering: pixelated;
+}
+
+body.overlay_page_visible,
+body.overlay_page_visible .overlay_page:not(.active_overlay_page),
+body.overlay_page_visible overlay-page:not(.active_overlay_page),
+body.overlay_page_visible .possible_scroll {
+    overflow: hidden !important;
+}
+
+body.overlay_page_visible .possible_scroll_x {
+    overflow-x: hidden !important;
+}
+
+body.overlay_page_visible .possible_scroll_y {
+    overflow-y: hidden !important;
 }
 
 .settings_section {

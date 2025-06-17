@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "es2022",
+        "moduleResolution": "node",
+        "outDir": "./assets/js",
+        "rootDir": "./assets/ts",
+        "declaration": true,
+        "declarationDir": "./assets/js",
+        "sourceMap": false,
+        "declarationMap": false,
+        "lib": ["ES2022", "DOM"],
+        "allowSyntheticDefaultImports": true,
+        "noUncheckedSideEffectImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noUncheckedIndexedAccess": true
+    },
+    "include": ["./assets/ts/**/*.ts"]
+}
