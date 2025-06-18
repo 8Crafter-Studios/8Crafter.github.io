@@ -1,5 +1,5 @@
 export const format_version = "0.23.0";
-import { defaultOreUICustomizerSettings, getExtractedFunctionNames, getReplacerRegexes, OreUICustomizerSettings } from "~shared/ore-ui-customizer-assets.js";
+import { defaultOreUICustomizerSettings, getExtractedFunctionNames, getReplacerRegexes, OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 
 /**

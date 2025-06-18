@@ -1,5 +1,5 @@
 export const format_version = "0.23.0";
-import { defaultOreUICustomizerSettings, getExtractedFunctionNames, getReplacerRegexes } from "~shared/ore-ui-customizer-assets.js";
+import { defaultOreUICustomizerSettings, getExtractedFunctionNames, getReplacerRegexes } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 export async function applyMods(file, settings, enableDebugLogging = false) {
     const zipFs = new zip.fs.FS();

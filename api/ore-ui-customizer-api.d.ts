@@ -1,5 +1,5 @@
 export declare const format_version = "0.23.0";
-import { OreUICustomizerSettings } from "~shared/ore-ui-customizer-assets.js";
+import { OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 /**
  * The result of the {@link applyMods} function.
