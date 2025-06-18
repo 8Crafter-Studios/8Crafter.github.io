@@ -5,13 +5,14 @@ const currentPresets = {
     "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
     "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
     "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
+    "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
     "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
     "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
     "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
     "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
     // "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
 };
-const format_version = "0.22.0";
+const format_version = "0.23.0";
 /**
  * @type {File | undefined}
  */
