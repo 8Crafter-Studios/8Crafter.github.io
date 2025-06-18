@@ -1,0 +1,15 @@
+{
+    "main_script": {
+        "js": "../js/ore-ui-customizer-api.js",
+        "dts": "../js/ore-ui-customizer-api.d.ts",
+        "ts": "../ts/ore-ui-customizer-api.ts"
+    },
+    "dependencies": [
+        {
+            "js": "../../assets/shared/ore-ui-customizer-assets.js",
+            "dts": "../../assets/shared/ore-ui-customizer-assets.d.ts",
+            "ts": "../../assets/shared/ore-ui-customizer-assets.ts",
+            "currentImportStatementText": "../../assets/shared/ore-ui-customizer-assets.js"
+        }
+    ]
+}

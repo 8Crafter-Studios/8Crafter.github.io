@@ -1,5 +1,5 @@
 /// <reference types="jquery"/>
-/// <reference types="tinycolor2"/>
+/// <reference types="./tinycolor2"/>
 
 // tslint:disable:unified-signatures self-documenting code and JSDoc require non-unified signatures
 interface JQuery {

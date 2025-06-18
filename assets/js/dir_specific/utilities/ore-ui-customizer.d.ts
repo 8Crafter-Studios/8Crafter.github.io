@@ -77,13 +77,13 @@ declare function getSettings(): {
      *
      * @type {boolean}
      */
-    hardcoreModeToggleAlwaysClickable: any;
+    hardcoreModeToggleAlwaysClickable: boolean;
     /**
      * This will allow you to disable the experimental toggles even after the world has been played with them on, also applies to the `Education Edition` toggle.
      *
      * @type {boolean}
      */
-    allowDisablingEnabledExperimentalToggles: any;
+    allowDisablingEnabledExperimentalToggles: boolean;
     /**
      * This will add a dropdown that allows you to select the world generator type.
      *
@@ -96,7 +96,7 @@ declare function getSettings(): {
      *
      * @type {boolean}
      */
-    addGeneratorTypeDropdown: any;
+    addGeneratorTypeDropdown: boolean;
     /**
      * This will add more options to the `Game Mode` dropdown.
      *
@@ -110,13 +110,13 @@ declare function getSettings(): {
      *
      * @type {boolean}
      */
-    addMoreDefaultGameModes: any;
+    addMoreDefaultGameModes: boolean;
     /**
      * This will allow you to change the world seed whenever you want, also works on marketplace worlds that don't let you change the seed.
      *
      * @type {boolean}
      */
-    allowForChangingSeeds: any;
+    allowForChangingSeeds: boolean;
     /**
      * This will allow you to change the flat world preset, even after the world has been created.
      *
@@ -132,7 +132,7 @@ declare function getSettings(): {
      *
      * @type {`${number}` | ""}
      */
-    maxTextLengthOverride: string | number | string[] | undefined;
+    maxTextLengthOverride: `${number}` | "";
     /**
      * This adds the `Debug` tab to the create and edit world screens.
      *
@@ -140,7 +140,7 @@ declare function getSettings(): {
      *
      * @type {boolean}
      */
-    addDebugTab: any;
+    addDebugTab: boolean;
     add8CrafterUtilitiesMainMenuButton: boolean;
     /**
      * These are replacements for the UI colors.

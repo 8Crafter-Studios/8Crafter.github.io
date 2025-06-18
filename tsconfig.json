@@ -3,18 +3,37 @@
         "target": "ES2022",
         "module": "es2022",
         "moduleResolution": "node",
-        "outDir": "./assets/js",
-        "rootDir": "./assets/ts",
+        // "outDir": "./assets/js",
+        // "rootDir": "./assets/ts",
         "declaration": true,
-        "declarationDir": "./assets/js",
+        // "declarationDir": "./assets/js",
         "sourceMap": false,
         "declarationMap": false,
         "lib": ["ES2022", "DOM"],
         "allowSyntheticDefaultImports": true,
         "noUncheckedSideEffectImports": true,
+        "composite": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "noUncheckedIndexedAccess": true
+        "paths": {
+            "~shared/*": ["./assets/shared/*"],
+        },
+        "noUncheckedIndexedAccess": true,
+        "skipLibCheck": true
     },
-    "include": ["./assets/ts/**/*.ts"]
+    "exclude": [
+        "./assets/js",
+        "./api/js"
+    ],
+    "include": [
+        // "./assets/ts/**/*.ts",
+        // "./api/ts/**/*.ts",
+        // "./assets/shared/**.ts"
+        // "./**/*.ts"
+    ],
+    "references": [
+        { "path": "./assets/tsconfig.json" },
+        { "path": "./api/tsconfig.json" },
+        { "path": "./assets/shared/tsconfig.json" }
+    ]
 }

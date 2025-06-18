@@ -1,0 +1,28 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "node16",
+        "moduleResolution": "node16",
+        "outDir": "./js",
+        "rootDir": "./ts",
+        "declarationDir": "./js",
+        "composite": true,
+        "lib": ["ES2022"]
+    } /* 
+    "references": [{
+        "path": "../tsconfig.json"
+    }], */,
+    "include": [
+        "./ts/**/*.ts"
+        // "../assets/shared/**/*.ts"
+    ],
+    "files": [
+        "./ts/ore-ui-customizer-api.ts"
+    ],
+    "references": [
+        {
+            "path": "../assets/shared/tsconfig.json"
+        }
+    ]
+}

@@ -427,13 +427,13 @@ function getSettings() {
          *
          * @type {boolean}
          */
-        hardcoreModeToggleAlwaysClickable: $("#hardcore_mode_toggle_always_clickable").prop("checked"),
+        hardcoreModeToggleAlwaysClickable: $("#hardcore_mode_toggle_always_clickable").prop("checked") as boolean,
         /**
          * This will allow you to disable the experimental toggles even after the world has been played with them on, also applies to the `Education Edition` toggle.
          *
          * @type {boolean}
          */
-        allowDisablingEnabledExperimentalToggles: $("#allow_disabling_enabled_experimental_toggles").prop("checked"),
+        allowDisablingEnabledExperimentalToggles: $("#allow_disabling_enabled_experimental_toggles").prop("checked") as boolean,
         /**
          * This will add a dropdown that allows you to select the world generator type.
          *
@@ -446,7 +446,7 @@ function getSettings() {
          *
          * @type {boolean}
          */
-        addGeneratorTypeDropdown: $("#add_generator_type_dropdown").prop("checked"),
+        addGeneratorTypeDropdown: $("#add_generator_type_dropdown").prop("checked") as boolean,
         /**
          * This will add more options to the `Game Mode` dropdown.
          *
@@ -460,13 +460,13 @@ function getSettings() {
          *
          * @type {boolean}
          */
-        addMoreDefaultGameModes: $("#add_more_default_game_modes").prop("checked"),
+        addMoreDefaultGameModes: $("#add_more_default_game_modes").prop("checked") as boolean,
         /**
          * This will allow you to change the world seed whenever you want, also works on marketplace worlds that don't let you change the seed.
          *
          * @type {boolean}
          */
-        allowForChangingSeeds: $("#allow_for_changing_seeds").prop("checked"),
+        allowForChangingSeeds: $("#allow_for_changing_seeds").prop("checked") as boolean,
         /**
          * This will allow you to change the flat world preset, even after the world has been created.
          *
@@ -474,7 +474,8 @@ function getSettings() {
          *
          * @type {boolean}
          */
-        allowForChangingFlatWorldPreset: $("#allow_for_changing_flat_world_preset").prop("checked") && $("#add_generator_type_dropdown").prop("checked"),
+        allowForChangingFlatWorldPreset:
+            $("#allow_for_changing_flat_world_preset").prop("checked") && ($("#add_generator_type_dropdown").prop("checked") as boolean),
         /**
          * If specified, this will override the max length of every text box to be the specified value.
          *
@@ -482,7 +483,7 @@ function getSettings() {
          *
          * @type {`${number}` | ""}
          */
-        maxTextLengthOverride: $("#max_text_length_override").val(),
+        maxTextLengthOverride: $("#max_text_length_override").val() as `${number}` | "",
         /**
          * This adds the `Debug` tab to the create and edit world screens.
          *
@@ -490,7 +491,7 @@ function getSettings() {
          *
          * @type {boolean}
          */
-        addDebugTab: $("#add_debug_tab").prop("checked"),
+        addDebugTab: $("#add_debug_tab").prop("checked") as boolean,
         add8CrafterUtilitiesMainMenuButton: true,
         /**
          * These are replacements for the UI colors.
@@ -575,15 +576,24 @@ function getSettings() {
             "rgba(0, 0, 0, 0.8)": ($("#colors_customizer_settings_section_blackOpacity80") as JQuery<HTMLInputElement>).val() ?? "rgba(0, 0, 0, 0.8)",
             "rgba(0, 0, 0, 0.9)": ($("#colors_customizer_settings_section_blackOpacity90") as JQuery<HTMLInputElement>).val() ?? "rgba(0, 0, 0, 0.9)",
             "rgba(0, 0, 0, 1)": ($("#colors_customizer_settings_section_blackOpacity100") as JQuery<HTMLInputElement>).val() ?? "rgba(0, 0, 0, 1)",
-            "rgba(255, 255, 255, 0.1)": ($("#colors_customizer_settings_section_whiteOpacity10") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.1)",
-            "rgba(255, 255, 255, 0.2)": ($("#colors_customizer_settings_section_whiteOpacity20") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.2)",
-            "rgba(255, 255, 255, 0.3)": ($("#colors_customizer_settings_section_whiteOpacity30") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.3)",
-            "rgba(255, 255, 255, 0.4)": ($("#colors_customizer_settings_section_whiteOpacity40") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.4)",
-            "rgba(255, 255, 255, 0.5)": ($("#colors_customizer_settings_section_whiteOpacity50") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.5)",
-            "rgba(255, 255, 255, 0.6)": ($("#colors_customizer_settings_section_whiteOpacity60") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.6)",
-            "rgba(255, 255, 255, 0.7)": ($("#colors_customizer_settings_section_whiteOpacity70") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.7)",
-            "rgba(255, 255, 255, 0.8)": ($("#colors_customizer_settings_section_whiteOpacity80") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.8)",
-            "rgba(255, 255, 255, 0.9)": ($("#colors_customizer_settings_section_whiteOpacity90") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.9)",
+            "rgba(255, 255, 255, 0.1)":
+                ($("#colors_customizer_settings_section_whiteOpacity10") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.1)",
+            "rgba(255, 255, 255, 0.2)":
+                ($("#colors_customizer_settings_section_whiteOpacity20") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.2)",
+            "rgba(255, 255, 255, 0.3)":
+                ($("#colors_customizer_settings_section_whiteOpacity30") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.3)",
+            "rgba(255, 255, 255, 0.4)":
+                ($("#colors_customizer_settings_section_whiteOpacity40") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.4)",
+            "rgba(255, 255, 255, 0.5)":
+                ($("#colors_customizer_settings_section_whiteOpacity50") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.5)",
+            "rgba(255, 255, 255, 0.6)":
+                ($("#colors_customizer_settings_section_whiteOpacity60") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.6)",
+            "rgba(255, 255, 255, 0.7)":
+                ($("#colors_customizer_settings_section_whiteOpacity70") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.7)",
+            "rgba(255, 255, 255, 0.8)":
+                ($("#colors_customizer_settings_section_whiteOpacity80") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.8)",
+            "rgba(255, 255, 255, 0.9)":
+                ($("#colors_customizer_settings_section_whiteOpacity90") as JQuery<HTMLInputElement>).val() ?? "rgba(255, 255, 255, 0.9)",
             "#FB95E2": ($("#colors_customizer_settings_section_pink10") as JQuery<HTMLInputElement>).val() ?? "#FB95E2",
             "#FFB1EC": ($("#colors_customizer_settings_section_pink20") as JQuery<HTMLInputElement>).val() ?? "#FFB1EC",
             "#E833C2": ($("#colors_customizer_settings_section_pink30") as JQuery<HTMLInputElement>).val() ?? "#E833C2",
@@ -2981,7 +2991,7 @@ globalThis.download = async function download() {
     a.href = url;
     a.download = "gui-mod.zip";
     a.click();
-}
+};
 
 async function downloadInNewTab() {
     if (zipFs === undefined) {
