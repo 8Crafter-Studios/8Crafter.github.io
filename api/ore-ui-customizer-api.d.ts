@@ -48,4 +48,43 @@ export interface ApplyModsResult {
      */
     totalEntries: number;
 }
-export declare function applyMods(file: Blob, settings?: OreUICustomizerSettings, enableDebugLogging?: boolean): Promise<ApplyModsResult>;
+/**
+ * The options for the {@link applyMods} function.
+ */
+export interface ApplyModsOptions {
+    /**
+     * The settings used to apply the mods.
+     *
+     * @see {@link OreUICustomizerSettings}
+     * @see {@link defaultOreUICustomizerSettings}
+     *
+     * @default defaultOreUICustomizerSettings
+     */
+    settings?: OreUICustomizerSettings;
+    /**
+     * Enable debug logging.
+     *
+     * @default false
+     */
+    enableDebugLogging?: boolean;
+    /**
+     * The base URI or file path to be used to resolve URIs.
+     *
+     * @default "https://www.8crafter.com/"
+     */
+    baseURI?: string;
+    /**
+     * The NodeJS `fs` module to use if the {@link baseURI} option is a file path.
+     *
+     * @default undefined
+     */
+    nodeFS?: typeof import("fs");
+}
+/**
+ * Applies mods to a zip file.
+ *
+ * @param {Blob} file The zip file to apply mods to.
+ * @param options The options.
+ * @returns {Promise<ApplyModsResult>} A promise resolving to the result.
+ */
+export declare function applyMods(file: Blob, options?: ApplyModsOptions): Promise<ApplyModsResult>;

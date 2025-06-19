@@ -1,5 +1,10 @@
 export const format_version = "0.23.0";
-import { defaultOreUICustomizerSettings, getExtractedFunctionNames, getReplacerRegexes, OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
+import {
+    defaultOreUICustomizerSettings,
+    getExtractedFunctionNames,
+    getReplacerRegexes,
+    OreUICustomizerSettings,
+} from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 
 /**
@@ -48,11 +53,61 @@ export interface ApplyModsResult {
     totalEntries: number;
 }
 
-export async function applyMods(
-    file: Blob,
-    settings?: OreUICustomizerSettings,
-    enableDebugLogging: boolean = false
-): Promise<ApplyModsResult> {
+/**
+ * The options for the {@link applyMods} function.
+ */
+export interface ApplyModsOptions {
+    /**
+     * The settings used to apply the mods.
+     *
+     * @see {@link OreUICustomizerSettings}
+     * @see {@link defaultOreUICustomizerSettings}
+     *
+     * @default defaultOreUICustomizerSettings
+     */
+    settings?: OreUICustomizerSettings;
+    /**
+     * Enable debug logging.
+     *
+     * @default false
+     */
+    enableDebugLogging?: boolean;
+    /**
+     * The base URI or file path to be used to resolve URIs.
+     *
+     * @default "https://www.8crafter.com/"
+     */
+    baseURI?: string;
+    /**
+     * The NodeJS `fs` module to use if the {@link baseURI} option is a file path.
+     *
+     * @default undefined
+     */
+    nodeFS?: typeof import("fs");
+}
+
+/**
+ * Checks if a string is a URI or a path.
+ *
+ * @param {string} URIOrPath The string to check.
+ * @returns {"URI" | "Path"} "URI" if the string is a URI, "Path" if the string is a path.
+ */
+function checkIsURIOrPath(URIOrPath: string): "URI" | "Path" {
+    if (/^[^:\/\\]+:\/\//.test(URIOrPath)) {
+        return "URI" as const;
+    } else {
+        return "Path" as const;
+    }
+}
+
+/**
+ * Applies mods to a zip file.
+ *
+ * @param {Blob} file The zip file to apply mods to.
+ * @param options The options.
+ * @returns {Promise<ApplyModsResult>} A promise resolving to the result.
+ */
+export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Promise<ApplyModsResult> {
     const zipFs: zip.FS = new zip.fs.FS();
     zipFs.importBlob(file);
     var addedCount = 0n;
@@ -65,8 +120,35 @@ export async function applyMods(
      * @type {{[filename: string]: string[]}}
      */
     var allFailedReplaces: { [filename: string]: string[] } = {};
-    const log = enableDebugLogging ? console.log : () => {};
-    settings ??= defaultOreUICustomizerSettings;
+    const log = options.enableDebugLogging ? console.log : () => {};
+    /**
+     * The base URI or file path to be used to resolve URIs.
+     *
+     * @default "https://www.8crafter.com/"
+     */
+    const baseURI = options.baseURI ?? "https://www.8crafter.com/";
+    if (checkIsURIOrPath(baseURI) === "Path" && !options.nodeFS) {
+        throw new TypeError("options.nodeFS is required if options.baseURI is a file path.");
+    }
+    /**
+     * Fetches a file as a blob.
+     *
+     * @param {string} uri The URI of the file.
+     * @returns {Promise<Blob>} A promise resolving to the blob.
+     */
+    async function fetchFileBlob(uri: string): Promise<Blob> {
+        const resolvedURI: string = new URL(uri, baseURI).href;
+        if (checkIsURIOrPath(resolvedURI) === "URI") {
+            const response = await fetch(resolvedURI);
+            return response.blob();
+        } else {
+            return new Blob([options.nodeFS!.readFileSync(resolvedURI)]);
+        }
+    }
+    /**
+     * The settings used to apply the mods.
+     */
+    const settings: OreUICustomizerSettings = options.settings ?? defaultOreUICustomizerSettings;
     (zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]).forEach(
         /** @param {zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry} entry */ async (entry: zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry) => {
             if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
@@ -1254,117 +1336,108 @@ export async function applyMods(
         }
     );
     try {
-        zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/images/ore-ui-customizer/8crafter.gif").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetchFileBlob("./assets/images/ore-ui-customizer/8crafter.gif"));
         log("Added gui/dist/hbui/assets/8crafter.gif");
         addedCount++;
         // Toggle
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/images/ui/toggle/toggle_off_hover.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_off_hover.png"));
         log("Added gui/dist/hbui/assets/toggle_off_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetch("/assets/images/ui/toggle/toggle_off.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_off.png"));
         log("Added gui/dist/hbui/assets/toggle_off.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetch("/assets/images/ui/toggle/toggle_on_hover.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_on_hover.png"));
         log("Added gui/dist/hbui/assets/toggle_on_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetch("/assets/images/ui/toggle/toggle_on.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_on.png"));
         log("Added gui/dist/hbui/assets/toggle_on.png");
         addedCount++;
         // Radio
-        zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetch("/assets/images/ui/radio/radio_off_hover.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetchFileBlob("./assets/images/ui/radio/radio_off_hover.png"));
         log("Added gui/dist/hbui/assets/radio_off_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetch("/assets/images/ui/radio/radio_off.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetchFileBlob("./assets/images/ui/radio/radio_off.png"));
         log("Added gui/dist/hbui/assets/radio_off.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetch("/assets/images/ui/radio/radio_on_hover.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetchFileBlob("./assets/images/ui/radio/radio_on_hover.png"));
         log("Added gui/dist/hbui/assets/radio_on_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetch("/assets/images/ui/radio/radio_on.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetchFileBlob("./assets/images/ui/radio/radio_on.png"));
         log("Added gui/dist/hbui/assets/radio_on.png");
         addedCount++;
         // Checkbox
         // to-do
         // Textboxes
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/edit_box_indent_hover.png",
-            await fetch("/assets/images/ui/textboxes/edit_box_indent_hover.png").then((r) => r.blob())
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetchFileBlob("./assets/images/ui/textboxes/edit_box_indent_hover.png"));
         log("Added gui/dist/hbui/assets/edit_box_indent_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetch("/assets/images/ui/textboxes/edit_box_indent.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetchFileBlob("./assets/images/ui/textboxes/edit_box_indent.png"));
         log("Added gui/dist/hbui/assets/edit_box_indent.png");
         addedCount++;
         // Buttons
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/button_borderless_dark.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_dark.png").then((r) => r.blob())
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_dark.png"));
         log("Added gui/dist/hbui/assets/button_borderless_dark.png");
         addedCount++;
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/button_borderless_light.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_light.png").then((r) => r.blob())
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_light_blue_default.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_default.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_default.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_darkhover.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_darkhover.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkhover.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_lighthover.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_lighthover.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lighthover.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_light_blue_hover.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_hover.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_darkpressed.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_darkpressed.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkpressed.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_lightpressed.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_lightpressed.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lightpressed.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_lightpressed.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_darkpressednohover.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_darkpressednohover.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkpressednohover.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_lightpressednohover.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_lightpressednohover.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lightpressednohover.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
         addedCount++;
         zipFs.addBlob(
             "gui/dist/hbui/assets/button_borderless_light_blue_pressed.png",
-            await fetch("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png").then((r) => r.blob())
+            await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_pressed.png")
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
         addedCount++;
@@ -1383,46 +1456,43 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         console.error(e);
     }
     try {
-        zipFs.addBlob("gui/dist/hbui/customOverlays.js", await fetch("/assets/oreui/customOverlays.js").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/customOverlays.js", await fetchFileBlob("./assets/oreui/customOverlays.js"));
         log("Added gui/dist/hbui/customOverlays.js");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/customOverlays.css", await fetch("/assets/oreui/customOverlays.css").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/customOverlays.css", await fetchFileBlob("./assets/oreui/customOverlays.css"));
         log("Added gui/dist/hbui/customOverlays.css");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/class_path.js", await fetch("/assets/oreui/class_path.js").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/class_path.js", await fetchFileBlob("./assets/oreui/class_path.js"));
         log("Added gui/dist/hbui/class_path.js");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/css.js", await fetch("/assets/oreui/css.js").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/css.js", await fetchFileBlob("./assets/oreui/css.js"));
         log("Added gui/dist/hbui/css.js");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetch("/assets/oreui/JSONB.js").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetchFileBlob("./assets/oreui/JSONB.js"));
         log("Added gui/dist/hbui/JSONB.js");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetchFileBlob("./assets/oreui/JSONB.d.ts"));
         log("Added gui/dist/hbui/JSONB.d.ts");
         addedCount++;
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/chevron_new_white_right.png",
-            await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob())
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_new_white_right.png", await fetchFileBlob("./assets/oreui/assets/chevron_new_white_right.png"));
         log("Added gui/dist/hbui/assets/chevron_new_white_right.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_down.png", await fetch("/assets/oreui/assets/chevron_white_down.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_down.png", await fetchFileBlob("./assets/oreui/assets/chevron_white_down.png"));
         log("Added gui/dist/hbui/assets/chevron_white_down.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_up.png", await fetch("/assets/oreui/assets/chevron_white_up.png").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/assets/chevron_white_up.png", await fetchFileBlob("./assets/oreui/assets/chevron_white_up.png"));
         log("Added gui/dist/hbui/assets/chevron_white_up.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/fonts/consola.ttf", await fetch("/assets/oreui/fonts/consola.ttf").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/fonts/consola.ttf", await fetchFileBlob("./assets/oreui/fonts/consola.ttf"));
         log("Added gui/dist/hbui/fonts/consola.ttf");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/fonts/consolab.ttf", await fetch("/assets/oreui/fonts/consolab.ttf").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/fonts/consolab.ttf", await fetchFileBlob("./assets/oreui/fonts/consolab.ttf"));
         log("Added gui/dist/hbui/fonts/consolab.ttf");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/fonts/consolai.ttf", await fetch("/assets/oreui/fonts/consolai.ttf").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/fonts/consolai.ttf", await fetchFileBlob("./assets/oreui/fonts/consolai.ttf"));
         log("Added gui/dist/hbui/fonts/consolai.ttf");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/fonts/consolaz.ttf", await fetch("/assets/oreui/fonts/consolaz.ttf").then((r) => r.blob()));
+        zipFs.addBlob("gui/dist/hbui/fonts/consolaz.ttf", await fetchFileBlob("./assets/oreui/fonts/consolaz.ttf"));
         log("Added gui/dist/hbui/fonts/consolaz.ttf");
         addedCount++;
     } catch (e) {
