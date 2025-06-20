@@ -166,27 +166,78 @@ export interface OreUICustomizerSettings {
  */
 export declare const defaultOreUICustomizerSettings: OreUICustomizerSettings;
 /**
- * Extracts the function names from the given file contents for the Ore UI Customizer.
+ * An interface that contains extracted symbol names from the compiled Ore UI react code.
+ */
+export interface ExtractedSymbolNames {
+    /**
+     * The function name for the translation string resolver.
+     *
+     * @default "wi"
+     */
+    translationStringResolver: string;
+    /**
+     * The function name for the header function.
+     *
+     * @default "fu"
+     */
+    headerFunciton: string;
+    /**
+     * The function name for the header spacing function.
+     *
+     * @default "Gc"
+     */
+    headerSpacingFunction: string;
+    /**
+     * The function name for the edit world text function.
+     *
+     * @default "Dk"
+     */
+    editWorldTextFunction: string;
+    /**
+     * The function name for the JS text.
+     *
+     * @default "js"
+     */
+    jsText: string;
+    /**
+     * The function name for the navbar button function.
+     *
+     * @default "lc"
+     */
+    navbarButtonFunction: string;
+    /**
+     * The function name for the navbar button image function.
+     *
+     * @default "xc"
+     */
+    navbarButtonImageFunction: string;
+    /**
+     * The function name for the context holder.
+     *
+     * @default "a"
+     */
+    contextHolder: string;
+    /**
+     * The function name for the facet holder.
+     *
+     * @default "r"
+     */
+    facetHolder: string;
+}
+/**
+ * Extracts the symbol names from the given file contents for the Ore UI Customizer.
  *
  * @param {string} fileContents The file contents.
- * @returns The extracted function names.
+ * @returns {ExtractedSymbolNames} The extracted symbol names.
  */
-export declare function getExtractedFunctionNames(fileContents: string): {
-    translationStringResolver: string;
-    headerFunciton: string;
-    headerSpacingFunction: string;
-    editWorldTextFunction: string;
-    jsText: string;
-    navbarButtonFunction: string;
-    navbarButtonImageFunction: string;
-};
+export declare function getExtractedSymbolNames(fileContents: string): ExtractedSymbolNames;
 /**
  * Extracts the regexes for the replacer function for the Ore UI Customizer.
  *
- * @param {ReturnType<typeof getExtractedFunctionNames>} extractedFunctionNames The extracted function names from the {@link getExtractedFunctionNames} function.
+ * @param {ReturnType<typeof getExtractedSymbolNames>} extractedSymbolNames The extracted function names from the {@link getExtractedSymbolNames} function.
  * @returns An object containing the regexes for the replacer function.
  */
-export declare function getReplacerRegexes(extractedFunctionNames: ReturnType<typeof getExtractedFunctionNames>): {
+export declare function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getExtractedSymbolNames>): {
     /**
      * Make the hardcore mode toggle always clickable.
      *

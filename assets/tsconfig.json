@@ -4,7 +4,13 @@
         "outDir": "./js",
         "rootDir": "./ts",
         "declarationDir": "./js",
-        "composite": true
+        "composite": true/* ,
+        "verbatimModuleSyntax": true */
     },
-    "include": ["./ts/**/*.ts"]
+    "include": ["./ts/**/*.ts"],
+    "references": [
+        {
+            "path": "../assets/shared/tsconfig.json"
+        }
+    ]
 }

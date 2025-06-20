@@ -80,7 +80,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=0.23.0"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=0.24.0" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -2088,7 +2088,7 @@
                     </div>
                     <br />
                 </form>
-                <button type="button" class="btn nsel" id="ore-ui-preview-button" onclick="refreshOreUIPreview()">Refresh Preview</button>
+                <button type="button" class="btn nsel" id="ore-ui-preview-button" onclick="oreUICustomizer.refreshOreUIPreview()">Refresh Preview</button>
                 <br />
                 <div id="ore-ui-preview-iframe-container" style="width: 97.5%; aspect-ratio: 16 / 9; margin: 1.25%; overflow: hidden">
                     <iframe
@@ -2121,7 +2121,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.23.0</h1>
+                <h1>8Crafter's Ore UI Customizer v0.24.0</h1>
                 <h4>Instructions</h4>
                 <ul style="text-align: left; list-style: decimal">
                     <li>
@@ -2254,8 +2254,8 @@
                                 Import .zip file
                             </button>
                         </label>
-                        <button type="button" class="btn nsel" id="apply_mods" disabled onclick="applyMods()">Apply Mods</button>
-                        <button type="button" class="btn nsel" id="download" disabled onclick="download()">Download</button>
+                        <button type="button" class="btn nsel" id="apply_mods" disabled onclick="oreUICustomizer.applyMods()">Apply Mods</button>
+                        <button type="button" class="btn nsel" id="download" disabled onclick="oreUICustomizer.download()">Download</button>
                         <br />
                         <a href="./ore-ui-customizer-changelogs.html">
                             <button
@@ -2274,7 +2274,7 @@
                             If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices
                             it could take up to 2 minutes for the file to actually download.
                         </p>
-                        <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="downloadInNewTab()">
+                        <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="oreUICustomizer.downloadInNewTab()">
                             Generate Download Link
                         </button>
                         <a target="_blank" id="download_in_new_tab_link">

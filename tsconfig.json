@@ -14,10 +14,10 @@
         "noUncheckedSideEffectImports": true,
         "composite": true,
         "forceConsistentCasingInFileNames": true,
-        "strict": true,
+        "strict": true,/* 
         "paths": {
             "~shared/*": ["./assets/shared/*"],
-        },
+        }, */
         "noUncheckedIndexedAccess": true,
         "skipLibCheck": true
     },
