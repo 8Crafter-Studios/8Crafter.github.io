@@ -1,15 +1,17 @@
 import {
+    builtInPlugins,
     defaultOreUICustomizerSettings,
     getExtractedSymbolNames,
     getReplacerRegexes,
     OreUICustomizerSettings,
+    Plugin,
 } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "0.24.0";
+export const format_version = "0.25.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -71,6 +73,12 @@ export interface ApplyModsOptions {
      */
     settings?: OreUICustomizerSettings;
     /**
+     * A list of additional plugins to apply.
+     *
+     * @default []
+     */
+    plugins?: Plugin[];
+    /**
      * Enable debug logging.
      *
      * @default false
@@ -114,6 +122,8 @@ export function resolveOreUICustomizerSettings(
     settings: {
         [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements"
             ? Partial<OreUICustomizerSettings["colorReplacements"]>
+            : key extends "enabledBuiltInPlugins"
+            ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]>
             : OreUICustomizerSettings[key];
     } = {}
 ): OreUICustomizerSettings {
@@ -121,6 +131,7 @@ export function resolveOreUICustomizerSettings(
         ...defaultOreUICustomizerSettings,
         ...settings,
         colorReplacements: { ...defaultOreUICustomizerSettings.colorReplacements, ...settings.colorReplacements },
+        enabledBuiltInPlugins: { ...defaultOreUICustomizerSettings.enabledBuiltInPlugins, ...settings.enabledBuiltInPlugins },
     };
 }
 
@@ -199,26 +210,21 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
      * The settings used to apply the mods.
      */
     const settings: OreUICustomizerSettings = resolveOreUICustomizerSettings(options.settings);
-    (zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]).forEach(
-        /** @param {zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry} entry */ async (entry: zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry) => {
-            if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
-                let origName = entry.name;
-                entry.rename(entry.name.split("/").pop()!.replaceAll("%40", "@"));
-                log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
-                modifiedCount++;
-                renamedCount++;
-                return 3;
-            }
-            if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename!)) {
+    /**
+     * The list of plugins to apply.
+     */
+    const plugins: Plugin[] = [...builtInPlugins, ...(options.plugins ?? [])];
+    for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
+        if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
+            let origName = entry.name;
+            entry.rename(entry.name.split("/").pop()!.replaceAll("%40", "@"));
+            log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
+            modifiedCount++;
+            renamedCount++;
+        } else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename.toLowerCase()!)) {
+            if (entry.directory !== void false) {
                 unmodifiedCount++;
-                return 0;
-            }
-            if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
-                unmodifiedCount++;
-                return -2;
-            }
-
-            if (entry.directory === void false) {
+            } else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(entry.data?.filename.toLowerCase()!)) {
                 /**
                  * @type {string}
                  */
@@ -228,15 +234,95 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                  * @type {string[]}
                  */
                 let failedReplaces: string[] = [];
-                const extractedSymbolNames = getExtractedSymbolNames(origData);
-                const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
-                if (settings.hardcoreModeToggleAlwaysClickable) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `/**
+                for (const plugin of plugins) {
+                    if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
+                        for (const action of plugin.actions) {
+                            if (action.context !== "per_text_file") continue;
+                            try {
+                                distData = await action.action(distData, entry, zipFs);
+                            } catch (e) {
+                                failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            }
+                        }
+                    }
+                }
+                if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
+                if (origData !== distData) {
+                    if (entry.data?.filename.endsWith(".js")) {
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                            settings
+                        )}\n${distData}`;
+                    } else if (entry.data?.filename.endsWith(".css")) {
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                            settings
+                        )} */\n${distData}`;
+                    } else if (entry.data?.filename.endsWith(".html")) {
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                            settings
+                        )} -->\n${distData}`;
+                    }
+                    entry.replaceText(distData);
+                    log(`Entry ${entry.name} has been successfully modified.`);
+                    modifiedCount++;
+                    editedCount++;
+                } else {
+                    // log(`Entry ${entry.name} has not been modified.`);
+                    unmodifiedCount++;
+                }
+            } else {
+                /**
+                 * @type {Blob}
+                 */
+                const origData: Blob = await entry.getBlob();
+                let distData = origData;
+                /**
+                 * @type {string[]}
+                 */
+                let failedReplaces: string[] = [];
+                for (const plugin of plugins) {
+                    if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
+                        for (const action of plugin.actions) {
+                            if (action.context !== "per_binary_file") continue;
+                            try {
+                                distData = await action.action(distData, entry, zipFs!);
+                            } catch (e) {
+                                failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            }
+                        }
+                    }
+                }
+                if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
+                if (Buffer.from(await origData.arrayBuffer()).compare(Buffer.from(await distData.arrayBuffer())) !== 0) {
+                    entry.replaceBlob(distData);
+                    log(`Entry ${entry.name} has been successfully modified.`);
+                    modifiedCount++;
+                    editedCount++;
+                } else {
+                    // log(`Entry ${entry.name} has not been modified.`);
+                    unmodifiedCount++;
+                }
+            }
+        } else if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
+            unmodifiedCount++;
+        } else if (entry.directory === void false) {
+            /**
+             * @type {string}
+             */
+            const origData: string = await entry.getText();
+            let distData = origData;
+            /**
+             * @type {string[]}
+             */
+            let failedReplaces: string[] = [];
+            const extractedSymbolNames = getExtractedSymbolNames(origData);
+            const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
+            if (settings.hardcoreModeToggleAlwaysClickable) {
+                let successfullyReplaced = false;
+                for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `/**
              * The hardcore mode toggle.
              *
              * @param {Object} param0
@@ -267,22 +353,22 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     "data-testid": "hardcore-mode-toggle",
                 });
             }`
-                            );
-                            successfullyReplaced = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
-                        failedReplaces.push("hardcoreModeToggleAlwaysClickable");
+                        );
+                        successfullyReplaced = true;
+                        break;
                     }
                 }
-                if (settings.allowDisablingEnabledExperimentalToggles) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `/**
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                    failedReplaces.push("hardcoreModeToggleAlwaysClickable");
+                }
+            }
+            if (settings.allowDisablingEnabledExperimentalToggles) {
+                let successfullyReplaced = false;
+                for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `/**
              * Handles the gneration of an experimental toggle, and the education edition toggle.
              *
              * @param {object} param0
@@ -339,24 +425,24 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                       })
                     : null;
             }`
-                            );
-                            successfullyReplaced = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
-                        failedReplaces.push("allowDisablingEnabledExperimentalToggles");
+                        );
+                        successfullyReplaced = true;
+                        break;
                     }
                 }
-                // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
-                if (settings.addMoreDefaultGameModes) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `/**
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                    failedReplaces.push("allowDisablingEnabledExperimentalToggles");
+                }
+            }
+            // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
+            if (settings.addMoreDefaultGameModes) {
+                let successfullyReplacedA = false;
+                let successfullyReplacedB = false;
+                for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `/**
              * The game mode dropdown.
              *
              * @param param0
@@ -491,16 +577,16 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     ),
                 });
             }`
-                            );
-                            successfullyReplacedA = true;
-                            break;
-                        }
+                        );
+                        successfullyReplacedA = true;
+                        break;
                     }
-                    for (const regex of replacerRegexes.addMoreDefaultGameModes[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `(function (e) {
+                }
+                for (const regex of replacerRegexes.addMoreDefaultGameModes[1]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `(function (e) {
                     // Modified to add more game modes.
                     (e[(e.UNKNOWN = -1)] = "UNKNOWN"),
                         (e[(e.SURVIVAL = 0)] = "SURVIVAL"),
@@ -514,28 +600,28 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         (e[(e.GM8 = 8)] = "GM8"),
                         (e[(e.GM9 = 9)] = "GM9");
                 })($1 || ($2 = {})),`
-                            );
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addMoreDefaultGameModes_dropdown");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("addMoreDefaultGameModes_enumeration");
-                        }
+                        );
+                        successfullyReplacedB = true;
+                        break;
                     }
                 }
-                if (settings.addGeneratorTypeDropdown) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `// Modified to add this dropdown
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
+                    if (!successfullyReplacedA) {
+                        failedReplaces.push("addMoreDefaultGameModes_dropdown");
+                    }
+                    if (!successfullyReplacedB) {
+                        failedReplaces.push("addMoreDefaultGameModes_enumeration");
+                    }
+                }
+            }
+            if (settings.addGeneratorTypeDropdown) {
+                let successfullyReplacedA = false;
+                let successfullyReplacedB = false;
+                for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `// Modified to add this dropdown
                                       ${extractedSymbolNames.contextHolder}.createElement(
                                           ${extractedSymbolNames.facetHolder}.Mount,
                                           { when: true /* $1 */ },
@@ -593,16 +679,16 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
                                       )`
-                            );
-                            successfullyReplacedA = true;
-                            break;
-                        }
+                        );
+                        successfullyReplacedA = true;
+                        break;
                     }
-                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `(function (e) {
+                }
+                for (const regex of replacerRegexes.addGeneratorTypeDropdown[1]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `(function (e) {
                     (e[(e.Legacy = 0)] = "Legacy"),
                         (e[(e.Overworld = 1)] = "Overworld"),
                         (e[(e.Flat = 2)] = "Flat"),
@@ -611,27 +697,27 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         (e[(e.Void = 5)] = "Void"),
                         (e[(e.Undefined = 6)] = "Undefined");
                 })($1 || ($1 = {})),`
-                            );
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addGeneratorTypeDropdown_dropdown");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("addGeneratorTypeDropdown_enumeration");
-                        }
+                        );
+                        successfullyReplacedB = true;
+                        break;
                     }
                 }
-                if (settings.allowForChangingSeeds) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `$1 = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: o, worldData: wd }) => {
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
+                    if (!successfullyReplacedA) {
+                        failedReplaces.push("addGeneratorTypeDropdown_dropdown");
+                    }
+                    if (!successfullyReplacedB) {
+                        failedReplaces.push("addGeneratorTypeDropdown_enumeration");
+                    }
+                }
+            }
+            if (settings.allowForChangingSeeds) {
+                let successfullyReplaced = false;
+                for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `$1 = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: o, worldData: wd }) => {
                     const { t: i } = $4("CreateNewWorld.advanced"),
                         { t: c } = $4("CreateNewWorld.all"),
                         s = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
@@ -704,58 +790,58 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                               })
                           ) */);
                 },`
-                            );
-                            successfullyReplaced = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
-                        failedReplaces.push("allowForChangingSeeds");
+                        );
+                        successfullyReplaced = true;
+                        break;
                     }
                 }
-                if (settings.allowForChangingFlatWorldPreset) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`
-                            );
-                            successfullyReplacedA = true;
-                            break;
-                        }
-                    }
-                    for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `return ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.contextHolder}.Fragment,null,${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false},${extractedSymbolNames.contextHolder}.createElement($1,{onChange:$2,value:$3,title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),disabled:$5,offNarrationText:$6,onNarrationText:$7,narrationSuffix:$8})),${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false,condition:!1},${extractedSymbolNames.contextHolder}.createElement($9,{title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),value:$3,onChange:$2,disabled:$5,narrationSuffix:$8,offNarrationText:$6,onNarrationText:$7,onExpandNarrationHint:$10},${extractedSymbolNames.contextHolder}.createElement($11,{title:$12(".title"),customSelectionDescription:${extractedSymbolNames.contextHolder}.createElement($13,{preset:$14}),options:$15,value:$16,onItemSelect:e=>$17($18[e]),disabled:$5,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$19}))))`
-                            );
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset")) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
-                        failedReplaces.push("allowForChangingFlatWorldPreset");
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                    failedReplaces.push("allowForChangingSeeds");
+                }
+            }
+            if (settings.allowForChangingFlatWorldPreset) {
+                let successfullyReplacedA = false;
+                let successfullyReplacedB = false;
+                for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`
+                        );
+                        successfullyReplacedA = true;
+                        break;
                     }
                 }
-                if (settings.addDebugTab) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addDebugTab[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `/**
+                for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `return ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.contextHolder}.Fragment,null,${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false},${extractedSymbolNames.contextHolder}.createElement($1,{onChange:$2,value:$3,title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),disabled:$5,offNarrationText:$6,onNarrationText:$7,narrationSuffix:$8})),${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false,condition:!1},${extractedSymbolNames.contextHolder}.createElement($9,{title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),value:$3,onChange:$2,disabled:$5,narrationSuffix:$8,offNarrationText:$6,onNarrationText:$7,onExpandNarrationHint:$10},${extractedSymbolNames.contextHolder}.createElement($11,{title:$12(".title"),customSelectionDescription:${extractedSymbolNames.contextHolder}.createElement($13,{preset:$14}),options:$15,value:$16,onItemSelect:e=>$17($18[e]),disabled:$5,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$19}))))`
+                        );
+                        successfullyReplacedB = true;
+                        break;
+                    }
+                }
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset")) {
+                    if (!successfullyReplacedA) {
+                        failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
+                    }
+                    if (!successfullyReplacedB) {
+                        failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
+                    }
+                }
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
+                    failedReplaces.push("allowForChangingFlatWorldPreset");
+                }
+            }
+            if (settings.addDebugTab) {
+                let successfullyReplacedA = false;
+                let successfullyReplacedB = false;
+                for (const regex of replacerRegexes.addDebugTab[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `/**
              * The function for the Debug tab of the create and edit world screens.
              *
              * @param {object} param0
@@ -1200,101 +1286,101 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     )
                 );
             }`
-                            );
-                            successfullyReplacedA = true;
-                            break;
-                        }
-                    }
-                    for (const regex of replacerRegexes.addDebugTab[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `$1.push({label:".debugTabLabel",image:$2,value:"debug"}),`);
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addDebugTab_replaceTab");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("addDebugTab_makeVisible");
-                        }
+                        );
+                        successfullyReplacedA = true;
+                        break;
                     }
                 }
-                Object.entries(settings.colorReplacements).forEach(([key, value]) => {
-                    if (value !== "" && value !== undefined && value !== null && value !== key) {
-                        distData = distData.replaceAll(key, value);
+                for (const regex of replacerRegexes.addDebugTab[1]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(regex, `$1.push({label:".debugTabLabel",image:$2,value:"debug"}),`);
+                        successfullyReplacedB = true;
+                        break;
                     }
-                });
-                distData = distData
-                    .replace(
-                        /(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/,
-                        `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
+                }
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!)) {
+                    if (!successfullyReplacedA) {
+                        failedReplaces.push("addDebugTab_replaceTab");
+                    }
+                    if (!successfullyReplacedB) {
+                        failedReplaces.push("addDebugTab_makeVisible");
+                    }
+                }
+            }
+            Object.entries(settings.colorReplacements).forEach(([key, value]) => {
+                if (value !== "" && value !== undefined && value !== null && value !== key) {
+                    distData = distData.replaceAll(key, value);
+                }
+            });
+            distData = distData
+                .replace(
+                    /(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/,
+                    `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
         <script defer="defer" src="/hbui/class_path.js"></script>
         <script defer="defer" src="/hbui/css.js"></script>
         <script defer="defer" src="/hbui/JSONB.js"></script>
         <script defer="defer" src="/hbui/customOverlays.js"></script>
         `
-                    )
-                    .replace(
-                        /(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/,
-                        `
+                )
+                .replace(
+                    /(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/,
+                    `
         <link href="/hbui/customOverlays.css" rel="stylesheet" />`
+                );
+            distData = distData
+                .replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                )
+                .replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                )
+                .replace(
+                    new RegExp(
+                        `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                    ),
+                    `false`
+                );
+            if (settings.maxTextLengthOverride !== "") {
+                const origDistData = distData;
+                const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
+                const values = [...textLengthValues];
+                // console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
+                for (const textLengthValue of values) {
+                    distData = distData.replace(
+                        textLengthValue[0],
+                        `maxLength${textLengthValue[1]}${
+                            settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */
+                        }`
                     );
-                distData = distData
-                    .replace(
-                        new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                        ),
-                        `false`
-                    )
-                    .replace(
-                        new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                        ),
-                        `false`
-                    )
-                    .replace(
-                        new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
-                        ),
-                        `false`
-                    );
-                if (settings.maxTextLengthOverride !== "") {
-                    const origDistData = distData;
-                    const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
-                    const values = [...textLengthValues];
-                    // console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
-                    for (const textLengthValue of values) {
-                        distData = distData.replace(
-                            textLengthValue[0],
-                            `maxLength${textLengthValue[1]}${
-                                settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */
-                            }`
-                        );
-                    }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && distData === origDistData) {
-                        failedReplaces.push("maxTextLengthOverride");
-                    }
-                } else {
-                    console.warn("maxTextLengthOverride is empty");
                 }
-                if (settings.add8CrafterUtilitiesMainMenuButton) {
-                    let successfullyReplaced = false;
-                    let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
-                        origData
-                            .match(
-                                /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:i\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:i\("\.inputLegend"\),narrationText:null!=o\?o:i\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/
-                            )
-                            ?.slice(1, 4) ?? [];
-                    disabledVariableSymbolName ??= "n";
-                    focusGridIndexVariableSymbolName ??= "r";
-                    navbarButtonImageClass ??= "QQfwv";
-                    for (const regex of replacerRegexes.add8CrafterUtilitiesMainMenuButton[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(
-                                regex,
-                                `${extractedSymbolNames.contextHolder}.createElement(
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && distData === origDistData) {
+                    failedReplaces.push("maxTextLengthOverride");
+                }
+            } else {
+                console.warn("maxTextLengthOverride is empty");
+            }
+            if (settings.add8CrafterUtilitiesMainMenuButton) {
+                let successfullyReplaced = false;
+                let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
+                    origData
+                        .match(
+                            /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:i\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:i\("\.inputLegend"\),narrationText:null!=o\?o:i\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/
+                        )
+                        ?.slice(1, 4) ?? [];
+                disabledVariableSymbolName ??= "n";
+                focusGridIndexVariableSymbolName ??= "r";
+                navbarButtonImageClass ??= "QQfwv";
+                for (const regex of replacerRegexes.add8CrafterUtilitiesMainMenuButton[0]) {
+                    if (regex.test(distData)) {
+                        distData = distData.replace(
+                            regex,
+                            `${extractedSymbolNames.contextHolder}.createElement(
                                                     ${extractedSymbolNames.facetHolder}.Mount,
                                                     { when: true },
                                                     ${extractedSymbolNames.contextHolder}.createElement(
@@ -1355,47 +1441,55 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                                         ${extractedSymbolNames.contextHolder}.createElement($3, { onClick: $4, screenAnalyticsId: $5 })
                                                     )
                                                 )`
-                            );
-                            successfullyReplaced = true;
-                            break;
+                        );
+                        successfullyReplaced = true;
+                        break;
+                    }
+                }
+                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                    failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
+                }
+            }
+            for (const plugin of plugins) {
+                if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
+                    for (const action of plugin.actions) {
+                        if (action.context !== "per_text_file") continue;
+                        try {
+                            distData = await action.action(distData, entry, zipFs);
+                        } catch (e) {
+                            failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                         }
                     }
-                    if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
-                        failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
-                    }
                 }
-                if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
-                if (origData !== distData) {
-                    if (entry.data?.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                            settings
-                        )}\n${distData}`;
-                    } else if (entry.data?.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                            settings
-                        )} */\n${distData}`;
-                    } else if (entry.data?.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                            settings
-                        )} -->\n${distData}`;
-                    }
-                    entry.replaceText(distData);
-                    log(`Entry ${entry.name} has been successfully modified.`);
-                    modifiedCount++;
-                    editedCount++;
-                    return 1;
-                } else {
-                    // log(`Entry ${entry.name} has not been modified.`);
-                    unmodifiedCount++;
-                    return 2;
-                }
-            } else {
-                console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.data?.filename);
-                unmodifiedCount++;
-                return -1;
             }
+            if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
+            if (origData !== distData) {
+                if (entry.data?.filename.endsWith(".js")) {
+                    distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
+                        settings
+                    )}\n${distData}`;
+                } else if (entry.data?.filename.endsWith(".css")) {
+                    distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
+                        settings
+                    )} */\n${distData}`;
+                } else if (entry.data?.filename.endsWith(".html")) {
+                    distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
+                        settings
+                    )} -->\n${distData}`;
+                }
+                entry.replaceText(distData);
+                log(`Entry ${entry.name} has been successfully modified.`);
+                modifiedCount++;
+                editedCount++;
+            } else {
+                // log(`Entry ${entry.name} has not been modified.`);
+                unmodifiedCount++;
+            }
+        } else {
+            console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.data?.filename);
+            unmodifiedCount++;
         }
-    );
+    }
     try {
         zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetchFileBlob("./assets/images/ore-ui-customizer/8crafter.gif"));
         log("Added gui/dist/hbui/assets/8crafter.gif");

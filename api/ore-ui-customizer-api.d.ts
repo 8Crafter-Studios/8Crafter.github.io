@@ -1,9 +1,9 @@
-import { OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
+import { OreUICustomizerSettings, Plugin } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "0.24.0";
+export declare const format_version = "0.25.0";
 /**
  * The result of the {@link applyMods} function.
  */
@@ -65,6 +65,12 @@ export interface ApplyModsOptions {
      */
     settings?: OreUICustomizerSettings;
     /**
+     * A list of additional plugins to apply.
+     *
+     * @default []
+     */
+    plugins?: Plugin[];
+    /**
      * Enable debug logging.
      *
      * @default false
@@ -90,7 +96,7 @@ export interface ApplyModsOptions {
  * @returns The resolved settings.
  */
 export declare function resolveOreUICustomizerSettings(settings?: {
-    [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]> : OreUICustomizerSettings[key];
+    [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]> : key extends "enabledBuiltInPlugins" ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]> : OreUICustomizerSettings[key];
 }): OreUICustomizerSettings;
 /**
  * Applies mods to a zip file.

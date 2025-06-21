@@ -1,9 +1,9 @@
-import { defaultOreUICustomizerSettings, getExtractedSymbolNames, getReplacerRegexes, } from "../assets/shared/ore-ui-customizer-assets.js";
+import { builtInPlugins, defaultOreUICustomizerSettings, getExtractedSymbolNames, getReplacerRegexes, } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "0.24.0";
+export const format_version = "0.25.0";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -29,6 +29,7 @@ export function resolveOreUICustomizerSettings(settings = {}) {
         ...defaultOreUICustomizerSettings,
         ...settings,
         colorReplacements: { ...defaultOreUICustomizerSettings.colorReplacements, ...settings.colorReplacements },
+        enabledBuiltInPlugins: { ...defaultOreUICustomizerSettings.enabledBuiltInPlugins, ...settings.enabledBuiltInPlugins },
     };
 }
 /**
@@ -107,25 +108,110 @@ export async function applyMods(file, options = {}) {
      * The settings used to apply the mods.
      */
     const settings = resolveOreUICustomizerSettings(options.settings);
-    zipFs.entries.forEach(
-    /** @param {zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry} entry */ async (entry) => {
+    /**
+     * The list of plugins to apply.
+     */
+    const plugins = [...builtInPlugins, ...(options.plugins ?? [])];
+    for (const entry of zipFs.entries) {
         if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename)) {
             let origName = entry.name;
             entry.rename(entry.name.split("/").pop().replaceAll("%40", "@"));
             log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
             modifiedCount++;
             renamedCount++;
-            return 3;
         }
-        if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename)) {
+        else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename.toLowerCase())) {
+            if (entry.directory !== void false) {
+                unmodifiedCount++;
+            }
+            else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(entry.data?.filename.toLowerCase())) {
+                /**
+                 * @type {string}
+                 */
+                const origData = await entry.getText();
+                let distData = origData;
+                /**
+                 * @type {string[]}
+                 */
+                let failedReplaces = [];
+                for (const plugin of plugins) {
+                    if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                        for (const action of plugin.actions) {
+                            if (action.context !== "per_text_file")
+                                continue;
+                            try {
+                                distData = await action.action(distData, entry, zipFs);
+                            }
+                            catch (e) {
+                                failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            }
+                        }
+                    }
+                }
+                if (failedReplaces.length > 0)
+                    allFailedReplaces[entry.data?.filename] = failedReplaces;
+                if (origData !== distData) {
+                    if (entry.data?.filename.endsWith(".js")) {
+                        distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(settings)}\n${distData}`;
+                    }
+                    else if (entry.data?.filename.endsWith(".css")) {
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(settings)} */\n${distData}`;
+                    }
+                    else if (entry.data?.filename.endsWith(".html")) {
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(settings)} -->\n${distData}`;
+                    }
+                    entry.replaceText(distData);
+                    log(`Entry ${entry.name} has been successfully modified.`);
+                    modifiedCount++;
+                    editedCount++;
+                }
+                else {
+                    // log(`Entry ${entry.name} has not been modified.`);
+                    unmodifiedCount++;
+                }
+            }
+            else {
+                /**
+                 * @type {Blob}
+                 */
+                const origData = await entry.getBlob();
+                let distData = origData;
+                /**
+                 * @type {string[]}
+                 */
+                let failedReplaces = [];
+                for (const plugin of plugins) {
+                    if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                        for (const action of plugin.actions) {
+                            if (action.context !== "per_binary_file")
+                                continue;
+                            try {
+                                distData = await action.action(distData, entry, zipFs);
+                            }
+                            catch (e) {
+                                failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            }
+                        }
+                    }
+                }
+                if (failedReplaces.length > 0)
+                    allFailedReplaces[entry.data?.filename] = failedReplaces;
+                if (Buffer.from(await origData.arrayBuffer()).compare(Buffer.from(await distData.arrayBuffer())) !== 0) {
+                    entry.replaceBlob(distData);
+                    log(`Entry ${entry.name} has been successfully modified.`);
+                    modifiedCount++;
+                    editedCount++;
+                }
+                else {
+                    // log(`Entry ${entry.name} has not been modified.`);
+                    unmodifiedCount++;
+                }
+            }
+        }
+        else if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
             unmodifiedCount++;
-            return 0;
         }
-        if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
-            unmodifiedCount++;
-            return -2;
-        }
-        if (entry.directory === void false) {
+        else if (entry.directory === void false) {
             /**
              * @type {string}
              */
@@ -1208,6 +1294,20 @@ export async function applyMods(file, options = {}) {
                     failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
                 }
             }
+            for (const plugin of plugins) {
+                if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                    for (const action of plugin.actions) {
+                        if (action.context !== "per_text_file")
+                            continue;
+                        try {
+                            distData = await action.action(distData, entry, zipFs);
+                        }
+                        catch (e) {
+                            failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                        }
+                    }
+                }
+            }
             if (failedReplaces.length > 0)
                 allFailedReplaces[entry.data?.filename] = failedReplaces;
             if (origData !== distData) {
@@ -1224,20 +1324,17 @@ export async function applyMods(file, options = {}) {
                 log(`Entry ${entry.name} has been successfully modified.`);
                 modifiedCount++;
                 editedCount++;
-                return 1;
             }
             else {
                 // log(`Entry ${entry.name} has not been modified.`);
                 unmodifiedCount++;
-                return 2;
             }
         }
         else {
             console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.data?.filename);
             unmodifiedCount++;
-            return -1;
         }
-    });
+    }
     try {
         zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetchFileBlob("./assets/images/ore-ui-customizer/8crafter.gif"));
         log("Added gui/dist/hbui/assets/8crafter.gif");
