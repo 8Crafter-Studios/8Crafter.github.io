@@ -121,6 +121,7 @@ export declare namespace OreUICustomizer {
     function refreshOreUIPreview(menuHTMLFileName?: string): Promise<void>;
     function applyMods(): Promise<boolean>;
     function downloadInNewTab(): Promise<void>;
+    function download(): Promise<void>;
 }
 declare global {
     /**

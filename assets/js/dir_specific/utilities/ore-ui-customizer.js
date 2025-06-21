@@ -2219,7 +2219,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         $("#download_in_new_tab_link_open_button").prop("disabled", false);
     }
     OreUICustomizer.downloadInNewTab = downloadInNewTab;
-    globalThis.download = async function download() {
+    async function download() {
         if (OreUICustomizer.zipFs === undefined) {
             throw new Error("zipFs is undefined");
         }
@@ -2229,7 +2229,9 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         a.href = url;
         a.download = "gui-mod.zip";
         a.click();
-    };
+    }
+    OreUICustomizer.download = download;
+    ;
 })(OreUICustomizer || (OreUICustomizer = {}));
 Object.defineProperties(globalThis, {
     oreUICustomizer: { enumerable: true, value: OreUICustomizer, writable: false },

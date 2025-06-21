@@ -2431,7 +2431,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         $("#download_in_new_tab_link_open_button").prop("disabled", false);
     }
 
-    globalThis.download = async function download() {
+    export async function download() {
         if (zipFs === undefined) {
             throw new Error("zipFs is undefined");
         }
