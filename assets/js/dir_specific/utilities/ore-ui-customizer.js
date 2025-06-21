@@ -5,6 +5,25 @@ import { builtInPlugins, getExtractedSymbolNames, getReplacerRegexes, } from "..
 export var OreUICustomizer;
 (function (OreUICustomizer) {
     /**
+     *
+     * @param buf1
+     * @param buf2
+     * @returns
+     *
+     * @see https://stackoverflow.com/a/21554107/16872762
+     */
+    function arrayBuffersAreEqual(buf1, buf2) {
+        if (buf1.byteLength != buf2.byteLength)
+            return false;
+        var dv1 = new Int8Array(buf1);
+        var dv2 = new Int8Array(buf2);
+        for (var i = 0; i != buf1.byteLength; i++) {
+            if (dv1[i] != dv2[i])
+                return false;
+        }
+        return true;
+    }
+    /**
      * The list of zip file presets available presets for the Ore UI Customizer.
      */
     OreUICustomizer.currentPresets = {
@@ -23,7 +42,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "0.25.0";
+    OreUICustomizer.format_version = "0.25.1";
     /**
      * @type {File | undefined}
      */
@@ -875,7 +894,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     }
                     if (failedReplaces.length > 0)
                         allFailedReplaces[entry.data?.filename] = failedReplaces;
-                    if (Buffer.from(await origData.arrayBuffer()).compare(Buffer.from(await distData.arrayBuffer())) !== 0) {
+                    if (!arrayBuffersAreEqual(await origData.arrayBuffer(), await distData.arrayBuffer())) {
                         entry.replaceBlob(distData);
                         console.log(`Entry ${entry.name} has been successfully modified.`);
                         modifiedCount++;
