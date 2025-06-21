@@ -791,6 +791,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             console.error("applyMods - validateZipFile failed");
             return false;
         }
+        $("#apply_mods").prop("disabled", true);
         const settings = getSettings();
         var addedCount = 0n;
         var removedCount = 0n;
