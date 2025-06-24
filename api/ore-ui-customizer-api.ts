@@ -3,6 +3,7 @@ import {
     defaultOreUICustomizerSettings,
     getExtractedSymbolNames,
     getReplacerRegexes,
+    importPluginFromDataURI,
     OreUICustomizerSettings,
     Plugin,
 } from "../assets/shared/ore-ui-customizer-assets.js";
@@ -11,7 +12,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "0.25.1";
+export const format_version = "1.0.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -72,12 +73,6 @@ export interface ApplyModsOptions {
      * @default defaultOreUICustomizerSettings
      */
     settings?: OreUICustomizerSettings;
-    /**
-     * A list of additional plugins to apply.
-     *
-     * @default []
-     */
-    plugins?: Plugin[];
     /**
      * Enable debug logging.
      *
@@ -213,7 +208,10 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
     /**
      * The list of plugins to apply.
      */
-    const plugins: Plugin[] = [...builtInPlugins, ...(options.plugins ?? [])];
+    const plugins: Plugin[] = [...builtInPlugins];
+    for (const encodedPlugin of settings.plugins ?? []) {
+        plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, encodedPlugin.fileType));
+    }
     for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
         if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
             let origName = entry.name;
@@ -250,15 +248,15 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 if (origData !== distData) {
                     if (entry.data?.filename.endsWith(".js")) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )}\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".css")) {
                         distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )} */\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".html")) {
                         distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
@@ -1466,15 +1464,15 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
             if (origData !== distData) {
                 if (entry.data?.filename.endsWith(".js")) {
                     distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                        settings
+                        { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )}\n${distData}`;
                 } else if (entry.data?.filename.endsWith(".css")) {
                     distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                        settings
+                        { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )} */\n${distData}`;
                 } else if (entry.data?.filename.endsWith(".html")) {
                     distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                        settings
+                        { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )} -->\n${distData}`;
                 }
                 entry.replaceText(distData);

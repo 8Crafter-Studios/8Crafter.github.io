@@ -215,3 +215,30 @@ setInterval(function shiftDivElementsRandomly_medium(){
 
 // Print Emoji File (MOVE THIS TO `a2.txt`!)
 ${se}let str = ""; for(let i = 0; i <= 0xff; i++){str += String.fromCharCode(0xE200 + i)}; send(str)
+
+
+
+// Rotate body 3d diagonal.
+(async function spinBody(
+    stopOnCondition = function () {
+        return false;
+    },
+    interval = 20,
+    step = 1
+) {
+    let val = 0;
+    return new Promise(function resolve() {
+        let id = setInterval(function () {
+            if (stopOnCondition() == true) {
+                clearInterval(id);
+                resolve(true);
+                return;
+            }
+
+            val += step;
+            // val %= 360;
+
+            document.body.style.transform = `rotate3d(1, 1, 0.1, ${val}deg)`;
+        }, interval);
+    });
+})();

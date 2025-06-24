@@ -1,3 +1,5 @@
+import semver from "./semver.js";
+
 /**
  * An interface that contains the settings for 8Crafter's Ore UI Customizer.
  */
@@ -189,6 +191,75 @@ export interface OreUICustomizerSettings {
         "#050029": string;
         "rgba(5, 0, 41, 0.5)": string;
     };
+    /**
+     * A list of additional plugins to apply.
+     *
+     * @default []
+     */
+    plugins?: EncodedPluginData[];
+}
+
+export interface EncodedPluginData {
+    /**
+     * The display name of the plugin.
+     */
+    name: string;
+    /**
+     * The id of the plugin, used to identify the plugin when applying the plugins, also used to identify the plugin in error messages, this should be unique.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+     */
+    id: string;
+    /**
+     * The namespace of the plugin, used to identify the plugin in error messages.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+     *
+     * Must not be `built-in`, as it is reserved for built-in plugins.
+     */
+    namespace: string;
+    /**
+     * The version of the plugin.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     */
+    version: string;
+    /**
+     * The version of 8Crafter's Ore UI Customizer that this plugin is made for.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     */
+    format_version: string;
+    /**
+     * The minimum version of 8Crafter's Ore UI Customizer that this plugin is compatible with.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     *
+     * If not specified, no check will be done.
+     */
+    min_engine_version?: string;
+    /**
+     * The file type of the plugin.
+     */
+    fileType: "js" | "mcouicplugin";
+    /**
+     * The data URI of the plugin.
+     */
+    dataURI: `data:${string};base64,${string}`;
+}
+
+/**
+ * The JSON data of a config file for 8Crafter's Ore UI Customizer.
+ */
+export interface OreUICustomizerConfig {
+    /**
+     * The settings for 8Crafter's Ore UI Customizer.
+     */
+    oreUICustomizerConfig: OreUICustomizerSettings;
+    /**
+     * The version of 8Crafter's Ore UI Customizer.
+     */
+    oreUICustomizerVersion: string;
 }
 
 /**
@@ -375,7 +446,138 @@ export const defaultOreUICustomizerSettings: OreUICustomizerSettings = {
         "#050029": "#050029",
         "rgba(5, 0, 41, 0.5)": "rgba(5, 0, 41, 0.5)",
     },
+    plugins: [],
 } as OreUICustomizerSettings;
+
+/**
+ * Converts a blob to a data URI.
+ *
+ * @param {Blob} blob The blob to convert.
+ * @returns {Promise<`data:${string};base64,${string}`>} A promise resolving with the data URI.
+ */
+export async function blobToDataURI(blob: Blob): Promise<`data:${string};base64,${string}`> {
+    if (typeof globalThis.Buffer === "undefined") {
+        const arrayBuffer = await blob.arrayBuffer();
+        const byteArray = new Uint8Array(arrayBuffer);
+        const base64String: string = byteArray.reduce((data: string, byte: number): string => data + String.fromCharCode(byte), "");
+        const base64Encoded: string = btoa(base64String);
+        return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}`;
+    } else {
+        const base64Encoded: string = Buffer.from(await blob.bytes()).toString("base64url");
+        return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}` as const;
+    }
+}
+
+/**
+ * Imports a plugin from a data URI.
+ *
+ * @param {string} dataURI The data URI to import the plugin from.
+ * @param {"js" | "mcouicplugin"} [type="js"] The type of the plugin to import.
+ * @returns {Promise<Plugin>} A promise resolving with the imported plugin.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ */
+export async function importPluginFromDataURI(dataURI: string, type: "js" | "mcouicplugin" = "js"): Promise<Plugin> {
+    switch (type) {
+        case "mcouicplugin": {
+            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+        }
+        case "js": {
+            const data: { plugin: Plugin } = await import(dataURI);
+            return data.plugin;
+        }
+        default: {
+            throw new TypeError(`Unsupported plugin type "${type}".`);
+        }
+    }
+}
+
+/**
+ * Validates a plugin file.
+ *
+ * @param {Blob} plugin The plugin file to validate.
+ * @param {"mcouicplugin" | "js"} type The type of the plugin file.
+ * @returns {Promise<void>} A promise resolving to `void` when the plugin file is validated.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ * @throws {TypeError | SyntaxError} If the plugin is not valid.
+ */
+export async function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "js"): Promise<void> {
+    switch (type) {
+        case "mcouicplugin": {
+            const zipFs = new zip.fs.FS();
+            await zipFs.importBlob(plugin);
+            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+        }
+        case "js": {
+            const dataURI: string = URL.createObjectURL(plugin);
+            const data: { plugin: Plugin } = await import(dataURI);
+            if (data?.plugin) {
+                validatePluginObject(data.plugin);
+            } else {
+                throw new SyntaxError(`Plugin is missing required variable export "plugin".`);
+            }
+            return;
+        }
+        default: {
+            throw new TypeError(`Unsupported plugin type "${type}".`);
+        }
+    }
+}
+
+/**
+ * Validates a plugin object.
+ *
+ * @param {any} plugin The plugin object to validate.
+ * @returns {asserts plugin is Plugin} Asserts that the plugin object is valid. If it is not valid, throws an error. Otherwise, returns `void`.
+ */
+export function validatePluginObject(plugin: any): asserts plugin is Plugin {
+    if (typeof plugin !== "object") throw new TypeError(`Plugin must be an object.`);
+    const pluginObject: Plugin = plugin;
+    if (!pluginObject.actions) throw new SyntaxError(`Plugin is missing required property "actions".`);
+    if (!(pluginObject.actions instanceof Array)) throw new SyntaxError(`Plugin property "actions" must be an array.`);
+    if (!pluginObject.format_version) throw new SyntaxError(`Plugin is missing required property "format_version".`);
+    if (typeof pluginObject.format_version !== "string") throw new SyntaxError(`Plugin property "format_version" must be a string.`);
+    if (pluginObject.format_version.startsWith("v")) throw new SyntaxError(`Plugin property "format_version" must not include the leading "v".`);
+    if (semver.valid(pluginObject.format_version) === null) throw new SyntaxError(`Plugin property "format_version" must be a valid semver version.`);
+    if (!pluginObject.id) throw new SyntaxError(`Plugin is missing required property "id".`);
+    if (typeof pluginObject.id !== "string") throw new SyntaxError(`Plugin property "id" must be a string.`);
+    if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.id)) throw new SyntaxError(`Plugin property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    if (!pluginObject.name) throw new SyntaxError(`Plugin is missing required property "name".`);
+    if (typeof pluginObject.name !== "string") throw new SyntaxError(`Plugin property "name" must be a string.`);
+    if (typeof pluginObject.min_engine_version !== "undefined" && typeof pluginObject.min_engine_version !== "string")
+        throw new SyntaxError(`Plugin property "min_engine_version" must be a string or undefined.`);
+    if (typeof pluginObject.min_engine_version === "string" && pluginObject.min_engine_version.startsWith("v"))
+        throw new SyntaxError(`Plugin property "min_engine_version" must not include the leading "v".`);
+    if (typeof pluginObject.min_engine_version === "string" && semver.valid(pluginObject.min_engine_version) === null)
+        throw new SyntaxError(`Plugin property "min_engine_version" must be a valid semver version or undefined.`);
+    if (!pluginObject.namespace) throw new SyntaxError(`Plugin is missing required property "namespace".`);
+    if (pluginObject.namespace === "built-in" && !builtInPlugins.includes(pluginObject as (typeof builtInPlugins)[number]))
+        throw new SyntaxError(`Plugin is using the reserved namespace "built-in" but is not a built-in plugin.`);
+    if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.namespace))
+        throw new SyntaxError(`Plugin property "namespace" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    if (!pluginObject.version) throw new SyntaxError(`Plugin is missing required property "version".`);
+    if (typeof pluginObject.version !== "string") throw new SyntaxError(`Plugin property "version" must be a string.`);
+    if (pluginObject.version.startsWith("v")) throw new SyntaxError(`Plugin property "version" must not include the leading "v".`);
+    if (semver.valid(pluginObject.version) === null) throw new SyntaxError(`Plugin property "version" must be a valid semver version.`);
+    let pluginIndex = 0;
+    for (const action of pluginObject.actions) {
+        if (!action.action) throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "action".`);
+        if (typeof action.action !== "function") throw new SyntaxError(`Plugin action ${pluginIndex} property "action" must be a function.`);
+        if (!action.context) throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "context".`);
+        if (typeof action.context !== "string") throw new SyntaxError(`Plugin action ${pluginIndex} property "context" must be a string.`);
+        if (!["per_text_file", "per_binary_file", "global_before", "global"].includes(action.context))
+            throw new SyntaxError(
+                `Plugin action ${pluginIndex} property "context" must be one of "per_text_file", "per_binary_file", "global_before", "global".`
+            );
+        if (!action.id) throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "id".`);
+        if (typeof action.id !== "string") throw new SyntaxError(`Plugin action ${pluginIndex} property "id" must be a string.`);
+        if (!/^[a-zA-Z0-9_\-\.]+$/.test(action.id))
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+        pluginIndex++;
+    }
+    return;
+}
 
 /**
  * An interface that contains extracted symbol names from the compiled Ore UI react code.
@@ -1240,7 +1442,7 @@ export interface Plugin {
      *
      * Must not be `built-in`, as it is reserved for built-in plugins.
      */
-    namespace: Omit<string, "built-in">;
+    namespace: string;
     /**
      * The version of the plugin.
      *
@@ -1278,6 +1480,8 @@ export type PluginActionContext = "per_text_file" | "per_binary_file" | "global_
 export interface PluginActionBase {
     /**
      * The id of the plugin action, used to identify the plugin action in error messages, this should be unique.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
      */
     id: string;
     /**
@@ -1419,7 +1623,11 @@ export const builtInPlugins = [
                 context: "per_text_file",
                 action: async (currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> => {
                     if (!/index-[0-9a-f]{20}\.js$/.test(file.data?.filename!)) return currentFileContent;
-                    if (!/function ([a-zA-Z0-9_\$]{2})\(\{playerCount:([a-zA-Z0-9_\$]),maximumCapacity:([a-zA-Z0-9_\$])\}\)\{const ([a-zA-Z0-9_\$])=\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(\((?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\)=>0!==(?:[a-zA-Z0-9_\$])&&(?:[a-zA-Z0-9_\$])===(?:[a-zA-Z0-9_\$])\),\[\],\[(?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\]\),\{(?:[a-zA-Z0-9_\$]):(?:[a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen\.serverCapacity"\);return ([a-zA-Z0-9_\$])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),null\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{size:1\}\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_\$])\)/.test(currentFileContent)) {
+                    if (
+                        !/function ([a-zA-Z0-9_\$]{2})\(\{playerCount:([a-zA-Z0-9_\$]),maximumCapacity:([a-zA-Z0-9_\$])\}\)\{const ([a-zA-Z0-9_\$])=\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(\((?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\)=>0!==(?:[a-zA-Z0-9_\$])&&(?:[a-zA-Z0-9_\$])===(?:[a-zA-Z0-9_\$])\),\[\],\[(?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\]\),\{(?:[a-zA-Z0-9_\$]):(?:[a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen\.serverCapacity"\);return ([a-zA-Z0-9_\$])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),null\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{size:1\}\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_\$])\)/.test(
+                            currentFileContent
+                        )
+                    ) {
                         throw new Error("Unable to find binding variable target.");
                     }
                     currentFileContent = currentFileContent.replace(

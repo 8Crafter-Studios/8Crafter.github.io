@@ -1,11 +1,16 @@
 import {
+    blobToDataURI,
     builtInPlugins,
+    EncodedPluginData,
     type ExtractedSymbolNames,
     getExtractedSymbolNames,
     getReplacerRegexes,
+    OreUICustomizerConfig,
     OreUICustomizerSettings,
     Plugin,
+    validatePluginFile,
 } from "../../../shared/ore-ui-customizer-assets.js";
+// import semver from "../../../shared/semver.js";
 
 /**
  * The namespace for 8Crafter's Ore UI Customizer.
@@ -33,21 +38,22 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
-        "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
+        "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
-        "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
-        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
-        "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
-        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
-        "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
+        "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+        "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
         "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
+        "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
+        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
+        "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
+        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
     };
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "0.25.1";
+    export const format_version = "1.0.0";
     /**
      * @type {File | undefined}
      */
@@ -87,39 +93,99 @@ export namespace OreUICustomizer {
      *
      * @type {Plugin[]}
      */
-    export const importedPlugins: Plugin[] = [];
+    export const importedPlugins: { [key: string]: Plugin } = {};
+    /**
+     * The encoded list of the imported plugins for the Ore UI Customizer.
+     *
+     * @type {EncodedPluginData[]}
+     */
+    export const encodedImportedPlugins: EncodedPluginData[] = [];
 
     $(function onDocumentLoad() {
-        $("#list-wrapper").on("dragenter", function (event) {
+        $("body > *").on("dragenter", function (event) {
             event.preventDefault();
         });
 
-        $("#list-wrapper").on("dragleave", function (event) {
+        $("body > *").on("dragleave", function (event) {
             event.preventDefault();
         });
 
-        $("#list-wrapper").on("dragover", function (event) {
+        $("body > *").on("dragover", function (event) {
             event.preventDefault();
         });
-        $("#list-wrapper").on("drop", async function (event) {
+        $("body > *").on("drop", async function (event) {
             event.preventDefault();
-            // await updateZipFile(event.originalEvent?.dataTransfer?.files[0]!);
-            $("#file-import-input").prop("disabled", true);
-            $("#import_files_error").prop("hidden", true);
-            $("#apply_mods").prop("disabled", true);
-            $("#download").prop("disabled", true);
-            $("#download_in_new_tab_button").prop("disabled", true);
-            $("#download_in_new_tab_link_open_button").prop("disabled", true);
-            $("#download_in_new_tab_link").removeAttr("href");
-            zipFile = event.originalEvent?.dataTransfer?.files[0];
-            currentImportedFile = zipFile!;
-            $("#imported_file_name").css("color", "yellow");
-            $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`);
-            await validateZipFile();
-            $(this).val("");
-            $("#imported_file_name").css("color", "inherit");
-            $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
-            $("#file-import-input").prop("disabled", false);
+            switch (event.originalEvent?.dataTransfer?.files[0]?.name.split(".").at(-1)?.toLowerCase()) {
+                case "zip": {
+                    // await updateZipFile(event.originalEvent?.dataTransfer?.files[0]!);
+                    $("#file-import-input").prop("disabled", true);
+                    $("#import_files_error").prop("hidden", true);
+                    $("#apply_mods").prop("disabled", true);
+                    $("#download").prop("disabled", true);
+                    $("#download_in_new_tab_button").prop("disabled", true);
+                    $("#download_in_new_tab_link_open_button").prop("disabled", true);
+                    $("#download_in_new_tab_link").removeAttr("href");
+                    zipFile = event.originalEvent.dataTransfer.files[0];
+                    currentImportedFile = zipFile;
+                    $("#imported_file_name").css("color", "yellow");
+                    $("#imported_file_name").text(
+                        `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+                    );
+                    await validateZipFile();
+                    $(this).val("");
+                    $("#imported_file_name").css("color", "inherit");
+                    $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
+                    $("#file-import-input").prop("disabled", false);
+                    break;
+                }
+                case "mcouicplugin": {
+                    try {
+                        await validatePluginFile(event.originalEvent.dataTransfer.files[0], "mcouicplugin");
+                    } catch (e: any) {
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
+                            e?.stack ?? e
+                        }</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+                case "js": {
+                    try {
+                        const file: File = event.originalEvent.dataTransfer.files[0];
+                        const objectURL: string = URL.createObjectURL(file);
+                        await validatePluginFile(file, "js");
+                        const data: { plugin: Plugin } = await import(objectURL);
+                        importedPlugins[data.plugin.id] = data.plugin;
+                        const dataURI: `data:${string};base64,${string}` = await blobToDataURI(file);
+                        const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === data.plugin.id);
+                        encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
+                        encodedImportedPlugins.push({
+                            dataURI,
+                            fileType: "js",
+                            id: data.plugin.id,
+                            version: data.plugin.version,
+                            name: data.plugin.name,
+                            format_version: data.plugin.format_version,
+                            namespace: data.plugin.namespace,
+                            min_engine_version: data.plugin.min_engine_version,
+                        });
+                        updatePluginsList();
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Successfully Imported Plugin</span><span>The plugin ${data.plugin.name} v${data.plugin.version} has been successfully imported.</span>`;
+                        document.body.prepend(popupElement);
+                    } catch (e: any) {
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
+                            e?.stack ?? e
+                        }</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+            }
         });
         $("#file-import-input").on("change", async function () {
             const files = $(this).prop("files");
@@ -145,6 +211,58 @@ export namespace OreUICustomizer {
             $("#imported_file_name").css("color", "inherit");
             $("#imported_file_name").text(`Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)}`);
             $("#file-import-input").prop("disabled", false);
+        });
+        $("#plugin-import-input").on("change", async function () {
+            const files: FileList = $(this).prop("files");
+            switch (files[0]?.name.split(".").at(-1)?.toLowerCase()) {
+                case "mcouicplugin": {
+                    try {
+                        await validatePluginFile(files[0]!, "mcouicplugin");
+                    } catch (e: any) {
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
+                            e?.stack ?? e
+                        }</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+                case "js": {
+                    try {
+                        const file: File = files[0];
+                        const objectURL: string = URL.createObjectURL(file);
+                        await validatePluginFile(file, "js");
+                        const data: { plugin: Plugin } = await import(objectURL);
+                        importedPlugins[data.plugin.id] = data.plugin;
+                        const dataURI: `data:${string};base64,${string}` = await blobToDataURI(file);
+                        const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === data.plugin.id);
+                        encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
+                        encodedImportedPlugins.push({
+                            dataURI,
+                            fileType: "js",
+                            id: data.plugin.id,
+                            version: data.plugin.version,
+                            name: data.plugin.name,
+                            format_version: data.plugin.format_version,
+                            namespace: data.plugin.namespace,
+                            min_engine_version: data.plugin.min_engine_version,
+                        });
+                        updatePluginsList();
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Successfully Imported Plugin</span><span>The plugin ${data.plugin.name} v${data.plugin.version} has been successfully imported.</span>`;
+                        document.body.prepend(popupElement);
+                    } catch (e: any) {
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
+                            e?.stack ?? e
+                        }</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+            }
         });
         $("#hardcore_mode_toggle_always_clickable")
             .parent()
@@ -237,12 +355,19 @@ export namespace OreUICustomizer {
                 if ($("#customizer_settings_section_radio_general").prop("checked")) {
                     $("#general_customizer_settings_section").get(0)!.style.display = "";
                     $("#colors_customizer_settings_section").get(0)!.style.display = "none";
+                    $("#plugins_customizer_settings_section").get(0)!.style.display = "none";
                 } else if ($("#customizer_settings_section_radio_colors").prop("checked")) {
                     $("#general_customizer_settings_section").get(0)!.style.display = "none";
                     $("#colors_customizer_settings_section").get(0)!.style.display = "";
+                    $("#plugins_customizer_settings_section").get(0)!.style.display = "none";
+                } else if ($("#customizer_settings_section_radio_plugins").prop("checked")) {
+                    $("#general_customizer_settings_section").get(0)!.style.display = "none";
+                    $("#colors_customizer_settings_section").get(0)!.style.display = "none";
+                    $("#plugins_customizer_settings_section").get(0)!.style.display = "";
                 } else {
                     $("#general_customizer_settings_section").get(0)!.style.display = "none";
                     $("#colors_customizer_settings_section").get(0)!.style.display = "none";
+                    $("#plugins_customizer_settings_section").get(0)!.style.display = "none";
                 }
             } catch (e) {
                 console.error(e, (e as any)?.stack);
@@ -347,6 +472,351 @@ export namespace OreUICustomizer {
             console.error(e, (e as any)?.stack);
         }
     });
+
+    /**
+     * Changes the hue of a color.
+     *
+     * @param {string} rgb The hex color code to change the hue of.
+     * @param {number} degree The degree to change the hue by.
+     * @returns {string} The new hex color code with the hue shift applied.
+     *
+     * @see https://stackoverflow.com/a/17433060/16872762
+     */
+    export function changeHue(rgb: string, degree: number): string {
+        var hsl = rgbToHSL(rgb);
+        hsl.h += degree;
+        if (hsl.h > 360) {
+            hsl.h -= 360;
+        } else if (hsl.h < 0) {
+            hsl.h += 360;
+        }
+        return hslToRGB(hsl);
+    }
+
+    /**
+     * Converts a hex color code to HSL.
+     *
+     * @param {string} rgb The hex color code to convert to HSL.
+     * @returns {{ h: number; s: number; l: number; }} The HSL values of the color.
+     *
+     * @see https://stackoverflow.com/a/17433060/16872762
+     */
+    export function rgbToHSL(rgb: string): { h: number; s: number; l: number } {
+        // strip the leading # if it's there
+        rgb = rgb.replace(/^\s*#|\s*$/g, "");
+
+        // convert 3 char codes --> 6, e.g. `E0F` --> `EE00FF`
+        if (rgb.length == 3) {
+            rgb = rgb.replace(/(.)/g, "$1$1");
+        }
+
+        var r = parseInt(rgb.substr(0, 2), 16) / 255,
+            g = parseInt(rgb.substr(2, 2), 16) / 255,
+            b = parseInt(rgb.substr(4, 2), 16) / 255,
+            cMax = Math.max(r, g, b),
+            cMin = Math.min(r, g, b),
+            delta = cMax - cMin,
+            l = (cMax + cMin) / 2,
+            h = 0,
+            s = 0;
+
+        if (delta == 0) {
+            h = 0;
+        } else if (cMax == r) {
+            h = 60 * (((g - b) / delta) % 6);
+        } else if (cMax == g) {
+            h = 60 * ((b - r) / delta + 2);
+        } else {
+            h = 60 * ((r - g) / delta + 4);
+        }
+
+        if (delta == 0) {
+            s = 0;
+        } else {
+            s = delta / (1 - Math.abs(2 * l - 1));
+        }
+
+        return {
+            h: h,
+            s: s,
+            l: l,
+        };
+    }
+
+    /**
+     * Converts HSL values to a hex color code.
+     *
+     * @param {{ h: number; s: number; l: number }} hsl The HSL values.
+     * @returns {string} The RGB hex code.
+     *
+     * @see https://stackoverflow.com/a/17433060/16872762
+     */
+    export function hslToRGB(hsl: { h: number; s: number; l: number }): string {
+        var h = hsl.h,
+            s = hsl.s,
+            l = hsl.l,
+            c = (1 - Math.abs(2 * l - 1)) * s,
+            x = c * (1 - Math.abs(((h / 60) % 2) - 1)),
+            m = l - c / 2,
+            r,
+            g,
+            b;
+
+        if (h < 60) {
+            r = c;
+            g = x;
+            b = 0;
+        } else if (h < 120) {
+            r = x;
+            g = c;
+            b = 0;
+        } else if (h < 180) {
+            r = 0;
+            g = c;
+            b = x;
+        } else if (h < 240) {
+            r = 0;
+            g = x;
+            b = c;
+        } else if (h < 300) {
+            r = x;
+            g = 0;
+            b = c;
+        } else {
+            r = c;
+            g = 0;
+            b = x;
+        }
+
+        r = normalize_rgb_value(r, m);
+        g = normalize_rgb_value(g, m);
+        b = normalize_rgb_value(b, m);
+
+        return rgbToHex(r, g, b);
+    }
+
+    /**
+     * Normalizes a color value.
+     *
+     * @param {number} color The color value to normalize.
+     * @param {number} m UNDOCUMENTED
+     * @returns {number} The normalized color value.
+     *
+     * @see https://stackoverflow.com/a/17433060/16872762
+     */
+    export function normalize_rgb_value(color: number, m: number): number {
+        color = Math.floor((color + m) * 255);
+        if (color < 0) {
+            color = 0;
+        }
+        return color;
+    }
+
+    /**
+     * Converts RGB values to a hex color code.
+     *
+     * @param {number} r The red value of the color.
+     * @param {number} g The green value of the color.
+     * @param {number} b The blue value of the color.
+     * @returns {string} The hex color code.
+     *
+     * @see https://stackoverflow.com/a/17433060/16872762
+     */
+    export function rgbToHex(r: number, g: number, b: number): string {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    /**
+     * Converts a hex color code to RGB.
+     *
+     * @param {string} hex The hex color code to convert to RGB.
+     * @returns {{ r: number; g: number; b: number; } | null} The RGB values of the color, or null if the color is invalid.
+     *
+     * @author 8Crafter
+     */
+    export function hexToRGB(hex: string): { r: number; g: number; b: number } | null {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1]!, 16), g: parseInt(result[2]!, 16), b: parseInt(result[3]!, 16) } : null;
+    }
+
+    /**
+     * Options for the HTML RGB loading bar.
+     */
+    export interface HTMLRGBLoadingBarOptions {
+        /**
+         * The width of the loading bar.
+         *
+         * This is how many characters the bar consists of.
+         *
+         * @default 40
+         */
+        barWidth?: number;
+        /**
+         * The hue span of the loading bar.
+         *
+         * This is how much the hue changes from the left side of the bar to the right side.
+         *
+         * @default 60
+         */
+        hueSpan?: number;
+        /**
+         * The hue step of the loading bar.
+         *
+         * This is how much the hue is shifted each frame.
+         *
+         * @default 5
+         */
+        hueStep?: number;
+        /**
+         * The FPS of the loading bar animation.
+         *
+         * This is how many times per second the loading bar is updated, setting this too high may result in the loading bar having a buggy appearance.
+         *
+         * @default 10
+         */
+        barAnimationFPS?: number;
+    }
+
+    /**
+     * A class for creating HTML RGB loading bars.
+     */
+    export class HTMLRGBLoadingBar {
+        /**
+         * Whether the loading bar is active or not.
+         */
+        #loadingBarActive: boolean = false;
+        /**
+         * Whether the loading bar should be stopped or not.
+         */
+        #stopLoadingBar: boolean = false;
+        /**
+         * Whether the loading bar is active or not.
+         */
+        public get loadingBarActive(): boolean {
+            return this.#loadingBarActive;
+        }
+        /**
+         * Whether the loading bar is in the process of stopping or not.
+         */
+        public get loadingBarIsStopping(): boolean {
+            return this.#stopLoadingBar;
+        }
+        /**
+         * Creates an instance of RGBLoadingBar.
+         *
+         * @param {HTMLElement} targetElement The element to apply the loading bar to.
+         */
+        public constructor(public targetElement: HTMLElement) {}
+        /**
+         * Starts the loading bar.
+         *
+         * @returns {Promise<void>} A promise that resolves when the loading bar is stopped.
+         *
+         * @throws {Error} If the loading bar is already active.
+         */
+        public async startLoadingBar(options: HTMLRGBLoadingBarOptions = {}): Promise<void> {
+            if (this.#loadingBarActive) {
+                throw new Error("Loading bar is already active.");
+            }
+
+            /**
+             * The width of the loading bar.
+             *
+             * This is how many characters the bar consists of.
+             */
+            const barWidth = options.barWidth ?? 40;
+            /**
+             * The hue span of the loading bar.
+             *
+             * This is how much the hue changes from the left side of the bar to the right side.
+             */
+            const hueSpan = options.hueSpan ?? 60;
+            /**
+             * The hue step of the loading bar.
+             *
+             * This is how much the hue is shifted each frame.
+             */
+            const hueStep = options.hueStep ?? 5;
+            /**
+             * The FPS of the loading bar animation.
+             *
+             * This is how many times per second the loading bar is updated, setting this too high may result in the loading bar having a buggy appearance.
+             */
+            const barAnimationFPS = options.barAnimationFPS ?? 10;
+
+            this.#loadingBarActive = true;
+            let i = 0;
+            // let c = { r: 0, g: 255, b: 0 };
+            while (!this.#stopLoadingBar) {
+                i = (i + hueStep) % 360;
+                if (i < 0) {
+                    i += 360;
+                }
+                // c = hexToRGB(changeHue(rgbToHex(0, 255, 0), i))!;
+                // const selectedColor = "rgb"[Math.floor(Math.random()*3)]! as "r" | "g" | "b";
+                // c[selectedColor] = Math.floor(Math.random()*80);
+                let str: string = "";
+                for (let j = 0; j < barWidth; j++) {
+                    // const charColor = [Math.floor(Math.abs(c.r - 40)/40*255), Math.floor(Math.abs(c.g - 40)/40*255), Math.floor(Math.abs(c.b - 40)/40*255)] as const;
+                    // let colorValue: number = Math.max(Math.min(Math.floor((1 - /* Math.sqrt */ Math.abs(j - Math.abs(i - 40)) / 20) * 255), 255), 0);
+                    // isNaN(colorValue) && (colorValue = 0);
+                    // const charColor = [0, colorValue, 0] as const;
+                    const c = hexToRGB(changeHue(rgbToHex(0, 255, 0), Math.abs(Math.floor((360 - i + (j / barWidth) * hueSpan) % 360))))!;
+                    const charColor = [c.r, c.g, c.b] as const;
+                    str += `<span style="color: rgb(${charColor[0]}, ${charColor[1]}, ${charColor[2]})">█</span>`;
+                }
+                this.targetElement.innerHTML = str;
+                await new Promise((resolve) => setTimeout(resolve, 1000 / barAnimationFPS));
+            }
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine(1);
+            this.#loadingBarActive = false;
+        }
+        /**
+         * Stops the loading bar.
+         *
+         * @returns {Promise<void>} A promise that resolves when the loading bar is stopped.
+         */
+        public async stopLoadingBar(): Promise<void> {
+            this.#stopLoadingBar = true;
+            while (this.#loadingBarActive) {
+                await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+            this.#stopLoadingBar = false;
+        }
+        /**
+         * Waits until the loading bar is started.
+         */
+        public async waitUntilLoadingBarIsStarted(): Promise<void> {
+            while (!this.#loadingBarActive) {
+                await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+        }
+    }
+
+    /**
+     * Updates the list of plugins.
+     */
+    export function updatePluginsList(): void {
+        $("#pluginCount").text(`${Object.keys(importedPlugins).length} Plugin${Object.keys(importedPlugins).length !== 1 ? "s" : ""}`);
+        $("#plugin-list").children().remove();
+        const pluginItemTemplate = $("#plugin-item-template").prop("content");
+        for (const [thisKey, plugin] of Object.entries(importedPlugins)) {
+            const pluginItem = $(pluginItemTemplate).clone();
+            $(pluginItem).find("[data-temp='pluginid']").text(`${plugin.id} (v${plugin.version})`);
+            $(pluginItem).find("[data-temp='pluginname']").text(plugin.name);
+            $(pluginItem).find("[data-temp]").removeAttr("data-temp");
+            $(pluginItem)
+                .find("button[name=delete]")
+                .on("click", () => {
+                    delete importedPlugins[thisKey];
+                    const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === plugin.id);
+                    encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
+                    updatePluginsList();
+                });
+            $("#plugin-list").append(pluginItem);
+        }
+    }
 
     /**
      * Validates the currently imported zip file, also importing it into zipFs and repairing the directory structure if possible.
@@ -890,17 +1360,40 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         // $("#ore-ui-preview-iframe").contents().find("body").css("--base1Scale", "2px");
     }
 
+    /**
+     * Exports the current config as a JSON file.
+     */
+    export function exportConfigFile(): void {
+        const settings: OreUICustomizerSettings = getSettings();
+        settings.plugins = encodedImportedPlugins;
+        const config: OreUICustomizerConfig = {
+            oreUICustomizerConfig: settings,
+            oreUICustomizerVersion: format_version,
+        };
+        const stringifiedConfig: string = JSON.stringify(config, null, 4);
+        const blob = new Blob([stringifiedConfig], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ore-ui-customizer-config.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     export async function applyMods() {
         $("#apply_mods").prop("disabled", true);
+        $("#current_customizer_status").text("Validating zip file...");
         $("#download").prop("disabled", true);
         $("#download_in_new_tab_button").prop("disabled", true);
         $("#download_in_new_tab_link_open_button").prop("disabled", true);
         $("#download_in_new_tab_link").removeAttr("href");
+        $("#customizer_loading_bar").show();
         if (!(await validateZipFile())) {
             console.error("applyMods - validateZipFile failed");
             return false;
         }
         $("#apply_mods").prop("disabled", true);
+        $("#current_customizer_status").text("Applying mods...");
         const settings = getSettings();
         var addedCount = 0n;
         var removedCount = 0n;
@@ -916,7 +1409,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         /**
          * The list of plugins to apply.
          */
-        const plugins: Plugin[] = [...builtInPlugins, ...importedPlugins];
+        const plugins: Plugin[] = [...builtInPlugins, ...Object.values(importedPlugins)];
+        $("#current_customizer_status").text("Applying mods (Modifying files)...");
         for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
             if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
                 let origName = entry.name;
@@ -956,15 +1450,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     if (origData !== distData) {
                         if (entry.data?.filename.endsWith(".js")) {
                             distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                                settings
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                             )}\n${distData}`;
                         } else if (entry.data?.filename.endsWith(".css")) {
                             distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                                settings
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                             )} */\n${distData}`;
                         } else if (entry.data?.filename.endsWith(".html")) {
                             distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                                settings
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                             )} -->\n${distData}`;
                         }
                         entry.replaceText(distData);
@@ -2189,15 +2683,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 if (origData !== distData) {
                     if (entry.data?.filename.endsWith(".js")) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )}\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".css")) {
                         distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )} */\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".html")) {
                         distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                            settings
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
@@ -2213,6 +2707,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 unmodifiedCount++;
             }
         }
+        $("#current_customizer_status").text("Applying mods (Adding assets)...");
         try {
             zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/images/ore-ui-customizer/8crafter.gif").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/8crafter.gif");
@@ -2388,6 +2883,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         } catch (e) {
             console.error(e);
         }
+        $("#current_customizer_status").text("");
         if (Object.keys(allFailedReplaces).length > 0) {
             console.warn(
                 "Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:",
@@ -2410,6 +2906,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         console.log(`Edited ${editedCount} entries.`);
         console.log(`Renamed ${renamedCount} entries.`);
         console.log(`Total entries: ${zipFs.entries.length}.`);
+        $("#customizer_loading_bar").hide();
         $("#apply_mods").prop("disabled", false);
         $("#download").prop("disabled", false);
         $("#download_in_new_tab_button").prop("disabled", false);
@@ -2421,12 +2918,20 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             throw new Error("zipFs is undefined");
         }
 
+        $("#download").prop("disabled", true);
+        $("#current_customizer_status").text("Exporting modified zip file...");
+        $("#customizer_loading_bar").show();
+
         const blob = await zipFs.exportBlob();
+        $("#current_customizer_status").text("Generating download URI...");
         const url = URL.createObjectURL(blob);
+        $("#current_customizer_status").text("Setting download link...");
         const a: HTMLAnchorElement = $("#download_in_new_tab_link")[0] as HTMLAnchorElement;
         a.href = url;
         a.download = "gui-mod.zip";
         a.target = "_blank";
+        $("#customizer_loading_bar").hide();
+        $("#current_customizer_status").text("");
         $(a).prop("disabled", false);
         $("#download_in_new_tab_link_open_button").prop("disabled", false);
     }
@@ -2436,13 +2941,22 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             throw new Error("zipFs is undefined");
         }
 
+        $("#download").prop("disabled", true);
+        $("#current_customizer_status").text("Exporting modified zip file...");
+        $("#customizer_loading_bar").show();
+
         const blob = await zipFs.exportBlob();
+        $("#current_customizer_status").text("Generating download URI...");
         const url = URL.createObjectURL(blob);
+        $("#current_customizer_status").text("Downloading modified zip file...");
         const a = document.createElement("a");
         a.href = url;
         a.download = "gui-mod.zip";
         a.click();
-    };
+        $("#customizer_loading_bar").hide();
+        $("#download").prop("disabled", false);
+        $("#current_customizer_status").text("");
+    }
 }
 
 Object.defineProperties(globalThis, {

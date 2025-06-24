@@ -9,7 +9,14 @@
             "js": "../../assets/shared/ore-ui-customizer-assets.js",
             "dts": "../../assets/shared/ore-ui-customizer-assets.d.ts",
             "ts": "../../assets/shared/ore-ui-customizer-assets.ts",
-            "currentImportStatementText": "../assets/shared/ore-ui-customizer-assets.js"
+            "currentImportStatementText": "../assets/shared/ore-ui-customizer-assets.js",
+            "dependencies": [
+                {
+                    "js": "../../assets/shared/semver.js",
+                    "dts": "../../assets/shared/semver.d.ts",
+                    "currentImportStatementText": "./semver.js"
+                }
+            ]
         },
         {
             "js": "../zip.js",

@@ -5,7 +5,8 @@
         "rootDir": "./ts",
         "declarationDir": "./js",
         "composite": true/* ,
-        "verbatimModuleSyntax": true */
+        "verbatimModuleSyntax": true *//* ,
+        "lib": ["DOM"] */
     },
     "include": ["./ts/**/*.ts"],
     "references": [

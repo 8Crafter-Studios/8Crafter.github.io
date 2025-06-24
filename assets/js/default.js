@@ -774,7 +774,8 @@ class PurpleBorderBackgroundElement extends HTMLElement {
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBR.png" style="height: 1vw; width: 1vw; right: 0px; bottom: 0px; z-index: -4;
     position: absolute; image-rendering: pixelated;">
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceC.png" style="height: calc(100% - 1.75vw); width: calc(100% - 1.75vw); right: 0.875vw; bottom: 0.875vw; z-index: -6;
-    position: absolute; image-rendering: pixelated;">`;
+    position: absolute; image-rendering: pixelated;">
+    <slot></slot>`;
     }
 }
 customElements.define("purple-border_background", PurpleBorderBackgroundElement);

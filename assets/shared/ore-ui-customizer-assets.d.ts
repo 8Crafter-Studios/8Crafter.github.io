@@ -171,11 +171,113 @@ export interface OreUICustomizerSettings {
         "#050029": string;
         "rgba(5, 0, 41, 0.5)": string;
     };
+    /**
+     * A list of additional plugins to apply.
+     *
+     * @default []
+     */
+    plugins?: EncodedPluginData[];
+}
+export interface EncodedPluginData {
+    /**
+     * The display name of the plugin.
+     */
+    name: string;
+    /**
+     * The id of the plugin, used to identify the plugin when applying the plugins, also used to identify the plugin in error messages, this should be unique.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+     */
+    id: string;
+    /**
+     * The namespace of the plugin, used to identify the plugin in error messages.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+     *
+     * Must not be `built-in`, as it is reserved for built-in plugins.
+     */
+    namespace: string;
+    /**
+     * The version of the plugin.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     */
+    version: string;
+    /**
+     * The version of 8Crafter's Ore UI Customizer that this plugin is made for.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     */
+    format_version: string;
+    /**
+     * The minimum version of 8Crafter's Ore UI Customizer that this plugin is compatible with.
+     *
+     * This must be a valid semver string, without the leading `v`.
+     *
+     * If not specified, no check will be done.
+     */
+    min_engine_version?: string;
+    /**
+     * The file type of the plugin.
+     */
+    fileType: "js" | "mcouicplugin";
+    /**
+     * The data URI of the plugin.
+     */
+    dataURI: `data:${string};base64,${string}`;
+}
+/**
+ * The JSON data of a config file for 8Crafter's Ore UI Customizer.
+ */
+export interface OreUICustomizerConfig {
+    /**
+     * The settings for 8Crafter's Ore UI Customizer.
+     */
+    oreUICustomizerConfig: OreUICustomizerSettings;
+    /**
+     * The version of 8Crafter's Ore UI Customizer.
+     */
+    oreUICustomizerVersion: string;
 }
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
  */
 export declare const defaultOreUICustomizerSettings: OreUICustomizerSettings;
+/**
+ * Converts a blob to a data URI.
+ *
+ * @param {Blob} blob The blob to convert.
+ * @returns {Promise<`data:${string};base64,${string}`>} A promise resolving with the data URI.
+ */
+export declare function blobToDataURI(blob: Blob): Promise<`data:${string};base64,${string}`>;
+/**
+ * Imports a plugin from a data URI.
+ *
+ * @param {string} dataURI The data URI to import the plugin from.
+ * @param {"js" | "mcouicplugin"} [type="js"] The type of the plugin to import.
+ * @returns {Promise<Plugin>} A promise resolving with the imported plugin.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ */
+export declare function importPluginFromDataURI(dataURI: string, type?: "js" | "mcouicplugin"): Promise<Plugin>;
+/**
+ * Validates a plugin file.
+ *
+ * @param {Blob} plugin The plugin file to validate.
+ * @param {"mcouicplugin" | "js"} type The type of the plugin file.
+ * @returns {Promise<void>} A promise resolving to `void` when the plugin file is validated.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ * @throws {TypeError | SyntaxError} If the plugin is not valid.
+ */
+export declare function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "js"): Promise<void>;
+/**
+ * Validates a plugin object.
+ *
+ * @param {any} plugin The plugin object to validate.
+ * @returns {asserts plugin is Plugin} Asserts that the plugin object is valid. If it is not valid, throws an error. Otherwise, returns `void`.
+ */
+export declare function validatePluginObject(plugin: any): asserts plugin is Plugin;
 /**
  * An interface that contains extracted symbol names from the compiled Ore UI react code.
  */
@@ -765,7 +867,7 @@ export interface Plugin {
      *
      * Must not be `built-in`, as it is reserved for built-in plugins.
      */
-    namespace: Omit<string, "built-in">;
+    namespace: string;
     /**
      * The version of the plugin.
      *
@@ -801,6 +903,8 @@ export type PluginActionContext = "per_text_file" | "per_binary_file" | "global_
 export interface PluginActionBase {
     /**
      * The id of the plugin action, used to identify the plugin action in error messages, this should be unique.
+     *
+     * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
      */
     id: string;
     /**

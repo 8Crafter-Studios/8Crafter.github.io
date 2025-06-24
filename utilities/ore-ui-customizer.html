@@ -80,7 +80,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=0.25.1" type="module"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.0.0" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -249,7 +249,12 @@
                 </button>
             </div>
             <div style="border-left: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; right: 0px; z-index: 1">
-                <button type="button" class="btn nsel" id="customizer_settings_hide_button" onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()">
+                <button
+                    type="button"
+                    class="btn nsel"
+                    id="customizer_settings_hide_button"
+                    onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()"
+                >
                     Close
                 </button>
             </div>
@@ -290,6 +295,22 @@
                         title="Colors"
                     />
                     <div class="no-remove-disabled nsel">Colors</div>
+                </label>
+                <label
+                    ontouchstart=""
+                    for="customizer_settings_section_radio_plugins"
+                    class="radio_button_container_label"
+                    style="width: -webkit-fill-available"
+                >
+                    <input
+                        type="radio"
+                        name="customizer_settings_section"
+                        style="display: none"
+                        class="no-remove-disabled nsel"
+                        id="customizer_settings_section_radio_plugins"
+                        title="Plugins"
+                    />
+                    <div class="no-remove-disabled nsel">Plugins</div>
                 </label>
             </div>
             <settings_section id="general_customizer_settings_section" class="settings_section">
@@ -504,7 +525,7 @@
                     <input type="reset" class="btn nsel" id="resetOreUICustomizerOptions" form="options_box" value="Reset Options To Defaults" />
                 </form>
             </settings_section>
-            <settings_section id="colors_customizer_settings_section" class="settings_section">
+            <settings_section id="colors_customizer_settings_section" class="settings_section" style="display: none">
                 <center><h1>Color Replacements Options</h1></center>
                 <form id="colors_options_box" style="text-align: left; width: fit-content">
                     <div class="form-group">
@@ -2098,6 +2119,55 @@
                     ></iframe>
                 </div>
             </settings_section>
+            <settings_section id="plugins_customizer_settings_section" class="settings_section" style="display: none">
+                <center><h1>Plugins</h1></center>
+
+                <div id="plugins-list-wrapper" class="d-contents" style="width: 100%; background-color: #000000; color: #00ffff; text-align: center">
+                    <div id="plugins-list-header" style="text-align: center; padding: 10px; border: 1px solid #ffffff">
+                        <span>Imported Plugins</span>
+                        <!-- <span style="white-space: pre;">&Tab;&Tab;</span> -->
+                        <div style="text-align: left">
+                            <span id="pluginCount">0 Plugins</span>
+                        </div>
+                    </div>
+                    <div class="d-contents" style="border: solid #ffffff; border-width: 0px 1px 1px 1px; font-size: 0; padding: 0px 10px">
+                        <div
+                            style="
+                                width: 40%;
+                                font-size: 16px;
+                                padding: 10px 0px;
+                                border: solid #ffffff;
+                                border-width: 0px 0px 0px 0px;
+                                text-align: left;
+                                display: inline-block;
+                                line-height: 0;
+                                overflow-x: auto;
+                            "
+                        >
+                            <span style="padding: 8.5px 0px">Plugin ID</span>
+                        </div>
+                        <div
+                            style="
+                                width: calc(60% - 11px);
+                                font-size: 16px;
+                                padding: 10px 0px 10px 10px;
+                                border: solid #ffffff;
+                                border-width: 0px 0px 0px 1px;
+                                text-align: left;
+                                display: inline-block;
+                                overflow-x: auto;
+                            "
+                        >
+                            Plugin Name
+                        </div>
+                    </div>
+                    <div
+                        id="plugin-list"
+                        class="d-contents"
+                        style="min-height: 300px; max-height: 600px; overflow-y: auto; border: solid #ffffff; border-width: 0px 1px 1px 1px"
+                    ></div>
+                </div>
+            </settings_section>
         </overlay-page>
         <main>
             <center
@@ -2121,54 +2191,183 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v0.25.1</h1>
+                <h1>8Crafter's Ore UI Customizer v1.0.0</h1>
                 <h4>Instructions</h4>
-                <ul style="text-align: left; list-style: decimal">
-                    <li>
-                        Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or <code>dist</code>, it HAS to be the entire
-                        <code>gui</code> folder.).
-                        <br />
-                        IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be UNMODIFIED, or else it will not detect
-                        the parts to replace properly, if you have modifed it, make a backup of it, and repair your Minecraft installation.
-                        <ul style="text-align: left; list-style: circle">
-                            <li>
-                                <b>Windows (Bedrock Launcher):</b>
-                                If you are on windows and using Minecraft Bedrock Launcher, go to
-                                <code>%appdata%/.minecraft_bedrock/versions</code>, open the folder for the version that is your current Minecraft version, and
-                                open the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
-                                <code>Compress to... > ZIP File</code>.
-                            </li>
-                            <li>
-                                <b>Windows (IOBit Unlocker):</b>
-                                If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock launcher, please use the
-                                bedrock launcher method instead if you are using bedrock launcher), go to
-                                <code>%programfiles%/WindowsApps</code>. Then open the folder that starts with <code>Microsoft.MinecraftUWP</code>. Then open
-                                the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and click on
-                                <code>Compress to... > ZIP File</code>.
-                            </li>
-                            <li>
-                                <b>Android</b>
-                                If you are on Android, go to <code>base.apk/assests</code>. Then select the <code>gui</code>
-                                folder, and compress it into a .zip file.
-                            </li>
-                        </ul>
-                    </li>
-                    <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
-                    <li>Upload the .zip file containing your unmodified gui folder.</li>
-                    <li>Choose your desired options below.</li>
-                    <li>Click the "Apply Mods" button at the bottom of the screen.</li>
-                    <li>Click the "Download" button at the bottom of the screen.</li>
-                    <li>Download the .zip file containing your modified gui folder.</li>
-                    <li>Extract the .zip file containing your modified gui folder.</li>
-                    <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
-                </ul>
+                <div class="collapsible-group collapsible-group-collapsed">
+                    <div class="collapsible-group-header">
+                        <h2>Instructions</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <div class="collapsible-group collapsible-group-collapsed">
+                            <div class="collapsible-group-header">
+                                <h2>Windows</h2>
+                            </div>
+                            <div class="collapsible-group-content">
+                                If you are on Windows, you will either need <a href="https://bedrocklauncher.github.io/" target="_blank">Bedrock Launcher</a> or
+                                IObit Unlocker, Bedrock Launcher is HIGHLY recommended, as IObit Unlocker can be buggy and a pain to deal with.
+                                <br />
+                                <br />
+                                <div class="collapsible-group collapsible-group-collapsed">
+                                    <div class="collapsible-group-header">
+                                        <h2>Bedrock Launcher</h2>
+                                    </div>
+                                    <div class="collapsible-group-content">
+                                        <h2>Option 1 (CLI)</h2>
+                                        If you want to use the CLI version of the customizer, go to
+                                        <a href="https://npmjs.com/package/ore-ui-customizer-cli" target="_blank"
+                                            >https://npmjs.com/package/ore-ui-customizer-cli</a
+                                        >
+                                        and follow the instructions there.
+                                        <br />
+                                        Note: To customize the options, first click the "Show Options" button below and choose your desired options, then click
+                                        the export config button below, then when you run the CLI, instead of just running <code>ore-ui-customizer-cli</code>,
+                                        run <code>ore-ui-customizer-cli --config="C:/path/to/ore-ui-customizer-config.json"</code>, that will use the config file you just
+                                        created.
+                                        <h2>Option 2 (GUI)</h2>
+                                        If you want to use the GUI version of the customizer (this webpage), follow these steps:
+                                        <ul style="text-align: left; list-style: decimal">
+                                            <li>
+                                                Check if your current Minecraft version is listed in the "GUI .zip File Preset" dropdown, if it is, select your
+                                                current Minecraft version and continue to step 4.
+                                                <br />
+                                                Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or <code>dist</code>,
+                                                it HAS to be the entire <code>gui</code> folder.).
+                                                <br />
+                                                IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be UNMODIFIED, or
+                                                else it will not detect the parts to replace properly, if you have modifed it, make a backup of it, and repair
+                                                your Minecraft installation.
+                                                <br />
+                                                Go to <code>%appdata%/.minecraft_bedrock/versions</code>, open the folder for the version that is your current
+                                                Minecraft version, and open the <code>data</code> folder. Then, right click on the <code>gui</code> folder, and
+                                                click on <code>Compress to... > ZIP File</code>.
+                                            </li>
+                                            <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
+                                            <li>Upload the .zip file containing your unmodified gui folder.</li>
+                                            <li>(Optional) Click on the "Show Options" button below and choose your desired options.</li>
+                                            <li>
+                                                Click the "Apply Mods" button below and wait for the download button to stop being grayed out, this may take
+                                                anywhere from a few seconds to 2 minutes depending on your device.
+                                            </li>
+                                            <li>
+                                                Click the "Download" button at the bottom of the screen, this will download the .zip file containing your
+                                                modified gui folder.
+                                            </li>
+                                            <li>Extract the .zip file containing your modified gui folder.</li>
+                                            <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="collapsible-group collapsible-group-collapsed">
+                                    <div class="collapsible-group-header">
+                                        <h2>IObit Unlocker</h2>
+                                    </div>
+                                    <div class="collapsible-group-content">
+                                        <ul style="text-align: left; list-style: decimal">
+                                            <li>
+                                                Check if your current Minecraft version is listed in the "GUI .zip File Preset" dropdown, if it is, select your
+                                                current Minecraft version and continue to step 4.
+                                                <ul style="text-align: left; list-style: decimal">
+                                                    <li>
+                                                        Copmress your unmodified <code>gui</code> folder into a .zip file (NOT <code>hbui</code> or
+                                                        <code>dist</code>, it HAS to be the entire <code>gui</code> folder.).
+                                                    </li>
+                                                    <li>
+                                                        IMPORTANT: The JavaScript files in the <code>gui</code> folder in the provided .zip file must be
+                                                        UNMODIFIED, or else it will not detect the parts to replace properly, if you have modifed it, make a
+                                                        backup of it, and repair your Minecraft installation.
+                                                    </li>
+                                                    <li>
+                                                        If you are on windows and using IOBit Unlocker (this method will NOT work if you are using bedrock
+                                                        launcher, please use the bedrock launcher method instead if you are using bedrock launcher), go to
+                                                        <code>%programfiles%/WindowsApps</code>. Then open the folder that starts with
+                                                        <code>Microsoft.MinecraftUWP</code>. Then open the <code>data</code> folder. Then, right click on the
+                                                        <code>gui</code> folder, and click on <code>Compress to... > ZIP File</code>.
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
+                                            <li>Upload the .zip file containing your unmodified gui folder.</li>
+                                            <li>(Optional) Click on the "Show Options" button below and choose your desired options.</li>
+                                            <li>
+                                                Click the "Apply Mods" button below and wait for the download button to stop being grayed out, this may take
+                                                anywhere from a few seconds to 2 minutes depending on your device.
+                                            </li>
+                                            <li>
+                                                Click the "Download" button at the bottom of the screen, this will download the .zip file containing your
+                                                modified gui folder.
+                                            </li>
+                                            <li>Extract the .zip file containing your modified gui folder.</li>
+                                            <li>Replace your unmodified <code>gui</code> folder with the modified <code>gui</code> folder.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapsible-group collapsible-group-collapsed">
+                            <div class="collapsible-group-header">
+                                <h2>Android</h2>
+                            </div>
+                            <div class="collapsible-group-content">
+                                <div class="youtube-embed" style="margin: auto">
+                                    <iframe
+                                        title="How to use the Ore UI Customizer on Android"
+                                        src="https://www.youtube.com/embed/Zlpv4U_grVs?si=XxMK76Y3cSTC-0VL"
+                                        frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen
+                                    ></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <hr />
-                <button type="button" class="btn nsel" id="customizer_settings_show_button" onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()">
+                <button
+                    type="button"
+                    class="btn nsel"
+                    id="customizer_settings_show_button"
+                    onclick="$('overlay-page#customizer_settings_menu')[0].togglePageVisibility()"
+                >
                     Show Options
+                </button>
+                <input type="file" hidden="true" id="plugin-import-input" accept=".js, .mcouicplugin" class="d-none" />
+                <label style="color: inherit">
+                    <button type="button" class="btn nsel" id="import_plugins_button" onClick="$('#plugin-import-input').click()">
+                        <only_visible_on_themes light blue>
+                            <img
+                                width="16"
+                                height="16"
+                                src="/assets/images/ui/glyphs/upload.png"
+                                style="image-rendering: pixelated; vertical-align: text-bottom; filter: invert(100%)"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        <only_visible_on_themes dark>
+                            <img
+                                width="16"
+                                height="16"
+                                src="/assets/images/ui/glyphs/upload.png"
+                                style="image-rendering: pixelated; vertical-align: text-bottom"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        Import Plugin
+                    </button>
+                </label>
+                <button
+                    type="button"
+                    class="btn nsel"
+                    id="customizer_export_config_button"
+                    onclick="oreUICustomizer.exportConfigFile()"
+                >
+                    Export Config
                 </button>
                 <hr />
                 <center style="width: 100%; margin-top: 30px">
                     <div class="text-center mx-auto my-2" style="color: inherit">
+                        <p id="import_files_error" style="color: red; white-space: pre-wrap; text-align: left; width: fit-content" hidden></p>
+                        <p id="imported_file_name" style="color: red">No file imported.</p>
+                        <input type="file" hidden="true" id="file-import-input" accept=".zip" class="d-none" />
                         <div class="mcdropdown nsel" id="gui_preset" style="display: inline-block">
                             GUI .zip File Preset
                             <br />
@@ -2228,11 +2427,14 @@
                         </div>
                         <br />
                         <br />
-                        <p id="import_files_error" style="color: red; white-space: pre-wrap; text-align: left; width: fit-content" hidden></p>
-                        <p id="imported_file_name" style="color: red">No file imported.</p>
-                        <input type="file" hidden="true" id="file-import-input" accept=".zip" class="d-none" />
-                        <label for="file-audios" style="color: inherit">
-                            <button type="button" class="btn nsel" id="import_files_button" onClick="$('#file-import-input').click()">
+                        <label style="color: inherit">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="import_files_button"
+                                onClick="$('#file-import-input').click()"
+                                style="vertical-align: bottom"
+                            >
                                 <only_visible_on_themes light blue>
                                     <img
                                         width="16"
@@ -2254,20 +2456,11 @@
                                 Import .zip file
                             </button>
                         </label>
+                        <hr />
+                        <img id="customizer_loading_bar" style="display: none" src="/assets/images/ui/misc/loading_bar.gif" class="piximg" />
+                        <p id="current_customizer_status"></p>
                         <button type="button" class="btn nsel" id="apply_mods" disabled onclick="oreUICustomizer.applyMods()">Apply Mods</button>
                         <button type="button" class="btn nsel" id="download" disabled onclick="oreUICustomizer.download()">Download</button>
-                        <br />
-                        <a href="./ore-ui-customizer-changelogs.html">
-                            <button
-                                type="button"
-                                class="btn nsel"
-                                id="changelogs-link-button"
-                                onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')"
-                            >
-                                Changelogs
-                            </button>
-                        </a>
-                        <br />
                         <br />
                         <br />
                         <p>
@@ -2282,20 +2475,32 @@
                         </a>
                         <br />
                         <br />
+                        <a href="./ore-ui-customizer-changelogs.html">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="changelogs-link-button"
+                                onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')"
+                            >
+                                Changelogs
+                            </button>
+                        </a>
+                        <a href="https://npmjs.com/package/ore-ui-customizer-cli">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="cli-version-link-button"
+                                onclick="event.preventDefault(); window.open('https:/\/npmjs.com/package/ore-ui-customizer-cli', '_blank')"
+                            >
+                                CLI Version
+                            </button>
+                        </a>
+                        <hr />
+                        <br />
                         <div class="youtube-embed">
                             <iframe
                                 title="Ore UI Customizer Showcase and how to use it on Windows"
                                 src="https://www.youtube.com/embed/i4JSs1_a_tQ?si=SCexwMhZql-gkbYS"
-                                frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen
-                            ></iframe>
-                        </div>
-                        <br />
-                        <div class="youtube-embed">
-                            <iframe
-                                title="How to use the Ore UI Customizer on Android"
-                                src="https://www.youtube.com/embed/Zlpv4U_grVs?si=XxMK76Y3cSTC-0VL"
                                 frameborder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowfullscreen
@@ -2358,6 +2563,72 @@
                 <input type="radio" id="" name="gui_preset" value="" class="mcradio guiPresetDropdownOptionInput" />
                 <div class="mcradiocheckbox"></div>
                 <label for=""></label>
+            </div>
+        </template>
+
+        <template id="plugin-item-template">
+            <div
+                style="
+                    width: calc(100% - 20px);
+                    padding: 0px 10px;
+                    border: solid #ffffff;
+                    border-width: 0px 0px 1px 0px;
+                    text-align: left;
+                    font-size: 0;
+                    display: flex;
+                "
+                data-file=""
+            >
+                <div
+                    name="plugin_id_column"
+                    style="
+                        width: 40%;
+                        font-size: 16px;
+                        padding: 19px 0px;
+                        border: solid #ffffff;
+                        border-width: 0px 0px 0px 0px;
+                        text-align: left;
+                        vertical-align: middle;
+                        display: inline-block;
+                        line-height: 0;
+                        overflow-x: auto;
+                    "
+                >
+                    <span style="padding: 8.5px 0px" data-temp="pluginid"></span>
+                </div>
+                <div
+                    name="plugin_name_and_delete_column"
+                    style="
+                        width: calc(60% - 1px);
+                        padding: 10px 0px;
+                        border: solid #ffffff;
+                        border-width: 0px 0px 0px 1px;
+                        text-align: left;
+                        display: inline-block;
+                    "
+                >
+                    <span style="padding: 9px 0px; display: inline-block; font-size: 16px; padding-left: 10px" data-temp="pluginname"></span>
+                    <button type="button" class="btn nsel" name="delete" style="float: right; margin: 3px 0px; /*  transform: translate(0, 50%); */">
+                        <only_visible_on_themes light blue>
+                            <img
+                                width="15"
+                                height="16"
+                                src="/assets/images/ui/glyphs/trash_default.png"
+                                style="image-rendering: pixelated"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        <only_visible_on_themes dark>
+                            <img
+                                width="15"
+                                height="16"
+                                src="/assets/images/ui/glyphs/trash_default.png"
+                                style="image-rendering: pixelated; filter: invert()"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                    </button>
+                </div>
             </div>
         </template>
     </body>

@@ -587,7 +587,9 @@ $(async function onDocumentLoad() {
     $("#hue_rotate_deg_slider").on("input", () => {
         saveSetting("hue_rotate_deg", $("#hue_rotate_deg_slider").val());
         const rule: CSSStyleRule = document.styleSheets[0]?.cssRules.item(
-            Object.values(document.styleSheets[0].cssRules).findIndex((r) => (r as CSSStyleRule).selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:"))
+            Object.values(document.styleSheets[0].cssRules).findIndex(
+                (r) => (r as CSSStyleRule).selectorText == ":root" && r.cssText.includes("--hue-rotate-deg:")
+            )
         )! as CSSStyleRule;
         rule.style.cssText = rule.style.cssText.replace(/(?<=--hue-rotate-deg: )\d+(?:\.\d+)?(?=deg;)/, $("#hue_rotate_deg_slider").val()?.toString()!);
     });
@@ -843,7 +845,8 @@ class PurpleBorderBackgroundElement extends HTMLElement {
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceBR.png" style="height: 1vw; width: 1vw; right: 0px; bottom: 0px; z-index: -4;
     position: absolute; image-rendering: pixelated;">
     <img src="/assets/images/ui/backgrounds/purpleBorder_sliceC.png" style="height: calc(100% - 1.75vw); width: calc(100% - 1.75vw); right: 0.875vw; bottom: 0.875vw; z-index: -6;
-    position: absolute; image-rendering: pixelated;">`;
+    position: absolute; image-rendering: pixelated;">
+    <slot></slot>`;
     }
 }
 

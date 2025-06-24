@@ -1272,7 +1272,7 @@ function consoleOverlayExecute() {
         if (!consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length > 0) {
             resultElem.style.borderTop = "1px solid #888888";
         }
-        if ((typeof result === "object" && result !== null) || typeof v === "function") {
+        if ((typeof result === "object" && result !== null) || typeof result === "function") {
             resultElem.appendChild(createExpandableObjectView(result, true));
         } else {
             resultElem.textContent = JSONB.stringify(result);

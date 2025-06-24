@@ -1,3 +1,4 @@
+import semver from "./semver.js";
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
  */
@@ -182,7 +183,157 @@ export const defaultOreUICustomizerSettings = {
         "#050029": "#050029",
         "rgba(5, 0, 41, 0.5)": "rgba(5, 0, 41, 0.5)",
     },
+    plugins: [],
 };
+/**
+ * Converts a blob to a data URI.
+ *
+ * @param {Blob} blob The blob to convert.
+ * @returns {Promise<`data:${string};base64,${string}`>} A promise resolving with the data URI.
+ */
+export async function blobToDataURI(blob) {
+    if (typeof globalThis.Buffer === "undefined") {
+        const arrayBuffer = await blob.arrayBuffer();
+        const byteArray = new Uint8Array(arrayBuffer);
+        const base64String = byteArray.reduce((data, byte) => data + String.fromCharCode(byte), "");
+        const base64Encoded = btoa(base64String);
+        return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}`;
+    }
+    else {
+        const base64Encoded = Buffer.from(await blob.bytes()).toString("base64url");
+        return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}`;
+    }
+}
+/**
+ * Imports a plugin from a data URI.
+ *
+ * @param {string} dataURI The data URI to import the plugin from.
+ * @param {"js" | "mcouicplugin"} [type="js"] The type of the plugin to import.
+ * @returns {Promise<Plugin>} A promise resolving with the imported plugin.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ */
+export async function importPluginFromDataURI(dataURI, type = "js") {
+    switch (type) {
+        case "mcouicplugin": {
+            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+        }
+        case "js": {
+            const data = await import(dataURI);
+            return data.plugin;
+        }
+        default: {
+            throw new TypeError(`Unsupported plugin type "${type}".`);
+        }
+    }
+}
+/**
+ * Validates a plugin file.
+ *
+ * @param {Blob} plugin The plugin file to validate.
+ * @param {"mcouicplugin" | "js"} type The type of the plugin file.
+ * @returns {Promise<void>} A promise resolving to `void` when the plugin file is validated.
+ *
+ * @throws {TypeError} If the plugin type is not supported.
+ * @throws {TypeError | SyntaxError} If the plugin is not valid.
+ */
+export async function validatePluginFile(plugin, type) {
+    switch (type) {
+        case "mcouicplugin": {
+            const zipFs = new zip.fs.FS();
+            await zipFs.importBlob(plugin);
+            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+        }
+        case "js": {
+            const dataURI = URL.createObjectURL(plugin);
+            const data = await import(dataURI);
+            if (data?.plugin) {
+                validatePluginObject(data.plugin);
+            }
+            else {
+                throw new SyntaxError(`Plugin is missing required variable export "plugin".`);
+            }
+            return;
+        }
+        default: {
+            throw new TypeError(`Unsupported plugin type "${type}".`);
+        }
+    }
+}
+/**
+ * Validates a plugin object.
+ *
+ * @param {any} plugin The plugin object to validate.
+ * @returns {asserts plugin is Plugin} Asserts that the plugin object is valid. If it is not valid, throws an error. Otherwise, returns `void`.
+ */
+export function validatePluginObject(plugin) {
+    if (typeof plugin !== "object")
+        throw new TypeError(`Plugin must be an object.`);
+    const pluginObject = plugin;
+    if (!pluginObject.actions)
+        throw new SyntaxError(`Plugin is missing required property "actions".`);
+    if (!(pluginObject.actions instanceof Array))
+        throw new SyntaxError(`Plugin property "actions" must be an array.`);
+    if (!pluginObject.format_version)
+        throw new SyntaxError(`Plugin is missing required property "format_version".`);
+    if (typeof pluginObject.format_version !== "string")
+        throw new SyntaxError(`Plugin property "format_version" must be a string.`);
+    if (pluginObject.format_version.startsWith("v"))
+        throw new SyntaxError(`Plugin property "format_version" must not include the leading "v".`);
+    if (semver.valid(pluginObject.format_version) === null)
+        throw new SyntaxError(`Plugin property "format_version" must be a valid semver version.`);
+    if (!pluginObject.id)
+        throw new SyntaxError(`Plugin is missing required property "id".`);
+    if (typeof pluginObject.id !== "string")
+        throw new SyntaxError(`Plugin property "id" must be a string.`);
+    if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.id))
+        throw new SyntaxError(`Plugin property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    if (!pluginObject.name)
+        throw new SyntaxError(`Plugin is missing required property "name".`);
+    if (typeof pluginObject.name !== "string")
+        throw new SyntaxError(`Plugin property "name" must be a string.`);
+    if (typeof pluginObject.min_engine_version !== "undefined" && typeof pluginObject.min_engine_version !== "string")
+        throw new SyntaxError(`Plugin property "min_engine_version" must be a string or undefined.`);
+    if (typeof pluginObject.min_engine_version === "string" && pluginObject.min_engine_version.startsWith("v"))
+        throw new SyntaxError(`Plugin property "min_engine_version" must not include the leading "v".`);
+    if (typeof pluginObject.min_engine_version === "string" && semver.valid(pluginObject.min_engine_version) === null)
+        throw new SyntaxError(`Plugin property "min_engine_version" must be a valid semver version or undefined.`);
+    if (!pluginObject.namespace)
+        throw new SyntaxError(`Plugin is missing required property "namespace".`);
+    if (pluginObject.namespace === "built-in" && !builtInPlugins.includes(pluginObject))
+        throw new SyntaxError(`Plugin is using the reserved namespace "built-in" but is not a built-in plugin.`);
+    if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.namespace))
+        throw new SyntaxError(`Plugin property "namespace" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    if (!pluginObject.version)
+        throw new SyntaxError(`Plugin is missing required property "version".`);
+    if (typeof pluginObject.version !== "string")
+        throw new SyntaxError(`Plugin property "version" must be a string.`);
+    if (pluginObject.version.startsWith("v"))
+        throw new SyntaxError(`Plugin property "version" must not include the leading "v".`);
+    if (semver.valid(pluginObject.version) === null)
+        throw new SyntaxError(`Plugin property "version" must be a valid semver version.`);
+    let pluginIndex = 0;
+    for (const action of pluginObject.actions) {
+        if (!action.action)
+            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "action".`);
+        if (typeof action.action !== "function")
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "action" must be a function.`);
+        if (!action.context)
+            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "context".`);
+        if (typeof action.context !== "string")
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "context" must be a string.`);
+        if (!["per_text_file", "per_binary_file", "global_before", "global"].includes(action.context))
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "context" must be one of "per_text_file", "per_binary_file", "global_before", "global".`);
+        if (!action.id)
+            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "id".`);
+        if (typeof action.id !== "string")
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "id" must be a string.`);
+        if (!/^[a-zA-Z0-9_\-\.]+$/.test(action.id))
+            throw new SyntaxError(`Plugin action ${pluginIndex} property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+        pluginIndex++;
+    }
+    return;
+}
 /**
  * Extracts the symbol names from the given file contents for the Ore UI Customizer.
  *

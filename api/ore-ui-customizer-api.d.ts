@@ -1,9 +1,9 @@
-import { OreUICustomizerSettings, Plugin } from "../assets/shared/ore-ui-customizer-assets.js";
+import { OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "0.25.1";
+export declare const format_version = "1.0.0";
 /**
  * The result of the {@link applyMods} function.
  */
@@ -64,12 +64,6 @@ export interface ApplyModsOptions {
      * @default defaultOreUICustomizerSettings
      */
     settings?: OreUICustomizerSettings;
-    /**
-     * A list of additional plugins to apply.
-     *
-     * @default []
-     */
-    plugins?: Plugin[];
     /**
      * Enable debug logging.
      *

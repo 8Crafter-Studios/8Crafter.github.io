@@ -16,6 +16,7 @@
     "sitemap-generator": "^8.5.1"
   },
   "devDependencies": {
-    "@types/jquery": "^3.5.32"
+    "@types/jquery": "^3.5.32",
+    "@types/semver": "^7.7.0"
   }
 }
