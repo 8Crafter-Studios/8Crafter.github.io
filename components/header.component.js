@@ -49,6 +49,31 @@ export default function getComponent(tabIndex = -1){
                 </div>
             </div>
         </li>
+        <li${tabIndex>=200  &&tabIndex<300?' class="active"':""}>
+            <div class="navbar-dropdown">
+                <button type="button" class="navbar-dropbtn">
+                    Misc.
+
+                    <img
+                        name="cv"
+                        src="/assets/images/ui/dropdown/dropdown_chevron.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                    <img
+                        name="cvsel"
+                        src="/assets/images/ui/dropdown/dropdown_chevron_up.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                </button>
+                <div class="navbar-dropdown-content">
+                    <a${tabIndex==200?' class="active"':""} href="/misc/subdomains-list.html" rel="keep-params">Subdomains List</a>
+                </div>
+            </div>
+        </li>
         <li style="float:right;cursor:pointer;"><a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px; position: relative; top: 4px;"></div>Settings</a></li>
       </ul>
       <ul class="horizontal-nav compressed-nav">
@@ -90,6 +115,31 @@ export default function getComponent(tabIndex = -1){
                   </div>
               </div>
           </li>
+        <li${tabIndex>=200  &&tabIndex<300?' class="active"':""}>
+            <div class="navbar-dropdown no_padding_override">
+                <button type="button" class="navbar-dropbtn">
+                    Misc.
+
+                    <img
+                        name="cv"
+                        src="/assets/images/ui/dropdown/dropdown_chevron.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                    <img
+                        name="cvsel"
+                        src="/assets/images/ui/dropdown/dropdown_chevron_up.png"
+                        inert
+                        class="nsel"
+                        style="float: right; margin: 2.5px; filter: invert(1);"
+                    />
+                </button>
+                <div class="navbar-dropdown-content no_absolute_display no_bg_color_override">
+                    <a${tabIndex==200?' class="active"':""} href="/misc/subdomains-list.html" rel="keep-params">Subdomains List</a>
+                </div>
+            </div>
+        </li>
           <li style="cursor:pointer;"><a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle;"><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>Settings</a></li>
         </ul>
       </div>

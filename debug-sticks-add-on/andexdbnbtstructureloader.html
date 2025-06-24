@@ -97,7 +97,7 @@
                     >
                     This website is currently under construction.
                 </div> -->
-                <ul class="horizontal-nav">
+                <ul class="horizontal-nav full-sized-nav">
                     <li style="height: 48px; margin-bottom: -10px">
                         <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
                             ><image
@@ -111,31 +111,39 @@
                             ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
                         >
                     </li>
-                    <li><a href="/index.html" rel="keep-params">Home</a></li>
-                    <li class="active"><a href="/main/contact.html" rel="keep-params">Contact</a></li>
-                    <li><a href="/main/about.html" rel="keep-params">About</a></li>
-                    <li>
-                        <a href="https://wiki.8crafter.com/main/"
-                            >Wiki<image
-                                src="/assets/images/ui/glyphs/external_link.png"
-                                style="
-                                    width: 17px;
-                                    height: 17px;
-                                    margin: -10px -10px -10px 5px;
-                                    image-rendering: pixelated;
-                                    vertical-align: middle;
-                                    padding: 9.5px 0px;
-                                "
+                </ul>
+                <ul class="horizontal-nav compressed-nav">
+                    <li style="height: 48px; margin-bottom: -10px">
+                        <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                            ><image
+                                title="8Crafter"
+                                src="favicon.ico"
+                                width="32px"
+                                height="32px"
+                                class="piximg"
+                                style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
                             ></image
-                        ></a>
-                    </li>
-                    <li style="float: right; cursor: pointer">
-                        <a onclick="$('overlay-page#settings_menu')[0].togglePageVisibility()" style="vertical-align: middle"
-                            ><div class="settings_button" title="Settings Icon" style="width: 30px; height: 30px; margin-right: 5px"></div>
-                            Settings</a
+                            ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
                         >
                     </li>
                 </ul>
+                <div id="nav-sidebar" style="display: none">
+                    <ul class="vertical-nav compressed-nav">
+                        <li style="height: 48px; margin-bottom: -10px">
+                            <a href="https://youtube.com/@8crafter" style="padding-top: 3.5px; padding-bottom: 3.5px"
+                                ><image
+                                    title="8Crafter"
+                                    src="favicon.ico"
+                                    width="32px"
+                                    height="32px"
+                                    class="piximg"
+                                    style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"
+                                ></image
+                                ><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a
+                            >
+                        </li>
+                    </ul>
+                </div>
             </header>
         </autofill_from_file>
         <autofill_from_file src="/components/settings_menu.component.js"></autofill_from_file>
@@ -995,7 +1003,7 @@ function compressIntArrayB(s, replacement="-1"){Array.from(s.matchAll(/(?<=[\,\[
                         />
                         <br />
                         <h2 style="font-family: MINECRAFTFONT" id="datacompressor">Data Compressor</h2>
-                        <noscript style="color: red;"
+                        <noscript style="color: red"
                             ><mark
                                 >WARNING!: The following tool will not work because either your web browser does not support JavaScript or you have scripts
                                 disabled on your web browser or this website!</mark
@@ -1153,3 +1161,4 @@ function compressIntArrayB(s, replacement="-1"){Array.from(s.matchAll(/(?<=[\,\[
         <page_background theme_color_bg ontouchstart></page_background>
     </body>
 </html>
+

@@ -1,10 +1,11 @@
 {
-  "name": "www.dev.8crafter.com_development",
+  "name": "www.8crafter.com",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "index.js"
+    "test": "index.js",
+    "generateSitemap": "node sitemap_generator.js"
   },
   "type": "module",
   "keywords": [],
@@ -18,5 +19,6 @@
   "devDependencies": {
     "@types/jquery": "^3.5.32",
     "@types/semver": "^7.7.0"
-  }
+  },
+  "private": true
 }

@@ -48,16 +48,16 @@ router.get("/", function (req, res) {
     res.sendFile(path.join(import.meta.dirname + "/index.html"));
 });
 
-router.get("/docs", function (req, res) {
+/* router.get("/docs", function (req, res) {
     res.sendFile(path.join(import.meta.dirname + "/docs/index.html"));
 });
 
 router.get("/console_run", function (req, res) {
     res.sendFile(path.join(import.meta.dirname + "/docs/index.html"));
-});
+}); */
 app.use("/", express.static(import.meta.dirname + "/"));
 app.use(express.static(import.meta.dirname + "/"));
-app.use(express.static(import.meta.dirname + "/editor"));
+// app.use(express.static(import.meta.dirname + "/editor"));
 app.use(text());
 app.use(json());
 app.use(urlencoded({ extended: true }));

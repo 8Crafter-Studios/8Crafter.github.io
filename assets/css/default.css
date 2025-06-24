@@ -505,7 +505,7 @@ ul:not(:not(.horizontal-nav)) {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #333;
+    background-color: #13383f;
 
     & > li {
         float: left;
@@ -551,7 +551,7 @@ ul:not(:not(.horizontal-nav)) {
     }
 
     .active {
-        background-color: #04aa6d;
+        background-color: #00ffdcbb;
     }
 }
 
@@ -600,7 +600,7 @@ ul:not(:not(.horizontal-nav)) {
 }
 
 .navbar-dropdown-content:not(.no_bg_color_override) {
-    background-color: #333;
+    background-color: #13383f;
 }
 
 .navbar-dropdown-content:not(.no_absolute_display) {
