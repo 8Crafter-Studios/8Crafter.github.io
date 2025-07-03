@@ -1,4 +1,10 @@
+/**
+ * @type {typeof import("./JSONB").JSONB}
+ */
 const JSONB = {};
+/**
+ * @type {typeof import("./JSONB").JSONBConsole}
+ */
 const JSONBConsole = {};
 (function () {
     "use strict";
@@ -10,9 +16,7 @@ const JSONBConsole = {};
     var rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
     function f(n) {
         // Format integers to have at least two digits.
-        return (n < 10)
-            ? "0" + n
-            : n;
+        return n < 10 ? "0" + n : n;
     }
     function this_value() {
         return this.valueOf();
@@ -20,18 +24,18 @@ const JSONBConsole = {};
     if (typeof Date.prototype.toJSON !== "function") {
         Date.prototype.toJSON = function () {
             return isFinite(this.valueOf())
-                ? (this.getUTCFullYear()
-                    + "-"
-                    + f(this.getUTCMonth() + 1)
-                    + "-"
-                    + f(this.getUTCDate())
-                    + "T"
-                    + f(this.getUTCHours())
-                    + ":"
-                    + f(this.getUTCMinutes())
-                    + ":"
-                    + f(this.getUTCSeconds())
-                    + "Z")
+                ? this.getUTCFullYear() +
+                      "-" +
+                      f(this.getUTCMonth() + 1) +
+                      "-" +
+                      f(this.getUTCDate()) +
+                      "T" +
+                      f(this.getUTCHours()) +
+                      ":" +
+                      f(this.getUTCMinutes()) +
+                      ":" +
+                      f(this.getUTCSeconds()) +
+                      "Z"
                 : null;
         }; /*
 
@@ -50,13 +54,13 @@ const JSONBConsole = {};
         // sequences.
         rx_escapable.lastIndex = 0;
         return rx_escapable.test(string)
-            ? "\"" + string.replace(rx_escapable, function (a) {
-                var c = meta[a];
-                return typeof c === "string"
-                    ? c
-                    : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
-            }) + "\""
-            : "\"" + string + "\"";
+            ? '"' +
+                  string.replace(rx_escapable, function (a) {
+                      var c = meta[a];
+                      return typeof c === "string" ? c : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+                  }) +
+                  '"'
+            : '"' + string + '"';
     }
     function str(key, holder, options) {
         // Produce a string from holder[key].
@@ -72,30 +76,24 @@ const JSONBConsole = {};
                 if (options.set) {
                     if (!!holder.__lookupSetter__(key)) {
                         value = { get: holder.__lookupGetter__(key), set: holder.__lookupSetter__(key) };
-                    }
-                    else {
+                    } else {
                         value = { get: holder.__lookupGetter__(key) };
                     }
-                }
-                else {
+                } else {
                     value = { get: holder.__lookupGetter__(key) };
                 }
-            }
-            else if (options.set) {
+            } else if (options.set) {
                 if (Object.hasOwn(holder, "__lookupSetter__") ? !!holder.__lookupSetter__(key) : false) {
                     value = { set: holder.__lookupSetter__(key) };
                 }
             }
-        }
-        else if (options.set) {
+        } else if (options.set) {
             if (Object.hasOwn(holder, "__lookupSetter__") ? !!holder.__lookupSetter__(key) : false) {
                 value = { set: holder.__lookupSetter__(key) };
             }
         }
         // If the value has a toJSON method, call it to obtain a replacement value.
-        if (value
-            && typeof value === "object"
-            && typeof value.toJSON === "function") {
+        if (value && typeof value === "object" && typeof value.toJSON === "function") {
             value = value.toJSON(key);
         }
         // If we were called with a replacer function, then call the replacer to
@@ -109,21 +107,21 @@ const JSONBConsole = {};
                 return quote(value);
             case "number":
                 // JSONB numbers must be finite. Encode non-finite numbers as null.
-                return (isFinite(value))
+                return isFinite(value)
                     ? String(value)
                     : value == Infinity
-                        ? options.Infinity ?? true
-                            ? "Infinity"
-                            : "null"
-                        : value == -Infinity
-                            ? options.NegativeInfinity ?? true
-                                ? "-Infinity"
-                                : "null"
-                            : Number.isNaN(value)
-                                ? options.NaN ?? true
-                                    ? "NaN"
-                                    : "null"
-                                : "null";
+                    ? options.Infinity ?? true
+                        ? "Infinity"
+                        : "null"
+                    : value == -Infinity
+                    ? options.NegativeInfinity ?? true
+                        ? "-Infinity"
+                        : "null"
+                    : Number.isNaN(value)
+                    ? options.NaN ?? true
+                        ? "NaN"
+                        : "null"
+                    : "null";
             case "bigint":
                 return options.bigint ?? true ? String(value) + "n" : "null";
             case "undefined":
@@ -158,16 +156,7 @@ const JSONBConsole = {};
                     }
                     // Join all of the elements together, separated with commas, and wrap them in
                     // brackets.
-                    v = partial.length === 0
-                        ? "[]"
-                        : gap
-                            ? ("[\n"
-                                + gap
-                                + partial.join(",\n" + gap)
-                                + "\n"
-                                + mind
-                                + "]")
-                            : "[" + partial.join(",") + "]";
+                    v = partial.length === 0 ? "[]" : gap ? "[\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "]" : "[" + partial.join(",") + "]";
                     gap = mind;
                     return v;
                 }
@@ -179,33 +168,24 @@ const JSONBConsole = {};
                             k = rep[i];
                             v = str(k, value, options);
                             if (v) {
-                                partial.push(quote(k) + ((gap)
-                                    ? ": "
-                                    : ":") + v);
+                                partial.push(quote(k) + (gap ? ": " : ":") + v);
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     // Otherwise, iterate through all of the keys in the object.
                     for (k in value) {
                         if (Object.prototype.hasOwnProperty.call(value, k)) {
                             v = str(k, value, options);
                             if (v) {
-                                partial.push(quote(k) + ((gap)
-                                    ? ": "
-                                    : ":") + v);
+                                partial.push(quote(k) + (gap ? ": " : ":") + v);
                             }
                         }
                     }
                 }
                 // Join all of the member texts together, separated with commas,
                 // and wrap them in braces.
-                v = partial.length === 0
-                    ? "{}"
-                    : gap
-                        ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}"
-                        : "{" + partial.join(",") + "}";
+                v = partial.length === 0 ? "{}" : gap ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}" : "{" + partial.join(",") + "}";
                 gap = mind;
                 return v;
         }
@@ -218,10 +198,25 @@ const JSONBConsole = {};
             "\n": "\\n",
             "\f": "\\f",
             "\r": "\\r",
-            "\"": "\\\"",
-            "\\": "\\\\"
+            '"': '\\"',
+            "\\": "\\\\",
         };
-        JSONB.stringify = function (value, replacer, space, options = { bigint: true, undefined: true, Infinity: true, NegativeInfinity: true, NaN: true, get: false, set: false, function: false, class: false }) {
+        JSONB.stringify = function (
+            value,
+            replacer,
+            space,
+            options = {
+                bigint: true,
+                undefined: true,
+                Infinity: true,
+                NegativeInfinity: true,
+                NaN: true,
+                get: false,
+                set: false,
+                function: false,
+                class: false,
+            }
+        ) {
             // The stringify method takes a value and an optional replacer, and an optional
             // space parameter, and returns a JSONB text. The replacer can be a function
             // that can replace values, or an array of strings that will select the keys.
@@ -237,15 +232,13 @@ const JSONBConsole = {};
                     indent += " ";
                 }
                 // If the space parameter is a string, it will be used as the indent string.
-            }
-            else if (typeof space === "string") {
+            } else if (typeof space === "string") {
                 indent = space;
             }
             // If there is a replacer, it must be a function or an array.
             // Otherwise, throw an error.
             rep = replacer;
-            if (replacer && typeof replacer !== "function" && (typeof replacer !== "object"
-                || typeof replacer.length !== "number")) {
+            if (replacer && typeof replacer !== "function" && (typeof replacer !== "object" || typeof replacer.length !== "number")) {
                 throw new SyntaxError("Invalid Replacer");
             }
             // Make a fake root object containing our value under the key of "".
@@ -255,11 +248,32 @@ const JSONBConsole = {};
     }
     // If the JSONB object does not yet have a parse method, give it one.
     if (typeof JSONB.parse !== "function") {
-        JSONB.parse = function (text, reviver, options = { bigint: true, undefined: true, Infinity: true, NegativeInfinity: true, NaN: true, get: false, set: false, function: false, class: false }) {
+        JSONB.parse = function (
+            text,
+            reviver,
+            options = {
+                bigint: true,
+                undefined: true,
+                Infinity: true,
+                NegativeInfinity: true,
+                NaN: true,
+                get: false,
+                set: false,
+                function: false,
+                class: false,
+            }
+        ) {
             // The parse method takes a text and an optional reviver function, and returns
             // a JavaScript value if the text is a valid JSONB text.
             var j;
-            var rx_three_b = RegExp(`"[^"\\\\\\n\\r]*"|true|false|null|${options.undefined ?? true ? "undefined|" : ""}${options.Infinity ?? true ? "Infinity|" : ""}${options.NegativeInfinity ?? true ? "-Infinity|" : ""}${options.NaN ?? true ? "NaN|" : ""}-?\\d+${options.bigint ?? true ? `(?:n|(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)` : `(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?`}`, "g");
+            var rx_three_b = RegExp(
+                `"[^"\\\\\\n\\r]*"|true|false|null|${options.undefined ?? true ? "undefined|" : ""}${options.Infinity ?? true ? "Infinity|" : ""}${
+                    options.NegativeInfinity ?? true ? "-Infinity|" : ""
+                }${options.NaN ?? true ? "NaN|" : ""}-?\\d+${
+                    options.bigint ?? true ? `(?:n|(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)` : `(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?`
+                }`,
+                "g"
+            );
             function walk(holder, key) {
                 // The walk method is used to recursively walk the resulting structure so
                 // that modifications can be made.
@@ -272,8 +286,7 @@ const JSONBConsole = {};
                             v = walk(value, k);
                             if (v !== undefined) {
                                 value[k] = v;
-                            }
-                            else {
+                            } else {
                                 delete value[k];
                             }
                         }
@@ -288,8 +301,7 @@ const JSONBConsole = {};
             rx_dangerous.lastIndex = 0;
             if (rx_dangerous.test(text)) {
                 text = text.replace(rx_dangerous, function (a) {
-                    return ("\\u"
-                        + ("0000" + a.charCodeAt(0).toString(16)).slice(-4));
+                    return "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
                 });
             }
             // In the second stage, we run the text against regular expressions that look
@@ -303,14 +315,8 @@ const JSONBConsole = {};
             // open brackets that follow a colon or comma or that begin the text. Finally,
             // we look to see that the remaining characters are only whitespace or "]" or
             // "," or ":" or "{" or "}". If that is so, then the text is safe for eval.
-            console.log(text
-                .replace(rx_two, "@")
-                .replace(rx_three_b, "]")
-                .replace(rx_four, ""));
-            if (rx_one.test(text
-                .replace(rx_two, "@")
-                .replace(rx_three_b, "]")
-                .replace(rx_four, ""))) {
+            console.log(text.replace(rx_two, "@").replace(rx_three_b, "]").replace(rx_four, ""));
+            if (rx_one.test(text.replace(rx_two, "@").replace(rx_three_b, "]").replace(rx_four, ""))) {
                 // In the third stage we use the eval function to compile the text into a
                 // JavaScript structure. The "{" operator is subject to a syntactic ambiguity
                 // in JavaScript: it can begin a block or an object literal. We wrap the text
@@ -318,15 +324,13 @@ const JSONBConsole = {};
                 j = eval("(" + text + ")");
                 // In the optional fourth stage, we recursively walk the new structure, passing
                 // each name/value pair to a reviver function for possible transformation.
-                return (typeof reviver === "function")
-                    ? walk({ "": j }, "")
-                    : j;
+                return typeof reviver === "function" ? walk({ "": j }, "") : j;
             }
             // If the text is not JSONB parseable, then a SyntaxError is thrown.
             throw new SyntaxError("JSONB.parse");
         };
     }
-}());
+})();
 globalThis.JSONB = JSONB;
 (function () {
     "use strict";
@@ -338,9 +342,7 @@ globalThis.JSONB = JSONB;
     var rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
     function f(n) {
         // Format integers to have at least two digits.
-        return (n < 10)
-            ? "0" + n
-            : n;
+        return n < 10 ? "0" + n : n;
     }
     function this_value() {
         return this.valueOf();
@@ -356,13 +358,13 @@ globalThis.JSONB = JSONB;
         // sequences.
         rx_escapable.lastIndex = 0;
         return rx_escapable.test(string)
-            ? "\"" + string.replace(rx_escapable, function (a) {
-                var c = meta[a];
-                return typeof c === "string"
-                    ? c
-                    : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
-            }) + "\""
-            : "\"" + string + "\"";
+            ? '"' +
+                  string.replace(rx_escapable, function (a) {
+                      var c = meta[a];
+                      return typeof c === "string" ? c : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+                  }) +
+                  '"'
+            : '"' + string + '"';
     }
     function str(key, holder, options, maxLength = Infinity, maxDepth = Infinity, currentLength = 0, currentDepth = 0, entryCount = 0) {
         if (currentDepth >= maxDepth) {
@@ -386,34 +388,40 @@ globalThis.JSONB = JSONB;
         var partial;
         var value = holder[key];
         if (options.get) {
-            if (Object.hasOwn(holder, "__lookupGetter__") ? !!holder?.__lookupGetter__(key) : false) {
+            if (
+                Object.hasOwn(holder, "__lookupGetter__") && typeof holder.__lookupGetter__ === "function"
+                    ? !!holder?.__lookupGetter__(key) && typeof holder.__lookupGetter__(key) === "function"
+                    : false
+            ) {
                 if (options.set) {
                     if (!!holder.__lookupSetter__(key)) {
                         value = { get: holder.__lookupGetter__(key), set: holder.__lookupSetter__(key) };
-                    }
-                    else {
+                    } else {
                         value = { get: holder.__lookupGetter__(key) };
                     }
-                }
-                else {
+                } else {
                     value = { get: holder.__lookupGetter__(key) };
                 }
-            }
-            else if (options.set) {
-                if (Object.hasOwn(holder, "__lookupSetter__") ? !!holder.__lookupSetter__(key) : false) {
+            } else if (options.set) {
+                if (
+                    Object.hasOwn(holder, "__lookupSetter__") && typeof holder.__lookupSetter__ === "function"
+                        ? !!holder.__lookupSetter__(key) && typeof holder.__lookupSetter__(key) === "function"
+                        : false
+                ) {
                     value = { set: holder.__lookupSetter__(key) };
                 }
             }
-        }
-        else if (options.set) {
-            if (Object.hasOwn(holder, "__lookupSetter__") ? !!holder.__lookupSetter__(key) : false) {
+        } else if (options.set) {
+            if (
+                Object.hasOwn(holder, "__lookupSetter__") && typeof holder.__lookupSetter__ === "function"
+                    ? !!holder.__lookupSetter__(key) && typeof holder.__lookupSetter__(key) === "function"
+                    : false
+            ) {
                 value = { set: holder.__lookupSetter__(key) };
             }
         }
         // If the value has a toJSON method, call it to obtain a replacement value.
-        if (value
-            && typeof value === "object"
-            && typeof value.toJSON === "function") {
+        if (value && typeof value === "object" && typeof value.toJSON === "function") {
             value = value.toJSON(key);
         }
         // If we were called with a replacer function, then call the replacer to
@@ -427,21 +435,21 @@ globalThis.JSONB = JSONB;
                 return quote(value);
             case "number":
                 // JSONB numbers must be finite. Encode non-finite numbers as null.
-                return (isFinite(value))
+                return isFinite(value)
                     ? String(value)
                     : value == Infinity
-                        ? options.Infinity ?? true
-                            ? "Infinity"
-                            : "null"
-                        : value == -Infinity
-                            ? options.NegativeInfinity ?? true
-                                ? "-Infinity"
-                                : "null"
-                            : Number.isNaN(value)
-                                ? options.NaN ?? true
-                                    ? "NaN"
-                                    : "null"
-                                : "null";
+                    ? options.Infinity ?? true
+                        ? "Infinity"
+                        : "null"
+                    : value == -Infinity
+                    ? options.NegativeInfinity ?? true
+                        ? "-Infinity"
+                        : "null"
+                    : Number.isNaN(value)
+                    ? options.NaN ?? true
+                        ? "NaN"
+                        : "null"
+                    : "null";
             case "bigint":
                 return options.bigint ?? true ? String(value) + "n" : "null";
             case "undefined":
@@ -479,7 +487,7 @@ globalThis.JSONB = JSONB;
                     length = value.length;
                     for (i = 0; i < length; i += 1) {
                         if ((typeof value === "object" || typeof value === "function") && value[i] === value) {
-                            partial.push("circular reference")
+                            partial.push("circular reference");
                             continue;
                         }
                         var partialValue = str(i, value, options, maxLength, maxDepth, currentLength + partial.length * 2, currentDepth + 1, entryCount + 1);
@@ -511,40 +519,66 @@ globalThis.JSONB = JSONB;
                             k = rep[i];
                             v = str(k, value, options, maxLength, maxDepth, currentLength + partial.length * 2, currentDepth + 1);
                             if (v) {
-                                partial.push(quote(k) + ((gap)
-                                    ? ": "
-                                    : ":") + v);
+                                partial.push(quote(k) + (gap ? ": " : ":") + v);
                             }
                         }
                     }
-                }
-                else {
+                } else {
                     // Otherwise, iterate through all of the keys in the object.
-                for (k in value) {
-                    if (Object.prototype.hasOwnProperty.call(value, k)) {
-                        if ((typeof value === "object" || typeof value === "function") && value[k] === value) {
-                            partial.push(quote(k) + ((gap) ? ": " : ":") + "circular reference")
-                            continue;
-                        }
-                        v = str(k, value, options, maxLength, maxDepth, currentLength + partial.length * 2, currentDepth + 1, entryCount + 1);
-                        if (v) {
-                            entryCount++;
-                            if (currentLength + partial.length * 2 >= maxLength || entryCount >= maxLength / 2) {
-                                partial.push("...");
-                                break;
+                    for (k of [
+                        ...new Set([
+                            ...Object.keys(value),
+                            ...(() => {
+                                try {
+                                    return Object.getOwnPropertyNames(value.__proto__).filter((key) => {
+                                        try {
+                                            // Make sure the property won't throw an error when accessed.
+                                            value[key];
+                                            return key in value;
+                                        } catch {
+                                            return false;
+                                        }
+                                    });
+                                } catch (e) {
+                                    return [];
+                                }
+                            })(),
+                            ...Object.getOwnPropertyNames(value),
+                            ...Object.getOwnPropertySymbols(value),
+                        ]),
+                    ]) {
+                        try {
+                            if (k in value) {
+                                if (typeof value === "object" || typeof value === "function") {
+                                    try {
+                                        if (value[k] === value) {
+                                            partial.push(quote(k) + (gap ? ": " : ":") + "circular reference");
+                                            continue;
+                                        }
+                                    } catch (e) {
+                                        // If we cannot access the property, we will skip it.
+                                        partial.push(quote(k) + (gap ? ": " : ":") + (e?.name ?? e));
+                                        continue;
+                                    }
+                                }
+                                v = str(k, value, options, maxLength, maxDepth, currentLength + partial.length * 2, currentDepth + 1, entryCount + 1);
+                                if (v) {
+                                    entryCount++;
+                                    if (currentLength + partial.length * 2 >= maxLength || entryCount >= maxLength / 2) {
+                                        partial.push("...");
+                                        break;
+                                    }
+                                    partial.push(quote(k) + (gap ? ": " : ":") + v);
+                                }
                             }
-                            partial.push(quote(k) + ((gap) ? ": " : ":") + v);
+                        } catch (e) {
+                            partial.push(quote(k) + (gap ? ": " : ":") + (e?.name ?? e));
                         }
                     }
-                }
                 }
                 // Join all of the member texts together, separated with commas,
                 // and wrap them in braces.
-                v = partial.length === 0
-                    ? "{}"
-                    : gap
-                        ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}"
-                        : "{" + partial.join(",") + "}";
+                v = partial.length === 0 ? "{}" : gap ? "{\n" + gap + partial.join(",\n" + gap) + "\n" + mind + "}" : "{" + partial.join(",") + "}";
                 gap = mind;
                 if (currentLength >= maxLength) {
                     return "{...}";
@@ -560,10 +594,27 @@ globalThis.JSONB = JSONB;
             "\n": "\\n",
             "\f": "\\f",
             "\r": "\\r",
-            "\"": "\\\"",
-            "\\": "\\\\"
+            '"': '\\"',
+            "\\": "\\\\",
         };
-        JSONBConsole.stringify = function (value, replacer, space, options = { bigint: true, undefined: true, Infinity: true, NegativeInfinity: true, NaN: true, get: false, set: false, function: true, class: false }, maxLength = Infinity, maxDepth = Infinity) {
+        JSONBConsole.stringify = function (
+            value,
+            replacer,
+            space,
+            options = {
+                bigint: true,
+                undefined: true,
+                Infinity: true,
+                NegativeInfinity: true,
+                NaN: true,
+                get: false,
+                set: false,
+                function: true,
+                class: false,
+            },
+            maxLength = Infinity,
+            maxDepth = Infinity
+        ) {
             // The stringify method takes a value and an optional replacer, and an optional
             // space parameter, and returns a JSONB text. The replacer can be a function
             // that can replace values, or an array of strings that will select the keys.
@@ -579,15 +630,13 @@ globalThis.JSONB = JSONB;
                     indent += " ";
                 }
                 // If the space parameter is a string, it will be used as the indent string.
-            }
-            else if (typeof space === "string") {
+            } else if (typeof space === "string") {
                 indent = space;
             }
             // If there is a replacer, it must be a function or an array.
             // Otherwise, throw an error.
             rep = replacer;
-            if (replacer && typeof replacer !== "function" && (typeof replacer !== "object"
-                || typeof replacer.length !== "number")) {
+            if (replacer && typeof replacer !== "function" && (typeof replacer !== "object" || typeof replacer.length !== "number")) {
                 throw new SyntaxError("Invalid Replacer");
             }
             // Make a fake root object containing our value under the key of "".
@@ -597,11 +646,32 @@ globalThis.JSONB = JSONB;
     }
     // If the JSONB object does not yet have a parse method, give it one.
     if (typeof JSONBConsole.parse !== "function") {
-        JSONBConsole.parse = function (text, reviver, options = { bigint: true, undefined: true, Infinity: true, NegativeInfinity: true, NaN: true, get: false, set: false, function: false, class: false }) {
+        JSONBConsole.parse = function (
+            text,
+            reviver,
+            options = {
+                bigint: true,
+                undefined: true,
+                Infinity: true,
+                NegativeInfinity: true,
+                NaN: true,
+                get: false,
+                set: false,
+                function: false,
+                class: false,
+            }
+        ) {
             // The parse method takes a text and an optional reviver function, and returns
             // a JavaScript value if the text is a valid JSONB text.
             var j;
-            var rx_three_b = RegExp(`"[^"\\\\\\n\\r]*"|true|false|null|${options.undefined ?? true ? "undefined|" : ""}${options.Infinity ?? true ? "Infinity|" : ""}${options.NegativeInfinity ?? true ? "-Infinity|" : ""}${options.NaN ?? true ? "NaN|" : ""}-?\\d+${options.bigint ?? true ? `(?:n|(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)` : `(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?`}`, "g");
+            var rx_three_b = RegExp(
+                `"[^"\\\\\\n\\r]*"|true|false|null|${options.undefined ?? true ? "undefined|" : ""}${options.Infinity ?? true ? "Infinity|" : ""}${
+                    options.NegativeInfinity ?? true ? "-Infinity|" : ""
+                }${options.NaN ?? true ? "NaN|" : ""}-?\\d+${
+                    options.bigint ?? true ? `(?:n|(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)` : `(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?`
+                }`,
+                "g"
+            );
             function walk(holder, key) {
                 // The walk method is used to recursively walk the resulting structure so
                 // that modifications can be made.
@@ -614,8 +684,7 @@ globalThis.JSONB = JSONB;
                             v = walk(value, k);
                             if (v !== undefined) {
                                 value[k] = v;
-                            }
-                            else {
+                            } else {
                                 delete value[k];
                             }
                         }
@@ -630,8 +699,7 @@ globalThis.JSONB = JSONB;
             rx_dangerous.lastIndex = 0;
             if (rx_dangerous.test(text)) {
                 text = text.replace(rx_dangerous, function (a) {
-                    return ("\\u"
-                        + ("0000" + a.charCodeAt(0).toString(16)).slice(-4));
+                    return "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
                 });
             }
             // In the second stage, we run the text against regular expressions that look
@@ -645,14 +713,8 @@ globalThis.JSONB = JSONB;
             // open brackets that follow a colon or comma or that begin the text. Finally,
             // we look to see that the remaining characters are only whitespace or "]" or
             // "," or ":" or "{" or "}". If that is so, then the text is safe for eval.
-            console.log(text
-                .replace(rx_two, "@")
-                .replace(rx_three_b, "]")
-                .replace(rx_four, ""));
-            if (rx_one.test(text
-                .replace(rx_two, "@")
-                .replace(rx_three_b, "]")
-                .replace(rx_four, ""))) {
+            console.log(text.replace(rx_two, "@").replace(rx_three_b, "]").replace(rx_four, ""));
+            if (rx_one.test(text.replace(rx_two, "@").replace(rx_three_b, "]").replace(rx_four, ""))) {
                 // In the third stage we use the eval function to compile the text into a
                 // JavaScript structure. The "{" operator is subject to a syntactic ambiguity
                 // in JavaScript: it can begin a block or an object literal. We wrap the text
@@ -660,14 +722,12 @@ globalThis.JSONB = JSONB;
                 j = eval("(" + text + ")");
                 // In the optional fourth stage, we recursively walk the new structure, passing
                 // each name/value pair to a reviver function for possible transformation.
-                return (typeof reviver === "function")
-                    ? walk({ "": j }, "")
-                    : j;
+                return typeof reviver === "function" ? walk({ "": j }, "") : j;
             }
             // If the text is not JSONB parseable, then a SyntaxError is thrown.
             throw new SyntaxError("JSONB.parse");
         };
     }
-}());
+})();
 globalThis.JSONBConsole = JSONBConsole;
 //# sourceMappingURL=JSONB.js.map

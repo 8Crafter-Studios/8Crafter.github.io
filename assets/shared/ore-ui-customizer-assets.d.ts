@@ -1020,4 +1020,20 @@ export declare const builtInPlugins: [{
     }];
     readonly format_version: "0.25.0";
     readonly min_engine_version: "0.25.0";
+}, {
+    readonly name: "Facet spy.";
+    readonly id: "facet-spy";
+    readonly namespace: "built-in";
+    readonly version: "1.0.0";
+    readonly actions: [{
+        readonly id: "inject-facet-spy";
+        readonly context: "per_text_file";
+        readonly action: (currentFileContent: string, file: zip.ZipFileEntry<any, any>) => Promise<string>;
+    }, {
+        readonly id: "inject-into-routes";
+        readonly context: "per_text_file";
+        readonly action: (currentFileContent: string, file: zip.ZipFileEntry<any, any>) => Promise<string>;
+    }];
+    readonly format_version: "1.0.0";
+    readonly min_engine_version: "1.0.0";
 }];

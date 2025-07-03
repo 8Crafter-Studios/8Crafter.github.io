@@ -1353,10 +1353,10 @@ body.overlay_page_visible .possible_scroll_y {
 .collapsible-group-header {
     text-align: center;
     cursor: pointer;
-    user-select: none;
+    -ms-user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
-    -ms-user-select: none;
+    user-select: none;
     & > h1,
     h2,
     h3,

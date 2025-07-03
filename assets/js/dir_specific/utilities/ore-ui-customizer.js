@@ -44,7 +44,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.0.0";
+    OreUICustomizer.format_version = "1.1.0";
     /**
      * @type {File | undefined}
      */
@@ -934,6 +934,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             enabledBuiltInPlugins: {
                 "add-exact-ping-count-to-servers-tab": true,
                 "add-max-player-count-to-servers-tab": true,
+                "facet-spy": true,
             },
             /**
              * These are replacements for the UI colors.

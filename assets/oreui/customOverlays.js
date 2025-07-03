@@ -1221,6 +1221,132 @@ function toggleConsoleOverlay() {
     }
 }
 
+/**
+ * Represents an entry in the console execution history.
+ */
+class ConsoleExecutionHistoryEntry {
+    /**
+     * The code that was executed.
+     *
+     * @public
+     *
+     * @type {string}
+     */
+    code;
+    /**
+     * The time when the code was executed.
+     *
+     * @public
+     *
+     * @type {number}
+     */
+    time;
+    /**
+     * Creates a new ConsoleExecutionHistoryEntry instance.
+     *
+     * @constructor
+     * @param {string} code The code that was executed.
+     * @param {number} [time=Date.now()] The time when the code was executed. Defaults to the current time.
+     * @returns The ConsoleExecutionHistoryEntry instance.
+     *
+     * @public
+     */
+    constructor(code, time = Date.now()) {
+        this.code = code;
+        this.time = time;
+    }
+}
+
+/**
+ * Stores the history of executed console commands.
+ *
+ * @hideconstructor
+ */
+class ConsoleExecutionHistory {
+    /**
+     * The maximum number of entries to store in the history.
+     *
+     * @public
+     * @static
+     *
+     * @type {number}
+     *
+     * @default 10
+     */
+    static maxEntries = 10;
+    /**
+     * The maximum length of an entry in the history.
+     *
+     * @public
+     * @static
+     *
+     * @type {number}
+     *
+     * @default 1000
+     */
+    static maxEntryLength = 1000;
+    /**
+     * The entries in the history, oldest first.
+     *
+     * @readonly
+     *
+     * @public
+     * @static
+     *
+     * @type {ConsoleExecutionHistoryEntry[]}
+     */
+    static entries = [];
+    /**
+     * @constructor
+     *
+     * @throws {TypeError} Throws an error if the constructor is called.
+     *
+     * @private
+     */
+    constructor() {
+        throw new TypeError("Failed to construct 'ConsoleExecutionHistory': Illegal constructor");
+    }
+    /**
+     * Gets the nth newest entry in the history.
+     *
+     * @param {number} n The index of the entry to retrieve.
+     * @returns {ConsoleExecutionHistoryEntry | undefined} The nth newest entry in the history.
+     *
+     * @public
+     * @static
+     */
+    static getNthNewestEntry(n) {
+        return ConsoleExecutionHistory.entries.at(-n - 1);
+    }
+    /**
+     * Adds a new entry to the history.
+     *
+     * @param {string} code The code that was executed.
+     * @param {number} [time=Date.now()] The time when the code was executed. Defaults to the current time.
+     * @returns {ConsoleExecutionHistoryEntry} The new entry that was added to the history.
+     *
+     * @public
+     * @static
+     */
+    static addHistoryItem(code, time = Date.now()) {
+        const entry = new ConsoleExecutionHistoryEntry(code, time);
+        ConsoleExecutionHistory.entries.push(entry);
+        if (ConsoleExecutionHistory.entries.length > ConsoleExecutionHistory.maxEntries) {
+            ConsoleExecutionHistory.entries.shift();
+        }
+        return entry;
+    }
+    /**
+     * Clears the history.
+     *
+     * @public
+     * @static
+     */
+    static clearHistory() {
+        ConsoleExecutionHistory.entries.length = 0;
+    }
+}
+
 /* function consoleOverlayExecute() {
     const input = consoleOverlayInputFieldElement.value;
     const elem = document.createElement("pre");
@@ -1253,8 +1379,35 @@ function toggleConsoleOverlay() {
         consoleOverlayTextElement.appendChild(resultElem);
     }
 } */
+/**
+ * The index of the currently selected console execution history item.
+ *
+ * @type {number}
+ *
+ * @default -1
+ */
+var currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+
+/**
+ * Executes the console input field contents.
+ */
 function consoleOverlayExecute() {
+    // Reset the currently selected console execution history item index
+    currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+    /**
+     * The input to be executed.
+     *
+     * @type {string}
+     */
     const input = consoleOverlayInputFieldElement.value;
+    if (input.length <= ConsoleExecutionHistory.maxEntryLength) {
+        ConsoleExecutionHistory.addHistoryItem(input, Date.now());
+    }
+    /**
+     * The command element.
+     *
+     * @type {HTMLDivElement}
+     */
     const commandElem = document.createElement("div");
     commandElem.style.whiteSpace = "pre-wrap";
     commandElem.style.overflowWrap = "anywhere";
@@ -1264,10 +1417,20 @@ function consoleOverlayExecute() {
     commandElem.textContent = `> ${input}`;
     consoleOverlayTextElement.appendChild(commandElem);
 
+    /**
+     * The result element that will display the result of the executed command.
+     *
+     * @type {HTMLDivElement}
+     */
     const resultElem = document.createElement("div");
     resultElem.style.whiteSpace = "pre-wrap";
     resultElem.style.overflowWrap = "anywhere";
     try {
+        /**
+         * The result of the executed command.
+         *
+         * @type {any}
+         */
         const result = eval(input);
         if (!consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length > 0) {
             resultElem.style.borderTop = "1px solid #888888";
@@ -1286,6 +1449,49 @@ function consoleOverlayExecute() {
     }
 }
 
+/**
+ * The contents of the console input field before it was replaced with a history item.
+ *
+ * @type {string}
+ *
+ * @default ""
+ */
+var savedConsoleInputFieldContents = "";
+
+/**
+ * Sets the contents of the console input field to the contents of the nth most recent history item.
+ *
+ * @param {number} index The index of the history item to set the input field to. It will be bound to be withing the range of the history items, or `-1`. If `-1`, the input field will be restored to what it was before replacing the input field with a history item.
+ */
+function setConsoleInputFieldContentsToHistoryItem(index) {
+    index = Math.max(-1, index);
+    if (index === -1) {
+        if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
+            // If the index is -1 and no history item is currently selected, do nothing.
+            return;
+        }
+        // If the index is -1, restore the input field to what it was before replacing it with a history item.
+        consoleOverlayInputFieldElement.value = savedConsoleInputFieldContents;
+        // Erase the saved contents to reduce memory usage.
+        savedConsoleInputFieldContents = "";
+        return;
+    }
+    if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
+        // Save the current input field contents before replacing it with a history item
+        savedConsoleInputFieldContents = consoleOverlayInputFieldElement.value;
+    }
+    index = Math.max(0, Math.min(index, ConsoleExecutionHistory.entries.length - 1));
+    currentlySelctedConsoleExecutionHistoryItemIndex = index;
+    consoleOverlayInputFieldElement.value = ConsoleExecutionHistory.getNthNewestEntry(index)?.code ?? "";
+}
+
+/**
+ * The last used ID for a console expansion arrow.
+ *
+ * @type {bigint}
+ *
+ * @default 0n
+ */
 var consoleExpansionArrowID = 0n;
 
 /**
@@ -1383,7 +1589,28 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
             /**
              * @type {(string | number | symbol | {displayName: string, key: string})[]}
              */
-            const keys = [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)])];
+            const keys = [
+                ...new Set([
+                    ...Object.keys(obj),
+                    ...(() => {
+                        try {
+                            return Object.getOwnPropertyNames(obj.__proto__).filter((key) => {
+                                try {
+                                    // Make sure the property won't throw an error when accessed.
+                                    obj[key];
+                                    return key in obj;
+                                } catch (e) {
+                                    return false;
+                                }
+                            });
+                        } catch (e) {
+                            return [];
+                        }
+                    })(),
+                    ...Object.getOwnPropertyNames(obj),
+                    ...Object.getOwnPropertySymbols(obj),
+                ]),
+            ];
             if (obj.__proto__) keys.push({ displayName: "[[Prototype]]", key: "__proto__" });
             for (const keyRaw of keys) {
                 const key = ["number", "string", "symbol"].includes(typeof keyRaw) ? keyRaw : keyRaw.key;
@@ -1581,10 +1808,61 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
     return container;
 }
 
+// This is not good enough yet.
+/* copyTextToClipboard(
+    JSONB.stringify(getAccessibleFacetSpyFacets(), (k, v) => {
+        if (typeof v === "object") {
+            return v === null
+                ? null
+                : "slice" in v && !(v instanceof Array)
+                ? { $PartialArrayType: Array.from(v) }
+                : v instanceof Array
+                ? v
+                : Object.fromEntries(
+                      [
+                          ...new Set([
+                              ...Object.keys(v),
+                              ...(() => {
+                                  try {
+                                      return Object.getOwnPropertyNames(v.__proto__).filter((key) => {
+                                          try {
+                                              // Make sure the property won't throw an error when accessed.
+                                              v[key];
+                                              return key in v;
+                                          } catch {
+                                              return false;
+                                          }
+                                      });
+                                  } catch (e) {
+                                      return [];
+                                  }
+                              })(),
+                              ...Object.getOwnPropertyNames(v),
+                              ...Object.getOwnPropertySymbols(v),
+                          ]),
+                      ].map((key) => {
+                          try {
+                              return [key, v[key]];
+                          } catch (e) {
+                              return { ERROR: e };
+                          }
+                      })
+                  );
+        }
+        if (typeof v === "function") {
+            return v.toString();
+        }
+        return typeof v;
+    })
+); */
+
 /**
  * @param {Parameters<typeof onConsoleLogCallbacks[0]>[0]} data
  */
 function consoleOverlayConsoleLogCallback(data) {
+    if (data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
+        return;
+    }
     const elem = document.createElement("pre");
     switch (data.type) {
         case "error":
@@ -2087,7 +2365,7 @@ function addScrollbarToHTMLElement(element) {
             Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
         );
         totalHeight = element.scrollHeight;
-        visibleHeight = element.clientHeight;
+        visibleHeight = element.parentElement.getBoundingClientRect().height;
         scrollPosition = Math.min(
             Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
             totalHeight - visibleHeight
@@ -2116,7 +2394,7 @@ function addScrollbarToHTMLElement(element) {
                 Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
             );
             totalHeight = element.scrollHeight;
-            visibleHeight = element.clientHeight;
+            visibleHeight = element.parentElement.getBoundingClientRect().height;
             scrollPosition = Math.min(
                 Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
                 totalHeight - visibleHeight
@@ -2134,7 +2412,7 @@ function addScrollbarToHTMLElement(element) {
     element.addEventListener("scroll", function () {
         var scrollPosition = element.scrollTop;
         totalHeight = element.scrollHeight;
-        visibleHeight = element.clientHeight;
+        visibleHeight = element.parentElement.getBoundingClientRect().height;
         scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
         scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
         scrollbar.style.height = scrollbarHeight + "px";
@@ -2145,7 +2423,7 @@ function addScrollbarToHTMLElement(element) {
     const mutationObserver = new MutationObserver(() => {
         setTimeout(() => {
             totalHeight = element.scrollHeight;
-            visibleHeight = element.clientHeight;
+            visibleHeight = element.parentElement.getBoundingClientRect().height;
             scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
             scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
             scrollbar.style.height = scrollbarHeight + "px";
@@ -2159,6 +2437,2583 @@ function addScrollbarToHTMLElement(element) {
         attributes: true,
         subtree: true,
     });
+}
+
+globalThis.litePlayScreenActive = false;
+
+/**
+ * Maps game mode IDs to their names.
+ */
+const GameModeIDMap = {
+    [-1]: "Unknown",
+    [0]: "Survival",
+    [1]: "Creative",
+    [2]: "Adventure",
+    [3]: "GM3",
+    [4]: "GM4",
+    [5]: "Default",
+    [6]: "Spectator",
+    [7]: "GM7",
+    [8]: "GM8",
+    [9]: "GM9",
+};
+
+/**
+ * Enables the lite play screen.
+ */
+async function enableLitePlayScreen() {
+    if (litePlayScreenActive) {
+        return;
+    }
+    litePlayScreenActive = true;
+    let i = 0;
+    while (
+        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        )
+    ) {
+        if (i === 100) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        i++;
+    }
+    /**
+     * The router facet.
+     *
+     * @type {FacetTypeMap["core.router"]; | undefined}
+     */
+    const router = globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+    if (!router) {
+        throw new ReferenceError("core.router facet not found");
+    }
+    /**
+     * The original router location.
+     */
+    const originalRouterLocation = {...router.history.location};
+    if (
+        !originalRouterLocation.pathname.startsWith("/ouic/play") ||
+        !originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .some((param) => param.split("=")[0] === "isLitePlayScreen" && param.split("=")[1] === "true")
+    ) {
+        // Array.from(document.getElementById("root").children).forEach((element) => (element.innerHTML = ""));
+        router.history.replace(
+            `/ouic/play?isLitePlayScreen=true${
+                originalRouterLocation.pathname.startsWith("/play/")
+                    ? "&tab=" +
+                      ({ all: "worlds", realms: "realms", servers: "servers" }[originalRouterLocation.pathname.slice(6)] ??
+                          originalRouterLocation.pathname.slice(6))
+                    : ""
+            }`
+        );
+        location.reload();
+    }
+    for (let i = 0; i < 1000; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        if (document.querySelector("div#root > div > div > div > div.vanilla-neutral20-background")) {
+            break;
+        }
+        continue;
+    }
+    const elements = Array.from(document.querySelectorAll("div#root > div > div > div > div"));
+    /**
+     * The title bar element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const titleBarElement = elements.find((element) => element.classList.contains("vanilla-neutral20-background") && !element.hasAttribute("data-landmark-id"));
+    titleBarElement.setAttribute("data-in-use", "true");
+    titleBarElement.querySelector("div.vanilla-neutral20-text").textContent = "Play";
+    /**
+     * The content container element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const contentContainerElement = elements.find(
+        (element) =>
+            !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+    );
+    contentContainerElement.setAttribute("data-in-use", "true");
+    contentContainerElement.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: scroll"><div id="litePlayScreen_tabList" style="display: flex; flex-direction: row; width: 90%; margin: 0 5%">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButton" data-tab-id="worlds">Worlds (${
+        getAccessibleFacetSpyFacets()["vanilla.localWorldList"]?.localWorlds?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButton" data-tab-id="realms">Realms (${
+        getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"]?.realms?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButton" data-tab-id="friends">Friends (${(function getFriendsTabWorldsCount(
+        friends,
+        lan
+    ) {
+        return friends !== undefined || lan !== undefined ? (friends ?? 0) + (lan ?? 0) : "...";
+    })(
+        getAccessibleFacetSpyFacets()["vanilla.friendworldlist"]?.friendWorlds?.length,
+        getAccessibleFacetSpyFacets()["vanilla.lanWorldList"]?.lanWorlds.length
+    )})</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButton" data-tab-id="servers">Servers (${
+        getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"]?.externalServerWorlds?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButton" data-tab-id="featured">Featured (${
+        getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"]?.thirdPartyWorlds?.length ?? "..."
+    })</button>
+</div><div id="litePlayScreen_tabContent" style="display: flex; flex-direction: column; width: 90%; margin: 0 5%; overflow-y: scroll; justify-content: flex-start; flex-grow: 1"></div></div>`;
+    const tabContent = document.getElementById("litePlayScreen_tabContent");
+    const tabList = document.getElementById("litePlayScreen_tabList");
+    const tabListButtons = tabList.querySelectorAll("button");
+    /**
+     * The currently selected page.
+     *
+     * @type {number}
+     */
+    let currentPage = Number(
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "page")
+            ?.split("=")[1] ?? 0
+    );
+    /**
+     * The currently selected tab.
+     *
+     * @type {typeof tabIDs[number]}
+     */
+    let currentTab =
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "tab")
+            ?.split("=")[1] ?? "worlds";
+    let silentClick = false;
+    /**
+     * The tab IDs.
+     *
+     * @type {["worlds", "realms", "friends", "servers", "featured"]}
+     */
+    const tabIDs = ["worlds", "realms", "friends", "servers", "featured"];
+    /**
+     * Changes the page and tab.
+     *
+     * @param {number} page The page to change to.
+     * @param {typeof tabIDs[number]} tab The tab to change to.
+     * @param {boolean} [clickTab=true] Whether to click the tab button.
+     */
+    function changePage(page, tab, clickTab = true) {
+        currentPage = page;
+        currentTab = tab;
+        getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
+            `/ouic/play/${tab}?${[
+                ...router.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0])),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        );
+        silentClick = true;
+        if (clickTab) {
+            tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))].dispatchEvent(new Event("click"));
+        }
+    }
+    for (let i = 0; i < tabListButtons.length; i++) {
+        tabListButtons[i].addEventListener("click", () => {
+            if (tabListButtons[i].getAttribute("data-tab-id") !== currentTab) {
+                if (!silentClick) {
+                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                }
+                currentPage = 0;
+                for (let j = 0; j < tabListButtons.length; j++) {
+                    tabListButtons[j].classList.remove("selected");
+                }
+                tabListButtons[i].classList.add("selected");
+                changePage(0, tabIDs[i], false);
+            } else if (!tabListButtons[i].classList.contains("selected")) {
+                tabListButtons[i].classList.add("selected");
+            }
+            silentClick = false;
+            Array.from(tabContent.children).forEach((element) => element.remove());
+            /**
+             * The ID of the tab button.
+             *
+             * @type {typeof tabIDs[number]}
+             */
+            const tabButtonID = tabListButtons[i].getAttribute("data-tab-id") ?? "worlds";
+            switch (tabButtonID) {
+                case "worlds": {
+                    currentTab = "worlds";
+                    const worldListIterable = getAccessibleFacetSpyFacets()["vanilla.localWorldList"]?.localWorlds;
+                    /**
+                     * The worlds tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const worldsTabButton = document.getElementById("litePlayScreen_worldsTabButton");
+                    if (worldsTabButton) {
+                        worldsTabButton.textContent = `Worlds (${worldListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((worldListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_worldsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_worldsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_worldsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_createNewWorld">Create New World</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_importWorld">Import World</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const worldListContainer = document.createElement("div");
+                    worldListContainer.id = "litePlayScreen_worldsTabWorldList_worldListContainer";
+                    worldListContainer.style.flexGrow = "1";
+                    worldListContainer.style.display = "block";
+                    // worldListContainer.style.display = "contents";
+                    worldListContainer.style.width = "100%";
+                    // worldListContainer.style.height = "100%";
+                    if (!worldListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const worldList = Array.from(worldListIterable).sort((worldA, worldB) => worldB.lastSaved - worldA.lastSaved);
+                        for (let i = currentPage * 5; i < Math.min(worldList.length, (currentPage + 1) * 5); i++) {
+                            const world = worldList[i];
+                            const worldButtonContainer = document.createElement("div");
+                            worldButtonContainer.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButtonContainer_${world.id}`;
+                            worldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const worldButton = document.createElement("button");
+                            worldButton.type = "button";
+                            worldButton.classList.add("btn", "nsel");
+                            worldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            worldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_${world.id}`;
+                            const worldButton_worldName = document.createElement("span");
+                            worldButton_worldName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block;";
+                            worldButton_worldName.textContent = world.name;
+                            worldButton.appendChild(worldButton_worldName);
+                            const worldButton_worldDetails = document.createElement("span");
+                            worldButton_worldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            worldButton_worldDetails.textContent = `Size: ${world.fileSize} | Version: ${world.gameVersion.major}.${world.gameVersion.minor}.${
+                                world.gameVersion.patch
+                            }.${world.gameVersion.revision}${world.isBeta ? "-beta" : ""}${
+                                world.isMultiplayerEnabled ? " | Multiplayer" : " | Singleplayer"
+                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${world.isExperimental ? " | Experimental" : ""}${
+                                world.playerHasDied ? " | Player Has Died" : ""
+                            }`;
+                            worldButton.appendChild(worldButton_worldDetails);
+                            worldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const worldStartup = getAccessibleFacetSpyFacets()["vanilla.worldStartup"];
+                                if (worldStartup) {
+                                    worldStartup.startLocalWorld(world.id);
+                                }
+                            });
+                            const editWorldButton = document.createElement("button");
+                            editWorldButton.type = "button";
+                            editWorldButton.classList.add("btn", "nsel");
+                            editWorldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editWorldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_editWorldButton_${world.id}`;
+                            const worldID = world.id;
+                            editWorldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/edit-world/${worldID}`);
+                                }
+                            });
+                            const editWorldButton_icon = document.createElement("img");
+                            editWorldButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editWorldButton_icon.style = "width: 2vw; height: 2vw;";
+                            editWorldButton.appendChild(editWorldButton_icon);
+                            const editWorldButton_label = document.createElement("span");
+                            editWorldButton_label.style = "position: absolute; bottom: 1rem";
+                            editWorldButton_label.textContent = "Edit";
+                            editWorldButton.appendChild(editWorldButton_label);
+                            worldButtonContainer.appendChild(worldButton);
+                            worldButtonContainer.appendChild(editWorldButton);
+                            worldListContainer.appendChild(worldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(worldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/start-from-template`);
+                        }
+                    });
+                    rightButtons.children[1].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const worldTransfer = getAccessibleFacetSpyFacets()["vanilla.worldTransfer"];
+                        if (worldTransfer) {
+                            worldTransfer.importWorld.run();
+                        }
+                    });
+                    break;
+                }
+                case "realms": {
+                    currentTab = "realms";
+                    const realmListIterable = getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"]?.realms;
+                    /**
+                     * The realms tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const realmsTabButton = document.getElementById("litePlayScreen_realmsTabButton");
+                    if (realmsTabButton) {
+                        realmsTabButton.textContent = `Realms (${realmListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((realmListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_realmsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_realmsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_realmsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_joinRealm">Join Realm</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const realmListContainer = document.createElement("div");
+                    realmListContainer.id = "litePlayScreen_realmsTabRealmList_realmListContainer";
+                    realmListContainer.style.flexGrow = "1";
+                    realmListContainer.style.display = "block";
+                    // realmListContainer.style.display = "contents";
+                    realmListContainer.style.width = "100%";
+                    // realmListContainer.style.height = "100%";
+                    if (!realmListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No realms found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const realmListA = Array.from(realmListIterable).sort((realmA, realmB) => realmB.lastSaved - realmA.lastSaved);
+                        const realmListB = [
+                            ...realmListA.filter((realm) => !realm.world.closed && !realm.world.expired),
+                            ...realmListA.filter((realm) => realm.world.closed || realm.world.expired),
+                        ];
+                        const realmList = [...realmListB.filter((realm) => realm.isOwner), ...realmListB.filter((realm) => !realm.isOwner)];
+                        for (let i = currentPage * 5; i < Math.min(realmList.length, (currentPage + 1) * 5); i++) {
+                            const realm = realmList[i];
+                            const realmButtonContainer = document.createElement("div");
+                            realmButtonContainer.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButtonContainer_${realm.world.id}`;
+                            realmButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const realmButton = document.createElement("button");
+                            realmButton.type = "button";
+                            realmButton.classList.add("btn", "nsel");
+                            realmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            realmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_${realm.world.id}`;
+                            const realmButton_realmName = document.createElement("span");
+                            realmButton_realmName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            realmButton_realmName.textContent = realm.world.realmName;
+                            realmButton.appendChild(realmButton_realmName);
+                            const realmButton_realmDetails = document.createElement("span");
+                            realmButton_realmDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            realmButton_realmDetails.textContent = `Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${
+                                realm.world.full ? " (Full)" : ""
+                            }${
+                                realm.world.expired
+                                    ? " | Expired"
+                                    : realm.world.closed
+                                    ? " | Closed"
+                                    : realm.isOwner
+                                    ? ` | Days Left: ${realm.world.daysLeft}`
+                                    : ""
+                            } | ${GameModeIDMap[realm.world.gameMode]}${realm.world.isHardcore ? " | Hardcore" : ""}${
+                                !realm.world.isInitialized ? " | Not Initialized" : ""
+                            }${realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""}`;
+                            realmButton.appendChild(realmButton_realmDetails);
+                            const realmID = realm.world.id;
+                            realmButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinRealmWorld(String(realmID), 0);
+                                }
+                            });
+                            realmButtonContainer.appendChild(realmButton);
+                            const realmOptionsButton = document.createElement("button");
+                            realmOptionsButton.type = "button";
+                            realmOptionsButton.classList.add("btn", "nsel");
+                            realmOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            realmOptionsButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                            realmOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const realmOptionsOverlayElement = document.createElement("div");
+                                realmOptionsOverlayElement.id = "realmOptionsOverlayElement";
+                                realmOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                realmOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="realmOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-realm-options-overlay-field="realmName"></h1>
+        <p data-realm-options-overlay-field="slotName" style="display: ${realm.world.slotName ? "block" : "none"}"></p>
+        <p>Status: ${realm.world.expired ? "Expired" : realm.world.closed ? "Closed" : "Open"}</p>
+        <p>Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${realm.world.full ? " (Full)" : ""}</p>
+        <p>Unread Story Count: ${realm.unreadStoryCount}</p>
+        <p data-realm-options-overlay-field="description" style="display: ${realm.world.description ? "block" : "none"}"></p>
+        <p style="display: ${realm.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!realm.world.isInitialized ? "block" : "none"}">Realm is not initialized.</p>
+        <p data-realm-options-overlay-field="lastSaved"></p>
+        <p>Realm ID: ${realm.world.id}</p>
+        <p>Game Mode: ${GameModeIDMap[realm.world.gameMode]}</p>
+    </div>
+    <div id="realmOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_joinRealmButton">Join Realm</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_realmsStoriesButton">Realm Stories</button>
+    </div>
+</div>`;
+                                realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='realmName']").textContent = realm.world.realmName;
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='slotName']"
+                                ).textContent = `Slot Name: ${realm.world.slotName}`;
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='description']"
+                                ).textContent = `Description: ${realm.world.description}`;
+                                if (realm.world.lastSaved !== null) {
+                                    realmOptionsOverlayElement.querySelector(
+                                        "[data-realm-options-overlay-field='lastSaved']"
+                                    ).textContent = `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
+                                } else {
+                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").remove();
+                                }
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinRealmWorld(realmID.toString(), 0);
+                                    }
+                                });
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realms-story-entry-route/feed/${realmID}`);
+                                    }
+                                });
+                                document.body.appendChild(realmOptionsOverlayElement);
+                            });
+                            const editRealmButton_icon = document.createElement("img");
+                            editRealmButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                            realmOptionsButton.appendChild(editRealmButton_icon);
+                            const editRealmButton_label = document.createElement("span");
+                            editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                            editRealmButton_label.textContent = "More";
+                            realmOptionsButton.appendChild(editRealmButton_label);
+                            realmButtonContainer.appendChild(realmOptionsButton);
+                            if (realm.isOwner) {
+                                const editRealmButton = document.createElement("button");
+                                editRealmButton.type = "button";
+                                editRealmButton.classList.add("btn", "nsel");
+                                editRealmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                                editRealmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                                const realmID = realm.world.id;
+                                editRealmButton.addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realm-settings/${realmID}`);
+                                    }
+                                });
+                                const editRealmButton_icon = document.createElement("img");
+                                editRealmButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                                editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                                editRealmButton.appendChild(editRealmButton_icon);
+                                const editRealmButton_label = document.createElement("span");
+                                editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                                editRealmButton_label.textContent = "Edit";
+                                editRealmButton.appendChild(editRealmButton_label);
+                                realmButtonContainer.appendChild(editRealmButton);
+                            }
+                            realmListContainer.appendChild(realmButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(realmListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/join-realms-server`);
+                        }
+                    });
+                    break;
+                }
+                case "friends": {
+                    currentTab = "friends";
+                    /**
+                     * @type {[...ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>, ...ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>]}
+                     */
+                    const friendWorldList = [
+                        ...getAccessibleFacetSpyFacets()["vanilla.friendworldlist"]?.friendWorlds?.slice(0),
+                        ...getAccessibleFacetSpyFacets()["vanilla.lanWorldList"]?.lanWorlds?.slice(0),
+                    ];
+                    /**
+                     * The friends tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const friendsTabButton = document.getElementById("litePlayScreen_friendsTabButton");
+                    if (friendsTabButton) {
+                        friendsTabButton.textContent = `Friends (${friendWorldList?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((friendWorldList?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_friendsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_friendsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_friendsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_friendsList">Friends List</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const friendWorldListContainer = document.createElement("div");
+                    friendWorldListContainer.id = "litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer";
+                    friendWorldListContainer.style.flexGrow = "1";
+                    friendWorldListContainer.style.display = "block";
+                    // friendWorldListContainer.style.display = "contents";
+                    friendWorldListContainer.style.width = "100%";
+                    // friendWorldListContainer.style.height = "100%";
+                    if (!friendWorldList || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No friend or LAN worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        for (let i = currentPage * 5; i < Math.min(friendWorldList.length, (currentPage + 1) * 5); i++) {
+                            const world = friendWorldList[i];
+                            const friendWorldButtonContainer = document.createElement("div");
+                            friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
+                            friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const friendWorldButton = document.createElement("button");
+                            friendWorldButton.type = "button";
+                            friendWorldButton.classList.add("btn", "nsel");
+                            friendWorldButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            friendWorldButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_${world.id}`;
+                            const friendWorldButton_friendWorldName = document.createElement("span");
+                            friendWorldButton_friendWorldName.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            friendWorldButton_friendWorldName.textContent = world.name;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldName);
+                            const friendWorldButton_friendWorldDetails = document.createElement("span");
+                            friendWorldButton_friendWorldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
+                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : " | LAN"
+                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${
+                                "ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""
+                            }${
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
+                                    ? ` | Address: ${world.address}:${world.port}`
+                                    : ""
+                            }`;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
+                            const friendWorldID = world.id;
+                            friendWorldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    "friendOfFriendWorld" in world
+                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                }
+                            });
+                            friendWorldButtonContainer.appendChild(friendWorldButton);
+                            const friendWorldOptionsButton = document.createElement("button");
+                            friendWorldOptionsButton.type = "button";
+                            friendWorldOptionsButton.classList.add("btn", "nsel");
+                            friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            friendWorldOptionsButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_editFriendWorldButton_${world.id}`;
+                            friendWorldOptionsButton.addEventListener("click", () => {
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const friendWorldOptionsOverlayElement = document.createElement("div");
+                                    friendWorldOptionsOverlayElement.id = "friendWorldOptionsOverlayElement";
+                                    friendWorldOptionsOverlayElement.setAttribute("data-friend-world-id", friendWorldID);
+                                    friendWorldOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    friendWorldOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="friendWorldOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-friend-world-options-overlay-field="friendWorldName"></h1>
+        <p data-friend-world-options-overlay-field="ownerName"></p>
+        <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${world.ownerId || "N/A"}</p>
+        <p>${"friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? "Friend of Friend" : "Friend") : "LAN"}</p>
+        <p>Players: ${world.playerCount}/${world.capacity}</p>
+        <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${world.ping || "N/A"}</p>
+        <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p data-friend-world-options-overlay-field="address" style="display: ${
+            "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
+        }"></p>
+        <p>World ID: ${world.id}</p>
+        <p>Game Mode: ${GameModeIDMap[world.gameMode]}</p>
+    </div>
+    <div id="friendWorldOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
+    </div>
+</div>`;
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='friendWorldName']").textContent =
+                                        world.name;
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='ownerName']").textContent =
+                                        world.ownerName;
+                                    friendWorldOptionsOverlayElement
+                                        .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
+                                        .addEventListener("click", () => {
+                                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                            const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                            if (networkWorldJoiner) {
+                                                "friendOfFriendWorld" in world
+                                                    ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                                    : networkWorldJoiner.joinLanServer(friendWorldID);
+                                            }
+                                        });
+                                    document.body.appendChild(friendWorldOptionsOverlayElement);
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            });
+                            const friendWorldOptionsButton_icon = document.createElement("img");
+                            friendWorldOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            friendWorldOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_icon);
+                            const friendWorldOptionsButton_label = document.createElement("span");
+                            friendWorldOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            friendWorldOptionsButton_label.textContent = "More";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_label);
+                            friendWorldButtonContainer.appendChild(friendWorldOptionsButton);
+                            friendWorldListContainer.appendChild(friendWorldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(friendWorldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            // router.history.push(`/ouic/friends/friends?page=0&tab=friends`);
+                            router.history.push(`/friends-drawer`);
+                        }
+                    });
+                    break;
+                }
+                case "servers": {
+                    currentTab = "servers";
+                    const serverListIterable = getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"]?.externalServerWorlds.filter(
+                        (server) => server.name !== "LitePlayScreenEnabled" && !server.name.startsWith("INTERNALSETTINGS:")
+                    );
+                    /**
+                     * The servers tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const serversTabButton = document.getElementById("litePlayScreen_serversTabButton");
+                    if (serversTabButton) {
+                        serversTabButton.textContent = `Servers (${serverListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_serversTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_serversTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_serversTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_addServer">Add Server</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_serversTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No external servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => serverA.id - serverB.id);
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i];
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID), 0);
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const serverOptionsOverlayElement = document.createElement("div");
+                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                serverOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping}</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
+        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
+        <p data-server-options-overlay-field="lastSaved"></p>
+        <p>Server ID: ${server.id}</p>
+        <p>Game Mode: ${GameModeIDMap[server.world.gameMode]}</p>
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
+    </div>
+</div>`;
+                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Slot Name: ${server.description}`;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Description: ${server.world.description}`;
+                                if (server.world.lastSaved !== null) {
+                                    serverOptionsOverlayElement.querySelector(
+                                        "[data-server-options-overlay-field='lastSaved']"
+                                    ).textContent = `Last Saved: ${new Date(server.world.lastSaved * 1000).toLocaleString()}`;
+                                } else {
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='lastSaved']").remove();
+                                }
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinExternalServer(serverID.toString());
+                                    }
+                                });
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
+                                    }
+                                });
+                                document.body.appendChild(serverOptionsOverlayElement);
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_serversTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_serversTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/play/servers/add`);
+                        }
+                    });
+                    break;
+                }
+                case "featured": {
+                    currentTab = "featured";
+                    const serverListIterable = getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"]?.thirdPartyWorlds;
+                    /**
+                     * The featured tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const featuredTabButton = document.getElementById("litePlayScreen_featuredTabButton");
+                    if (featuredTabButton) {
+                        featuredTabButton.textContent = `Featured (${serverListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_featuredTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_featuredTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_featuredTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end"></div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_featuredTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No featured servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => serverA.id - serverB.id);
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i];
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.classList.add("fc77bf1310dc483c1eba");
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID), 0);
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const serverOptionsOverlayElement = document.createElement("div");
+                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                serverOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description"></p>
+        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
+        <p data-server-options-overlay-field="lastSaved"></p>
+        <p>Server ID: ${server.id}</p>
+        <img src="${server.image}" />
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
+    </div>
+</div>`;
+                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Description: ${server.world.description}`;
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinExternalServer(serverID.toString());
+                                    }
+                                });
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
+                                    }
+                                });
+                                document.body.appendChild(serverOptionsOverlayElement);
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_featuredTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    break;
+                }
+            }
+        });
+    }
+    silentClick = true;
+    tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))].dispatchEvent(new Event("click"));
+    if (globalThis.observingExternalServerWorldListForLitePlayScreenServersTab !== true) {
+        globalThis.observingExternalServerWorldListForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.externalServerWorldList"].observe((externalServerWorldList) => {
+            /**
+             * The servers tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            const serversTabButton = document.getElementById("litePlayScreen_serversTabButton");
+            if (serversTabButton) {
+                serversTabButton.textContent = `Servers (${
+                    externalServerWorldList.externalServerWorlds.filter(
+                        (server) => server.name !== "LitePlayScreenEnabled" && !server.name.startsWith("INTERNALSETTINGS:")
+                    ).length
+                })`;
+            }
+            if (currentTab !== "servers") {
+                return;
+            } /* 
+            if (document.getElementById("serverOptionsOverlayElement")) {
+            } */
+            for (const server of Array.from(externalServerWorldList.externalServerWorlds)) {
+                /**
+                 * The server button container.
+                 *
+                 * @type {HTMLDivElement | null}
+                 */
+                const serverButtonContainer = document.getElementById(
+                    `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`
+                );
+                if (serverButtonContainer) {
+                    serverButtonContainer.querySelector(
+                        `#litePlayScreen_serversTabServerList_serverListContainer_serverButton_${server.id}`
+                    ).children[1].textContent = `Players: ${server.playerCount}/${server.capacity}${
+                        server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                    } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
+                }
+            }
+        });
+    }
+    if (globalThis.observingThirdPartyWorldListForLitePlayScreenServersTab !== true) {
+        globalThis.observingThirdPartyWorldListForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.thirdPartyWorldList"].observe((thirdPartyWorldList) => {
+            /**
+             * The featured tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            const featuredTabButton = document.getElementById("litePlayScreen_featuredTabButton");
+            if (featuredTabButton) {
+                featuredTabButton.textContent = `Featured (${thirdPartyWorldList.thirdPartyWorlds.length})`;
+            }
+            if (currentTab !== "featured") {
+                return;
+            } /* 
+            if (document.getElementById("serverOptionsOverlayElement")) {
+            } */
+            for (const server of Array.from(thirdPartyWorldList.thirdPartyWorlds)) {
+                /**
+                 * The server button container.
+                 *
+                 * @type {HTMLDivElement | null}
+                 */
+                const serverButtonContainer = document.getElementById(
+                    `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`
+                );
+                if (serverButtonContainer) {
+                    serverButtonContainer.querySelector(
+                        `#litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`
+                    ).children[1].textContent = `Players: ${server.playerCount}/${server.capacity}${
+                        server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                    } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                }
+            }
+        });
+    }
+    if (globalThis.observingFriendWorldListForLitePlayScreenFriendsTab !== true) {
+        globalThis.observingFriendWorldListForLitePlayScreenFriendsTab = true;
+        facetSpyData.sharedFacets["vanilla.friendworldlist"].observe((friendworldList) => {
+            if (currentTab !== "friends") {
+                return;
+            }
+            /**
+             * The friends tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            const friendsTabButton = document.getElementById("litePlayScreen_friendsTabButton");
+            silentClick = true;
+            friendsTabButton.dispatchEvent(new Event("click"));
+        });
+    }
+    if (globalThis.observingLANWorldListForLitePlayScreenLanTab !== true) {
+        globalThis.observingLANWorldListForLitePlayScreenLanTab = true;
+        facetSpyData.sharedFacets["vanilla.lanworldlist"].observe((lanworldList) => {
+            if (currentTab !== "friends") {
+                return;
+            }
+            /**
+             * The friends tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            const friendsTabButton = document.getElementById("litePlayScreen_friendsTabButton");
+            silentClick = true;
+            friendsTabButton.dispatchEvent(new Event("click"));
+        });
+    }
+    if (globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab !== true) {
+        globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.networkWorldDetails"].observe((networkWorldDetails) => {
+            if (currentTab !== "servers") {
+                return;
+            }
+            /**
+             * The server options overlay element.
+             *
+             * @type {HTMLDivElement | null}
+             */
+            const serverOptionsOverlayElement = document.getElementById("serverOptionsOverlayElement");
+            if (serverOptionsOverlayElement) {
+                serverOptionsOverlayElement.children[0].children[0].textContent = `Players: ${networkWorldDetails.playerCount}/${networkWorldDetails.capacity}${
+                    networkWorldDetails.msgOfTheDay ? ` | MOTD: ${networkWorldDetails.msgOfTheDay}` : ""
+                } | Ping: ${networkWorldDetails.ping} | ID: ${networkWorldDetails.id} | ${
+                    networkWorldDetails.description ? `Description: ${networkWorldDetails.description}` : ""
+                }`;
+            }
+        });
+    }
+} /* 
+const a = facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].get();
+a.playScreenWorldLayoutMode = 0;
+facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].set(a); */
+
+async function disableLitePlayScreen() {
+    litePlayScreenActive = false;
+}
+
+async function litePlayScreen_friendsMenu() {
+    let i = 0;
+    while (
+        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        )
+    ) {
+        if (i === 100) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        i++;
+    }
+    const elements = Array.from(document.querySelectorAll("div#root > div > div > div > div"));
+    /**
+     * The title bar element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const titleBarElement = elements.find((element) => element.classList.contains("vanilla-neutral20-background") && !element.hasAttribute("data-in-use"));
+    titleBarElement.setAttribute("data-in-use", "true");
+    titleBarElement.querySelector("div.vanilla-neutral20-text").textContent = "Friends";
+    /**
+     * The content container element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const contentContainerElement = elements.find(
+        (element) =>
+            !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+    );
+    contentContainerElement.setAttribute("data-in-use", "true");
+    contentContainerElement.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: scroll"><div id="litePlayScreen_tabList" style="display: flex; flex-direction: row; width: 90%; margin: 0 5%">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_friendsTabButton" data-tab-id="friends">Friends (${
+        getAccessibleFacetSpyFacets()["vanilla.friendsListFacet"]?.xblFriends?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_recentsTabButton" data-tab-id="recents">Recent (${
+        getAccessibleFacetSpyFacets()["vanilla.recentlyPlayedWithList"]?.playerList?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_recommendedTabButton" data-tab-id="recommended">Recommended (${
+        getAccessibleFacetSpyFacets()["vanilla.recommendedFriendsList"]?.playerList?.length ?? "..."
+    })</button>
+</div><div id="litePlayScreen_tabContent" style="display: flex; flex-direction: column; width: 90%; margin: 0 5%; overflow-y: scroll; justify-content: flex-start; flex-grow: 1"></div></div>`;
+    const tabContent = document.getElementById("litePlayScreen_tabContent");
+    const tabList = document.getElementById("litePlayScreen_tabList");
+    const tabListButtons = tabList.querySelectorAll("button");
+    /**
+     * The currently selected page.
+     *
+     * @type {number}
+     */
+    let currentPage = Number(
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "page")
+            ?.split("=")[1] ?? 0
+    );
+    /**
+     * The currently selected tab.
+     *
+     * @type {typeof tabIDs[number]}
+     */
+    let currentTab =
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "tab")
+            ?.split("=")[1] ?? "worlds";
+    let silentClick = false;
+    /**
+     * The tab IDs.
+     *
+     * @type {["friends", "recents", "recommended"]}
+     */
+    const tabIDs = ["friends" /* , "platformFriends" */, "recents", "recommended"];
+    /**
+     * Changes the page and tab.
+     *
+     * @param {number} page The page to change to.
+     * @param {typeof tabIDs[number]} tab The tab to change to.
+     * @param {boolean} [clickTab=true] Whether to click the tab button.
+     */
+    function changePage(page, tab, clickTab = true) {
+        currentPage = page;
+        currentTab = tab;
+        getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
+            `/ouic/friends/${tab}?${[
+                ...router.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0])),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        ); /* 
+        console.log(
+            `/ouic/play/${tab}?${[
+                ...router.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0])),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        ); */
+        silentClick = true;
+        if (clickTab) {
+            tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))].dispatchEvent(new Event("click"));
+        }
+    }
+    for (let i = 0; i < tabListButtons.length; i++) {
+        tabListButtons[i].addEventListener("click", () => {
+            if (tabListButtons[i].getAttribute("data-tab-id") !== currentTab) {
+                if (!silentClick) {
+                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                }
+                currentPage = 0;
+                for (let j = 0; j < tabListButtons.length; j++) {
+                    tabListButtons[j].classList.remove("selected");
+                }
+                tabListButtons[i].classList.add("selected");
+                changePage(0, tabIDs[i], false);
+            } else if (!tabListButtons[i].classList.contains("selected")) {
+                tabListButtons[i].classList.add("selected");
+            }
+            silentClick = false;
+            Array.from(tabContent.children).forEach((element) => element.remove());
+            /**
+             * The ID of the tab button.
+             *
+             * @type {typeof tabIDs[number]}
+             */
+            const tabButtonID = tabListButtons[i].getAttribute("data-tab-id") ?? "worlds";
+            switch (tabButtonID) {
+                case "worlds": {
+                    currentTab = "worlds";
+                    const worldListIterable = getAccessibleFacetSpyFacets()["vanilla.localWorldList"]?.localWorlds;
+                    /**
+                     * The worlds tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const worldsTabButton = document.getElementById("litePlayScreen_worldsTabButton");
+                    if (worldsTabButton) {
+                        worldsTabButton.textContent = `Worlds (${worldListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((worldListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_worldsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_worldsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_worldsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_createNewWorld">Create New World</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_importWorld">Import World</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const worldListContainer = document.createElement("div");
+                    worldListContainer.id = "litePlayScreen_worldsTabWorldList_worldListContainer";
+                    worldListContainer.style.flexGrow = "1";
+                    worldListContainer.style.display = "block";
+                    // worldListContainer.style.display = "contents";
+                    worldListContainer.style.width = "100%";
+                    // worldListContainer.style.height = "100%";
+                    if (!worldListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const worldList = Array.from(worldListIterable).sort((worldA, worldB) => worldB.lastSaved - worldA.lastSaved);
+                        for (let i = currentPage * 5; i < Math.min(worldList.length, (currentPage + 1) * 5); i++) {
+                            const world = worldList[i];
+                            const worldButtonContainer = document.createElement("div");
+                            worldButtonContainer.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButtonContainer_${world.id}`;
+                            worldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const worldButton = document.createElement("button");
+                            worldButton.type = "button";
+                            worldButton.classList.add("btn", "nsel");
+                            worldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            worldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_${world.id}`;
+                            const worldButton_worldName = document.createElement("span");
+                            worldButton_worldName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block;";
+                            worldButton_worldName.textContent = world.name;
+                            worldButton.appendChild(worldButton_worldName);
+                            const worldButton_worldDetails = document.createElement("span");
+                            worldButton_worldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            worldButton_worldDetails.textContent = `Size: ${world.fileSize} | Version: ${world.gameVersion.major}.${world.gameVersion.minor}.${
+                                world.gameVersion.patch
+                            }.${world.gameVersion.revision}${world.isBeta ? "-beta" : ""}${
+                                world.isMultiplayerEnabled ? " | Multiplayer" : " | Singleplayer"
+                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${world.isExperimental ? " | Experimental" : ""}${
+                                world.playerHasDied ? " | Player Has Died" : ""
+                            }`;
+                            worldButton.appendChild(worldButton_worldDetails);
+                            worldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const worldStartup = getAccessibleFacetSpyFacets()["vanilla.worldStartup"];
+                                if (worldStartup) {
+                                    worldStartup.startLocalWorld(world.id);
+                                }
+                            });
+                            const editWorldButton = document.createElement("button");
+                            editWorldButton.type = "button";
+                            editWorldButton.classList.add("btn", "nsel");
+                            editWorldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editWorldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_editWorldButton_${world.id}`;
+                            const worldID = world.id;
+                            editWorldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/edit-world/${worldID}`);
+                                }
+                            });
+                            const editWorldButton_icon = document.createElement("img");
+                            editWorldButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editWorldButton_icon.style = "width: 2vw; height: 2vw;";
+                            editWorldButton.appendChild(editWorldButton_icon);
+                            const editWorldButton_label = document.createElement("span");
+                            editWorldButton_label.style = "position: absolute; bottom: 1rem";
+                            editWorldButton_label.textContent = "Edit";
+                            editWorldButton.appendChild(editWorldButton_label);
+                            worldButtonContainer.appendChild(worldButton);
+                            worldButtonContainer.appendChild(editWorldButton);
+                            worldListContainer.appendChild(worldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(worldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/start-from-template`);
+                        }
+                    });
+                    rightButtons.children[1].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const worldTransfer = getAccessibleFacetSpyFacets()["vanilla.worldTransfer"];
+                        if (worldTransfer) {
+                            worldTransfer.importWorld.run();
+                        }
+                    });
+                    break;
+                }
+                case "realms": {
+                    currentTab = "realms";
+                    const realmListIterable = getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"]?.realms;
+                    /**
+                     * The realms tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    const realmsTabButton = document.getElementById("litePlayScreen_realmsTabButton");
+                    if (realmsTabButton) {
+                        realmsTabButton.textContent = `Realms (${realmListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((realmListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_realmsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_realmsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_realmsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_joinRealm">Join Realm</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const realmListContainer = document.createElement("div");
+                    realmListContainer.id = "litePlayScreen_realmsTabRealmList_realmListContainer";
+                    realmListContainer.style.flexGrow = "1";
+                    realmListContainer.style.display = "block";
+                    // realmListContainer.style.display = "contents";
+                    realmListContainer.style.width = "100%";
+                    // realmListContainer.style.height = "100%";
+                    if (!realmListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No realms found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const realmListA = Array.from(realmListIterable).sort((realmA, realmB) => realmB.lastSaved - realmA.lastSaved);
+                        const realmListB = [
+                            ...realmListA.filter((realm) => !realm.world.closed && !realm.world.expired),
+                            ...realmListA.filter((realm) => realm.world.closed || realm.world.expired),
+                        ];
+                        const realmList = [...realmListB.filter((realm) => realm.isOwner), ...realmListB.filter((realm) => !realm.isOwner)];
+                        for (let i = currentPage * 5; i < Math.min(realmList.length, (currentPage + 1) * 5); i++) {
+                            const realm = realmList[i];
+                            const realmButtonContainer = document.createElement("div");
+                            realmButtonContainer.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButtonContainer_${realm.world.id}`;
+                            realmButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const realmButton = document.createElement("button");
+                            realmButton.type = "button";
+                            realmButton.classList.add("btn", "nsel");
+                            realmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            realmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_${realm.world.id}`;
+                            const realmButton_realmName = document.createElement("span");
+                            realmButton_realmName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            realmButton_realmName.textContent = realm.world.realmName;
+                            realmButton.appendChild(realmButton_realmName);
+                            const realmButton_realmDetails = document.createElement("span");
+                            realmButton_realmDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            realmButton_realmDetails.textContent = `Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${
+                                realm.world.full ? " (Full)" : ""
+                            }${
+                                realm.world.expired
+                                    ? " | Expired"
+                                    : realm.world.closed
+                                    ? " | Closed"
+                                    : realm.isOwner
+                                    ? ` | Days Left: ${realm.world.daysLeft}`
+                                    : ""
+                            } | ${GameModeIDMap[realm.world.gameMode]}${realm.world.isHardcore ? " | Hardcore" : ""}${
+                                !realm.world.isInitialized ? " | Not Initialized" : ""
+                            }${realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""}`;
+                            realmButton.appendChild(realmButton_realmDetails);
+                            const realmID = realm.world.id;
+                            realmButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinRealmWorld(String(realmID), 0);
+                                }
+                            });
+                            realmButtonContainer.appendChild(realmButton);
+                            const realmOptionsButton = document.createElement("button");
+                            realmOptionsButton.type = "button";
+                            realmOptionsButton.classList.add("btn", "nsel");
+                            realmOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            realmOptionsButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                            realmOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const realmOptionsOverlayElement = document.createElement("div");
+                                realmOptionsOverlayElement.id = "realmOptionsOverlayElement";
+                                realmOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                realmOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="realmOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-realm-options-overlay-field="realmName"></h1>
+        <p data-realm-options-overlay-field="slotName" style="display: ${realm.world.slotName ? "block" : "none"}"></p>
+        <p>Status: ${realm.world.expired ? "Expired" : realm.world.closed ? "Closed" : "Open"}</p>
+        <p>Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${realm.world.full ? " (Full)" : ""}</p>
+        <p>Unread Story Count: ${realm.unreadStoryCount}</p>
+        <p data-realm-options-overlay-field="description" style="display: ${realm.world.description ? "block" : "none"}"></p>
+        <p style="display: ${realm.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!realm.world.isInitialized ? "block" : "none"}">Realm is not initialized.</p>
+        <p data-realm-options-overlay-field="lastSaved"></p>
+        <p>Realm ID: ${realm.world.id}</p>
+        <p>Game Mode: ${GameModeIDMap[realm.world.gameMode]}</p>
+    </div>
+    <div id="realmOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_joinRealmButton">Join Realm</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_realmsStoriesButton">Realm Stories</button>
+    </div>
+</div>`;
+                                realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='realmName']").textContent = realm.world.realmName;
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='slotName']"
+                                ).textContent = `Slot Name: ${realm.world.slotName}`;
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='description']"
+                                ).textContent = `Description: ${realm.world.description}`;
+                                if (realm.world.lastSaved !== null) {
+                                    realmOptionsOverlayElement.querySelector(
+                                        "[data-realm-options-overlay-field='lastSaved']"
+                                    ).textContent = `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
+                                } else {
+                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").remove();
+                                }
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinRealmWorld(realmID.toString(), 0);
+                                    }
+                                });
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realms-story-entry-route/feed/${realmID}`);
+                                    }
+                                });
+                                document.body.appendChild(realmOptionsOverlayElement);
+                            });
+                            const editRealmButton_icon = document.createElement("img");
+                            editRealmButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                            realmOptionsButton.appendChild(editRealmButton_icon);
+                            const editRealmButton_label = document.createElement("span");
+                            editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                            editRealmButton_label.textContent = "More";
+                            realmOptionsButton.appendChild(editRealmButton_label);
+                            realmButtonContainer.appendChild(realmOptionsButton);
+                            if (realm.isOwner) {
+                                const editRealmButton = document.createElement("button");
+                                editRealmButton.type = "button";
+                                editRealmButton.classList.add("btn", "nsel");
+                                editRealmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                                editRealmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                                const realmID = realm.world.id;
+                                editRealmButton.addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realm-settings/${realmID}`);
+                                    }
+                                });
+                                const editRealmButton_icon = document.createElement("img");
+                                editRealmButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                                editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                                editRealmButton.appendChild(editRealmButton_icon);
+                                const editRealmButton_label = document.createElement("span");
+                                editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                                editRealmButton_label.textContent = "Edit";
+                                editRealmButton.appendChild(editRealmButton_label);
+                                realmButtonContainer.appendChild(editRealmButton);
+                            }
+                            realmListContainer.appendChild(realmButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(realmListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/join-realms-server`);
+                        }
+                    });
+                    break;
+                }
+                case "friends": {
+                    currentTab = "friends";
+                    /**
+                     * @type {[...ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>, ...ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>]}
+                     */
+                    const friendWorldList = [
+                        ...getAccessibleFacetSpyFacets()["vanilla.friendworldlist"]?.friendWorlds?.slice(0),
+                        ...getAccessibleFacetSpyFacets()["vanilla.lanWorldList"]?.lanWorlds?.slice(0),
+                    ];
+                    const pageCount = Math.ceil((friendWorldList?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_friendsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_friendsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_friendsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_joinFriend">Join Friend</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const friendWorldListContainer = document.createElement("div");
+                    friendWorldListContainer.id = "litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer";
+                    friendWorldListContainer.style.flexGrow = "1";
+                    friendWorldListContainer.style.display = "block";
+                    // friendWorldListContainer.style.display = "contents";
+                    friendWorldListContainer.style.width = "100%";
+                    // friendWorldListContainer.style.height = "100%";
+                    if (!friendWorldList || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No friend or LAN worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        for (let i = currentPage * 5; i < Math.min(friendWorldList.length, (currentPage + 1) * 5); i++) {
+                            const world = friendWorldList[i];
+                            const friendWorldButtonContainer = document.createElement("div");
+                            friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
+                            friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const friendWorldButton = document.createElement("button");
+                            friendWorldButton.type = "button";
+                            friendWorldButton.classList.add("btn", "nsel");
+                            friendWorldButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            friendWorldButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_${world.id}`;
+                            const friendWorldButton_friendWorldName = document.createElement("span");
+                            friendWorldButton_friendWorldName.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            friendWorldButton_friendWorldName.textContent = world.name;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldName);
+                            const friendWorldButton_friendWorldDetails = document.createElement("span");
+                            friendWorldButton_friendWorldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
+                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : ""
+                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${
+                                "ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""
+                            }${
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
+                                    ? ` | Address: ${world.address}:${world.port}`
+                                    : ""
+                            }`;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
+                            const friendWorldID = world.id;
+                            friendWorldButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    "friendOfFriendWorld" in world
+                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                }
+                            });
+                            friendWorldButtonContainer.appendChild(friendWorldButton);
+                            const friendWorldOptionsButton = document.createElement("button");
+                            friendWorldOptionsButton.type = "button";
+                            friendWorldOptionsButton.classList.add("btn", "nsel");
+                            friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            friendWorldOptionsButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_editFriendWorldButton_${world.id}`;
+                            friendWorldOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const friendWorldOptionsOverlayElement = document.createElement("div");
+                                friendWorldOptionsOverlayElement.id = "friendWorldOptionsOverlayElement";
+                                friendWorldOptionsOverlayElement.setAttribute("data-friend-id", friendWorldID);
+                                friendWorldOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                friendWorldOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="friendWorldOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-friend-world-options-overlay-field="friendWorldName"></h1>
+        <p data-friend-world-options-overlay-field="ownerName"></p>
+        <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${world.ownerId}</p>
+        <p style="display: ${"friendOfFriendWorld" in world ? "block" : "none"}">${world.friendOfFriendWorld ? "Friend of Friend" : "Friend"}</p>
+        <p>Players: ${world.onlinePlayers.length}/${world.maxPlayers}</p>
+        <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${world.ping}</p>
+        <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p data-friend-world-options-overlay-field="address" style="display: ${
+            "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
+        }"></p>
+        <p>World ID: ${world.id}</p>
+        <p>Game Mode: ${GameModeIDMap[world.gameMode]}</p>
+    </div>
+    <div id="friendWorldOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
+    </div>
+</div>`;
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='friendWorldName']").textContent =
+                                    world.name;
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='ownerName']").textContent = world.ownerName;
+                                friendWorldOptionsOverlayElement
+                                    .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
+                                    .addEventListener("click", () => {
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                        if (networkWorldJoiner) {
+                                            "friendOfFriendWorld" in world
+                                                ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                                : networkWorldJoiner.joinLanServer(friendWorldID);
+                                        }
+                                    });
+                                document.body.appendChild(friendWorldOptionsOverlayElement);
+                            });
+                            const friendWorldOptionsButton_icon = document.createElement("img");
+                            friendWorldOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            friendWorldOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_icon);
+                            const friendWorldOptionsButton_label = document.createElement("span");
+                            friendWorldOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            friendWorldOptionsButton_label.textContent = "More";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_label);
+                            friendWorldButtonContainer.appendChild(friendWorldOptionsButton);
+                            friendWorldListContainer.appendChild(friendWorldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(friendWorldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    break;
+                }
+                case "servers": {
+                    currentTab = "servers";
+                    const serverListIterable = getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"]?.externalServerWorlds.filter(
+                        (server) => server.name !== "LitePlayScreenEnabled" && !server.name.startsWith("INTERNALSETTINGS:")
+                    );
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_serversTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_serversTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_serversTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_addServer">Add Server</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_serversTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No external servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => serverA.id - serverB.id);
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i];
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID), 0);
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const serverOptionsOverlayElement = document.createElement("div");
+                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                serverOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping}</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
+        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
+        <p data-server-options-overlay-field="lastSaved"></p>
+        <p>Server ID: ${server.id}</p>
+        <p>Game Mode: ${GameModeIDMap[server.world.gameMode]}</p>
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
+    </div>
+</div>`;
+                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Slot Name: ${server.description}`;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Description: ${server.world.description}`;
+                                if (server.world.lastSaved !== null) {
+                                    serverOptionsOverlayElement.querySelector(
+                                        "[data-server-options-overlay-field='lastSaved']"
+                                    ).textContent = `Last Saved: ${new Date(server.world.lastSaved * 1000).toLocaleString()}`;
+                                } else {
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='lastSaved']").remove();
+                                }
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinExternalServer(serverID.toString());
+                                    }
+                                });
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
+                                    }
+                                });
+                                document.body.appendChild(serverOptionsOverlayElement);
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_serversTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_serversTabButtonBar_rightButtons");
+                    rightButtons.children[0].addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/play/servers/add`);
+                        }
+                    });
+                    break;
+                }
+                case "featured": {
+                    currentTab = "featured";
+                    const serverListIterable = getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"]?.thirdPartyWorlds;
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_featuredTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_featuredTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_featuredTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end"></div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_featuredTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No featured servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => serverA.id - serverB.id);
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i];
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.classList.add("fc77bf1310dc483c1eba");
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID), 0);
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const serverOptionsOverlayElement = document.createElement("div");
+                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                serverOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description"></p>
+        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
+        <p data-server-options-overlay-field="lastSaved"></p>
+        <p>Server ID: ${server.id}</p>
+        <img src="${server.image}" />
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
+    </div>
+</div>`;
+                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                serverOptionsOverlayElement.querySelector(
+                                    "[data-server-options-overlay-field='description']"
+                                ).textContent = `Description: ${server.world.description}`;
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinExternalServer(serverID.toString());
+                                    }
+                                });
+                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
+                                    }
+                                });
+                                document.body.appendChild(serverOptionsOverlayElement);
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_featuredTabButtonBar_leftButtons");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1].classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0].classList.add("disabled");
+                    }
+                    leftButtons.children[0].addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1].addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    break;
+                }
+            }
+        });
+    }
+    silentClick = true;
+    tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))].dispatchEvent(new Event("click"));
+}
+
+/**
+ * Sets whether the lite play screen is enabled.
+ *
+ * @param {boolean} value Whether to set the lite play screen to enabled or disabled.
+ */
+function setLitePlayScreenEnabled(value) {
+    if (value) {
+        localStorage.setItem("enableLitePlayScreen", "true");
+    } else {
+        localStorage.removeItem("enableLitePlayScreen");
+    }
+    const externalServerWorldList = getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"];
+    const existingExternalServerStorage = externalServerWorldList.externalServerWorlds.find((world) => world.name === "LitePlayScreenEnabled");
+    if (existingExternalServerStorage) {
+        if (!value) {
+            externalServerWorldList.removeExternalServerWorld(Number(existingExternalServerStorage.id));
+        }
+    } else {
+        if (value) {
+            externalServerWorldList.addExternalServerWorld("LitePlayScreenEnabled", "0.0.0.1", 1);
+        }
+    }
+}
+
+// Enables the lite play screen.
+(async function startEnablingLitePlayScreen() {
+    for (let i = 0; i < 1000; i++) {
+        /**
+         * The router facet.
+         *
+         * @type {FacetTypeMap["core.router"]; | undefined}
+         */
+        const router = globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+        if (!router) {
+            // If the clipboard facet is not available, wait for a short time and try again.
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            continue;
+        }
+        /**
+         * Loads a custom screen from 8Crafter's Ore UI Customizer.
+         *
+         * @param {string} pathname The path to load.
+         * @returns {Promise<void>} A promise that resolves when the screen is loaded.
+         */
+        async function loadOUICScreen(pathname) {
+            pathname = pathname?.replace(/^\/ouic\//, "");
+            switch (true) {
+                case pathname.startsWith("play"):
+                    await enableLitePlayScreen();
+                    break;
+                case pathname.startsWith("friends"):
+                    await litePlayScreen_friendsMenu();
+                    break;
+            }
+        }
+        if (/^\/ouic\//.test(router.history.location.pathname)) {
+            await loadOUICScreen(router.history.location.pathname);
+        }
+        let loadedRouterPositions = router.history.list
+            .slice(0)
+            .map(
+                /** @returns {RouteHistoryItem | undefined} */ (v, i) =>
+                    !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+            );
+        const routerObserveCallback = async (router) => {
+            if (router.history.list.length < loadedRouterPositions.length) {
+                loadedRouterPositions.splice(router.history.list.length - 1, loadedRouterPositions.length - router.history.list.length);
+            } else if (router.history.list.length > loadedRouterPositions.length) {
+                loadedRouterPositions.push(
+                    ...router.history.list
+                        .slice(loadedRouterPositions.length)
+                        .map(
+                            /** @returns {RouteHistoryItem | undefined} */ (v, i) =>
+                                !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+                        )
+                );
+            } else if (
+                router.history.list[router.history.list.length - 1].pathname !== loadedRouterPositions[loadedRouterPositions.length - 1].pathname &&
+                router.history.list[router.history.list.length - 1].pathname.startsWith("/ouic/") &&
+                router.history.list[router.history.list.length - 1].pathname.match(/^\/ouic\/[^\/]+/)?.[0] !==
+                    loadedRouterPositions[loadedRouterPositions.length - 1].match(/^\/ouic\/[^\/]+/)?.[0]
+            ) {
+                loadedRouterPositions[loadedRouterPositions.length - 1] = undefined;
+            }
+            if (/^\/ouic\//.test(router.history.location.pathname) && loadedRouterPositions[loadedRouterPositions.length - 1] === undefined) {
+                await loadOUICScreen(router.history.location.pathname);
+            }
+        };
+        facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
+        if (
+            localStorage.getItem("enableLitePlayScreen") !== null ||
+            getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"].externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabled")
+        ) {
+            try {
+                document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = "Disable Lite Play Screen";
+            } catch (e) {
+                console.error(e);
+            }
+            if (router.history.location.pathname.startsWith("/play/") /*  || /^\/ouic\/play/.test(router.history.location.pathname) */) {
+                const originalRouterLocation = { ...router.history.location };
+                // router.history.replace(`/play/all` + router.history.location.search + router.history.location.hash);
+                // If the router facet is available, enable the lite play screen.
+                await enableLitePlayScreen();
+            }
+        }
+        return;
+    }
+    console.error("Failed to enable lite play screen, timed out.");
+})();
+
+/**
+ * Copies text to the clipboard.
+ *
+ * @param {string} text The text to copy to the clipboard.
+ * @returns {Promise<boolean>} A promise that resolves to `true` if the text was copied to the clipboard, `false` otherwise.
+ */
+async function copyTextToClipboard_old(text) {
+    try {
+        // If the current route has direct access to the clipboard facet, we can copy the text to the clipboard directly.
+        if (getAccessibleFacetSpyFacets()["vanilla.clipboard"]?.copyToClipboard) {
+            // Copy the text to the clipboard.
+            getAccessibleFacetSpyFacets()["vanilla.clipboard"].copyToClipboard(text);
+            return true;
+        }
+    } catch {}
+    // If the current route is in the index file, we can open the add friend page in the current context, otherwise it will open in a different context.
+    getAccessibleFacetSpyFacets()["core.router"].history.push("/add-friend");
+    // Store the text to copy in localStorage so it can be accessed if the copy function is run from a file other than the index JS file.
+    localStorage.setItem("textToCopy", text);
+    for (let i = 0; i < 1000; i++) {
+        // If the text was copied to the clipboard by another context because the copy function was run from a file other than the index JS file, return the status of the copy operation.
+        if (localStorage.getItem("clipboardCopyStatus") !== null) {
+            /**
+             * The status of the copy operation.
+             *
+             * @type {"success" | "failed"}
+             */
+            const status = localStorage.getItem("clipboardCopyStatus");
+            // Remove the status from the localStorage so it doesn't interfere with future copy operations.
+            localStorage.removeItem("clipboardCopyStatus");
+            // Check if there was an error during the copy operation.
+            if (localStorage.getItem("clipboardCopyError") !== null) {
+                // Log the error to the console.
+                console.error("Failed to copy text to clipboard:", localStorage.getItem("clipboardCopyError"));
+                // Remove the error from the localStorage so it doesn't interfere with future copy operations.
+                localStorage.removeItem("clipboardCopyError");
+            }
+            // Return whether or not the copy operation was successful.
+            return status === "success";
+        }
+        /**
+         * The clipboard facet.
+         *
+         * @type {{copyToClipboard(text: string): void, [k: PropertyKey]: any} | undefined}
+         */
+        const clipboardFacet = globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
+        if (!clipboardFacet) {
+            // If the clipboard facet is not available, wait for a short time and try again.
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            continue;
+        }
+        // If the clipboard facet is available, copy the text to the clipboard.
+        clipboardFacet.copyToClipboard(text);
+
+        // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+        localStorage.removeItem("textToCopy");
+        // Close the add friend page and return to the previous page.
+        getAccessibleFacetSpyFacets()["core.router"].history.goBack();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Copies text to the clipboard.
+ *
+ * @param {string} text The text to copy to the clipboard.
+ * @returns {boolean} `true` if the text was copied to the clipboard, `false` otherwise.
+ */
+function copyTextToClipboard(text) {
+    if (getAccessibleFacetSpyFacets()["vanilla.clipboard"]?.copyToClipboard) {
+        getAccessibleFacetSpyFacets()["vanilla.clipboard"].copyToClipboard(text);
+        return true;
+    }
+    return false;
+}
+
+// For if the copy function is run from a file other than the index JS file.
+if (localStorage.getItem("textToCopy") !== null) {
+    // Set a flag to indicate that the copy function is running.
+    globalThis.copying = true;
+    (async function copyTextToClipboard() {
+        try {
+            for (let i = 0; i < 1000; i++) {
+                /**
+                 * The clipboard facet.
+                 *
+                 * @type {{copyToClipboard(text: string): void, [k: PropertyKey]: any} | undefined}
+                 */
+                const clipboardFacet = globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
+                if (!clipboardFacet) {
+                    // If the clipboard facet is not available, wait for a short time and try again.
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    continue;
+                }
+                // If the clipboard facet is available, copy the text to the clipboard.
+                clipboardFacet.copyToClipboard(localStorage.getItem("textToCopy"));
+
+                // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+                localStorage.removeItem("textToCopy");
+                // Set the status of the copy operation to success.
+                localStorage.setItem("clipboardCopyStatus", "success");
+                // Close the add friend page and return to the previous page and context.
+                getAccessibleFacetSpyFacets()["core.router"].history.goBack();
+                return true;
+            }
+        } catch (e) {
+            // If the copy operation failed, store the error in the localStorage so it can be accessed in the context and route that triggered the copy operation.
+            localStorage.setItem("clipboardCopyError", e + e.stack);
+            // If the copy operation failed, store the error in a global variable for debugging purposes.
+            globalThis.copyError = e;
+            // Log the error to the console.
+            console.error("Failed to copy text to clipboard:", e, e.stack);
+        }
+        // If the copy operation failed, remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+        localStorage.removeItem("textToCopy");
+        // Set the status of the copy operation to failed.
+        localStorage.setItem("clipboardCopyStatus", "failed");
+
+        // Close the add friend page and return to the previous page and context.
+        getAccessibleFacetSpyFacets()["core.router"].history.goBack();
+        return false;
+    })();
 }
 
 (() => {
@@ -2225,13 +5080,26 @@ function addScrollbarToHTMLElement(element) {
         "background-color: #00000080; color: #FFFFFFFF; width: 95vw; height: 95vh; position: fixed; top: 2.5vh; left: 2.5vw; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere;/*  font-family: unset; */"
     );
     element.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="consoleOverlayElement.style.display = 'none';"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
-<div style="display: flex; flex-direction: row; height: 100%; width: 100%;">
-    <div style="width: 100%; height: 75%; overflow-y: scroll; overflow-x: hidden; position: absolute; top: 0; left: 0;" class="addScrollbar">
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%;"><div style="width: 100%; height: 75%; overflow-y: scroll; overflow-x: hidden; position: absolute; top: 0; left: 0;">
+    <div style="width: 100%; height: 100%; overflow-y: scroll; overflow-x: hidden; position: absolute; top: 0; left: 0;" class="addScrollbar">
         <div id="consoleOverlayTextElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;"></div>
+    </div>
     </div>
     <div style="width: 100%; height: 25%; position: absolute; bottom: 0; left: 0;">
         <textarea id="consoleOverlayInputFieldElement" style="user-select: text; width: 100%; height: 100%; pointer-events: auto;"></textarea>
-        <button type="button" class="btn" style="position: absolute; bottom: 5px; right: 5px; font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2;" onclick="consoleOverlayExecute();">Execute</button>
+        <div style="
+            position: absolute;
+            top: 5px;
+            flex-direction: column;
+            display: flex;
+            justify-content: space-between;
+            bottom: 5px;
+            right: 5px;
+        ">
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="setConsoleInputFieldContentsToHistoryItem(currentlySelctedConsoleExecutionHistoryItemIndex + 1);">Previous</button>
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="setConsoleInputFieldContentsToHistoryItem(currentlySelctedConsoleExecutionHistoryItemIndex - 1);">Next</button>
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="consoleOverlayExecute();">Execute</button>
+        </div>
     </div>
 </div>`;
     window.document.body.appendChild(element);
@@ -2249,6 +5117,8 @@ function addScrollbarToHTMLElement(element) {
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_about" onclick="setMainMenu8CrafterUtilitiesTab('about'); event.preventDefault();">About</button>
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_autoJoin" onclick="setMainMenu8CrafterUtilitiesTab('autoJoin'); event.preventDefault();">Auto Rejoin</button>
+        <!--<button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_router" onclick="setMainMenu8CrafterUtilitiesTab('router'); event.preventDefault();">Router</button>-->
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_performance" onclick="setMainMenu8CrafterUtilitiesTab('performance'); event.preventDefault();">Performance</button>
     </div>
     <div id="8CrafterUtilitiesMenu_rightSide" style="display: block; height: 100%; width: 70%; border-right: 5px solid #87CEEb; position: absolute; top: 0; right: 0; padding: 1rem; padding-right: 10px; overflow-y: scroll;" class="addScrollbar">
         <div id="8CrafterUtilitiesMenu_general" style="display: block;">
@@ -2312,6 +5182,28 @@ Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
             <p style="margin-top: 0;">
 Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
             </p>
+        </div><!--
+        <div id="8CrafterUtilitiesMenu_router" style="display: none;">
+            <center>
+                <h1>Router</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
+            <button type="button" class="btn nsel disabled" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = 'None'; document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
+            <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
+            <p style="margin-top: 0; margin-bottom: 0;">
+Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
+            </p>
+            <p style="margin-top: 0;">
+Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
+            </p>
+        </div>-->
+        <div id="8CrafterUtilitiesMenu_performance" style="display: none;">
+            <center>
+                <h1>Performance</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${
+                localStorage.getItem("enableLitePlayScreen") === "true" ? "Disable" : "Enable"
+            } Lite Play Screen</button>
         </div>
     </div>
 </div>`;

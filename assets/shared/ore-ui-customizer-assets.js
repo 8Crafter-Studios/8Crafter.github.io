@@ -76,6 +76,7 @@ export const defaultOreUICustomizerSettings = {
     enabledBuiltInPlugins: {
         "add-exact-ping-count-to-servers-tab": true,
         "add-max-player-count-to-servers-tab": true,
+        "facet-spy": true,
     },
     /**
      * These are replacements for the UI colors.
@@ -1084,7 +1085,7 @@ export const builtInPlugins = [
                 id: "add-exact-ping-count-to-servers-tab",
                 context: "per_text_file",
                 action: async (currentFileContent, file) => {
-                    if (!/index-[0-9a-f]{20}\.js$/.test(file.data?.filename))
+                    if (!/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename))
                         return currentFileContent;
                     const origData = await file.getText();
                     const bindingVaiableTarget = origData
@@ -1112,7 +1113,7 @@ export const builtInPlugins = [
                 id: "add-max-player-count-to-servers-tab",
                 context: "per_text_file",
                 action: async (currentFileContent, file) => {
-                    if (!/index-[0-9a-f]{20}\.js$/.test(file.data?.filename))
+                    if (!/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename))
                         return currentFileContent;
                     if (!/function ([a-zA-Z0-9_\$]{2})\(\{playerCount:([a-zA-Z0-9_\$]),maximumCapacity:([a-zA-Z0-9_\$])\}\)\{const ([a-zA-Z0-9_\$])=\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(\((?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\)=>0!==(?:[a-zA-Z0-9_\$])&&(?:[a-zA-Z0-9_\$])===(?:[a-zA-Z0-9_\$])\),\[\],\[(?:[a-zA-Z0-9_\$]),(?:[a-zA-Z0-9_\$])\]\),\{(?:[a-zA-Z0-9_\$]):(?:[a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen\.serverCapacity"\);return ([a-zA-Z0-9_\$])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),null\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{size:1\}\),(?:[a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_\$])\)/.test(currentFileContent)) {
                         throw new Error("Unable to find binding variable target.");
@@ -1124,5 +1125,384 @@ export const builtInPlugins = [
         ],
         format_version: "0.25.0",
         min_engine_version: "0.25.0",
+    },
+    {
+        name: "Facet spy.",
+        id: "facet-spy",
+        namespace: "built-in",
+        version: "1.0.0",
+        actions: [
+            {
+                id: "inject-facet-spy",
+                context: "per_text_file",
+                action: async (currentFileContent, file) => {
+                    if (!/(?:index|gameplay|editor)-[0-9a-f]{5,20}\.js$/.test(file.data?.filename))
+                        return currentFileContent;
+                    const origData = await file.getText();
+                    if (!/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(([a-zA-Z0-9_\$])=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/.test(currentFileContent)) {
+                        throw new Error("Unable to find facet spy render injection location.");
+                    }
+                    /**
+                     * The symbol name of the facet access holder.
+                     */
+                    const facetAccessHolderBindingVariableTarget = currentFileContent.match(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(([a-zA-Z0-9_\$])=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/)[1];
+                    currentFileContent = currentFileContent.replace(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(([a-zA-Z0-9_\$])=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/, `inverse:(0,$1.useFacetMap)((($2)=>"POP"===$2),[],[$3])}))),${origData.match(/([a-zA-Z0-9_\$])\.createElement\((?:[a-zA-Z0-9_\$]),\{visible:(?:[a-zA-Z0-9_\$]),alwaysMounted:(?:[a-zA-Z0-9_\$]),/)[1]}.createElement(facetSpy,null)`);
+                    /**
+                     * The facet spy function that will be injected into the file.
+                     */
+                    const facetSpyFunction = `${/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
+                        ? `var $1 = (globalThis.contextHolder = $2($3)),
+                ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $2($4));`
+                        : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
+                            ? `.URLSearchParams;
+            var ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $1($2));`
+                            : `var ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $1($2));`}
+            const facetList = [
+                "core.animation",
+                "core.customScaling",
+                "core.deviceInformation",
+                "core.featureFlags",
+                "core.input",
+                "core.locale",
+                "core.performanceFacet",
+                "core.router",
+                "core.safeZone",
+                "core.screenReader",
+                "core.splitScreen",
+                "core.social",
+                "core.sound",
+                "core.user",
+                "core.vrMode", // Found in dev build file.
+
+                "vanilla.achievements",
+                "vanilla.achievementsReward",
+                "vanilla.buildSettings",
+                "vanilla.clipboard",
+                "vanilla.createNewWorld",
+                "vanilla.createPreviewRealmFacet",
+                "vanilla.debugSettings",
+                "vanilla.editor",
+                "vanilla.editorInput",
+                "vanilla.editorLogging",
+                "vanilla.editorScripting",
+                "vanilla.editorSelectionFacet",
+                "vanilla.editorSettings",
+                "vanilla.externalServerWorldList",
+                "vanilla.followersList",
+                "vanilla.friendsListFacet",
+                "vanilla.friendsManagerFacet",
+                "vanilla.gameplay.activeLevelHardcoreMode",
+                "vanilla.gameplay.bedtime",
+                "vanilla.gameplay.closeContainerCommand",
+                "vanilla.gameplay.containerBlockActorType",
+                "vanilla.gameplay.containerItemQuery",
+                "vanilla.gameplay.containerSizeQuery",
+                "vanilla.gameplay.furnace",
+                "vanilla.gameplay.immediateRespawn",
+                "vanilla.gameplay.leaveGame",
+                "vanilla.gameplay.playerDeathInfo",
+                "vanilla.gameplay.playerPositionHudElement",
+                "vanilla.gameplay.playerRespawn",
+                "vanilla.gamertagSearch",
+                "vanilla.inbox",
+                "vanilla.lanWorldList",
+                "vanilla.localWorldList",
+                "vanilla.marketplaceSuggestions",
+                "vanilla.marketplacePassWorldTemplateList",
+                "vanilla.networkWorldDetails",
+                "vanilla.networkWorldJoiner",
+                "vanilla.notificationOptions",
+                "vanilla.notifications",
+                "vanilla.options",
+                "vanilla.party", // Found in dev build file.
+                "vanilla.playerAchievements",
+                "vanilla.playerBanned",
+                "vanilla.playerFollowingList",
+                "vanilla.playerLinkedPlatformProfile", // Found in dev build file.
+                "vanilla.playermessagingservice",
+                "vanilla.playerPermissions",
+                "vanilla.playerProfile",
+                "vanilla.playerReport",
+                "vanilla.playerSocialManager",
+                "vanilla.playerStatistics",
+                "vanilla.privacyAndOnlineSafetyFacet",
+                "vanilla.profanityFilter",
+                "vanilla.realmsListFacet",
+                "vanilla.realmSlots",
+                "vanilla.realmsMembership",
+                "vanilla.realmsStories.actions",
+                "vanilla.realmsStories.localScreenshots",
+                "vanilla.realmsStories.persistentData",
+                "vanilla.realmsStories.players",
+                "vanilla.realmsStories.realmData",
+                "vanilla.realmsStories.settings",
+                "vanilla.realmsStories.stories",
+                "vanilla.RealmsPDPFacet",
+                "vanilla.RealmWorldUploaderFacet",
+                "vanilla.recentlyPlayedWithList",
+                "vanilla.recommendedFriendsList",
+                "vanilla.resourcePackOverrides",
+                "vanilla.resourcePacks",
+                "vanilla.screenshotGalleryList",
+                "vanilla.screenSpecificOptions",
+                "vanilla.screenTechStack",
+                "vanilla.seedTemplates",
+                "vanilla.share",
+                "vanilla.simulationDistanceOptions",
+                "vanilla.telemetry",
+                "vanilla.thirdPartyWorldList",
+                "vanilla.unpairedRealmsListFacet",
+                "vanilla.userAccount",
+                "vanilla.webBrowserFacet",
+                "vanilla.worldCloudSyncFacet",
+                "vanilla.worldEditor",
+                "vanilla.worldOperations",
+                "vanilla.worldPackages",
+                "vanilla.worldPlayersList",
+                "vanilla.worldStartup",
+                "vanilla.worldTemplateList",
+                "vanilla.worldTransfer",
+
+                "vanilla.friendworldlist",
+                "vanilla.offerRepository",
+                "vanilla.realmsStories.actions",
+                "vanilla.realmsStories.realmData",
+                "vanilla.realmsStories.persistentData",
+                "vanilla.realmsSettingsFacet",
+
+                "vanilla.achievementCategories",
+                "vanilla.blockInformation",
+                "debug.worldTransfer",
+                "vanilla.flatWorldPresets",
+                "vanilla.inGame",
+                "vanilla.playerPrivacy",
+                "vanilla.realmsPurchase",
+                "vanilla.realmsSubscriptionsData",
+                "vanilla.realmsSubscriptionsMethods",
+                "vanilla.realmsWorldContextCommands",
+                "vanilla.realmsWorldContextQueries",
+                "vanilla.realmsStories.sessions",
+                "vanilla.realmsListActionsFacet",
+                "vanilla.developerOptionsFacet",
+                "vanilla.realmsStories.comments",
+                "vanilla.screenshotGallery",
+                "vanilla.playerShowcasedGallery",
+                "vanilla.trialMode",
+                "vanilla.featuredWorldTemplateList",
+                "vanilla.ownedWorldTemplateList",
+                "vanilla.worldTemplateOperations",
+                "test.vector",
+                // "vanilla.editorBlockPalette", // Crashes the game.
+                // "vanilla.editorInputBinding",
+                // "vanilla.editorInputState",
+                // "vanilla.editorProjectConstants",
+                // "vanilla.editorStructure",
+                // "vanilla.editorTutorial",
+                "vanilla.gameplay.localPlayerWeatherLightningFacet",
+                "vanilla.levelInfo",
+                "vanilla.currentParty",
+                "vanilla.partyCommands",
+                "vanilla.worldRealmEditor", // Found in dev build file.
+                "vanilla.worldRealmEditorCommands",
+                "vanilla.worldRealmEditorQueries",
+                "vanilla.realmBackupsCommands",
+                "vanilla.realmBackupsQueries",
+                "vanilla.realmsPurchaseCommands",
+                "vanilla.realmsPurchaseReconcilerQueries",
+                "vanilla.character-selector",
+                "vanilla.progressTracker",
+
+                // Found in preview 1.21.100.21.
+                "vanilla.realmsWorldEditorGameRulesCommands",
+                "vanilla.realmsWorldEditorGameRulesQueries",
+                "vanilla.realmsWorldEditorWorldDetailsQueries",
+                "vanilla.realmsCommitCommandsFacet",
+                "vanilla.realmsCommitQueriesFacet",
+                "vanilla.realmsPurchaseQueries",
+            ];
+            function facetSpy({}) {
+                let data = globalThis.facetSpyData ?? {
+                    sharedFacets: Object.fromEntries(facetList.map((name) => [name, (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)((0, ${facetAccessHolderBindingVariableTarget}.sharedFacet)(name))])),
+                };
+                /**
+                 * Gets access to the provided facet.
+                 *
+                 * @param {string} facet The identifier of the facet to get access to.
+                 */
+                function getFacetAccess(facet) {
+                    ${facetAccessHolderBindingVariableTarget}.render(
+                        contextHolder.createElement(() => {
+                            const a = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet(facet)),
+                                b = (0, ${facetAccessHolderBindingVariableTarget}.useFacetCallback)((a) => () => {}, [], [a]);
+                            return null;
+                        }),
+                        document.createElement("div")
+                    );
+                }
+                for (const name of facetList) {
+                    try {
+                        if (data.sharedFacets[name].get()?.toString?.() === "Symbol(NoValue)") {
+                            getFacetAccess(name);
+                        }
+                    } catch {}
+                }
+
+                globalThis.facetSpyData = data;
+                return null;
+            }
+            globalThis.facetSpy = facetSpy;
+            globalThis.accessedFacets = {};/* 
+            
+            function facetSpy({}) {
+                let data = {
+                    sharedFacets: {
+                        "vanilla.clipboard": (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(Ii),
+                        "core.sound": (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(Hl),
+                        "core.deviceInformation": (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet("core.deviceInformation")),
+                        "core.performanceFacet": (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet("core.performanceFacet")),
+                    }
+                };
+                if (globalThis.facetSpyData) {
+                    data = globalThis.facetSpyData;
+                    try {
+                        if (data.sharedFacets["vanilla.clipboard"].get()?.toString?.() === "Symbol(NoValue)") {
+                            data.sharedFacets["vanilla.clipboard"] = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(Ii);
+                        }
+                    } catch {}
+                    try {
+                        if (data.sharedFacets["core.sound"].get()?.toString?.() === "Symbol(NoValue)") {
+                            data.sharedFacets["core.sound"] = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(Hl);
+                        }
+                    } catch {}
+                    try {
+                        if (data.sharedFacets["core.deviceInformation"].get()?.toString?.() === "Symbol(NoValue)") {
+                            data.sharedFacets["core.deviceInformation"] = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet("core.deviceInformation"));
+                        }
+                    } catch {}
+                    try {
+                        if (data.sharedFacets["core.performanceFacet"].get()?.toString?.() === "Symbol(NoValue)") {
+                            data.sharedFacets["core.performanceFacet"] = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet("core.performanceFacet"));
+                        }
+                    } catch {}
+                }
+                
+                globalThis.facetSpyData = data;
+                return null;
+            }
+            globalThis.facetSpy = facetSpy; */
+            /**
+             * Returns a list of all accessible facets from the facetSpy data.
+             *
+             * @returns {Partial<globalThis["facetSpyData"]['sharedFacets']>} The accessible facets.
+             */
+            function getAccessibleFacetSpyFacets() {
+                return Object.fromEntries(
+                    Object.entries(globalThis.facetSpyData?.sharedFacets || {}).filter(([name, facet]) => {
+                        try {
+                            return facet.get()?.toString?.() !== "Symbol(NoValue)";
+                        } catch {
+                            return false;
+                        }
+                    }).map(([name, facet]) => [
+                        name,
+                        facet?.get?.() ?? facet
+                    ])
+                );
+            }
+            globalThis.getAccessibleFacetSpyFacets = getAccessibleFacetSpyFacets;`;
+                    currentFileContent = currentFileContent.replace(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
+                        ? new RegExp(`var ([a-zA-Z0-9_\\$])=([a-zA-Z0-9_\\$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);`)
+                        : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
+                            ? new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_\\$])\\(([0-9]+)\\);`)
+                            : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_\\$])\\(([0-9]+)\\);`), facetSpyFunction);
+                    currentFileContent = currentFileContent.replace(/(?:[a-zA-Z0-9_\$])\.sharedFacet=function\(([a-zA-Z0-9_\$]),([a-zA-Z0-9_\$])=([a-zA-Z0-9_\$])\.NO_VALUE\)\{const ([a-zA-Z0-9_\$])=\(0,([a-zA-Z0-9_\$])\.default\)\(\(([a-zA-Z0-9_\$])=>\(0,\3\.createFacet\)\(\{initialValue:\2,startSubscription:\2=>\6\(\1,\2\)\}\)\)\);return \4.factory=\3\.FACET_FACTORY,\4\}/, `$2.sharedFacet = (name, $2) => {
+                    if (globalThis.accessedFacets[name]) {
+                        return globalThis.accessedFacets[name];
+                    }
+                    return (globalThis.accessedFacets[name] = (function ($1, $2 = $3.NO_VALUE) {
+                        const $4 = (0, $5.default)(($6) => (0, $3.createFacet)({ initialValue: $2, startSubscription: ($2) => $6($1, $2) }));
+                        return ($4.factory = $3.FACET_FACTORY), $4;
+                    })(name, $2));
+                };`);
+                    return currentFileContent;
+                },
+            },
+            {
+                id: "inject-into-routes",
+                context: "per_text_file",
+                action: async (currentFileContent, file) => {
+                    if (/routes\.json$/.test(file.data?.filename)) {
+                        const origData = await file.getText();
+                        currentFileContent = currentFileContent.replace(/(?<="fileName"(?:[\s\n]*):([\s\n]*)"\/hbui\/index\.html",(?:[\s\n]*)"scope":(?:[\s\n]*)\[(?:[\s\n]*)"in-game"(?:[\s\n]*),(?:[\s\n]*)"out-of-game"(?:[\s\n]*)\](?:[\s\n]*),(?:[\s\n]*)"defaultRoute"(?:[\s\n]*):(?:[\s\n]*)""(?:[\s\n]*),(?:[\s\n]*)"supportedRoutes"(?:[\s\n]*):(?:[\s\n]*)\[([\s\n]*))(?=\{([\s\n]*)")/, `{$3"route":$1"/ouic/:menu/:tab?",$3"modes":$1[],$3"regexp":$1"^\\\\/ouic\\\\/([^\\\\/]+?)(?:\\\\/([^\\\\/]+?))?(?:\\\\/)?$",$3"params":$1[{"name":"menu","prefix":"/","delimiter":"/","optional":false,"repeat":false,"pattern":"[^\\\\/]+?"},{"name":"tab","prefix":"/","delimiter":"/","optional":true,"repeat":false,"pattern":"[^\\\\/]+?"}],$3"transition":$1"RouteSlideTransition"$2},$2`);
+                        return currentFileContent;
+                    }
+                    else if (/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)) {
+                        const origData = await file.getText();
+                        /**
+                         * The symbol name of the facet access holder.
+                         */
+                        const bindingVariableTargets = origData
+                            .match(/const\{([a-zA-Z0-9_\$]):([a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen"\);return ([a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{debugDrawer:\[/)
+                            .slice(1, 6);
+                        if (!new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`).test(currentFileContent)) {
+                            throw new Error("Unable to find routes.");
+                        }
+                        currentFileContent = currentFileContent.replace(new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`), `$1.createElement($2, {
+                        route: "/ouic/play/:tab?",
+                        component: () => {
+                            // const { ${bindingVariableTargets[0]}: ${bindingVariableTargets[1]} } = ${bindingVariableTargets[2]}("PlayScreen");
+                            return ${bindingVariableTargets[3]}.createElement(
+                                ${bindingVariableTargets[4]},
+                                {
+                                    debugDrawer: ["create-test-world", "debug-import-worlds"],
+                                    friendsDrawer: false,
+                                    gamepadAlias: "play-layout-content",
+                                    delegateByAlias: "play-screen-tab-bar-wrapper",
+                                    screenAnalyticsId: "Play",
+                                    title: "Title",
+                                },
+                                () => ${bindingVariableTargets[3]}.createElement(${bindingVariableTargets[3]}.Fragment, null)
+                            );
+                        },
+                        transitionComponent: $3,
+                    }),$1.createElement($2, {
+                        route: "/ouic/friends/:tab?",
+                        component: () => {
+                            return ${bindingVariableTargets[3]}.createElement(
+                                ${bindingVariableTargets[4]},
+                                {
+                                    debugDrawer: [],
+                                    friendsDrawer: false,
+                                    title: "Title",
+                                },
+                                () => ${bindingVariableTargets[3]}.createElement(${bindingVariableTargets[3]}.Fragment, null)
+                            );
+                        },
+                        transitionComponent: $3,
+                    }),$1.createElement($2, {
+                        route: "/ouic/:menu/:tab?",
+                        component: () => {
+                            return ${bindingVariableTargets[3]}.createElement(
+                                ${bindingVariableTargets[4]},
+                                {
+                                    debugDrawer: [],
+                                    friendsDrawer: false,
+                                    title: "Title",
+                                },
+                                () => ${bindingVariableTargets[3]}.createElement(${bindingVariableTargets[3]}.Fragment, null)
+                            );
+                        },
+                        transitionComponent: $3,
+                    }),`);
+                        return currentFileContent;
+                    }
+                    else {
+                        return currentFileContent;
+                    }
+                },
+            },
+        ],
+        format_version: "1.0.0",
+        min_engine_version: "1.0.0",
     },
 ];
