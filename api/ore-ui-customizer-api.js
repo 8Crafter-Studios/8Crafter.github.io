@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.1.0";
+export const format_version = "1.1.1";
 /**
  * Checks if a string is a URI or a path.
  *

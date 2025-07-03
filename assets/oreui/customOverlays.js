@@ -2491,7 +2491,7 @@ async function enableLitePlayScreen() {
     /**
      * The original router location.
      */
-    const originalRouterLocation = {...router.history.location};
+    const originalRouterLocation = { ...router.history.location };
     if (
         !originalRouterLocation.pathname.startsWith("/ouic/play") ||
         !originalRouterLocation.search
@@ -2870,7 +2870,7 @@ async function enableLitePlayScreen() {
                                     : ""
                             } | ${GameModeIDMap[realm.world.gameMode]}${realm.world.isHardcore ? " | Hardcore" : ""}${
                                 !realm.world.isInitialized ? " | Not Initialized" : ""
-                            }${realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""}`;
+                            }${realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""} | Description: ${realm.world.description}`;
                             realmButton.appendChild(realmButton_realmDetails);
                             const realmID = realm.world.id;
                             realmButton.addEventListener("click", () => {
@@ -2905,6 +2905,7 @@ async function enableLitePlayScreen() {
         <p style="display: ${!realm.world.isInitialized ? "block" : "none"}">Realm is not initialized.</p>
         <p data-realm-options-overlay-field="lastSaved"></p>
         <p>Realm ID: ${realm.world.id}</p>
+        <p>Owner XUID: ${realm.world.ownerXuid}</p>
         <p>Game Mode: ${GameModeIDMap[realm.world.gameMode]}</p>
     </div>
     <div id="realmOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
@@ -3286,13 +3287,14 @@ async function enableLitePlayScreen() {
                             serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             serverOptionsButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
                             serverOptionsButton.addEventListener("click", () => {
-                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                const serverOptionsOverlayElement = document.createElement("div");
-                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
-                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
-                                serverOptionsOverlayElement.style =
-                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
-                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const serverOptionsOverlayElement = document.createElement("div");
+                                    serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                    serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                    serverOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
 <div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
     <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-server-options-overlay-field="serverName"></h1>
@@ -3300,46 +3302,30 @@ async function enableLitePlayScreen() {
         <p>Ping: <span>${server.ping}</span></p>
         <p>Players: ${server.playerCount}/${server.capacity}</p>
         <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
-        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
-        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
-        <p data-server-options-overlay-field="lastSaved"></p>
         <p>Server ID: ${server.id}</p>
-        <p>Game Mode: ${GameModeIDMap[server.world.gameMode]}</p>
+        <img src="${server.image}" />
+        <img data-server-options-overlay-field="image" />
     </div>
     <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
-        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
     </div>
 </div>`;
-                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
-                                serverOptionsOverlayElement.querySelector(
-                                    "[data-server-options-overlay-field='description']"
-                                ).textContent = `Slot Name: ${server.description}`;
-                                serverOptionsOverlayElement.querySelector(
-                                    "[data-server-options-overlay-field='description']"
-                                ).textContent = `Description: ${server.world.description}`;
-                                if (server.world.lastSaved !== null) {
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
                                     serverOptionsOverlayElement.querySelector(
-                                        "[data-server-options-overlay-field='lastSaved']"
-                                    ).textContent = `Last Saved: ${new Date(server.world.lastSaved * 1000).toLocaleString()}`;
-                                } else {
-                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='lastSaved']").remove();
+                                        "[data-server-options-overlay-field='description']"
+                                    ).textContent = `Description: ${server.description}`;
+                                    serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                        if (networkWorldJoiner) {
+                                            networkWorldJoiner.joinExternalServer(serverID.toString());
+                                        }
+                                    });
+                                    document.body.appendChild(serverOptionsOverlayElement);
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"]?.loadNetworkWorldDetails(serverID, 1);
+                                } catch (e) {
+                                    console.error(e);
                                 }
-                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
-                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
-                                    if (networkWorldJoiner) {
-                                        networkWorldJoiner.joinExternalServer(serverID.toString());
-                                    }
-                                });
-                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
-                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                    const router = getAccessibleFacetSpyFacets()["core.router"];
-                                    if (router) {
-                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
-                                    }
-                                });
-                                document.body.appendChild(serverOptionsOverlayElement);
                             });
                             const serverOptionsButton_icon = document.createElement("img");
                             serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
@@ -3489,13 +3475,14 @@ async function enableLitePlayScreen() {
                             serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             serverOptionsButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
                             serverOptionsButton.addEventListener("click", () => {
-                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                const serverOptionsOverlayElement = document.createElement("div");
-                                serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
-                                serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
-                                serverOptionsOverlayElement.style =
-                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
-                                serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const serverOptionsOverlayElement = document.createElement("div");
+                                    serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                    serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                    serverOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
 <div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
     <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-server-options-overlay-field="serverName"></h1>
@@ -3503,36 +3490,29 @@ async function enableLitePlayScreen() {
         <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
         <p>Players: ${server.playerCount}/${server.capacity}</p>
         <p data-server-options-overlay-field="description"></p>
-        <p style="display: ${server.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
-        <p style="display: ${!server.world.isInitialized ? "block" : "none"}">Server is not initialized.</p>
-        <p data-server-options-overlay-field="lastSaved"></p>
         <p>Server ID: ${server.id}</p>
-        <img src="${server.image}" />
+        <img data-server-options-overlay-field="image" />
     </div>
     <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
-        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_serversStoriesButton">Server Stories</button>
     </div>
 </div>`;
-                                serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
-                                serverOptionsOverlayElement.querySelector(
-                                    "[data-server-options-overlay-field='description']"
-                                ).textContent = `Description: ${server.world.description}`;
-                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
-                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                    const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
-                                    if (networkWorldJoiner) {
-                                        networkWorldJoiner.joinExternalServer(serverID.toString());
-                                    }
-                                });
-                                serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_serversStoriesButton").addEventListener("click", () => {
-                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                    const router = getAccessibleFacetSpyFacets()["core.router"];
-                                    if (router) {
-                                        router.history.push(`/servers-story-entry-route/feed/${serverID}`);
-                                    }
-                                });
-                                document.body.appendChild(serverOptionsOverlayElement);
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                    serverOptionsOverlayElement.querySelector(
+                                        "[data-server-options-overlay-field='description']"
+                                    ).textContent = `Description: ${server.description}`;
+                                    serverOptionsOverlayElement.querySelector("#serverOptionsOverlayElement_joinServerButton").addEventListener("click", () => {
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const networkWorldJoiner = getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"];
+                                        if (networkWorldJoiner) {
+                                            networkWorldJoiner.joinExternalServer(serverID.toString());
+                                        }
+                                    });
+                                    document.body.appendChild(serverOptionsOverlayElement);
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"]?.loadNetworkWorldDetails(serverID, 0);
+                                } catch (e) {
+                                    console.error(e);
+                                }
                             });
                             const serverOptionsButton_icon = document.createElement("img");
                             serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
@@ -3688,7 +3668,7 @@ async function enableLitePlayScreen() {
     }
     if (globalThis.observingLANWorldListForLitePlayScreenLanTab !== true) {
         globalThis.observingLANWorldListForLitePlayScreenLanTab = true;
-        facetSpyData.sharedFacets["vanilla.lanworldlist"].observe((lanworldList) => {
+        facetSpyData.sharedFacets["vanilla.lanWorldList"].observe((lanWorldList) => {
             if (currentTab !== "friends") {
                 return;
             }
@@ -3703,9 +3683,11 @@ async function enableLitePlayScreen() {
         });
     }
     if (globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab !== true) {
+        
         globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab = true;
         facetSpyData.sharedFacets["vanilla.networkWorldDetails"].observe((networkWorldDetails) => {
-            if (currentTab !== "servers") {
+            console.log(networkWorldDetails);
+            if (currentTab !== "servers" && currentTab !== "featured") {
                 return;
             }
             /**
@@ -3715,11 +3697,10 @@ async function enableLitePlayScreen() {
              */
             const serverOptionsOverlayElement = document.getElementById("serverOptionsOverlayElement");
             if (serverOptionsOverlayElement) {
-                serverOptionsOverlayElement.children[0].children[0].textContent = `Players: ${networkWorldDetails.playerCount}/${networkWorldDetails.capacity}${
-                    networkWorldDetails.msgOfTheDay ? ` | MOTD: ${networkWorldDetails.msgOfTheDay}` : ""
-                } | Ping: ${networkWorldDetails.ping} | ID: ${networkWorldDetails.id} | ${
-                    networkWorldDetails.description ? `Description: ${networkWorldDetails.description}` : ""
-                }`;
+                const imageElement = serverOptionsOverlayElement.querySelector('[data-server-options-overlay-field="image"]');
+                if (imageElement) {
+                    imageElement.src = networkWorldDetails.networkDetails.imagePath;
+                }
             }
         });
     }
