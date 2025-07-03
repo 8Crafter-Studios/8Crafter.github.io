@@ -1989,13 +1989,13 @@ export const builtInPlugins = [
                             )!
                             .slice(1, 6) as [string, string, string, string, string];
                         if (!new RegExp(
-                                `(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`
+                                `(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`
                             ).test(currentFileContent)) {
                                 throw new Error("Unable to find routes.");
                             }
                         currentFileContent = currentFileContent.replace(
                             new RegExp(
-                                `(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`
+                                `(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`
                             ),
                             `$1.createElement($2, {
                         route: "/ouic/play/:tab?",

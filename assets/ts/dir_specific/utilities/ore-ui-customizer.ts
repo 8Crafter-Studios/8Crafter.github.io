@@ -53,7 +53,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.1.1";
+    export const format_version = "1.1.2";
     /**
      * @type {File | undefined}
      */
@@ -1441,7 +1441,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 if (action.context !== "per_text_file") continue;
                                 try {
                                     distData = await action.action(distData, entry, zipFs!);
-                                } catch (e) {
+                                } catch (e: any) {
+                                    console.error(e, e?.stack);
                                     failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                                 }
                             }
@@ -1489,7 +1490,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 if (action.context !== "per_binary_file") continue;
                                 try {
                                     distData = await action.action(distData, entry, zipFs!);
-                                } catch (e) {
+                                } catch (e: any) {
+                                    console.error(e, e?.stack);
                                     failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                                 }
                             }
@@ -2674,7 +2676,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             if (action.context !== "per_text_file") continue;
                             try {
                                 distData = await action.action(distData, entry, zipFs!);
-                            } catch (e) {
+                            } catch (e: any) {
+                                console.error(e, e?.stack);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }

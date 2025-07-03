@@ -1444,10 +1444,10 @@ export const builtInPlugins = [
                         const bindingVariableTargets = origData
                             .match(/const\{([a-zA-Z0-9_\$]):([a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen"\);return ([a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{debugDrawer:\[/)
                             .slice(1, 6);
-                        if (!new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`).test(currentFileContent)) {
+                        if (!new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`).test(currentFileContent)) {
                             throw new Error("Unable to find routes.");
                         }
-                        currentFileContent = currentFileContent.replace(new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2}),transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`), `$1.createElement($2, {
+                        currentFileContent = currentFileContent.replace(new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`), `$1.createElement($2, {
                         route: "/ouic/play/:tab?",
                         component: () => {
                             // const { ${bindingVariableTargets[0]}: ${bindingVariableTargets[1]} } = ${bindingVariableTargets[2]}("PlayScreen");

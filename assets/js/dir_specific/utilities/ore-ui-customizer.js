@@ -44,7 +44,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.1.1";
+    OreUICustomizer.format_version = "1.1.2";
     /**
      * @type {File | undefined}
      */
@@ -1276,6 +1276,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                     distData = await action.action(distData, entry, OreUICustomizer.zipFs);
                                 }
                                 catch (e) {
+                                    console.error(e, e?.stack);
                                     failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                                 }
                             }
@@ -1323,6 +1324,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                     distData = await action.action(distData, entry, OreUICustomizer.zipFs);
                                 }
                                 catch (e) {
+                                    console.error(e, e?.stack);
                                     failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                                 }
                             }
@@ -2450,6 +2452,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 distData = await action.action(distData, entry, OreUICustomizer.zipFs);
                             }
                             catch (e) {
+                                console.error(e, e?.stack);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }
