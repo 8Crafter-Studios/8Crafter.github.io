@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.1.2";
+export const format_version = "1.2.0";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -237,24 +237,24 @@ export async function applyMods(file, options = {}) {
              * @param {unknown} param0.generalData
              * @param {boolean} param0.isLockedTemplate
              */
-            function $1({ generalData: e, isLockedTemplate: t }) {
+            function $1({ generalData, isLockedTemplate: isLockedTemplate }) {
                 const { t: $12 } = $2("CreateNewWorld.general"),
                     $3 = $4(),
-                    o = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) === $6.CREATE,
-                    i = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($7),
-                    c = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t, $12) => $12 || t || !o || (e.gameMode !== $8.SURVIVAL && e.gameMode !== $9.ADVENTURE), [o], [e, t, i]);
+                    oAA = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) === $6.CREATE,
+                    iAA = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($7),
+                    cAA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((generalData, isLockedTemplate, $12) => $12 || isLockedTemplate || !oAA || (generalData.gameMode !== $8.SURVIVAL && generalData.gameMode !== $9.ADVENTURE), [oAA], [generalData, isLockedTemplate, iAA]);
                 return ${extractedSymbolNames.contextHolder}.createElement($10, {
                     title: $11(".hardcoreModeTitle"),
                     soundEffectPressed: "ui.hardcore_toggle_press",
-                    disabled: false /* c */, // Modified to make the hardcore mode toggle always be enabled.
+                    disabled: false /* cAA */, // Modified to make the hardcore mode toggle always be enabled.
                     description: $12(".hardcoreModeDescription"),
-                    value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isHardcore, [], [e]),
+                    value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((generalData) => generalData.isHardcore, [], [generalData]),
                     onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                        (e) => (t) => {
-                            (e.isHardcore = t), $3(t ? "ui.hardcore_enable" : "ui.hardcore_disable");
+                        (generalData) => (value) => {
+                            (generalData.isHardcore = value), $3(value ? "ui.hardcore_enable" : "ui.hardcore_disable");
                         },
                         [$3],
-                        [e]
+                        [generalData]
                     ),
                     gamepad: { index: 4 },
                     imgSrc: $13,
@@ -265,7 +265,7 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
                     failedReplaces.push("hardcoreModeToggleAlwaysClickable");
                 }
             }
@@ -283,50 +283,50 @@ export async function applyMods(file, options = {}) {
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {unknown} param0.areAllTogglesDisabled
              */
-            function $1({ experimentalFeature: e, gamepadIndex: t, disabled: $2, achievementsDisabledMessages: $3, areAllTogglesDisabled: o }) {
-                const { gt: i } = (function () {
-                        const { translate: e, formatDate: t } = (0, ${extractedSymbolNames.contextHolder}.useContext)($4);
+            function $1({ experimentalFeature: e, gamepadIndex: tAA, disabled: $2, achievementsDisabledMessages: $3, areAllTogglesDisabled: $4 }) {
+                const { gt: $5 } = (function () {
+                        const { translate: e, formatDate: t } = (0, ${extractedSymbolNames.contextHolder}.useContext)($6);
                         return (0, ${extractedSymbolNames.contextHolder}.useMemo)(
                             () => ({
                                 f: { formatDate: t },
-                                gt: (t, $2) => {
+                                gt: (tAB, $2) => {
                                     var $3;
-                                    return null !== ($3 = e(t, $2)) && void 0 !== $3 ? $3 : t;
+                                    return null !== ($3 = e(tAB, $2)) && void 0 !== $3 ? $3 : tAB;
                                 },
                             }),
                             [e, t]
                         );
                     })(),
                     { t: c } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.all"),
-                    s = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.id, [], [e]),
-                    u = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)(s),
-                    d = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.title, [], [e]),
-                    m = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)(d),
-                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.description, [], [e]),
-                    f = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)(p),
-                    g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isEnabled, [], [e]),
-                    E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => e || t.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2 */), e]), // Modified
-                    h = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
+                    $7 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.id, [], [e]),
+                    $8 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($7),
+                    $9 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.title, [], [e]),
+                    $10 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($9),
+                    $11 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.description, [], [e]),
+                    $12 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($11),
+                    $13 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isEnabled, [], [e]),
+                    $14 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => e || t.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2 */), e]), // Modified
+                    $15 = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
                         (e, t) => ($2) => {
                             $2 && t
-                                ? $5.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (e.isEnabled = $2), userHasAcceptedBetaFeatures: !1 })
+                                ? $16.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (e.isEnabled = $2), userHasAcceptedBetaFeatures: !1 })
                                 : (e.isEnabled = $2);
                         },
                         [],
-                        [e, o]
+                        [e, $4]
                     ),
-                    $6 = c(".narrationSuffixDisablesAchievements"),
-                    $7 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => (0 === e.length ? c(".narrationSuffixEnablesAchievements") : void 0), [c], [$3]);
-                return null != u
-                    ? ${extractedSymbolNames.contextHolder}.createElement($8, {
-                          title: m !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? i(m) : "",
-                          description: f !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? i(f) : "",
-                          gamepad: { index: t },
-                          value: g,
-                          disabled: false /* E */, // Modified
-                          onChange: h,
-                          onNarrationText: $6,
-                          offNarrationText: $7,
+                    $17 = c(".narrationSuffixDisablesAchievements"),
+                    $18 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => (0 === e.length ? c(".narrationSuffixEnablesAchievements") : void 0), [c], [$3]);
+                return null != $8
+                    ? ${extractedSymbolNames.contextHolder}.createElement($19, {
+                          title: $10 !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5($10) : "",
+                          description: $12 !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5($12) : "",
+                          gamepad: { index: tAA },
+                          value: $13,
+                          disabled: false /* $14 */, // Modified
+                          onChange: $15,
+                          onNarrationText: $17,
+                          offNarrationText: $18,
                       })
                     : null;
             }`);
@@ -334,7 +334,7 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
                     failedReplaces.push("allowDisablingEnabledExperimentalToggles");
                 }
             }
@@ -354,37 +354,37 @@ export async function applyMods(file, options = {}) {
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {boolean} param0.isHardcoreMode
              */
-            function $1({ generalData: e, isLockedTemplate: t, isUsingTemplate: $2, achievementsDisabledMessages: $3, isHardcoreMode: o }) {
-                const { t: i } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.general"),
-                    { t: c } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.all"),
-                    s = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($4),
-                    u = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
-                    d = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($7),
-                    m = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t, $2) => e || t || $2, [], [t, s, o]),
-                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)(
-                        (e, t) => {
+            function $1({ generalData: eAA, isLockedTemplate: tAA, isUsingTemplate: $2, achievementsDisabledMessages: $3, isHardcoreMode: oAA }) {
+                const { t: iAA } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.general"),
+                    { t: cAA } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.all"),
+                    sAA = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($4),
+                    uAA = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
+                    dAA = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($7),
+                    mAA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA, tAA, $2) => eAA || tAA || $2, [], [tAA, sAA, oAA]),
+                    pAA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)(
+                        (eAA, tAA) => {
                             const $2 = [/* 
                                 $8(
-                                    { label: i(".gameModeUnknownLabel"), description: i(".gameModeUnknownDescription"), value: $9.UNKNOWN },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    { label: iAA(".gameModeUnknownLabel"), description: iAA(".gameModeUnknownDescription"), value: $9.UNKNOWN },
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
                                 $8(
-                                    { label: i(".gameModeSurvivalLabel"), description: i(".gameModeSurvivalDescription"), value: $9.SURVIVAL },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    { label: iAA(".gameModeSurvivalLabel"), description: iAA(".gameModeSurvivalDescription"), value: $9.SURVIVAL },
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 {
-                                    label: i(".gameModeCreativeLabel"),
-                                    description: i(".gameModeCreativeDescription"),
+                                    label: iAA(".gameModeCreativeLabel"),
+                                    description: iAA(".gameModeCreativeDescription"),
                                     value: $9.CREATIVE,
-                                    narrationSuffix: c(".narrationSuffixDisablesAchievements"),
+                                    narrationSuffix: cAA(".narrationSuffixDisablesAchievements"),
                                 },
                                 $8(
                                     {
-                                        label: i(".gameModeAdventureLabel"),
-                                        description: i(t ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
+                                        label: iAA(".gameModeAdventureLabel"),
+                                        description: iAA(tAA ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
                                         value: $9.ADVENTURE,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),/* 
                                 $8(
                                     {
@@ -392,7 +392,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Secret game mode 3.",
                                         value: $9.GM3,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 $8(
                                     {
@@ -400,7 +400,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Secret game mode 4.",
                                         value: $9.GM4,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
                                 $8(
                                     {
@@ -408,7 +408,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Default game mode, might break things if you set the default game mode to itself.",
                                         value: $9.DEFAULT,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 $8(
                                     {
@@ -416,7 +416,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Spectator mode.",
                                         value: $9.SPECTATOR,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),/* 
                                 $8(
                                     {
@@ -424,7 +424,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Secret game mode 7.",
                                         value: $9.GM7,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 $8(
                                     {
@@ -432,7 +432,7 @@ export async function applyMods(file, options = {}) {
                                         description: "Secret game mode 8.",
                                         value: $9.GM8,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ),
                                 $8(
                                     {
@@ -440,42 +440,42 @@ export async function applyMods(file, options = {}) {
                                         description: "Secret game mode 9.",
                                         value: $9.GM9,
                                     },
-                                    1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                    1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                 ), */
                             ]; /* 
                             return (
-                                (u || t) &&
+                                (uAA || tAA) &&
                                     $2.push(
                                         $8(
                                             {
-                                                label: i(".gameModeAdventureLabel"),
-                                                description: i(t ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
+                                                label: iAA(".gameModeAdventureLabel"),
+                                                description: iAA(tAA ? ".gameModeAdventureTemplateDescription" : ".gameModeAdventureDescription"),
                                                 value: $9.ADVENTURE,
                                             },
-                                            1 === e.length ? { narrationSuffix: c(".narrationSuffixEnablesAchievements") } : {}
+                                            1 === eAA.length ? { narrationSuffix: cAA(".narrationSuffixEnablesAchievements") } : {}
                                         )
                                     ),
                                 $2
                             ); */
                             return $2;
                         },
-                        [i, c, u],
+                        [iAA, cAA, uAA],
                         [$3, $2]
                     ),
-                    f = (0, ${extractedSymbolNames.facetHolder}.useNotifyMountComplete)();
+                    fAA = (0, ${extractedSymbolNames.facetHolder}.useNotifyMountComplete)();
                 return ${extractedSymbolNames.contextHolder}.createElement($10, {
-                    title: i(".gameModeTitle"),
-                    disabled: m,
-                    options: p,
-                    onMountComplete: f,
-                    value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.gameMode, [], [e]),
+                    title: iAA(".gameModeTitle"),
+                    disabled: mAA,
+                    options: pAA,
+                    onMountComplete: fAA,
+                    value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA) => eAA.gameMode, [], [eAA]),
                     onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                        (e, t) => ($2) => {
-                            const $11 = e.gameMode;
-                            (e.gameMode = $2), u && t.trackOptionChanged($12.GameModeChanged, $11, $2);
+                        (eAA, tAA) => ($2) => {
+                            const $11 = eAA.gameMode;
+                            (eAA.gameMode = $2), uAA && tAA.trackOptionChanged($12.GameModeChanged, $11, $2);
                         },
-                        [u],
-                        [e, d]
+                        [uAA],
+                        [eAA, dAA]
                     ),
                 });
             }`);
@@ -503,7 +503,7 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addMoreDefaultGameModes_dropdown");
                     }
@@ -594,7 +594,7 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addGeneratorTypeDropdown_dropdown");
                     }
@@ -607,82 +607,67 @@ export async function applyMods(file, options = {}) {
                 let successfullyReplaced = false;
                 for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
                     if (regex.test(distData)) {
-                        distData = distData.replace(regex, `$1 = ({ advancedData: e, isEditorWorld: t, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: o, worldData: wd }) => {
-                    const { t: i } = $4("CreateNewWorld.advanced"),
-                        { t: c } = $4("CreateNewWorld.all"),
-                        s = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
-                        u = $7($8),
-                        d = $9(),
-                        m = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($10),
-                        p = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($11),
-                        f = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.worldSeed, [], [e]),
-                        g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isClipboardCopySupported, [], [m]),
-                        E = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                            (e, t, $2) => () => {
-                                t.copyToClipboard(e), $2.queueSnackbar(i(".copyToClipboard"));
+                        distData = distData.replace(regex, `$1 = ({ advancedData: eAA, isEditorWorld: tAA, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: oAA, worldData: wd }) => {
+                    const { t: iAA } = $4("CreateNewWorld.advanced"),
+                        { t: cAA } = $4("CreateNewWorld.all"),
+                        sAA = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
+                        uAA = true /* $7($8) */,
+                        dAA = $9(),
+                        mAA = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($10),
+                        pAA = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($11),
+                        fAA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA) => eAA.worldSeed, [], [eAA]),
+                        gAA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA) => eAA.isClipboardCopySupported, [], [mAA]),
+                        EAA = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
+                            (eAA, tAA, $2) => () => {
+                                tAA.copyToClipboard(eAA), $2.queueSnackbar(iAA(".copyToClipboard"));
                             },
-                            [i],
-                            [f, m, p]
+                            [iAA],
+                            [fAA, mAA, pAA]
                         ),
-                        h = s ? E : () => d.push("/create-new-world/seed-templates"),
-                        $12 = s ? "" : i(".worldSeedPlaceholder"),
-                        $13 = i(s ? ".worldSeedCopyButton" : ".worldSeedButton"),
-                        y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t, $2) => t || ($2 && u && !s && e.generatorType != $14.Overworld), [u, s], [e, $3, t]);
-                    return (/* o
-                        ?  */${extractedSymbolNames.contextHolder}.createElement(
+                        hAA = sAA ? EAA : () => dAA.push("/create-new-world/seed-templates"),
+                        $12 = sAA ? "" : iAA(".worldSeedPlaceholder"),
+                        $13 = iAA(sAA ? ".worldSeedCopyButton" : ".worldSeedButton"),
+                        y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA, tAA, $2) => tAA || ($2 && uAA && !sAA && eAA.generatorType != $14.Overworld), [uAA, sAA], [eAA, $3, tAA]);
+                    return ${extractedSymbolNames.contextHolder}.createElement(
                               ${extractedSymbolNames.facetHolder}.DeferredMount,
                               null,
-                              ${extractedSymbolNames.contextHolder}.createElement($15, { data: g }, (e) =>
-                                  /* s && !e
+                              ${extractedSymbolNames.contextHolder}.createElement($15, { data: gAA }, (eAA) =>
+                                  /* sAA && !eAA
                                       ? ${extractedSymbolNames.contextHolder}.createElement($16, {
-                                            disabled: s,
-                                            label: i(".worldSeedLabel"),
-                                            description: i(".worldSeedDescription"),
+                                            disabled: sAA,
+                                            label: iAA(".worldSeedLabel"),
+                                            description: iAA(".worldSeedDescription"),
                                             maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
-                                            value: f,
+                                            value: fAA,
                                             onChange: $2,
-                                            placeholder: i(".worldSeedPlaceholder"),
-                                            disabledNarrationSuffix: c(".narrationSuffixTemplateLocked"),
+                                            placeholder: iAA(".worldSeedPlaceholder"),
+                                            disabledNarrationSuffix: cAA(".narrationSuffixTemplateLocked"),
                                             "data-testid": "world-seed-text-field",
                                         })
                                       :  */${extractedSymbolNames.contextHolder}.createElement($16.WithButton, {
                                             buttonInputLegend: $13,
                                             buttonText: $13,
-                                            buttonOnClick: h,
-                                            textDisabled: false /* s */, // Modified
+                                            buttonOnClick: hAA,
+                                            textDisabled: false /* sAA */, // Modified
                                             disabled: false /* y */, // Modified
-                                            label: i(".worldSeedLabel"),
-                                            description: i(".worldSeedDescription") + (s ? " Please go to the Debug tab if you want to change the seed, as any changes made in this text box will not be saved." : ""),
+                                            label: iAA(".worldSeedLabel"),
+                                            description: iAA(".worldSeedDescription") + (sAA ? " Please go to the Debug tab if you want to change the seed, as any changes made in this text box will not be saved." : ""),
                                             maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
-                                            value: f,
+                                            value: fAA,
                                             onChange: $2,
                                             placeholder: $12,
-                                            buttonNarrationHint: i(".narrationTemplatesButtonNarrationHint"),
-                                            disabledNarrationSuffix: c(".narrationSuffixTemplateLocked"),
+                                            buttonNarrationHint: iAA(".narrationTemplatesButtonNarrationHint"),
+                                            disabledNarrationSuffix: cAA(".narrationSuffixTemplateLocked"),
                                             "data-testid": "world-seed-with-button",
                                         })
                               )
-                          )/* 
-                        : ${extractedSymbolNames.contextHolder}.createElement(
-                              ${extractedSymbolNames.facetHolder}.DeferredMount,
-                              null,
-                              ${extractedSymbolNames.contextHolder}.createElement($16, {
-                                  disabled: y,
-                                  label: i(".worldSeedLabel"),
-                                  description: i(".worldSeedDescription"),
-                                  maxLength: ${settings.maxTextLengthOverride === "" ? 1000000 : settings.maxTextLengthOverride},
-                                  value: f,
-                                  onChange: $2,
-                                  placeholder: i(".worldSeedPlaceholder"),
-                                  disabledNarrationSuffix: c(".narrationSuffixTemplateLocked"),
-                              })
-                          ) */);
+                          );
                 },`);
                         successfullyReplaced = true;
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
                     failedReplaces.push("allowForChangingSeeds");
                 }
             }
@@ -696,14 +681,14 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
+                for (const { regex, replacement } of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
                     if (regex.test(distData)) {
-                        distData = distData.replace(regex, `return ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.contextHolder}.Fragment,null,${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false},${extractedSymbolNames.contextHolder}.createElement($1,{onChange:$2,value:$3,title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),disabled:$5,offNarrationText:$6,onNarrationText:$7,narrationSuffix:$8})),${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:false,condition:!1},${extractedSymbolNames.contextHolder}.createElement($9,{title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),value:$3,onChange:$2,disabled:$5,narrationSuffix:$8,offNarrationText:$6,onNarrationText:$7,onExpandNarrationHint:$10},${extractedSymbolNames.contextHolder}.createElement($11,{title:$12(".title"),customSelectionDescription:${extractedSymbolNames.contextHolder}.createElement($13,{preset:$14}),options:$15,value:$16,onItemSelect:e=>$17($18[e]),disabled:$5,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$19}))))`);
+                        distData = distData.replace(regex, replacement);
                         successfullyReplacedB = true;
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset")) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset")) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
                     }
@@ -711,7 +696,7 @@ export async function applyMods(file, options = {}) {
                         failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
                     failedReplaces.push("allowForChangingFlatWorldPreset");
                 }
             }
@@ -998,11 +983,10 @@ export async function applyMods(file, options = {}) {
                     rawData = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e, [], [eAA]),
                     PHD = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.general, [], [eAA]),
                     p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.general, [], [eAA]),
-                    s = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.scriptingCoding, [], [eAA]),
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.playerHasDied, [], [p]),
                     playerPermissionsChange = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.multiplayer.playerPermissions = Number(t)), [], [rawData]);
                 // e.achievementsPermanentlyDisabled = false; // Modified
-                rawData.get().general.playerHasDied = false;
+                // rawData.get().general.playerHasDied = false;
                 return ${extractedSymbolNames.contextHolder}.createElement(
                     ${extractedSymbolNames.contextHolder}.Fragment,
                     null,
@@ -1139,28 +1123,6 @@ export async function applyMods(file, options = {}) {
                             description: "readonly general.playerHasDied",
                             value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.playerHasDied, [], [p]),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.playerHasDied = t), [], [p]),
-                        }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
-                            title: "consoleCommandsEnabled (read-only)",
-                            disabled: true,
-                            description: "scriptingCoding.consoleCommandsEnabled",
-                            value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.consoleCommandsEnabled, [], [eAA]),
-                            onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.consoleCommandsEnabled = t),
-                                [],
-                                [rawData]
-                            ),
-                        }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
-                            title: "codeBuilderEnabled (read-only)",
-                            disabled: true,
-                            description: "scriptingCoding.codeBuilderEnabled (read-only)",
-                            value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((/** @type {ReturnType<RawWorldData["get"]>} */ e) => e.scriptingCoding.codeBuilderEnabled, [], [eAA]),
-                            onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                                (/** @type {ReturnType<RawWorldData["get"]>} */ e) => (t) => (e.scriptingCoding.codeBuilderEnabled = t),
-                                [],
-                                [rawData]
-                            ),
                         })
                     )
                 );
@@ -1169,18 +1131,19 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                for (const regex of replacerRegexes.addDebugTab[1]) {
+                for (const { regex, replacement } of replacerRegexes.addDebugTab[1]) {
                     if (regex.test(distData)) {
-                        distData = distData.replace(regex, `$1.push({label:".debugTabLabel",image:$2,value:"debug"}),`);
+                        distData = distData.replace(regex, replacement);
                         successfullyReplacedB = true;
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addDebugTab_replaceTab");
                     }
                     if (!successfullyReplacedB) {
+                        // console.log(replacerRegexes.addDebugTab[1][0], "\n\n\n");
                         failedReplaces.push("addDebugTab_makeVisible");
                     }
                 }
@@ -1191,7 +1154,7 @@ export async function applyMods(file, options = {}) {
                 }
             });
             distData = distData
-                .replace(/(?=<script defer="defer" src="\/hbui\/index-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
+                .replace(/(?=<script defer="defer" src="\/hbui\/(?:index|gameplay|editor)-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
         <script defer="defer" src="/hbui/class_path.js"></script>
         <script defer="defer" src="/hbui/css.js"></script>
         <script defer="defer" src="/hbui/JSONB.js"></script>
@@ -1211,7 +1174,7 @@ export async function applyMods(file, options = {}) {
                 for (const textLengthValue of values) {
                     distData = distData.replace(textLengthValue[0], `maxLength${textLengthValue[1]}${settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */}`);
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && distData === origDistData) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && distData === origDistData) {
                     failedReplaces.push("maxTextLengthOverride");
                 }
             }
@@ -1221,7 +1184,7 @@ export async function applyMods(file, options = {}) {
             if (settings.add8CrafterUtilitiesMainMenuButton) {
                 let successfullyReplaced = false;
                 let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] = origData
-                    .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:i\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:i\("\.inputLegend"\),narrationText:null!=o\?o:i\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/)
+                    .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_\$]{1})\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:(?:[a-zA-Z0-9_\$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_\$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/)
                     ?.slice(1, 4) ?? [];
                 disabledVariableSymbolName ??= "n";
                 focusGridIndexVariableSymbolName ??= "r";
@@ -1237,7 +1200,7 @@ export async function applyMods(file, options = {}) {
                                                         ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
-                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: ${focusGridIndexVariableSymbolName}, role: l = "inherit" }) {
+                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
                                                                     return ${extractedSymbolNames.contextHolder}.createElement(
                                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                                         null,
@@ -1245,7 +1208,7 @@ export async function applyMods(file, options = {}) {
                                                                             ${extractedSymbolNames.navbarButtonFunction},
                                                                             {
                                                                                 disabled: ${disabledVariableSymbolName},
-                                                                                // focusGridIndex: ${focusGridIndexVariableSymbolName},
+                                                                                // focusGridIndex: rAA,
                                                                                 inputLegend: "8Crafter Utilities",
                                                                                 // narrationText: "8Crafter Utilities Button",
                                                                                 onClick: e,
@@ -1293,7 +1256,7 @@ export async function applyMods(file, options = {}) {
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
                     failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
                 }
             }

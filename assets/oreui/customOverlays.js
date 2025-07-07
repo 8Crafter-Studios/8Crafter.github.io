@@ -3686,7 +3686,6 @@ async function enableLitePlayScreen() {
         
         globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab = true;
         facetSpyData.sharedFacets["vanilla.networkWorldDetails"].observe((networkWorldDetails) => {
-            console.log(networkWorldDetails);
             if (currentTab !== "servers" && currentTab !== "featured") {
                 return;
             }
