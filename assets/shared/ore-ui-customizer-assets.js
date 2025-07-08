@@ -611,7 +611,7 @@ export function getReplacerRegexes(extractedSymbolNames) {
                  * - 1.21.90.20 preview (index-fe5c0.js)
                  * - 1.21.90.21 preview (index-aaad2.js)
                  */
-                new RegExp(`function\\(e\\)\\{e\\[e\\.UNKNOWN=-1\\]="UNKNOWN",e\\[e\\.SURVIVAL=0\\]="SURVIVAL",e\\[e\\.CREATIVE=1\\]="CREATIVE",e\\[e\\.ADVENTURE=2\\]="ADVENTURE"(?:,e\\[e\\.DEFAULT=5\\]="DEFAULT",e\\[e\\.SPECTATOR=6\\]="SPECTATOR")\\}\\(([a-zA-Z0-9_\\$]{2})\\|\\|\\(([a-zA-Z0-9_\\$]{2})=\\{\\}\\)\\),`),
+                /function\(e\)\{e\[e\.UNKNOWN=-1\]="UNKNOWN",e\[e\.SURVIVAL=0\]="SURVIVAL",e\[e\.CREATIVE=1\]="CREATIVE",e\[e\.ADVENTURE=2\]="ADVENTURE"(?:,e\[e\.DEFAULT=5\]="DEFAULT",e\[e\.SPECTATOR=6\]="SPECTATOR")?\}\(([a-zA-Z0-9_\$]{2})\|\|\(([a-zA-Z0-9_\$]{2})=\{\}\)\),/,
             ],
         },
         /**
@@ -1175,8 +1175,8 @@ export const builtInPlugins = [
                     /**
                      * The symbol name of the facet access holder.
                      */
-                    const facetAccessHolderBindingVariableTarget = currentFileContent.match(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(([a-zA-Z0-9_\$])=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/)[1];
-                    currentFileContent = currentFileContent.replace(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(([a-zA-Z0-9_\$])=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/, `inverse:(0,$1.useFacetMap)((($2)=>"POP"===$2),[],[$3])}))),${origData.match(/([a-zA-Z0-9_\$])\.createElement\((?:[a-zA-Z0-9_\$]),\{visible:(?:[a-zA-Z0-9_\$]),alwaysMounted:(?:[a-zA-Z0-9_\$]),/)[1]}.createElement(facetSpy,null)`);
+                    const facetAccessHolderBindingVariableTarget = currentFileContent.match(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(\(?([a-zA-Z0-9_\$])\)?=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/)[1];
+                    currentFileContent = currentFileContent.replace(/inverse:\(0,([a-zA-Z0-9_\$])\.useFacetMap\)\(\(\(?([a-zA-Z0-9_\$])\)?=>"POP"===(?:[a-zA-Z0-9_\$])\),\[\],\[([a-zA-Z0-9_\$])\]\)\}\)\)\)/, `inverse:(0,$1.useFacetMap)((($2)=>"POP"===$2),[],[$3])}))),${origData.match(/([a-zA-Z0-9_\$])\.createElement\((?:[a-zA-Z0-9_\$]),\{visible:(?:[a-zA-Z0-9_\$]),alwaysMounted:(?:[a-zA-Z0-9_\$]),/)[1]}.createElement(facetSpy,null)`);
                     /**
                      * The facet spy function that will be injected into the file.
                      */
@@ -1441,7 +1441,7 @@ export const builtInPlugins = [
             }
             globalThis.getAccessibleFacetSpyFacets = getAccessibleFacetSpyFacets;`;
                     currentFileContent = currentFileContent.replace(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
-                        ? new RegExp(`var ([a-zA-Z0-9_\\$])=([a-zA-Z0-9_\\$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);`)
+                        ? new RegExp(`var ([a-zA-Z0-9_\\$])=([a-zA-Z0-9_\\$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_\\$])=\\(0,(?:[a-zA-Z0-9_\\$])\\.createContext\\))`)
                         : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)
                             ? new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_\\$])\\(([0-9]+)\\);`)
                             : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_\\$])\\(([0-9]+)\\);`), facetSpyFunction);
@@ -1474,10 +1474,10 @@ export const builtInPlugins = [
                         const bindingVariableTargets = origData
                             .match(/const\{([a-zA-Z0-9_\$]):([a-zA-Z0-9_\$])\}=([a-zA-Z0-9_\$]{2})\("PlayScreen"\);return ([a-zA-Z0-9_\$])\.createElement\(([a-zA-Z0-9_\$]{2}),\{debugDrawer:\[/)
                             .slice(1, 6);
-                        if (!new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`).test(currentFileContent)) {
+                        if (!new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2}),\\{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`).test(currentFileContent)) {
                             throw new Error("Unable to find routes.");
                         }
-                        currentFileContent = currentFileContent.replace(new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\,{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`), `$1.createElement($2, {
+                        currentFileContent = currentFileContent.replace(new RegExp(`(?<=([a-zA-Z0-9_\\$])\\.createElement\\(([a-zA-Z0-9_\\$]{2}),\\{route:"/play/servers/add",component:(?:[a-zA-Z0-9_\\$]{2})(?:\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_\\$]{2})\\}\\),)`), `$1.createElement($2, {
                         route: "/ouic/play/:tab?",
                         component: () => {
                             // const { ${bindingVariableTargets[0]}: ${bindingVariableTargets[1]} } = ${bindingVariableTargets[2]}("PlayScreen");

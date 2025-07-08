@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.2.0";
+export const format_version = "1.2.1";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -283,50 +283,50 @@ export async function applyMods(file, options = {}) {
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {unknown} param0.areAllTogglesDisabled
              */
-            function $1({ experimentalFeature: e, gamepadIndex: tAA, disabled: $2, achievementsDisabledMessages: $3, areAllTogglesDisabled: $4 }) {
-                const { gt: $5 } = (function () {
-                        const { translate: e, formatDate: t } = (0, ${extractedSymbolNames.contextHolder}.useContext)($6);
+            function $1({ experimentalFeature, gamepadIndex: tAAC, disabled: $2AA, achievementsDisabledMessages: $3AA, areAllTogglesDisabled: $4AA }) {
+                const { gt: $5AA } = (function () {
+                        const { translate, formatDate } = (0, ${extractedSymbolNames.contextHolder}.useContext)($6);
                         return (0, ${extractedSymbolNames.contextHolder}.useMemo)(
                             () => ({
-                                f: { formatDate: t },
-                                gt: (tAB, $2) => {
-                                    var $3;
-                                    return null !== ($3 = e(tAB, $2)) && void 0 !== $3 ? $3 : tAB;
+                                f: { formatDate },
+                                gt: (tAB, $2AA) => {
+                                    var $3AA;
+                                    return null !== ($3AA = translate(tAB, $2AA)) && void 0 !== $3AA ? $3AA : tAB;
                                 },
                             }),
-                            [e, t]
+                            [translate, formatDate]
                         );
                     })(),
-                    { t: c } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.all"),
-                    $7 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.id, [], [e]),
-                    $8 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($7),
-                    $9 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.title, [], [e]),
-                    $10 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($9),
-                    $11 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.description, [], [e]),
-                    $12 = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($11),
-                    $13 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isEnabled, [], [e]),
-                    $14 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => e || t.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2 */), e]), // Modified
-                    $15 = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
-                        (e, t) => ($2) => {
-                            $2 && t
-                                ? $16.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (e.isEnabled = $2), userHasAcceptedBetaFeatures: !1 })
-                                : (e.isEnabled = $2);
+                    { t: cAA } = ${extractedSymbolNames.translationStringResolver}("CreateNewWorld.all"),
+                    $7AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB) => eAB.id, [], [experimentalFeature]),
+                    $8AA = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($7AA),
+                    $9AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB) => eAB.title, [], [experimentalFeature]),
+                    $10AA = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($9AA),
+                    $11AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB) => eAB.description, [], [experimentalFeature]),
+                    $12AA = (0, ${extractedSymbolNames.facetHolder}.useFacetUnwrap)($11AA),
+                    $13AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB) => eAB.isEnabled, [], [experimentalFeature]),
+                    $14AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB, tAB) => eAB || tAB.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2AA */), experimentalFeature]), // Modified
+                    $15AA = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
+                        (eAB, tAB) => ($2AA) => {
+                            $2AA && tAB
+                                ? $16AA.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (eAB.isEnabled = $2AA), userHasAcceptedBetaFeatures: !1 })
+                                : (eAB.isEnabled = $2AA);
                         },
                         [],
-                        [e, $4]
+                        [experimentalFeature, $4AA]
                     ),
-                    $17 = c(".narrationSuffixDisablesAchievements"),
-                    $18 = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => (0 === e.length ? c(".narrationSuffixEnablesAchievements") : void 0), [c], [$3]);
-                return null != $8
+                    $17AA = cAA(".narrationSuffixDisablesAchievements"),
+                    $18AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB) => (0 === eAB.length ? cAA(".narrationSuffixEnablesAchievements") : void 0), [cAA], [$3AA]);
+                return null != $8AA
                     ? ${extractedSymbolNames.contextHolder}.createElement($19, {
-                          title: $10 !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5($10) : "",
-                          description: $12 !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5($12) : "",
-                          gamepad: { index: tAA },
-                          value: $13,
-                          disabled: false /* $14 */, // Modified
-                          onChange: $15,
-                          onNarrationText: $17,
-                          offNarrationText: $18,
+                          title: $10AA !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5AA($10AA) : "",
+                          description: $12AA !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5AA($12AA) : "",
+                          gamepad: { index: tAAC },
+                          value: $13AA,
+                          disabled: false /* $14AA */, // Modified
+                          onChange: $15AA,
+                          onNarrationText: $17AA,
+                          offNarrationText: $18AA,
                       })
                     : null;
             }`);
