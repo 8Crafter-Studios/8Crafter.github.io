@@ -2450,7 +2450,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         }
         $("#current_customizer_status").text("Applying mods (Adding assets)...");
         try {
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/images/ore-ui-customizer/8crafter.gif").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/oreui/assets/8crafter.gif").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/8crafter.gif");
             addedCount++;
             // Toggle

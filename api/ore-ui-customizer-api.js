@@ -1302,7 +1302,7 @@ export async function applyMods(file, options = {}) {
         }
     }
     try {
-        zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetchFileBlob("./assets/images/ore-ui-customizer/8crafter.gif"));
+        zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetchFileBlob("./assets/oreui/assets/8crafter.gif"));
         log("Added gui/dist/hbui/assets/8crafter.gif");
         addedCount++;
         // Toggle
