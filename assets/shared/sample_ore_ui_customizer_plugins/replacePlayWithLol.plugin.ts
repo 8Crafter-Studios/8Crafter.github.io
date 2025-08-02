@@ -5,6 +5,14 @@ export const plugin: Plugin = {
     id: "replace-play-with-lol",
     namespace: "andexpl",
     version: "1.0.0",
+    uuid: "7a4a5d25-6e0a-47db-92d1-317eaa7dfe44",
+    description: "A sample plugin for 8Crafter's Ore UI Customizer.",
+    metadata: {
+        authors: ["8Crafter"],
+        license: "MIT",
+        product_type: "plugin",
+        url: "https://www.8crafter.com",
+    },
     actions: [
         {
             id: "replace-text",
