@@ -1,18 +1,20 @@
 import {
     builtInPlugins,
     defaultOreUICustomizerSettings,
+    type EncodedPluginData,
+    type ExtractedSymbolNames,
     getExtractedSymbolNames,
     getReplacerRegexes,
     importPluginFromDataURI,
-    OreUICustomizerSettings,
-    Plugin,
+    type OreUICustomizerSettings,
+    type Plugin,
 } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.2.1";
+export const format_version = "1.3.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -208,7 +210,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
     /**
      * The list of plugins to apply.
      */
-    const plugins: Plugin[] = [...builtInPlugins];
+    const plugins: Plugin[] = [...builtInPlugins, ...(settings.preloadedPlugins ?? [])];
     for (const encodedPlugin of settings.plugins ?? []) {
         plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, encodedPlugin.fileType));
     }
@@ -304,15 +306,29 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
             unmodifiedCount++;
         } else if (entry.directory === void false) {
             /**
+             * The original data.
+             *
              * @type {string}
              */
             const origData: string = await entry.getText();
-            let distData = origData;
             /**
+             * The modified data.
+             */
+            let distData: string = origData;
+            /**
+             * The list of failed replaces.
+             *
              * @type {string[]}
              */
             let failedReplaces: string[] = [];
-            const extractedSymbolNames = getExtractedSymbolNames(origData);
+            /**
+             * The extracted symbol names.
+             */
+            let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData);
+
+            /**
+             * Lists of regexes to use for certain modifications.
+             */
             const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
             if (settings.hardcoreModeToggleAlwaysClickable) {
                 let successfullyReplaced = false;
@@ -1248,7 +1264,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                for (const {regex, replacement} of replacerRegexes.addDebugTab[1]) {
+                for (const { regex, replacement } of replacerRegexes.addDebugTab[1]) {
                     if (regex.test(distData)) {
                         distData = distData.replace(regex, replacement);
                         successfullyReplacedB = true;
@@ -1500,16 +1516,10 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
         addedCount++;
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/button_borderless_darkhover.png",
-            await fetchFileBlob("./assets/oreui/assets/button_borderless_darkhover.png")
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_darkhover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
         addedCount++;
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/button_borderless_lighthover.png",
-            await fetchFileBlob("./assets/oreui/assets/button_borderless_lighthover.png")
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_lighthover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
         addedCount++;
         zipFs.addBlob(
@@ -1518,10 +1528,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
         );
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
         addedCount++;
-        zipFs.addBlob(
-            "gui/dist/hbui/assets/button_borderless_darkpressed.png",
-            await fetchFileBlob("./assets/oreui/assets/button_borderless_darkpressed.png")
-        );
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_darkpressed.png"));
         log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
         addedCount++;
         zipFs.addBlob(
@@ -1560,7 +1567,49 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
     try {
         zipFs.addText(
             "gui/dist/hbui/oreUICustomizer8CrafterConfig.js",
-            `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
+            `const oreUICustomizerConfig = ${JSON.stringify(
+                {
+                    ...settings,
+                    preloadedPlugins: undefined,
+                    activePluginsDetails: [
+                        ...(options.settings?.plugins?.map(
+                            (plugin: EncodedPluginData): NonNullable<OreUICustomizerSettings["activePluginsDetails"]>[number] => ({
+                                format_version: plugin.format_version,
+                                id: plugin.id,
+                                name: plugin.name,
+                                namespace: plugin.namespace,
+                                uuid: plugin.uuid,
+                                version: plugin.version,
+                                checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                                dependencies: plugin.dependencies,
+                                description: plugin.description,
+                                icon_data_uri: plugin.icon_data_uri,
+                                min_engine_version: plugin.min_engine_version,
+                                marketplaceDetails: plugin.marketplaceDetails,
+                                metadata: plugin.metadata,
+                            })
+                        ) ?? []),
+                        ...(options.settings?.preloadedPlugins?.map((plugin: Plugin): NonNullable<OreUICustomizerSettings["activePluginsDetails"]>[number] => ({
+                            format_version: plugin.format_version,
+                            id: plugin.id,
+                            name: plugin.name,
+                            namespace: plugin.namespace,
+                            uuid: plugin.uuid,
+                            version: plugin.version,
+                            checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                            dependencies: plugin.dependencies,
+                            description: plugin.description,
+                            icon_data_uri: plugin.icon_data_uri,
+                            min_engine_version: plugin.min_engine_version,
+                            marketplaceDetails: plugin.marketplaceDetails,
+                            metadata: plugin.metadata,
+                        })) ?? []),
+                    ],
+                    plugins: options.settings?.bundleEncodedPluginDataInConfigFile ? options.settings?.plugins : undefined,
+                } as OreUICustomizerSettings,
+                undefined,
+                4
+            )};
 const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         );
         log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");

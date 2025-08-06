@@ -1418,7 +1418,7 @@ function createCustomTextBox(container) {
                 8Crafter's Ore UI Customizer v${typeof oreUICustomizerVersion !== "undefined" ? oreUICustomizerVersion : window.oreUICustomizerVersion}
             </p>
             <p>
-                Source: https://www.dev.8crafter.com/utilities/ore-ui-customizer
+                Source: https://www.8crafter.com/utilities/ore-ui-customizer
             </p>
             <h3>Support</h3>
             <p>

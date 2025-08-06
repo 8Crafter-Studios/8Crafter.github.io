@@ -1,4 +1,5 @@
 import semver from "./semver.js";
+import "./zip.js";
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
  */
@@ -184,7 +185,8 @@ export const defaultOreUICustomizerSettings = {
         "#050029": "#050029",
         "rgba(5, 0, 41, 0.5)": "rgba(5, 0, 41, 0.5)",
     },
-    plugins: [],
+    activePluginsDetails: [],
+    bundleEncodedPluginDataInConfigFile: false,
 };
 /**
  * Converts a blob to a data URI.
@@ -201,10 +203,31 @@ export async function blobToDataURI(blob) {
         return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}`;
     }
     else {
-        const base64Encoded = Buffer.from(await blob.bytes()).toString("base64url");
+        const base64Encoded = Buffer.from(await blob.bytes()).toString("base64");
         return `data:${blob.type || "application/octet-stream"};base64,${base64Encoded}`;
     }
 }
+/**
+ * Joins paths, works like `path.join`.
+ *
+ * @param input The paths to join.
+ * @returns The joined path.
+ */
+globalThis.joinPath = function joinPath(...input) {
+    let paths = input
+        .filter((path) => !!path) // Remove undefined | null | empty
+        .join("/") // Join to string
+        .replaceAll("\\", "/") // Replace from \ to /
+        .split("/")
+        .filter((path) => !!path && path !== ".") // Remove empty in case a//b///c or ./a ./b
+        .reduce((items, item) => {
+        item === ".." ? items.pop() : items.push(item);
+        return items;
+    }, []); // Jump one level if ../
+    if (input[0] && input[0].startsWith("/"))
+        paths.unshift("");
+    return paths.join("/") || (paths.length ? "/" : ".");
+};
 /**
  * Imports a plugin from a data URI.
  *
@@ -213,11 +236,46 @@ export async function blobToDataURI(blob) {
  * @returns {Promise<Plugin>} A promise resolving with the imported plugin.
  *
  * @throws {TypeError} If the plugin type is not supported.
+ *
+ * @todo Add support for relative script imports in the scripts of .mcouicplugin files, use RollupJS, also use the `rollup-plugin-typescript2` RollupJS plugin to allow for typescript.
  */
 export async function importPluginFromDataURI(dataURI, type = "js") {
     switch (type) {
         case "mcouicplugin": {
-            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+            const zipFs = new zip.fs.FS();
+            await zipFs.importData64URI(dataURI);
+            const manifest = JSON.parse(await zipFs.getChildByName("/manifest.json").getText());
+            const entry = manifest.entry.replaceAll(/^(\/|\.\/)+/g, "");
+            // const moduleList: string[] = ["@ore-ui-customizer/utilities"];
+            // const addRequireDefinition: string = `function require(path) { return ; };`;
+            /* async function loadScriptImports(script: string, path?: string): Promise<string> {
+                let result: string = script;
+                let match;
+                const syncImportsRegex = /import\s*\{(?:[^\}]*)\}\s*from\s*(?:'(.*?)'|"(.*?)")/g;
+                while (
+                    (match = syncImportsRegex.exec(
+                        result.slice(
+                            0,
+                            result.includes("\nexport") || result.includes("\nconst") || result.includes("\nfunction")
+                                ? Math.min(
+                                      ...[result.indexOf("\nexport"), result.indexOf("\nconst"), result.indexOf("\nfunction")].filter(
+                                          (v: number): boolean => v !== -1
+                                      )
+                                  )
+                                : undefined
+                        )
+                    ))
+                ) {
+                    const importPath: string | undefined = match[1] || match[2];
+                    if (!importPath || moduleList.includes(importPath)) continue;
+                    const importContent: string = await loadScriptImports(await (zipFs.getChildByName(importPath) as zip.ZipFileEntry<any, any>).getText(), joinPath(path, importPath));
+                    result = result.replace(match[0], `data:text/javascript,${encodeURIComponent(importContent)}`);
+                }
+                return result;
+            }
+            let script: string = await loadScriptImports(await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getText()); */
+            let data = await import(await zipFs.getChildByName(entry).getData64URI());
+            return { ...manifest, ...manifest.header, ...data.plugin };
         }
         case "js": {
             const data = await import(dataURI);
@@ -236,14 +294,43 @@ export async function importPluginFromDataURI(dataURI, type = "js") {
  * @returns {Promise<void>} A promise resolving to `void` when the plugin file is validated.
  *
  * @throws {TypeError} If the plugin type is not supported.
- * @throws {TypeError | SyntaxError} If the plugin is not valid.
+ * @throws {TypeError | SyntaxError | ReferenceError | EvalError} If the plugin is not valid.
  */
 export async function validatePluginFile(plugin, type) {
     switch (type) {
         case "mcouicplugin": {
             const zipFs = new zip.fs.FS();
             await zipFs.importBlob(plugin);
-            throw new TypeError(`The plugin type "${type}" is not supported yet, but support for it will be coming soon.`);
+            if (!zipFs.getChildByName("/manifest.json"))
+                throw new ReferenceError(`Plugin is missing required file "manifest.json".`);
+            try {
+                var manifest = JSON.parse(await zipFs.getChildByName("/manifest.json").getText());
+            }
+            catch (e) {
+                throw new SyntaxError(`Plugin "manifest.json" is not valid JSON.`, { cause: e });
+            }
+            if (!("entry" in manifest))
+                throw new SyntaxError(`Plugin "manifest.json" is missing required field "entry".`);
+            if (typeof manifest.entry !== "string")
+                throw new SyntaxError(`Plugin "manifest.json" field "entry" is not a string.`);
+            if (!manifest.entry)
+                throw new SyntaxError(`Plugin "manifest.json" field "entry" is empty.`);
+            const entry = manifest.entry.replaceAll(/^(\/|\.\/)+/g, "");
+            if (!zipFs.getChildByName(entry))
+                throw new ReferenceError(`Plugin is missing required entry file specified by "entry" field in "manifest.json": "${entry}".`);
+            try {
+                var data = await import(await zipFs.getChildByName(entry).getData64URI());
+            }
+            catch (e) {
+                throw new EvalError(`Plugin entry file "${entry}" throw an error when imported: ${e.name}: ${e.message}`, { cause: e });
+            }
+            if (data?.plugin) {
+                validatePluginObject({ ...manifest, ...manifest.header, ...data.plugin });
+            }
+            else {
+                throw new SyntaxError(`Plugin entry file "${entry}" is missing required variable export "plugin".`);
+            }
+            return;
         }
         case "js": {
             const dataURI = URL.createObjectURL(plugin);
@@ -271,10 +358,13 @@ export function validatePluginObject(plugin) {
     if (typeof plugin !== "object")
         throw new TypeError(`Plugin must be an object.`);
     const pluginObject = plugin;
+    // -------- PROPERTY VALIDATION --------
+    // actions
     if (!pluginObject.actions)
         throw new SyntaxError(`Plugin is missing required property "actions".`);
     if (!(pluginObject.actions instanceof Array))
         throw new SyntaxError(`Plugin property "actions" must be an array.`);
+    // format_version
     if (!pluginObject.format_version)
         throw new SyntaxError(`Plugin is missing required property "format_version".`);
     if (typeof pluginObject.format_version !== "string")
@@ -283,28 +373,84 @@ export function validatePluginObject(plugin) {
         throw new SyntaxError(`Plugin property "format_version" must not include the leading "v".`);
     if (semver.valid(pluginObject.format_version) === null)
         throw new SyntaxError(`Plugin property "format_version" must be a valid semver version.`);
+    // id
     if (!pluginObject.id)
         throw new SyntaxError(`Plugin is missing required property "id".`);
     if (typeof pluginObject.id !== "string")
         throw new SyntaxError(`Plugin property "id" must be a string.`);
     if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.id))
         throw new SyntaxError(`Plugin property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    // uuid
+    if (!pluginObject.uuid)
+        throw new SyntaxError(`Plugin is missing required property "uuid".`);
+    if (typeof pluginObject.uuid !== "string")
+        throw new SyntaxError(`Plugin property "uuid" must be a string.`);
+    if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(pluginObject.uuid))
+        throw new SyntaxError(`Plugin property "uuid" must be a valid UUID, it must match the following pattern: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.`);
+    // description
+    if (typeof pluginObject.description !== "undefined" && typeof pluginObject.description !== "string")
+        throw new SyntaxError(`Plugin property "description" must be a string or undefined.`);
+    // dependencies
+    if (typeof pluginObject.dependencies !== "undefined" && !(pluginObject.dependencies instanceof Array))
+        throw new SyntaxError(`Plugin property "description" must be an array or undefined.`);
+    // -------- DEPENDENCY VALIDATION --------
+    if (typeof pluginObject.dependencies !== "undefined") {
+        let dependencyIndex = -1;
+        for (const dependency of pluginObject.dependencies) {
+            dependencyIndex++;
+            // -------- DEPENDENCY VALIDATION > TYPE VALIDATION --------
+            // dependency
+            if (typeof dependency === "undefined")
+                continue;
+            if (typeof dependency !== "object")
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} must be an object.`);
+            // -------- DEPENDENCY VALIDATION > PROPERTY VALIDATION --------
+            // uuid
+            if ("uuid" in dependency && typeof dependency.uuid !== "string")
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "uuid" must be a string.`);
+            if ("uuid" in dependency && !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(dependency.uuid))
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "uuid" must be a valid UUID, it must match the following pattern: /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.`);
+            // module_name
+            if ("module_name" in dependency && typeof dependency.module_name !== "string")
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "module_name" must be a string.`);
+            // uuid or module_name
+            if (!("uuid" in dependency || "module_name" in dependency))
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} is missing required property "uuid" or "module_name".`);
+            // version
+            if (!dependency.version)
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} is missing required property "version".`);
+            if (typeof dependency.version !== "string")
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "version" must be a string.`);
+            if (dependency.version.startsWith("v"))
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "version" must not include the leading "v".`);
+            if (semver.valid(dependency.version) === null)
+                throw new SyntaxError(`Plugin dependency ${dependencyIndex} property "version" must be a valid semver version.`);
+        }
+    }
+    // -------- PROPERTY VALIDATION --------
+    // metadata
+    if (typeof pluginObject.metadata !== "undefined" && typeof pluginObject.metadata !== "object")
+        throw new SyntaxError(`Plugin property "metadata" must be an object or undefined.`);
+    // name
     if (!pluginObject.name)
         throw new SyntaxError(`Plugin is missing required property "name".`);
     if (typeof pluginObject.name !== "string")
         throw new SyntaxError(`Plugin property "name" must be a string.`);
+    // min_engine_version
     if (typeof pluginObject.min_engine_version !== "undefined" && typeof pluginObject.min_engine_version !== "string")
         throw new SyntaxError(`Plugin property "min_engine_version" must be a string or undefined.`);
     if (typeof pluginObject.min_engine_version === "string" && pluginObject.min_engine_version.startsWith("v"))
         throw new SyntaxError(`Plugin property "min_engine_version" must not include the leading "v".`);
     if (typeof pluginObject.min_engine_version === "string" && semver.valid(pluginObject.min_engine_version) === null)
         throw new SyntaxError(`Plugin property "min_engine_version" must be a valid semver version or undefined.`);
+    // namespace
     if (!pluginObject.namespace)
         throw new SyntaxError(`Plugin is missing required property "namespace".`);
     if (pluginObject.namespace === "built-in" && !builtInPlugins.includes(pluginObject))
         throw new SyntaxError(`Plugin is using the reserved namespace "built-in" but is not a built-in plugin.`);
     if (!/^[a-zA-Z0-9_\-\.]+$/.test(pluginObject.namespace))
         throw new SyntaxError(`Plugin property "namespace" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+    // version
     if (!pluginObject.version)
         throw new SyntaxError(`Plugin is missing required property "version".`);
     if (typeof pluginObject.version !== "string")
@@ -313,25 +459,30 @@ export function validatePluginObject(plugin) {
         throw new SyntaxError(`Plugin property "version" must not include the leading "v".`);
     if (semver.valid(pluginObject.version) === null)
         throw new SyntaxError(`Plugin property "version" must be a valid semver version.`);
-    let pluginIndex = 0;
+    // -------- ACTION VALIDATION --------
+    let actionIndex = 0;
     for (const action of pluginObject.actions) {
+        // -------- ACTION VALIDATION > PROPERTY VALIDATION --------
+        // action
         if (!action.action)
-            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "action".`);
+            throw new SyntaxError(`Plugin action ${actionIndex} is missing required property "action".`);
         if (typeof action.action !== "function")
-            throw new SyntaxError(`Plugin action ${pluginIndex} property "action" must be a function.`);
+            throw new SyntaxError(`Plugin action ${actionIndex} property "action" must be a function.`);
+        // context
         if (!action.context)
-            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "context".`);
+            throw new SyntaxError(`Plugin action ${actionIndex} is missing required property "context".`);
         if (typeof action.context !== "string")
-            throw new SyntaxError(`Plugin action ${pluginIndex} property "context" must be a string.`);
+            throw new SyntaxError(`Plugin action ${actionIndex} property "context" must be a string.`);
         if (!["per_text_file", "per_binary_file", "global_before", "global"].includes(action.context))
-            throw new SyntaxError(`Plugin action ${pluginIndex} property "context" must be one of "per_text_file", "per_binary_file", "global_before", "global".`);
+            throw new SyntaxError(`Plugin action ${actionIndex} property "context" must be one of "per_text_file", "per_binary_file", "global_before", "global".`);
+        // id
         if (!action.id)
-            throw new SyntaxError(`Plugin action ${pluginIndex} is missing required property "id".`);
+            throw new SyntaxError(`Plugin action ${actionIndex} is missing required property "id".`);
         if (typeof action.id !== "string")
-            throw new SyntaxError(`Plugin action ${pluginIndex} property "id" must be a string.`);
+            throw new SyntaxError(`Plugin action ${actionIndex} property "id" must be a string.`);
         if (!/^[a-zA-Z0-9_\-\.]+$/.test(action.id))
-            throw new SyntaxError(`Plugin action ${pluginIndex} property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
-        pluginIndex++;
+            throw new SyntaxError(`Plugin action ${actionIndex} property "id" does not match the pattern /^[a-zA-Z0-9_\-\.]+$/.`);
+        actionIndex++;
     }
     return;
 }
@@ -1028,7 +1179,7 @@ export function getReplacerRegexes(extractedSymbolNames) {
                 {
                     regex: /(?:[a-zA-Z0-9_\\$]{1})\?\[\{label:"\.debugTabLabel",image:([a-zA-Z0-9_\$]{2})\.DebugIcon,value:"debug"\}\]:\[\]/,
                     replacement: `[{label:".debugTabLabel",image:RB.DebugIcon,value:"debug"}]`,
-                }
+                },
             ],
         },
         /**
@@ -1110,6 +1261,8 @@ export const builtInPlugins = [
         id: "add-exact-ping-count-to-servers-tab",
         namespace: "built-in",
         version: "0.25.0",
+        uuid: "a1ffa1f2-a8d1-4948-a307-4067d4a82880",
+        description: "A built-in plugin that adds the exact ping count to the servers tab.",
         actions: [
             {
                 id: "add-exact-ping-count-to-servers-tab",
@@ -1138,6 +1291,8 @@ export const builtInPlugins = [
         id: "add-max-player-count-to-servers-tab",
         namespace: "built-in",
         version: "0.25.0",
+        uuid: "09b88cde-e265-4f42-b203-564f0df6ca1e",
+        description: "A built-in plugin that adds the max player count to the servers tab.",
         actions: [
             {
                 id: "add-max-player-count-to-servers-tab",
@@ -1161,6 +1316,8 @@ export const builtInPlugins = [
         id: "facet-spy",
         namespace: "built-in",
         version: "1.0.0",
+        uuid: "e2355295-b202-4f4b-96b8-7bd7b6eaac23",
+        description: "Facet spy.",
         actions: [
             {
                 id: "inject-facet-spy",

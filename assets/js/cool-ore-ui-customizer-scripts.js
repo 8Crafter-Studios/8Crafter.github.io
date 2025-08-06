@@ -3,8 +3,8 @@
     stopOnCondition = function () {
         return globalThis.stopRGB;
     },
-    interval = 1,
-    step = 20
+    interval = 20,
+    step = 1
 ) {
     let val = 0;
     return new Promise(function resolveA(resolve) {

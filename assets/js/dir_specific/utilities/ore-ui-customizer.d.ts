@@ -11,6 +11,10 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
+        "v1.21.100_PC": {
+            displayName: string;
+            url: string;
+        };
         "v1.21.90_PC": {
             displayName: string;
             url: string;
@@ -32,6 +36,10 @@ export declare namespace OreUICustomizer {
             url: string;
         };
         "v1.21.70-71_Android": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.100-preview.23_PC": {
             displayName: string;
             url: string;
         };
@@ -59,7 +67,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.2.1";
+    const format_version = "1.3.0";
     /**
      * @type {File | undefined}
      */
@@ -255,6 +263,9 @@ export declare namespace OreUICustomizer {
      */
     function validateZipFile(): Promise<boolean>;
     function getSettings(): OreUICustomizerSettings;
+    function setSettings(settings: {
+        [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]> : key extends "enabledBuiltInPlugins" ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]> : OreUICustomizerSettings[key];
+    }): void;
     /**
      *
      * @param {HTMLElement} target

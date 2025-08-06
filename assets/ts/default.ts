@@ -612,8 +612,8 @@ $(async function onDocumentLoad() {
     );
     $(".defaultButtonSoundEffectDropdownOption input[value='" + defaultButtonSoundEffect + "']").prop("checked", true);
     $(".defaultButtonSoundEffectDropdownOption").click((event) => {
-        const input = $(event.currentTarget).find("input")[0]!;
-        const label = $(event.currentTarget).find("label")[0]!;
+        const input: HTMLInputElement = $(event.currentTarget).find("input")[0]!;
+        const label: HTMLLabelElement = $(event.currentTarget).find("label")[0]!;
         const value = input.value as typeof defaultButtonSoundEffect;
         saveSetting("defaultButtonSoundEffect", value);
         defaultButtonSoundEffect = value;

@@ -1,3 +1,4 @@
+import "./zip.js";
 /**
  * An interface that contains the settings for 8Crafter's Ore UI Customizer.
  */
@@ -54,7 +55,7 @@ export interface OreUICustomizerSettings {
      *
      * @type {boolean}
      */
-    allowForChangingFlatWorldPreset: any;
+    allowForChangingFlatWorldPreset: boolean;
     /**
      * If specified, this will override the max length of every text box to be the specified value.
      *
@@ -174,9 +175,37 @@ export interface OreUICustomizerSettings {
     /**
      * A list of additional plugins to apply.
      *
+     * This is only present when manually provided encoded plugin data to apply, or when {@link bundleEncodedPluginDataInConfigFile} is true.
+     *
+     * This will not include plugins from the {@link preloadedPlugins} list.
+     *
      * @default []
      */
     plugins?: EncodedPluginData[];
+    /**
+     * Whether or not to bundle the encoded plugin data in the config file.
+     *
+     * If false, it will just include some details of the active plugins.
+     *
+     * @default false
+     */
+    bundleEncodedPluginDataInConfigFile?: boolean;
+    /**
+     * The details of the active plugins.
+     *
+     * This includes plugins from both {@link plugins} and {@link preloadedPlugins}.
+     *
+     * @default []
+     */
+    activePluginsDetails?: Omit<EncodedPluginData, "fileType" | "dataURI">[];
+    /**
+     * A list of already loaded plugins to apply.
+     *
+     * This will only be present when passing a list of preloaded plugins to the apply mods function.
+     *
+     * @default []
+     */
+    preloadedPlugins?: Plugin[];
 }
 export interface EncodedPluginData {
     /**
@@ -190,7 +219,15 @@ export interface EncodedPluginData {
      */
     id: string;
     /**
-     * The namespace of the plugin, used to identify the plugin in error messages.
+     * The UUID of the plugin, used to uniquely identify the plugin.
+     *
+     * Must be a valid UUID.
+     *
+     * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+     */
+    uuid: string;
+    /**
+     * The namespace of the plugin, used in conjunction with the {@link id} to identify the plugin in error messages.
      *
      * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
      *
@@ -198,15 +235,23 @@ export interface EncodedPluginData {
      */
     namespace: string;
     /**
+     * An optional description of the plugin.
+     */
+    description?: string;
+    /**
      * The version of the plugin.
      *
      * This must be a valid semver string, without the leading `v`.
+     *
+     * @example "3.17.4-preview.20+BUILD.5"
      */
     version: string;
     /**
      * The version of 8Crafter's Ore UI Customizer that this plugin is made for.
      *
      * This must be a valid semver string, without the leading `v`.
+     *
+     * @example "1.0.0"
      */
     format_version: string;
     /**
@@ -215,8 +260,150 @@ export interface EncodedPluginData {
      * This must be a valid semver string, without the leading `v`.
      *
      * If not specified, no check will be done.
+     *
+     * @example "1.0.0"
      */
     min_engine_version?: string;
+    /**
+     * The data URI of the icon of the plugin.
+     *
+     * If not specified the default icon will be used.
+     *
+     * The MIME type must match `image/*`.
+     *
+     * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+     */
+    icon_data_uri?: `data:image/${string};base64,${string}`;
+    /**
+     * The dependencies of the plugin.
+     */
+    dependencies?: ({
+        /**
+         * The UUID of the plugin dependency.
+         *
+         * Must be a valid UUID.
+         *
+         * May also be the UUID of a built-in plugin to force the user to have it enabled to use the plugin.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         */
+        uuid: string;
+        /**
+         * The version of the plugin dependency.
+         *
+         * Must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+    } | {
+        /**
+         * The name of a built-in module.
+         *
+         * @todo This is currently not functional.
+         */
+        module_name: string;
+        /**
+         * The version of the module dependency.
+         *
+         * Must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+    })[];
+    /**
+     * Additonal metadata about the plugin.
+     */
+    metadata?: {
+        /**
+         * The authors of the plugin.
+         *
+         * @example ["8Crafter", "StormStqr"]
+         */
+        authors?: string[];
+        /**
+         * The URL of the website for the plugin, or just the plugin creator's website.
+         *
+         * @example "https://www.8crafter.com"
+         */
+        url?: string;
+        /**
+         * The type of the plugin.
+         *
+         * @example "plugin"
+         */
+        product_type?: "plugin";
+        /**
+         * The license of the plugin
+         */
+        license?: string;
+        /**
+         * Any other metadata you want to add.
+         */
+        [key: string]: unknown;
+    };
+    /**
+     * The details of the plugin in the marketplace.
+     *
+     * This is only used if the plugin is from the marketplace.
+     *
+     * This is mutually exclusive with {@link checkForUpdatesDetails}.
+     */
+    marketplaceDetails?: {
+        /**
+         * The id of the plugin in the marketplace.
+         *
+         * Format:
+         * ```typescript
+         * `${pluginPublisher}.${id}`
+         * ```
+         *
+         * @example "8crafer.my-custom-plugin"
+         */
+        marketplaceId: string;
+        /**
+         * The original download URL of the plugin in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/download/plugin/8crafer.my-custom-plugin/1.0.0"
+         */
+        originalDownloadURL: string;
+        /**
+         * The URL of the plugin in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/plugin/8crafer.my-custom-plugin"
+         */
+        marketplaceURL: string;
+    };
+    /**
+     * The details of the plugin to check for updates.
+     *
+     * This is only used if the plugin is not from the marketplace.
+     *
+     * This allows non-marketplace plugins to be checked for updates.
+     *
+     * This is mutually exclusive with {@link marketplaceDetails}.
+     */
+    checkForUpdatesDetails?: {
+        /**
+         * The URL to the JSON object containing the newest version of the plugin.
+         *
+         * The JSON object should have the following structure:
+         * ```json
+         * {
+         *     // The version of the plugin.
+         *     "version": "1.0.1-rc.5",
+         *     // The download URL of the plugin.
+         *     "url": "https://example.com/ore-ui-customizer-plugins/my-custom-plugin/1.0.1-rc.5/myCustomPlugin.ouicplugin"
+         * }
+         * ```
+         *
+         * When fetching the URL, the response should have an MIME type of `application/json` or `text/json`.
+         *
+         * @example "https://example.com/ore-ui-customizer-plugins/my-custom-plugin/latestVersion.json"
+         */
+        versionInfoURL: string;
+    };
     /**
      * The file type of the plugin.
      */
@@ -225,6 +412,427 @@ export interface EncodedPluginData {
      * The data URI of the plugin.
      */
     dataURI: `data:${string};base64,${string}`;
+}
+/**
+ * A type containing a union of all built-in plugin module names.
+ */
+export type BuiltInPluginModuleName = "@ore-ui-customizer/utilities";
+/**
+ * The data of the `manifest.json` file of a plugin.
+ */
+export interface PluginManifestJSON {
+    /**
+     * The version of the plugin manifest.
+     *
+     * @default 1
+     */
+    format_version: 1;
+    /**
+     * The header of the plugin manifest.
+     */
+    header: {
+        /**
+         * The display name of the plugin.
+         *
+         * @example "My Custom Plugin"
+         */
+        name: string;
+        /**
+         * The id of the plugin, used to identify the plugin when applying the plugins, also used to identify the plugin in error messages, this should be unique.
+         *
+         * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+         *
+         * @example "my-custom-plugin"
+         */
+        id: string;
+        /**
+         * The UUID of the plugin, used to uniquely identify the plugin.
+         *
+         * Must be a valid UUID.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         */
+        uuid: string;
+        /**
+         * The namespace of the plugin, used in conjunction with the {@link id} to identify the plugin in error messages.
+         *
+         * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+         *
+         * Must not be `built-in`, as it is reserved for built-in plugins.
+         *
+         * @example "andexpl"
+         */
+        namespace: string;
+        /**
+         * An optional description of the plugin.
+         */
+        description?: string;
+        /**
+         * The version of the plugin.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+        /**
+         * The version of 8Crafter's Ore UI Customizer that this plugin is made for.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * @example "1.0.0"
+         */
+        format_version: string;
+        /**
+         * The minimum version of 8Crafter's Ore UI Customizer that this plugin is compatible with.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * If not specified, no check will be done.
+         *
+         * @example "1.0.0"
+         */
+        min_engine_version?: string;
+    };
+    /**
+     * The entry script of the plugin.
+     *
+     * Should be a path to a JavaScript file, relative to the location of the manifest.json file.
+     *
+     * @example "scripts/index.js"
+     */
+    entry: string;
+    /**
+     * The data URI of the icon of the plugin.
+     *
+     * If not specified the default icon will be used.
+     *
+     * The MIME type must match `image/*`.
+     *
+     * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+     */
+    icon_data_uri?: `data:image/${string};base64,${string}`;
+    /**
+     * The dependencies of the plugin.
+     *
+     * These dependencies can be other themes, plugins, configs, or plugin modules (similar to the `@minecraft/server` module from Minecraft Bedrock Edition's scripting API).
+     */
+    dependencies?: ({
+        /**
+         * The UUID of the theme, plugin, or config dependency.
+         *
+         * Must be a valid UUID.
+         *
+         * May also be the UUID of a built-in theme or plugin to force the user to have it enabled to use the theme.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         */
+        uuid: string;
+        /**
+         * The version of the theme, plugin, or config dependency.
+         *
+         * Must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+    } | {
+        /**
+         * The name of a built-in module.
+         *
+         * @todo This is currently not functional.
+         */
+        module_name: BuiltInPluginModuleName;
+        /**
+         * The version of the module dependency.
+         *
+         * Must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+    })[];
+    /**
+     * Additonal metadata about the plugin.
+     */
+    metadata: {
+        /**
+         * The authors of the plugin.
+         *
+         * @example ["8Crafter", "StormStqr"]
+         */
+        authors?: string[];
+        /**
+         * The URL of the website for the plugin, or just the plugin creator's website.
+         *
+         * @example "https://www.8crafter.com"
+         */
+        url?: string;
+        /**
+         * The product type.
+         *
+         * @example "plugin"
+         */
+        product_type: "plugin";
+        /**
+         * The license of the plugin.
+         */
+        license?: string;
+        /**
+         * Any other metadata you want to add.
+         */
+        [key: string]: unknown;
+    };
+    /**
+     * The details of the plugin in the marketplace.
+     *
+     * This is only used if the plugin is from the marketplace.
+     *
+     * This should not be included when uploading the plugin to the marketplace, as the server will handle adding this information.
+     *
+     * This is mutually exclusive with {@link checkForUpdatesDetails}.
+     */
+    marketplaceDetails?: {
+        /**
+         * The id of the plugin in the marketplace.
+         *
+         * Format:
+         * ```typescript
+         * `${pluginPublisher}.${id}`
+         * ```
+         *
+         * @example "8crafer.my-custom-plugin"
+         */
+        marketplaceId: string;
+        /**
+         * The original download URL of the plugin in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/download/plugin/8crafer.my-custom-plugin/1.0.0"
+         */
+        originalDownloadURL: string;
+        /**
+         * The URL of the plugin in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/plugin/8crafer.my-custom-plugin"
+         */
+        marketplaceURL: string;
+    };
+    /**
+     * The details of the plugin to check for updates.
+     *
+     * This is only used if the plugin is not from the marketplace.
+     *
+     * This allows non-marketplace plugins to be checked for updates.
+     *
+     * This is mutually exclusive with {@link marketplaceDetails}.
+     */
+    checkForUpdatesDetails?: {
+        /**
+         * The URL to the JSON object containing the newest version of the plugin.
+         *
+         * The JSON object should have the following structure:
+         * ```json
+         * {
+         *     // The version of the plugin.
+         *     "version": "1.0.1-rc.5",
+         *     // The download URL of the plugin.
+         *     "url": "https://example.com/ore-ui-customizer-plugins/my-custom-plugin/1.0.1-rc.5/myCustomPlugin.ouicplugin"
+         * }
+         * ```
+         *
+         * When fetching the URL, the response should have an MIME type of `application/json` or `text/json`.
+         *
+         * @example "https://example.com/ore-ui-customizer-plugins/my-custom-plugin/latestVersion.json"
+         */
+        versionInfoURL: string;
+    };
+}
+/**
+ * The data of the `manifest.json` file of a theme.
+ */
+export interface ThemeManifestJSON {
+    /**
+     * The version of the theme manifest.
+     *
+     * @default 1
+     */
+    format_version: 1;
+    /**
+     * The header of the theme manifest.
+     */
+    header: {
+        /**
+         * The display name of the theme.
+         *
+         * @example "My Custom Theme"
+         */
+        name: string;
+        /**
+         * The id of the theme, used to identify the theme when applying the themes, also used to identify the theme in error messages, this should be unique.
+         *
+         * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+         *
+         * @example "my-custom-theme"
+         */
+        id: string;
+        /**
+         * The UUID of the theme, used to uniquely identify the theme.
+         *
+         * Must be a valid UUID.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         */
+        uuid: string;
+        /**
+         * An optional description of the theme.
+         */
+        description?: string;
+        /**
+         * The version of the theme.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+        /**
+         * The version of 8Crafter's Ore UI Customizer that this theme is made for.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * @example "1.0.0"
+         */
+        format_version: string;
+    };
+    /**
+     * The data URI of the icon of the theme.
+     *
+     * If not specified the default icon will be used.
+     *
+     * The MIME type must match `image/*`.
+     *
+     * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+     */
+    icon_data_uri?: `data:image/${string};base64,${string}`;
+    /**
+     * The dependencies of the theme.
+     *
+     * These dependencies can be other themes, plugins, or configs.
+     */
+    dependencies?: {
+        /**
+         * The UUID of the theme, plugin, or config dependency.
+         *
+         * Must be a valid UUID.
+         *
+         * May also be the UUID of a built-in theme or plugin to force the user to have it enabled to use the theme.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         */
+        uuid: string;
+        /**
+         * The version of the theme, plugin, or config dependency.
+         *
+         * Must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         */
+        version: string;
+    }[];
+    /**
+     * Additonal metadata about the theme.
+     */
+    metadata: {
+        /**
+         * The authors of the theme.
+         *
+         * @example ["8Crafter", "StormStqr"]
+         */
+        authors?: string[];
+        /**
+         * The URL of the website for the theme, or just the theme creator's website.
+         *
+         * @example "https://www.8crafter.com"
+         */
+        url?: string;
+        /**
+         * The product type.
+         *
+         * @example "theme"
+         */
+        product_type: "theme";
+        /**
+         * The license of the theme.
+         */
+        license?: string;
+        /**
+         * Any other metadata you want to add.
+         */
+        [key: string]: unknown;
+    };
+    /**
+     * The details of the theme in the marketplace.
+     *
+     * This is only used if the theme is from the marketplace.
+     *
+     * This should not be included when uploading the theme to the marketplace, as the server will handle adding this information.
+     *
+     * This is mutually exclusive with {@link checkForUpdatesDetails}.
+     */
+    marketplaceDetails?: {
+        /**
+         * The id of the theme in the marketplace.
+         *
+         * Format:
+         * ```typescript
+         * `${themePublisher}.${id}`
+         * ```
+         *
+         * @example "8crafer.my-custom-theme"
+         */
+        marketplaceId: string;
+        /**
+         * The original download URL of the theme in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/download/theme/8crafer.my-custom-theme/1.0.0"
+         */
+        originalDownloadURL: string;
+        /**
+         * The URL of the theme in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/theme/8crafer.my-custom-theme"
+         */
+        marketplaceURL: string;
+    };
+    /**
+     * The details of the theme to check for updates.
+     *
+     * This is only used if the theme is not from the marketplace.
+     *
+     * This allows non-marketplace themes to be checked for updates.
+     *
+     * This is mutually exclusive with {@link marketplaceDetails}.
+     */
+    checkForUpdatesDetails?: {
+        /**
+         * The URL to the JSON object containing the newest version of the theme.
+         *
+         * The JSON object should have the following structure:
+         * ```json
+         * {
+         *     // The version of the theme.
+         *     "version": "1.0.1-rc.5",
+         *     // The download URL of the theme.
+         *     "url": "https://example.com/ore-ui-customizer-themes/my-custom-theme/1.0.1-rc.5/myCustomTheme.ouictheme"
+         * }
+         * ```
+         *
+         * When fetching the URL, the response should have an MIME type of `application/json` or `text/json`.
+         *
+         * @example "https://example.com/ore-ui-customizer-themes/my-custom-theme/latestVersion.json"
+         */
+        versionInfoURL: string;
+    };
 }
 /**
  * The JSON data of a config file for 8Crafter's Ore UI Customizer.
@@ -238,6 +846,199 @@ export interface OreUICustomizerConfig {
      * The version of 8Crafter's Ore UI Customizer.
      */
     oreUICustomizerVersion: string;
+    /**
+     * Additonal metadata about the config file.
+     */
+    metadata?: {
+        /**
+         * The name of the config.
+         *
+         * @example "My Custom Config"
+         *
+         * @default
+         * ```typescript
+         * `Unnamed Config ${++highestUnnamedConfigNumber}`
+         * ```
+         */
+        name?: string;
+        /**
+         * The id of the config, this should be unique.
+         *
+         * This is required if the config is from the marketplace.
+         *
+         * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
+         *
+         * @default undefined
+         */
+        id?: string;
+        /**
+         * The UUID of the config, used to uniquely identify the config.
+         *
+         * This is required if the config is from the marketplace, or if you wish to have a plugin or theme require the config as a dependency.
+         *
+         * If it is not specified a new UUID will be generated.
+         *
+         * Must be a valid UUID.
+         *
+         * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+         *
+         * @default crypto.randomUUID()
+         */
+        uuid?: string;
+        /**
+         * An optional description of the config.
+         *
+         * @default undefined
+         */
+        description?: string;
+        /**
+         * The version of the config.
+         *
+         * This is required if the config is from the marketplace.
+         *
+         * This must be a valid semver string, without the leading `v`.
+         *
+         * @example "3.17.4-preview.20+BUILD.5"
+         *
+         * @default "1.0.0"
+         */
+        version?: string;
+        /**
+         * The data URI of the icon for the config.
+         *
+         * If not specified the default icon will be used.
+         *
+         * The MIME type must match `image/*`.
+         *
+         * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+         */
+        pack_icon_data_uri?: `data:image/${string};base64,${string}`;
+        /**
+         * The dependencies of the config.
+         *
+         * These dependencies can be other themes, plugins, or configs.
+         *
+         * @default []
+         */
+        dependencies?: {
+            /**
+             * The UUID of the theme, plugin, or config dependency.
+             *
+             * Must be a valid UUID.
+             *
+             * May also be the UUID of a built-in theme or plugin to force the user to have it enabled to use the theme.
+             *
+             * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+             */
+            uuid: string;
+            /**
+             * The version of the theme, plugin, or config dependency.
+             *
+             * Must be a valid semver string, without the leading `v`.
+             *
+             * @example "3.17.4-preview.20+BUILD.5"
+             */
+            version: string;
+        }[];
+        /**
+         * The authors of the config.
+         *
+         * @example ["8Crafter", "StormStqr"]
+         */
+        authors?: string[];
+        /**
+         * The URL of the website for the config, or just the config creator's website.
+         *
+         * @example "https://www.8crafter.com"
+         */
+        url?: string;
+        /**
+         * The product type.
+         *
+         * @example "config"
+         */
+        product_type: "config";
+        /**
+         * The license of the config.
+         */
+        license?: string;
+        /**
+         * Any other metadata you want to add.
+         */
+        [key: string]: unknown;
+    };
+    /**
+     * The details of the config in the marketplace.
+     *
+     * This is only used if the config is from the marketplace.
+     *
+     * This should not be included when uploading the config to the marketplace, as the server will handle adding this information.
+     *
+     * This is mutually exclusive with {@link checkForUpdatesDetails}.
+     */
+    marketplaceDetails?: {
+        /**
+         * The id of the config in the marketplace.
+         *
+         * Format:
+         * ```typescript
+         * `${configPublisher}.${id}`
+         * ```
+         *
+         * @example "8crafer.my-custom-config"
+         */
+        marketplaceId: string;
+        /**
+         * The original download URL of the config in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/download/config/8crafer.my-custom-config/1.0.0"
+         */
+        originalDownloadURL: string;
+        /**
+         * The URL of the config in the marketplace.
+         *
+         * @example "https://marketplace.ore-ui-customizer.8crafter.com/config/8crafer.my-custom-config"
+         */
+        marketplaceURL: string;
+    };
+    /**
+     * The details of the config to check for updates.
+     *
+     * This is only used if the config is not from the marketplace.
+     *
+     * This allows non-marketplace configs to be checked for updates.
+     *
+     * This is mutually exclusive with {@link marketplaceDetails}.
+     */
+    checkForUpdatesDetails?: {
+        /**
+         * The URL to the JSON object containing the newest version of the config.
+         *
+         * The JSON object should have the following structure:
+         * ```json
+         * {
+         *     // The version of the config.
+         *     "version": "1.0.1-rc.5",
+         *     // The download URL of the config.
+         *     "url": "https://example.com/ore-ui-customizer-configs/my-custom-config/1.0.1-rc.5/myCustomConfig.ouicconfig"
+         * }
+         * ```
+         *
+         * When fetching the URL, the response should have an MIME type of `application/json` or `text/json`.
+         *
+         * @example "https://example.com/ore-ui-customizer-configs/my-custom-config/latestVersion.json"
+         */
+        versionInfoURL: string;
+    };
+}
+/**
+ * The legacy pre-v1.0.0 JSON format for the configs for 8Crafter's Ore UI Customizer.
+ */
+export interface LegacyOreUICustomizerConfigJSON extends Partial<OreUICustomizerSettings> {
+    /**
+     * The version of 8Crafter's Ore UI Customizer.
+     */
+    format_version: string;
 }
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
@@ -250,6 +1051,17 @@ export declare const defaultOreUICustomizerSettings: OreUICustomizerSettings;
  * @returns {Promise<`data:${string};base64,${string}`>} A promise resolving with the data URI.
  */
 export declare function blobToDataURI(blob: Blob): Promise<`data:${string};base64,${string}`>;
+declare global {
+    namespace globalThis {
+        /**
+         * Joins paths, works like `path.join`.
+         *
+         * @param input The paths to join.
+         * @returns The joined path.
+         */
+        function joinPath(...input: string[]): string;
+    }
+}
 /**
  * Imports a plugin from a data URI.
  *
@@ -258,6 +1070,8 @@ export declare function blobToDataURI(blob: Blob): Promise<`data:${string};base6
  * @returns {Promise<Plugin>} A promise resolving with the imported plugin.
  *
  * @throws {TypeError} If the plugin type is not supported.
+ *
+ * @todo Add support for relative script imports in the scripts of .mcouicplugin files, use RollupJS, also use the `rollup-plugin-typescript2` RollupJS plugin to allow for typescript.
  */
 export declare function importPluginFromDataURI(dataURI: string, type?: "js" | "mcouicplugin"): Promise<Plugin>;
 /**
@@ -268,7 +1082,7 @@ export declare function importPluginFromDataURI(dataURI: string, type?: "js" | "
  * @returns {Promise<void>} A promise resolving to `void` when the plugin file is validated.
  *
  * @throws {TypeError} If the plugin type is not supported.
- * @throws {TypeError | SyntaxError} If the plugin is not valid.
+ * @throws {TypeError | SyntaxError | ReferenceError | EvalError} If the plugin is not valid.
  */
 export declare function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "js"): Promise<void>;
 /**
@@ -861,7 +1675,7 @@ export declare function getReplacerRegexes(extractedSymbolNames: ReturnType<type
 /**
  * A plugin for 8Crafter's Ore UI Customizer.
  */
-export interface Plugin {
+export interface Plugin extends Pick<PluginManifestJSON, "marketplaceDetails" | "checkForUpdatesDetails"> {
     /**
      * The display name of the plugin.
      */
@@ -873,7 +1687,15 @@ export interface Plugin {
      */
     id: string;
     /**
-     * The namespace of the plugin, used to identify the plugin in error messages.
+     * The UUID of the plugin, used to uniquely identify the plugin.
+     *
+     * Must be a valid UUID.
+     *
+     * @example "39a5d251-b6e0-47db-92d1-317eaa7dfe44"
+     */
+    uuid: string;
+    /**
+     * The namespace of the plugin, used in conjunction with the {@link id} to identify the plugin in error messages.
      *
      * Must consist only of alphanumeric characters, underscores, hyphens, and periods.
      *
@@ -881,9 +1703,15 @@ export interface Plugin {
      */
     namespace: string;
     /**
+     * An optional description of the plugin.
+     */
+    description?: string;
+    /**
      * The version of the plugin.
      *
      * This must be a valid semver string, without the leading `v`.
+     *
+     * @example "3.17.4-preview.20+BUILD.5"
      */
     version: string;
     /**
@@ -894,6 +1722,8 @@ export interface Plugin {
      * The version of 8Crafter's Ore UI Customizer that this plugin is made for.
      *
      * This must be a valid semver string, without the leading `v`.
+     *
+     * @example "1.0.0"
      */
     format_version: string;
     /**
@@ -902,9 +1732,60 @@ export interface Plugin {
      * This must be a valid semver string, without the leading `v`.
      *
      * If not specified, no check will be done.
+     *
+     * @example "1.0.0"
      */
     min_engine_version?: string;
+    /**
+     * The data URI of the icon of the plugin.
+     *
+     * If not specified the default icon will be used.
+     *
+     * The MIME type must match `image/*`.
+     *
+     * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+     */
+    icon_data_uri?: `data:image/${string};base64,${string}`;
+    /**
+     * The dependencies of the plugin.
+     */
+    dependencies?: PluginManifestJSON["dependencies"];
+    /**
+     * Additonal metadata about the plugin.
+     */
+    metadata?: {
+        /**
+         * The authors of the plugin.
+         *
+         * @example ["8Crafter", "StormStqr"]
+         */
+        authors?: string[];
+        /**
+         * The URL of the website for the plugin, or just the plugin creator's website.
+         *
+         * @example "https://www.8crafter.com"
+         */
+        url?: string;
+        /**
+         * The type of the plugin.
+         *
+         * @example "plugin"
+         */
+        product_type?: "plugin";
+        /**
+         * The license of the plugin
+         */
+        license?: string;
+        /**
+         * Any other metadata you want to add.
+         */
+        [key: string]: unknown;
+    };
 }
+/**
+ * The type of the value of the exported `plugin` variable of the script listed as the {@linkcode PluginManifestJSON.entry | entry} of a plugin's {@linkcode PluginManifestJSON | manifest.json} file.
+ */
+export type PluginEntryScriptPlugin = Pick<Plugin, "actions">;
 /**
  * The context of a {@link PluginAction}.
  */
@@ -1013,6 +1894,8 @@ export declare const builtInPlugins: [{
     readonly id: "add-exact-ping-count-to-servers-tab";
     readonly namespace: "built-in";
     readonly version: "0.25.0";
+    readonly uuid: "a1ffa1f2-a8d1-4948-a307-4067d4a82880";
+    readonly description: "A built-in plugin that adds the exact ping count to the servers tab.";
     readonly actions: [{
         readonly id: "add-exact-ping-count-to-servers-tab";
         readonly context: "per_text_file";
@@ -1025,6 +1908,8 @@ export declare const builtInPlugins: [{
     readonly id: "add-max-player-count-to-servers-tab";
     readonly namespace: "built-in";
     readonly version: "0.25.0";
+    readonly uuid: "09b88cde-e265-4f42-b203-564f0df6ca1e";
+    readonly description: "A built-in plugin that adds the max player count to the servers tab.";
     readonly actions: [{
         readonly id: "add-max-player-count-to-servers-tab";
         readonly context: "per_text_file";
@@ -1037,6 +1922,8 @@ export declare const builtInPlugins: [{
     readonly id: "facet-spy";
     readonly namespace: "built-in";
     readonly version: "1.0.0";
+    readonly uuid: "e2355295-b202-4f4b-96b8-7bd7b6eaac23";
+    readonly description: "Facet spy.";
     readonly actions: [{
         readonly id: "inject-facet-spy";
         readonly context: "per_text_file";

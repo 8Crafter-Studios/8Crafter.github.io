@@ -1,9 +1,9 @@
-import { OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
+import { type OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
 import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "1.2.1";
+export declare const format_version = "1.3.0";
 /**
  * The result of the {@link applyMods} function.
  */

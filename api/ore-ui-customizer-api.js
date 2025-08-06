@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.2.1";
+export const format_version = "1.3.0";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -111,7 +111,7 @@ export async function applyMods(file, options = {}) {
     /**
      * The list of plugins to apply.
      */
-    const plugins = [...builtInPlugins];
+    const plugins = [...builtInPlugins, ...(settings.preloadedPlugins ?? [])];
     for (const encodedPlugin of settings.plugins ?? []) {
         plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, encodedPlugin.fileType));
     }
@@ -216,15 +216,28 @@ export async function applyMods(file, options = {}) {
         }
         else if (entry.directory === void false) {
             /**
+             * The original data.
+             *
              * @type {string}
              */
             const origData = await entry.getText();
+            /**
+             * The modified data.
+             */
             let distData = origData;
             /**
+             * The list of failed replaces.
+             *
              * @type {string[]}
              */
             let failedReplaces = [];
-            const extractedSymbolNames = getExtractedSymbolNames(origData);
+            /**
+             * The extracted symbol names.
+             */
+            let extractedSymbolNames = getExtractedSymbolNames(origData);
+            /**
+             * Lists of regexes to use for certain modifications.
+             */
             const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
             if (settings.hardcoreModeToggleAlwaysClickable) {
                 let successfullyReplaced = false;
@@ -1306,75 +1319,75 @@ export async function applyMods(file, options = {}) {
         log("Added gui/dist/hbui/assets/8crafter.gif");
         addedCount++;
         // Toggle
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_off_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetchFileBlob("./assets/oreui/assets/toggle_off_hover.png"));
         log("Added gui/dist/hbui/assets/toggle_off_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_off.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetchFileBlob("./assets/oreui/assets/toggle_off.png"));
         log("Added gui/dist/hbui/assets/toggle_off.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_on_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetchFileBlob("./assets/oreui/assets/toggle_on_hover.png"));
         log("Added gui/dist/hbui/assets/toggle_on_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetchFileBlob("./assets/images/ui/toggle/toggle_on.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetchFileBlob("./assets/oreui/assets/toggle_on.png"));
         log("Added gui/dist/hbui/assets/toggle_on.png");
         addedCount++;
         // Radio
-        zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetchFileBlob("./assets/images/ui/radio/radio_off_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetchFileBlob("./assets/oreui/assets/radio_off_hover.png"));
         log("Added gui/dist/hbui/assets/radio_off_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetchFileBlob("./assets/images/ui/radio/radio_off.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetchFileBlob("./assets/oreui/assets/radio_off.png"));
         log("Added gui/dist/hbui/assets/radio_off.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetchFileBlob("./assets/images/ui/radio/radio_on_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetchFileBlob("./assets/oreui/assets/radio_on_hover.png"));
         log("Added gui/dist/hbui/assets/radio_on_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetchFileBlob("./assets/images/ui/radio/radio_on.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetchFileBlob("./assets/oreui/assets/radio_on.png"));
         log("Added gui/dist/hbui/assets/radio_on.png");
         addedCount++;
         // Checkbox
         // to-do
         // Textboxes
-        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetchFileBlob("./assets/images/ui/textboxes/edit_box_indent_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetchFileBlob("./assets/oreui/assets/edit_box_indent_hover.png"));
         log("Added gui/dist/hbui/assets/edit_box_indent_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetchFileBlob("./assets/images/ui/textboxes/edit_box_indent.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetchFileBlob("./assets/oreui/assets/edit_box_indent.png"));
         log("Added gui/dist/hbui/assets/edit_box_indent.png");
         addedCount++;
         // Buttons
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_dark.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_dark.png"));
         log("Added gui/dist/hbui/assets/button_borderless_dark.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_light.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_default.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_light_blue_default.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkhover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_darkhover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lighthover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_lighthover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_hover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_light_blue_hover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkpressed.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_darkpressed.png"));
         log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lightpressed.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_lightpressed.png"));
         log("Added gui/dist/hbui/assets/button_borderless_lightpressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_light_blue_hover_pressed.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_darkpressednohover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_darkpressednohover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_lightpressednohover.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_lightpressednohover.png"));
         log("Added gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
         addedCount++;
-        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetchFileBlob("./assets/images/ui/buttons/button_borderless_light_blue_pressed.png"));
+        zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetchFileBlob("./assets/oreui/assets/button_borderless_light_blue_pressed.png"));
         log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
         addedCount++;
     }
@@ -1382,7 +1395,43 @@ export async function applyMods(file, options = {}) {
         console.error(e);
     }
     try {
-        zipFs.addText("gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
+        zipFs.addText("gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify({
+            ...settings,
+            preloadedPlugins: undefined,
+            activePluginsDetails: [
+                ...(options.settings?.plugins?.map((plugin) => ({
+                    format_version: plugin.format_version,
+                    id: plugin.id,
+                    name: plugin.name,
+                    namespace: plugin.namespace,
+                    uuid: plugin.uuid,
+                    version: plugin.version,
+                    checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                    dependencies: plugin.dependencies,
+                    description: plugin.description,
+                    icon_data_uri: plugin.icon_data_uri,
+                    min_engine_version: plugin.min_engine_version,
+                    marketplaceDetails: plugin.marketplaceDetails,
+                    metadata: plugin.metadata,
+                })) ?? []),
+                ...(options.settings?.preloadedPlugins?.map((plugin) => ({
+                    format_version: plugin.format_version,
+                    id: plugin.id,
+                    name: plugin.name,
+                    namespace: plugin.namespace,
+                    uuid: plugin.uuid,
+                    version: plugin.version,
+                    checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                    dependencies: plugin.dependencies,
+                    description: plugin.description,
+                    icon_data_uri: plugin.icon_data_uri,
+                    min_engine_version: plugin.min_engine_version,
+                    marketplaceDetails: plugin.marketplaceDetails,
+                    metadata: plugin.metadata,
+                })) ?? []),
+            ],
+            plugins: options.settings?.bundleEncodedPluginDataInConfigFile ? options.settings?.plugins : undefined,
+        }, undefined, 4)};
 const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
         log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
         addedCount++;

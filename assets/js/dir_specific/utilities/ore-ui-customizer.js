@@ -29,12 +29,14 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        "v1.21.100_PC": { displayName: "v1.21.100 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
         "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
         "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
         "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.100-preview.23_PC": { displayName: "v1.21.100.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.100-preview.23_PC.zip" },
         "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
         "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
         "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
@@ -44,7 +46,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.2.1";
+    OreUICustomizer.format_version = "1.3.0";
     /**
      * @type {File | undefined}
      */
@@ -90,6 +92,21 @@ export var OreUICustomizer;
      */
     OreUICustomizer.encodedImportedPlugins = [];
     $(function onDocumentLoad() {
+        if (localStorage.getItem("ore-ui-customizer-last-config") !== null) {
+            let config;
+            try {
+                config = JSON.parse(localStorage.getItem("ore-ui-customizer-last-config"));
+            }
+            catch (e) {
+                console.error("Unable to parse stored config", e);
+            }
+            if (config) {
+                const settings = config.oreUICustomizerConfig;
+                if (settings) {
+                    setSettings(settings);
+                }
+            }
+        }
         $("body > *").on("dragenter", function (event) {
             event.preventDefault();
         });
@@ -148,7 +165,9 @@ export var OreUICustomizer;
                             dataURI,
                             fileType: "js",
                             id: data.plugin.id,
+                            uuid: data.plugin.uuid,
                             version: data.plugin.version,
+                            description: data.plugin.description,
                             name: data.plugin.name,
                             format_version: data.plugin.format_version,
                             namespace: data.plugin.namespace,
@@ -224,7 +243,9 @@ export var OreUICustomizer;
                             dataURI,
                             fileType: "js",
                             id: data.plugin.id,
+                            uuid: data.plugin.uuid,
                             version: data.plugin.version,
+                            description: data.plugin.description,
                             name: data.plugin.name,
                             format_version: data.plugin.format_version,
                             namespace: data.plugin.namespace,
@@ -1045,6 +1066,121 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         };
     }
     OreUICustomizer.getSettings = getSettings;
+    function setSettings(settings) {
+        $("#hardcore_mode_toggle_always_clickable").prop("checked", settings.hardcoreModeToggleAlwaysClickable ?? true);
+        $("#allow_disabling_enabled_experimental_toggles").prop("checked", settings.allowDisablingEnabledExperimentalToggles ?? true);
+        $("#add_generator_type_dropdown").prop("checked", settings.addGeneratorTypeDropdown ?? true);
+        $("#add_more_default_game_modes").prop("checked", settings.addMoreDefaultGameModes ?? true);
+        $("#allow_for_changing_seeds").prop("checked", settings.allowForChangingSeeds ?? true);
+        $("#allow_for_changing_flat_world_preset").prop("checked", settings.allowForChangingFlatWorldPreset ?? true);
+        $("#add_generator_type_dropdown").prop("checked", settings.addGeneratorTypeDropdown ?? true);
+        $("#max_text_length_override").val(settings.maxTextLengthOverride ?? "");
+        $("#add_debug_tab").prop("checked", settings.addDebugTab ?? true);
+        // add8CrafterUtilitiesMainMenuButton: true,
+        // enabledBuiltInPlugins: {
+        //     "add-exact-ping-count-to-servers-tab": true,
+        //     "add-max-player-count-to-servers-tab": true,
+        //     "facet-spy": true,
+        // },
+        // /**
+        //  * Gray 80
+        //  *
+        //  * This is used as the solid background for many Ore UI menus.
+        //  */
+        // "#313233": "#006188",
+        // /**
+        //  * Gray 70
+        //  *
+        //  * This is used for the main part of a pressed button.
+        //  */
+        // "#48494a": "#007eaf",
+        // "#3c8527": "#27856e",
+        // "#e6e8eb": "#6200ff",
+        // "#58585a": "#2c6387",
+        // "#242425": "#003347",
+        // "#1e1e1f": "#002c3d",
+        // "#8c8d90": "#1fbfff",
+        $("#colors_customizer_settings_section_green10").val(settings.colorReplacements?.["#a0e081"] ?? "#a0e081");
+        $("#colors_customizer_settings_section_green20").val(settings.colorReplacements?.["#86d562"] ?? "#86d562");
+        $("#colors_customizer_settings_section_green30").val(settings.colorReplacements?.["#6cc349"] ?? "#6cc349");
+        $("#colors_customizer_settings_section_green40").val(settings.colorReplacements?.["#52a535"] ?? "#52a535");
+        $("#colors_customizer_settings_section_green50").val(settings.colorReplacements?.["#3c8527"] ?? "#3c8527");
+        $("#colors_customizer_settings_section_green60").val(settings.colorReplacements?.["#2a641c"] ?? "#2a641c");
+        $("#colors_customizer_settings_section_green70").val(settings.colorReplacements?.["#1d4d13"] ?? "#1d4d13");
+        $("#colors_customizer_settings_section_green80").val(settings.colorReplacements?.["#153a0e"] ?? "#153a0e");
+        $("#colors_customizer_settings_section_green90").val(settings.colorReplacements?.["#112f0b"] ?? "#112f0b");
+        $("#colors_customizer_settings_section_green100").val(settings.colorReplacements?.["#0f2b0a"] ?? "#0f2b0a");
+        $("#colors_customizer_settings_section_white").val(settings.colorReplacements?.["#ffffff"] ?? "#ffffff");
+        $("#colors_customizer_settings_section_black").val(settings.colorReplacements?.["#000000"] ?? "#000000");
+        $("#colors_customizer_settings_section_gray10").val(settings.colorReplacements?.["#f4f6f9"] ?? "#f4f6f9");
+        $("#colors_customizer_settings_section_gray20").val(settings.colorReplacements?.["#e6e8eb"] ?? "#e6e8eb");
+        $("#colors_customizer_settings_section_gray30").val(settings.colorReplacements?.["#d0d1d4"] ?? "#d0d1d4");
+        $("#colors_customizer_settings_section_gray40").val(settings.colorReplacements?.["#b1b2b5"] ?? "#b1b2b5");
+        $("#colors_customizer_settings_section_gray50").val(settings.colorReplacements?.["#8c8d90"] ?? "#8c8d90");
+        $("#colors_customizer_settings_section_gray60").val(settings.colorReplacements?.["#58585a"] ?? "#58585a");
+        $("#colors_customizer_settings_section_gray70").val(settings.colorReplacements?.["#48494a"] ?? "#48494a");
+        $("#colors_customizer_settings_section_gray80").val(settings.colorReplacements?.["#313233"] ?? "#313233");
+        $("#colors_customizer_settings_section_gray90").val(settings.colorReplacements?.["#242425"] ?? "#242425");
+        $("#colors_customizer_settings_section_gray100").val(settings.colorReplacements?.["#1e1e1f"] ?? "#1e1e1f");
+        $("#colors_customizer_settings_section_red10").val(settings.colorReplacements?.["#ff8080"] ?? "#ff8080");
+        $("#colors_customizer_settings_section_red20").val(settings.colorReplacements?.["#d93636"] ?? "#d93636");
+        $("#colors_customizer_settings_section_red30").val(settings.colorReplacements?.["#b31b1b"] ?? "#b31b1b");
+        $("#colors_customizer_settings_section_red40").val(settings.colorReplacements?.["#d54242"] ?? "#d54242");
+        $("#colors_customizer_settings_section_red50").val(settings.colorReplacements?.["#ca3636"] ?? "#ca3636");
+        $("#colors_customizer_settings_section_red60").val(settings.colorReplacements?.["#c02d2d"] ?? "#c02d2d");
+        $("#colors_customizer_settings_section_red70").val(settings.colorReplacements?.["#b62525"] ?? "#b62525");
+        $("#colors_customizer_settings_section_red80").val(settings.colorReplacements?.["#ad1d1d"] ?? "#ad1d1d");
+        $("#colors_customizer_settings_section_red90").val(settings.colorReplacements?.["#a31616"] ?? "#a31616");
+        $("#colors_customizer_settings_section_red100").val(settings.colorReplacements?.["#990f0f"] ?? "#990f0f");
+        $("#colors_customizer_settings_section_orange10").val(settings.colorReplacements?.["#ffb366"] ?? "#ffb366");
+        $("#colors_customizer_settings_section_orange20").val(settings.colorReplacements?.["#d3791f"] ?? "#d3791f");
+        $("#colors_customizer_settings_section_orange30").val(settings.colorReplacements?.["#a65b11"] ?? "#a65b11");
+        $("#colors_customizer_settings_section_yellow10").val(settings.colorReplacements?.["#ffe866"] ?? "#ffe866");
+        $("#colors_customizer_settings_section_yellow20").val(settings.colorReplacements?.["#e5c317"] ?? "#e5c317");
+        $("#colors_customizer_settings_section_yellow30").val(settings.colorReplacements?.["#8a7500"] ?? "#8a7500");
+        $("#colors_customizer_settings_section_gold10").val(settings.colorReplacements?.["#fff0c5"] ?? "#fff0c5");
+        $("#colors_customizer_settings_section_gold20").val(settings.colorReplacements?.["#ffd783"] ?? "#ffd783");
+        $("#colors_customizer_settings_section_gold30").val(settings.colorReplacements?.["#f8af2b"] ?? "#f8af2b");
+        $("#colors_customizer_settings_section_gold40").val(settings.colorReplacements?.["#ce8706"] ?? "#ce8706");
+        $("#colors_customizer_settings_section_gold50").val(settings.colorReplacements?.["#ae7100"] ?? "#ae7100");
+        $("#colors_customizer_settings_section_blue10").val(settings.colorReplacements?.["#8cb3ff"] ?? "#8cb3ff");
+        $("#colors_customizer_settings_section_blue20").val(settings.colorReplacements?.["#2e6be5"] ?? "#2e6be5");
+        $("#colors_customizer_settings_section_blue30").val(settings.colorReplacements?.["#1452cc"] ?? "#1452cc");
+        $("#colors_customizer_settings_section_blackOpacity10").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.1)"] ?? "rgba(0, 0, 0, 0.1)");
+        $("#colors_customizer_settings_section_blackOpacity20").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.2)"] ?? "rgba(0, 0, 0, 0.2)");
+        $("#colors_customizer_settings_section_blackOpacity25").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.25)"] ?? "rgba(0, 0, 0, 0.25)");
+        $("#colors_customizer_settings_section_blackOpacity30").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.3)"] ?? "rgba(0, 0, 0, 0.3)");
+        $("#colors_customizer_settings_section_blackOpacity40").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.4)"] ?? "rgba(0, 0, 0, 0.4)");
+        $("#colors_customizer_settings_section_blackOpacity50").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.5)"] ?? "rgba(0, 0, 0, 0.5)");
+        $("#colors_customizer_settings_section_blackOpacity60").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.6)"] ?? "rgba(0, 0, 0, 0.6)");
+        $("#colors_customizer_settings_section_blackOpacity70").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.7)"] ?? "rgba(0, 0, 0, 0.7)");
+        $("#colors_customizer_settings_section_blackOpacity80").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.8)"] ?? "rgba(0, 0, 0, 0.8)");
+        $("#colors_customizer_settings_section_blackOpacity90").val(settings.colorReplacements?.["rgba(0, 0, 0, 0.9)"] ?? "rgba(0, 0, 0, 0.9)");
+        $("#colors_customizer_settings_section_blackOpacity100").val(settings.colorReplacements?.["rgba(0, 0, 0, 1)"] ?? "rgba(0, 0, 0, 1)");
+        $("#colors_customizer_settings_section_whiteOpacity10").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.1)"] ?? "rgba(255, 255, 255, 0.1)");
+        $("#colors_customizer_settings_section_whiteOpacity20").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.2)"] ?? "rgba(255, 255, 255, 0.2)");
+        $("#colors_customizer_settings_section_whiteOpacity30").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.3)"] ?? "rgba(255, 255, 255, 0.3)");
+        $("#colors_customizer_settings_section_whiteOpacity40").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.4)"] ?? "rgba(255, 255, 255, 0.4)");
+        $("#colors_customizer_settings_section_whiteOpacity50").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.5)"] ?? "rgba(255, 255, 255, 0.5)");
+        $("#colors_customizer_settings_section_whiteOpacity60").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.6)"] ?? "rgba(255, 255, 255, 0.6)");
+        $("#colors_customizer_settings_section_whiteOpacity70").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.7)"] ?? "rgba(255, 255, 255, 0.7)");
+        $("#colors_customizer_settings_section_whiteOpacity80").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.8)"] ?? "rgba(255, 255, 255, 0.8)");
+        $("#colors_customizer_settings_section_whiteOpacity90").val(settings.colorReplacements?.["rgba(255, 255, 255, 0.9)"] ?? "rgba(255, 255, 255, 0.9)");
+        $("#colors_customizer_settings_section_pink10").val(settings.colorReplacements?.["#FB95E2"] ?? "#FB95E2");
+        $("#colors_customizer_settings_section_pink20").val(settings.colorReplacements?.["#FFB1EC"] ?? "#FFB1EC");
+        $("#colors_customizer_settings_section_pink30").val(settings.colorReplacements?.["#E833C2"] ?? "#E833C2");
+        $("#colors_customizer_settings_section_pink40").val(settings.colorReplacements?.["#F877DC"] ?? "#F877DC");
+        $("#colors_customizer_settings_section_purple40").val(settings.colorReplacements?.["#643ACB"] ?? "#643ACB");
+        $("#colors_customizer_settings_section_deepBlue10").val(settings.colorReplacements?.["#AC90F3"] ?? "#AC90F3");
+        $("#colors_customizer_settings_section_deepBlue20").val(settings.colorReplacements?.["#9471E0"] ?? "#9471E0");
+        $("#colors_customizer_settings_section_deepBlue40").val(settings.colorReplacements?.["#8557F8"] ?? "#8557F8");
+        $("#colors_customizer_settings_section_deepBlue50").val(settings.colorReplacements?.["#7345E5"] ?? "#7345E5");
+        $("#colors_customizer_settings_section_deepBlue60").val(settings.colorReplacements?.["#5D2CC6"] ?? "#5D2CC6");
+        $("#colors_customizer_settings_section_deepBlue70").val(settings.colorReplacements?.["#4A1CAC"] ?? "#4A1CAC");
+        $("#colors_customizer_settings_section_deepBlue100").val(settings.colorReplacements?.["#050029"] ?? "#050029");
+        $("#colors_customizer_settings_section_deepBlueOpacity50").val(settings.colorReplacements?.["rgba(5, 0, 41, 0.5)"] ?? "rgba(5, 0, 41, 0.5)");
+    }
+    OreUICustomizer.setSettings = setSettings;
     /**
      *
      * @param {HTMLElement} target
@@ -1252,7 +1388,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 modifiedCount++;
                 renamedCount++;
             }
-            else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename)) {
+            else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename.toLowerCase())) {
                 if (entry.directory !== void false) {
                     unmodifiedCount++;
                 }
@@ -1429,7 +1565,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
              * @param {unknown} param0.achievementsDisabledMessages
              * @param {unknown} param0.areAllTogglesDisabled
              */
-            function $1({ experimentalFeature, gamepadIndex: tAA, disabled: $2AA, achievementsDisabledMessages: $3AA, areAllTogglesDisabled: $4AA }) {
+            function $1({ experimentalFeature, gamepadIndex: tAAC, disabled: $2AA, achievementsDisabledMessages: $3AA, areAllTogglesDisabled: $4AA }) {
                 const { gt: $5AA } = (function () {
                         const { translate, formatDate } = (0, ${extractedSymbolNames.contextHolder}.useContext)($6);
                         return (0, ${extractedSymbolNames.contextHolder}.useMemo)(
@@ -1467,7 +1603,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     ? ${extractedSymbolNames.contextHolder}.createElement($19, {
                           title: $10AA !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5AA($10AA) : "",
                           description: $12AA !== ${extractedSymbolNames.facetHolder}.NO_VALUE ? $5AA($12AA) : "",
-                          gamepad: { index: tAA },
+                          gamepad: { index: tAAC },
                           value: $13AA,
                           disabled: false /* $14AA */, // Modified
                           onChange: $15AA,
@@ -2316,7 +2452,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     const origDistData = distData;
                     const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
                     const values = [...textLengthValues];
-                    console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
+                    // console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
                     for (const textLengthValue of values) {
                         distData = distData.replace(textLengthValue[0], `maxLength${textLengthValue[1]}${settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */}`);
                     }
@@ -2330,7 +2466,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 if (settings.add8CrafterUtilitiesMainMenuButton) {
                     let successfullyReplaced = false;
                     let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] = origData
-                        .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:i\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:i\("\.inputLegend"\),narrationText:null!=o\?o:i\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/)
+                        .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_\$]{1})\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:(?:[a-zA-Z0-9_\$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_\$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/)
                         ?.slice(1, 4) ?? [];
                     disabledVariableSymbolName ??= "n";
                     focusGridIndexVariableSymbolName ??= "r";
@@ -2346,7 +2482,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                         ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
-                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: ${focusGridIndexVariableSymbolName}, role: l = "inherit" }) {
+                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
                                                                     return ${extractedSymbolNames.contextHolder}.createElement(
                                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                                         null,
@@ -2354,7 +2490,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                                             ${extractedSymbolNames.navbarButtonFunction},
                                                                             {
                                                                                 disabled: ${disabledVariableSymbolName},
-                                                                                // focusGridIndex: ${focusGridIndexVariableSymbolName},
+                                                                                // focusGridIndex: rAA,
                                                                                 inputLegend: "8Crafter Utilities",
                                                                                 // narrationText: "8Crafter Utilities Button",
                                                                                 onClick: e,
@@ -2454,75 +2590,75 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             console.log("Added gui/dist/hbui/assets/8crafter.gif");
             addedCount++;
             // Toggle
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/images/ui/toggle/toggle_off_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/oreui/assets/toggle_off_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_off_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetch("/assets/images/ui/toggle/toggle_off.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_off.png", await fetch("/assets/oreui/assets/toggle_off.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_off.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetch("/assets/images/ui/toggle/toggle_on_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_on_hover.png", await fetch("/assets/oreui/assets/toggle_on_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_on_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetch("/assets/images/ui/toggle/toggle_on.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_on.png", await fetch("/assets/oreui/assets/toggle_on.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_on.png");
             addedCount++;
             // Radio
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetch("/assets/images/ui/radio/radio_off_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_off_hover.png", await fetch("/assets/oreui/assets/radio_off_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/radio_off_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetch("/assets/images/ui/radio/radio_off.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_off.png", await fetch("/assets/oreui/assets/radio_off.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/radio_off.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetch("/assets/images/ui/radio/radio_on_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_on_hover.png", await fetch("/assets/oreui/assets/radio_on_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/radio_on_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetch("/assets/images/ui/radio/radio_on.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/radio_on.png", await fetch("/assets/oreui/assets/radio_on.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/radio_on.png");
             addedCount++;
             // Checkbox
             // to-do
             // Textboxes
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetch("/assets/images/ui/textboxes/edit_box_indent_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent_hover.png", await fetch("/assets/oreui/assets/edit_box_indent_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/edit_box_indent_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetch("/assets/images/ui/textboxes/edit_box_indent.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/edit_box_indent.png", await fetch("/assets/oreui/assets/edit_box_indent.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/edit_box_indent.png");
             addedCount++;
             // Buttons
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetch("/assets/images/ui/buttons/button_borderless_dark.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_dark.png", await fetch("/assets/oreui/assets/button_borderless_dark.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_dark.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetch("/assets/images/ui/buttons/button_borderless_light.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light.png", await fetch("/assets/oreui/assets/button_borderless_light.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_default.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_default.png", await fetch("/assets/oreui/assets/button_borderless_light_blue_default.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkhover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkhover.png", await fetch("/assets/oreui/assets/button_borderless_darkhover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetch("/assets/images/ui/buttons/button_borderless_lighthover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lighthover.png", await fetch("/assets/oreui/assets/button_borderless_lighthover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover.png", await fetch("/assets/oreui/assets/button_borderless_light_blue_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressed.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressed.png", await fetch("/assets/oreui/assets/button_borderless_darkpressed.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressed.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressed.png", await fetch("/assets/oreui/assets/button_borderless_lightpressed.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_lightpressed.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png", await fetch("/assets/oreui/assets/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_darkpressednohover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_darkpressednohover.png", await fetch("/assets/oreui/assets/button_borderless_darkpressednohover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetch("/assets/images/ui/buttons/button_borderless_lightpressednohover.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_lightpressednohover.png", await fetch("/assets/oreui/assets/button_borderless_lightpressednohover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
             addedCount++;
-            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetch("/assets/images/ui/buttons/button_borderless_light_blue_pressed.png").then((r) => r.blob()));
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetch("/assets/oreui/assets/button_borderless_light_blue_pressed.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
             addedCount++;
         }
@@ -2530,7 +2666,43 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             console.error(e);
         }
         try {
-            OreUICustomizer.zipFs.addText("gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify(settings, undefined, 4)};
+            OreUICustomizer.zipFs.addText("gui/dist/hbui/oreUICustomizer8CrafterConfig.js", `const oreUICustomizerConfig = ${JSON.stringify({
+                ...settings,
+                preloadedPlugins: undefined,
+                activePluginsDetails: [
+                    ...(settings.plugins?.map((plugin) => ({
+                        format_version: plugin.format_version,
+                        id: plugin.id,
+                        name: plugin.name,
+                        namespace: plugin.namespace,
+                        uuid: plugin.uuid,
+                        version: plugin.version,
+                        checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                        dependencies: plugin.dependencies,
+                        description: plugin.description,
+                        icon_data_uri: plugin.icon_data_uri,
+                        min_engine_version: plugin.min_engine_version,
+                        marketplaceDetails: plugin.marketplaceDetails,
+                        metadata: plugin.metadata,
+                    })) ?? []),
+                    ...(settings.preloadedPlugins?.map((plugin) => ({
+                        format_version: plugin.format_version,
+                        id: plugin.id,
+                        name: plugin.name,
+                        namespace: plugin.namespace,
+                        uuid: plugin.uuid,
+                        version: plugin.version,
+                        checkForUpdatesDetails: plugin.checkForUpdatesDetails,
+                        dependencies: plugin.dependencies,
+                        description: plugin.description,
+                        icon_data_uri: plugin.icon_data_uri,
+                        min_engine_version: plugin.min_engine_version,
+                        marketplaceDetails: plugin.marketplaceDetails,
+                        metadata: plugin.metadata,
+                    })) ?? []),
+                ],
+                plugins: settings.bundleEncodedPluginDataInConfigFile ? settings.plugins : undefined,
+            }, undefined, 4)};
 const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)};`);
             console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
             addedCount++;
