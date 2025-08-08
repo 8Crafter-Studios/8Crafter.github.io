@@ -12,6 +12,11 @@
             "currentImportStatementText": "../assets/shared/ore-ui-customizer-assets.js",
             "dependencies": [
                 {
+                    "js": "../../assets/shared/zip.js",
+                    "dts": "../../assets/shared/zip.d.ts",
+                    "currentImportStatementText": "./zip.js"
+                },
+                {
                     "js": "../../assets/shared/semver.js",
                     "dts": "../../assets/shared/semver.d.ts",
                     "currentImportStatementText": "./semver.js"
