@@ -1370,7 +1370,7 @@ export const builtInPlugins = [
                 "vanilla.debugSettings",
                 "vanilla.editor",
                 "vanilla.editorInput",
-                "vanilla.editorLogging",
+                // "vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview.
                 "vanilla.editorScripting",
                 "vanilla.editorSelectionFacet",
                 "vanilla.editorSettings",

@@ -67,7 +67,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.3.0";
+    const format_version = "1.3.1";
     /**
      * @type {File | undefined}
      */

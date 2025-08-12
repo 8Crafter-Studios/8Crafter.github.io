@@ -55,7 +55,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.3.0";
+    export const format_version = "1.3.1";
     /**
      * @type {File | undefined}
      */
