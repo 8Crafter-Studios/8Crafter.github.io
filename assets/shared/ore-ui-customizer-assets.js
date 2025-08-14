@@ -244,7 +244,7 @@ export async function importPluginFromDataURI(dataURI, type = "js") {
         case "mcouicplugin": {
             const zipFs = new zip.fs.FS();
             await zipFs.importData64URI(dataURI);
-            const manifest = JSON.parse(await zipFs.getChildByName("/manifest.json").getText());
+            const manifest = JSON.parse(await zipFs.getChildByName("manifest.json").getText());
             const entry = manifest.entry.replaceAll(/^(\/|\.\/)+/g, "");
             // const moduleList: string[] = ["@ore-ui-customizer/utilities"];
             // const addRequireDefinition: string = `function require(path) { return ; };`;
@@ -274,7 +274,7 @@ export async function importPluginFromDataURI(dataURI, type = "js") {
                 return result;
             }
             let script: string = await loadScriptImports(await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getText()); */
-            let data = await import(await zipFs.getChildByName(entry).getData64URI());
+            let data = await import(await zipFs.entries.find((currentEntry) => currentEntry.data?.filename === entry).getData64URI("application/javascript"));
             return { ...manifest, ...manifest.header, ...data.plugin };
         }
         case "js": {
@@ -301,10 +301,10 @@ export async function validatePluginFile(plugin, type) {
         case "mcouicplugin": {
             const zipFs = new zip.fs.FS();
             await zipFs.importBlob(plugin);
-            if (!zipFs.getChildByName("/manifest.json"))
+            if (!zipFs.getChildByName("manifest.json"))
                 throw new ReferenceError(`Plugin is missing required file "manifest.json".`);
             try {
-                var manifest = JSON.parse(await zipFs.getChildByName("/manifest.json").getText());
+                var manifest = JSON.parse(await zipFs.getChildByName("manifest.json").getText());
             }
             catch (e) {
                 throw new SyntaxError(`Plugin "manifest.json" is not valid JSON.`, { cause: e });

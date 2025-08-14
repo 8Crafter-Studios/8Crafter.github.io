@@ -55,7 +55,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.3.1";
+    export const format_version = "1.4.0";
     /**
      * @type {File | undefined}
      */
@@ -1605,6 +1605,19 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
          */
         const plugins: Plugin[] = [...builtInPlugins, ...Object.values(importedPlugins)];
         $("#current_customizer_status").text("Applying mods (Modifying files)...");
+        for (const plugin of plugins) {
+            if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
+                for (const action of plugin.actions) {
+                    if (action.context !== "global_before") continue;
+                    try {
+                        await action.action(zipFs);
+                    } catch (e) {
+                        allFailedReplaces.globalPluginActions ??= [];
+                        allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                    }
+                }
+            }
+        }
         for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
             if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename!)) {
                 let origName = entry.name;
@@ -3079,6 +3092,19 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             addedCount++;
         } catch (e) {
             console.error(e);
+        }
+        for (const plugin of plugins) {
+            if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
+                for (const action of plugin.actions) {
+                    if (action.context !== "global") continue;
+                    try {
+                        await action.action(zipFs);
+                    } catch (e) {
+                        allFailedReplaces.globalPluginActions ??= [];
+                        allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                    }
+                }
+            }
         }
         $("#current_customizer_status").text("");
         if (Object.keys(allFailedReplaces).length > 0) {

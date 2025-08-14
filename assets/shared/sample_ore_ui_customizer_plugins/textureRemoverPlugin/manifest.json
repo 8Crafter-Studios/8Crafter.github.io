@@ -1,16 +1,16 @@
 {
     "format_version": 1,
     "header": {
-        "name": "Replace \"Play\" with \"lol\"",
-        "uuid": "7a4a5d25-6e0a-47db-92d1-317eaa7dfe44",
-        "id": "replace-play-with-lol",
+        "name": "Texture Remover",
+        "uuid": "cc2bac60-336e-4ac7-90a4-40689f845400",
+        "id": "texture-remover",
         "namespace": "andexpl",
-        "description": "A sample plugin for 8Crafter's Ore UI Customizer.",
-        "version": "1.0.1",
+        "description": "A plugin that removes all of the texture files.",
+        "version": "1.0.0",
         "format_version": "1.3.0",
         "min_engine_version": "1.3.0"
     },
-    "entry": "scripts/replacePlayWithLol.plugin.js",
+    "entry": "scripts/index.js",
     "metadata": {
         "authors": ["8Crafter"],
         "license": "MIT",

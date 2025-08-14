@@ -46,7 +46,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.3.1";
+    OreUICustomizer.format_version = "1.4.0";
     /**
      * @type {File | undefined}
      */
@@ -1380,6 +1380,21 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
          */
         const plugins = [...builtInPlugins, ...Object.values(OreUICustomizer.importedPlugins)];
         $("#current_customizer_status").text("Applying mods (Modifying files)...");
+        for (const plugin of plugins) {
+            if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                for (const action of plugin.actions) {
+                    if (action.context !== "global_before")
+                        continue;
+                    try {
+                        await action.action(OreUICustomizer.zipFs);
+                    }
+                    catch (e) {
+                        allFailedReplaces.globalPluginActions ??= [];
+                        allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                    }
+                }
+            }
+        }
         for (const entry of OreUICustomizer.zipFs.entries) {
             if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename)) {
                 let origName = entry.name;
@@ -2753,6 +2768,21 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         }
         catch (e) {
             console.error(e);
+        }
+        for (const plugin of plugins) {
+            if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                for (const action of plugin.actions) {
+                    if (action.context !== "global")
+                        continue;
+                    try {
+                        await action.action(OreUICustomizer.zipFs);
+                    }
+                    catch (e) {
+                        allFailedReplaces.globalPluginActions ??= [];
+                        allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                    }
+                }
+            }
         }
         $("#current_customizer_status").text("");
         if (Object.keys(allFailedReplaces).length > 0) {
