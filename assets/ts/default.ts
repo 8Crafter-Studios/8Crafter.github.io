@@ -486,7 +486,7 @@ class SoundEffects {
 declare var colorScheme: number;
 
 // On Load
-$(async function onDocumentLoad() {
+$(async function onDocumentLoad(): Promise<void> {
     // console.log(1)
     const autofill_from_file_elements = document.getElementsByTagName("autofill_from_file");
     const autofill_from_file_elements_fill_promises = [];

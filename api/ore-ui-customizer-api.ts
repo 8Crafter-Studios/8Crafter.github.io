@@ -14,7 +14,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.4.0";
+export const format_version = "1.5.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -221,6 +221,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 try {
                     await action.action(zipFs);
                 } catch (e) {
+                    console.error(e);
                     allFailedReplaces.globalPluginActions ??= [];
                     allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                 }
@@ -254,6 +255,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             try {
                                 distData = await action.action(distData, entry, zipFs);
                             } catch (e) {
+                                console.error(e);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }
@@ -299,6 +301,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             try {
                                 distData = await action.action(distData, entry, zipFs!);
                             } catch (e) {
+                                console.error(e);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }
@@ -430,9 +433,9 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     $14AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB, tAB) => eAB || tAB.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2AA */), experimentalFeature]), // Modified
                     $15AA = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
                         (eAB, tAB) => ($2AA) => {
-                            $2AA && tAB
+                            /* $2AA && tAB
                                 ? $16AA.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (eAB.isEnabled = $2AA), userHasAcceptedBetaFeatures: !1 })
-                                : (eAB.isEnabled = $2AA);
+                                :  */(eAB.isEnabled = $2AA);
                         },
                         [],
                         [experimentalFeature, $4AA]
@@ -1444,6 +1447,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         try {
                             distData = await action.action(distData, entry, zipFs);
                         } catch (e) {
+                            console.error(e);
                             failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                         }
                     }
@@ -1680,6 +1684,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
                 try {
                     await action.action(zipFs);
                 } catch (e) {
+                    console.error(e);
                     allFailedReplaces.globalPluginActions ??= [];
                     allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                 }

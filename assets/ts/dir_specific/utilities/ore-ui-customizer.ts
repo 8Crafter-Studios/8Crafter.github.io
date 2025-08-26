@@ -26,9 +26,9 @@ export namespace OreUICustomizer {
      */
     function arrayBuffersAreEqual(buf1: ArrayBuffer, buf2: ArrayBuffer): boolean {
         if (buf1.byteLength != buf2.byteLength) return false;
-        var dv1 = new Int8Array(buf1);
-        var dv2 = new Int8Array(buf2);
-        for (var i = 0; i != buf1.byteLength; i++) {
+        var dv1: Int8Array<ArrayBuffer> = new Int8Array(buf1);
+        var dv2: Int8Array<ArrayBuffer> = new Int8Array(buf2);
+        for (var i: number = 0; i != buf1.byteLength; i++) {
             if (dv1[i] != dv2[i]) return false;
         }
         return true;
@@ -39,6 +39,7 @@ export namespace OreUICustomizer {
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
         "v1.21.100_PC": { displayName: "v1.21.100 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
+        "v1.21.100_Android": { displayName: "v1.21.100 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
         "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
@@ -55,7 +56,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.4.0";
+    export const format_version = "1.5.0";
     /**
      * @type {File | undefined}
      */
@@ -1611,7 +1612,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     if (action.context !== "global_before") continue;
                     try {
                         await action.action(zipFs);
-                    } catch (e) {
+                    } catch (e: any) {
+                        console.error(e, e?.stack);
                         allFailedReplaces.globalPluginActions ??= [];
                         allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                     }
@@ -1829,9 +1831,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     $14AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB, tAB) => eAB || tAB.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2AA */), experimentalFeature]), // Modified
                     $15AA = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
                         (eAB, tAB) => ($2AA) => {
-                            $2AA && tAB
+                            /* $2AA && tAB
                                 ? $16AA.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (eAB.isEnabled = $2AA), userHasAcceptedBetaFeatures: !1 })
-                                : (eAB.isEnabled = $2AA);
+                                :  */(eAB.isEnabled = $2AA);
                         },
                         [],
                         [experimentalFeature, $4AA]
@@ -3099,7 +3101,8 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
                     if (action.context !== "global") continue;
                     try {
                         await action.action(zipFs);
-                    } catch (e) {
+                    } catch (e: any) {
+                        console.error(e, e?.stack);
                         allFailedReplaces.globalPluginActions ??= [];
                         allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                     }
