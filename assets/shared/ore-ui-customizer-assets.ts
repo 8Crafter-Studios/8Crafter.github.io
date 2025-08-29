@@ -2415,7 +2415,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.20 preview (index-fe5c0.js)
                  */
                 new RegExp(
-                    `${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.Mount,\\{when:([a-zA-Z0-9_\\$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.contextHolder}\\.Fragment,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\.Divider,null\\),${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_\\$]{2}),\\{onClick:([eo]),screenAnalyticsId:([a-zA-Z0-9_\\$]{1})\\}\\)\\)\\)`
+                    `${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.Mount,\\{when:([a-zA-Z0-9_\\$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.contextHolder}\\.Fragment,null,(${extractedSymbolNames.contextHolder}.createElement\\([a-zA-Z0-9_\\$]{2},\\{open:[a-zA-Z0-9_\\$]{1},isOpen:[a-zA-Z0-9_\\$]{1}\\}\\),)?${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_\\$]{2})\\.Divider,null\\),${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_\\$]{2}),\\{onClick:([eo]),screenAnalyticsId:([a-zA-Z0-9_\\$]{1})\\}\\)\\)\\)`
                 ),
             ],
         },

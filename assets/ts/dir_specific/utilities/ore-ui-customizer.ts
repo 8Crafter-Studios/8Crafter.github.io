@@ -34,18 +34,24 @@ export namespace OreUICustomizer {
         return true;
     }
     /**
-     * The list of zip file presets available presets for the Ore UI Customizer.
+     * The list of zip file presets available for the Ore UI Customizer.
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.21.100_PC": { displayName: "v1.21.100 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
-        "v1.21.100_Android": { displayName: "v1.21.100 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
+        "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
+        "v1.21.100-101_Android": { displayName: "v1.21.100/101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
         "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
         "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
         "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
+        "v1.21.110-preview.25_PC": { displayName: "v1.21.110.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.25_PC.zip" },
+        "v1.21.110-preview.24_PC": { displayName: "v1.21.110.24 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.24_PC.zip" },
+        "v1.21.110-preview.23_PC": { displayName: "v1.21.110.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.23_PC.zip" },
+        "v1.21.110-preview.22_PC": { displayName: "v1.21.110.22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.22_PC.zip" },
+        "v1.21.110-preview.20_PC": { displayName: "v1.21.110.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.20_PC.zip" },
         "v1.21.100-preview.23_PC": { displayName: "v1.21.100.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.100-preview.23_PC.zip" },
         "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
         "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
@@ -56,7 +62,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.5.0";
+    export const format_version = "1.6.0";
     /**
      * @type {File | undefined}
      */
@@ -2774,7 +2780,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
                                                                 function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
@@ -2825,8 +2831,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
-                                                        ${extractedSymbolNames.contextHolder}.createElement($3, { onClick: $4, screenAnalyticsId: $5 })
+                                                        $2
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($4, { onClick: $5, screenAnalyticsId: $6 })
                                                     )
                                                 )`
                             );

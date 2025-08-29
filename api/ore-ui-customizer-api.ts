@@ -14,7 +14,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.5.0";
+export const format_version = "1.6.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -1376,7 +1376,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
                                                                 function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
@@ -1427,8 +1427,9 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
-                                                        ${extractedSymbolNames.contextHolder}.createElement($3, { onClick: $4, screenAnalyticsId: $5 })
+                                                        $2
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($4, { onClick: $5, screenAnalyticsId: $6 })
                                                     )
                                                 )`
                         );
