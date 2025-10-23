@@ -1,15 +1,15 @@
-export default function getComponent(){
-	return `
+export default function getComponent() {
+    return `
     <overlay-page id="settings_menu" class="overlay_page blur_behind_5px" aria-hidden style="display: none;">
       <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute">
         <button type="button" onclick="$('#settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0');}else{$(this).text('Hide'); $(this).attr('mode', '1')}" class="btn nsel" style="float: left; width: 60px" id="settings_left_sidebar_toggle_button" ontouchstart="" mode="1">Hide</button>
       </div>
-      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc; ">
-        <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available;">
+      <div id="settings_left_sidebar" class="no_margins" style="width: 60px; height: -webkit-fill-available; height: -moz-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc; ">
+        <label ontouchstart="" for="settings_section_radio_video" class="radio_button_container_label" style="width: -webkit-fill-available; width: -moz-available;">
           <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_video" title="Video" checked>
           <div class="no-remove-disabled nsel">Video</div>
         </label>
-        <label ontouchstart="" for="settings_section_radio_audio" class="radio_button_container_label" style="width: -webkit-fill-available;">
+        <label ontouchstart="" for="settings_section_radio_audio" class="radio_button_container_label" style="width: -webkit-fill-available; width: -moz-available;">
           <input type="radio" name="settings_section" style="display: none;" class="no-remove-disabled nsel" id="settings_section_radio_audio" title="Audio">
           <div class="no-remove-disabled nsel">Audio</div>
         </label>
@@ -153,5 +153,5 @@ export default function getComponent(){
         </div>
         <br>
       </settings-section>
-    </overlay-page>`
+    </overlay-page>`;
 }

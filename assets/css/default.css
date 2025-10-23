@@ -2,24 +2,6 @@
     line-height: 1em;
 }
 
-@container style(--use_noto_sans_font: false) {
-    * {
-        font-family: "Mojangles";
-    }
-    only_visible_on_fonts[Mojangles] {
-        display: contents;
-    }
-}
-
-@container style(--use_noto_sans_font: true) {
-    * {
-        font-family: "NotoSansArabic-Regular";
-    }
-    only_visible_on_fonts[NotoSans] {
-        display: contents;
-    }
-}
-
 @font-face {
     font-family: "Mojangles";
     src: url("/assets/fonts/Mojangles.ttf");
@@ -94,7 +76,7 @@
 }
 
 @font-face {
-    font-family: "Monocraft";;
+    font-family: "Monocraft";
     src: url("/assets/fonts/Monocraft.ttc");
 }
 
@@ -184,12 +166,20 @@
     --hue-rotate-deg: 0deg;
 }
 
-:root.use_noto_sans_font {
-    --use_noto_sans_font: true;
+:root:not(.use_noto_sans_font) * {
+    font-family: "Mojangles";
 }
 
-:root:not(.use_noto_sans_font) {
-    --use_noto_sans_font: false;
+:root:not(.use_noto_sans_font) only_visible_on_fonts[Mojangles] {
+    display: contents;
+}
+
+:root.use_noto_sans_font * {
+    font-family: "NotoSansArabic-Regular";
+}
+
+:root.use_noto_sans_font only_visible_on_fonts[NotoSans] {
+    display: contents;
 }
 
 .filter_invert {
@@ -283,22 +273,16 @@ only_visible_on_themes[light] {
     display: var(--display_contents_on_light_theme);
 } */
 
-@container style(--display_contents_on_dark_theme: contents) {
-    only_visible_on_themes[dark] {
-        display: contents;
-    }
+.dark_theme only_visible_on_themes[dark] {
+    display: contents;
 }
 
-@container style(--display_contents_on_light_theme: contents) {
-    only_visible_on_themes[light] {
-        display: contents;
-    }
+.light_theme only_visible_on_themes[light] {
+    display: contents;
 }
 
-@container style(--display_contents_on_blue_theme: contents) {
-    only_visible_on_themes[blue] {
-        display: contents;
-    }
+.blue_theme only_visible_on_themes[blue] {
+    display: contents;
 }
 
 .invert_color_text:after {
@@ -326,13 +310,14 @@ main {
     /* min-height: 100vh; */
     gap: 2em;
     width: -webkit-fill-available;
+    width: -moz-available;
 }
 
 code,
 code * {
     font-family: Monocraft;
     background-color: #222222;
-    color: #FFFFFF;
+    color: #ffffff;
     border: 1px solid #111111;
     font-size-adjust: 0.5;
     padding: 0 0.25em;
@@ -449,6 +434,7 @@ ul:not(:not(.vertical-nav)) {
     }
     & > li .navbar-dropdown .navbar-dropbtn {
         width: -webkit-fill-available;
+        width: -moz-available;
         text-align: left;
     }
     & > li .navbar-dropdown .navbar-dropdown-content a:not(.active) {
@@ -558,6 +544,7 @@ ul:not(:not(.horizontal-nav)) {
 #nav-sidebar {
     z-index: -1;
     height: -webkit-fill-available;
+    height: -moz-available;
     position: fixed;
     border: 0px;
     margin: 0px;
@@ -1020,6 +1007,8 @@ body.overlay_page_visible .possible_scroll_y {
 .nsel {
     -webkit-user-select: none;
     /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
     -ms-user-select: none;
     /* IE 10 and IE 11 */
     user-select: none;
