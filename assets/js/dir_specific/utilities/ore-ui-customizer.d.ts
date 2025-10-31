@@ -4,14 +4,18 @@ import { EncodedPluginData, OreUICustomizerSettings, Plugin } from "../../../sha
  */
 export declare namespace OreUICustomizer {
     /**
-     * The list of zip file presets available presets for the Ore UI Customizer.
+     * The list of zip file presets available for the Ore UI Customizer.
      */
     const currentPresets: {
         none: {
             displayName: string;
             url: string;
         };
-        "v1.21.100_PC": {
+        "v1.21.100-101_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.100-101_Android": {
             displayName: string;
             url: string;
         };
@@ -36,6 +40,30 @@ export declare namespace OreUICustomizer {
             url: string;
         };
         "v1.21.70-71_Android": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.26_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.25_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.24_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.23_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.22_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.110-preview.20_PC": {
             displayName: string;
             url: string;
         };
@@ -67,7 +95,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.4.0";
+    const format_version = "1.7.0";
     /**
      * @type {File | undefined}
      */

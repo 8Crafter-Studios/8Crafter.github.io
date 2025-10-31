@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.4.0";
+export const format_version = "1.7.0";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -124,6 +124,7 @@ export async function applyMods(file, options = {}) {
                     await action.action(zipFs);
                 }
                 catch (e) {
+                    console.error(e);
                     allFailedReplaces.globalPluginActions ??= [];
                     allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                 }
@@ -161,6 +162,7 @@ export async function applyMods(file, options = {}) {
                                 distData = await action.action(distData, entry, zipFs);
                             }
                             catch (e) {
+                                console.error(e);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }
@@ -207,6 +209,7 @@ export async function applyMods(file, options = {}) {
                                 distData = await action.action(distData, entry, zipFs);
                             }
                             catch (e) {
+                                console.error(e);
                                 failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                             }
                         }
@@ -336,9 +339,9 @@ export async function applyMods(file, options = {}) {
                     $14AA = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAB, tAB) => eAB || tAB.isTogglePermanentlyDisabled, [], [(0, ${extractedSymbolNames.facetHolder}.useFacetWrap)(false /* $2AA */), experimentalFeature]), // Modified
                     $15AA = (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
                         (eAB, tAB) => ($2AA) => {
-                            $2AA && tAB
+                            /* $2AA && tAB
                                 ? $16AA.set({ userTriedToActivateToggle: !0, doSetToggleValue: () => (eAB.isEnabled = $2AA), userHasAcceptedBetaFeatures: !1 })
-                                : (eAB.isEnabled = $2AA);
+                                :  */(eAB.isEnabled = $2AA);
                         },
                         [],
                         [experimentalFeature, $4AA]
@@ -1225,7 +1228,7 @@ export async function applyMods(file, options = {}) {
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
                                                                 function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
@@ -1276,8 +1279,9 @@ export async function applyMods(file, options = {}) {
                                                     ${extractedSymbolNames.contextHolder}.createElement(
                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                         null,
-                                                        ${extractedSymbolNames.contextHolder}.createElement($2.Divider, null),
-                                                        ${extractedSymbolNames.contextHolder}.createElement($3, { onClick: $4, screenAnalyticsId: $5 })
+                                                        $2
+                                                        ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
+                                                        ${extractedSymbolNames.contextHolder}.createElement($4, { onClick: $5, screenAnalyticsId: $6 })
                                                     )
                                                 )`);
                         successfullyReplaced = true;
@@ -1297,6 +1301,7 @@ export async function applyMods(file, options = {}) {
                             distData = await action.action(distData, entry, zipFs);
                         }
                         catch (e) {
+                            console.error(e);
                             failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                         }
                     }
@@ -1507,6 +1512,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
                     await action.action(zipFs);
                 }
                 catch (e) {
+                    console.error(e);
                     allFailedReplaces.globalPluginActions ??= [];
                     allFailedReplaces.globalPluginActions.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
                 }

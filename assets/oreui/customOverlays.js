@@ -2461,7 +2461,7 @@ const GameModeIDMap = {
 /**
  * Enables the lite play screen.
  */
-async function enableLitePlayScreen() {
+async function enableLitePlayScreen(noReload = false) {
     if (litePlayScreenActive) {
         return;
     }
@@ -2509,7 +2509,7 @@ async function enableLitePlayScreen() {
                     : ""
             }`
         );
-        location.reload();
+        if (!noReload) location.reload();
     }
     for (let i = 0; i < 1000; i++) {
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -3683,7 +3683,6 @@ async function enableLitePlayScreen() {
         });
     }
     if (globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab !== true) {
-        
         globalThis.observingNetworkWorldDetailsForLitePlayScreenServersTab = true;
         facetSpyData.sharedFacets["vanilla.networkWorldDetails"].observe((networkWorldDetails) => {
             if (currentTab !== "servers" && currentTab !== "featured") {
@@ -4765,21 +4764,32 @@ async function litePlayScreen_friendsMenu() {
  * Sets whether the lite play screen is enabled.
  *
  * @param {boolean} value Whether to set the lite play screen to enabled or disabled.
+ * @param {boolean} [noReload=false] Whether to not reload the page every time it is opened to unload the old contents.
  */
-function setLitePlayScreenEnabled(value) {
+function setLitePlayScreenEnabled(value, noReload = false) {
     if (value) {
         localStorage.setItem("enableLitePlayScreen", "true");
+        if (noReload) {
+            localStorage.setItem("enableLitePlayScreenNoReload", "true");
+        } else {
+            localStorage.removeItem("enableLitePlayScreenNoReload");
+        }
     } else {
         localStorage.removeItem("enableLitePlayScreen");
     }
     const externalServerWorldList = getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"];
-    const existingExternalServerStorage = externalServerWorldList.externalServerWorlds.find((world) => world.name === "LitePlayScreenEnabled");
-    if (existingExternalServerStorage) {
+    const existingExternalServerStorage = externalServerWorldList.externalServerWorlds.filter(
+        (world) => world.name === "LitePlayScreenEnabled" || world.name === "LitePlayScreenEnabledNoReload"
+    );
+    if (existingExternalServerStorage.length > 0) {
         if (!value) {
-            externalServerWorldList.removeExternalServerWorld(Number(existingExternalServerStorage.id));
+            existingExternalServerStorage.forEach((server) => externalServerWorldList.removeExternalServerWorld(Number(server.id)));
         }
-    } else {
-        if (value) {
+    }
+    if (value) {
+        if (noReload) {
+            externalServerWorldList.addExternalServerWorld("LitePlayScreenEnabledNoReload", "0.0.0.1", 1);
+        } else {
             externalServerWorldList.addExternalServerWorld("LitePlayScreenEnabled", "0.0.0.1", 1);
         }
     }
@@ -4852,7 +4862,9 @@ function setLitePlayScreenEnabled(value) {
         facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
         if (
             localStorage.getItem("enableLitePlayScreen") !== null ||
-            getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"].externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabled")
+            getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"].externalServerWorlds.some(
+                (world) => world.name === "LitePlayScreenEnabled" || world.name === "LitePlayScreenEnabledNoReload"
+            )
         ) {
             try {
                 document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = "Disable Lite Play Screen";
@@ -4863,7 +4875,11 @@ function setLitePlayScreenEnabled(value) {
                 const originalRouterLocation = { ...router.history.location };
                 // router.history.replace(`/play/all` + router.history.location.search + router.history.location.hash);
                 // If the router facet is available, enable the lite play screen.
-                await enableLitePlayScreen();
+                await enableLitePlayScreen(
+                    getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"].externalServerWorlds.some(
+                        (world) => world.name === "LitePlayScreenEnabledNoReload"
+                    )
+                );
             }
         }
         return;
@@ -5181,9 +5197,10 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
             <center>
                 <h1>Performance</h1>
             </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload").disabled = false; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${
                 localStorage.getItem("enableLitePlayScreen") === "true" ? "Disable" : "Enable"
             } Lite Play Screen</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload" onclick="if (!this.disabled) {this.disabled = true; setLitePlayScreenEnabled(true, true); enableLitePlayScreen(true); document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = 'Disable Lite Play Screen';}; event.preventDefault();"${localStorage.getItem("enableLitePlayScreenNoReload") === "true" ? "" : " disabled"}>Enable Lite Play Screen (No Reload)</button>
         </div>
     </div>
 </div>`;
