@@ -271,9 +271,420 @@ declare global {
          * @param {{}} [param0] Ignore this.
          * @returns {null} Returns `null`.
          */
+        // eslint-disable-next-line no-empty-pattern, @typescript-eslint/ban-types
         function facetSpy({}: {}): null;
         /**
-         * A list of all the facets.
+         * The context holder.
+         *
+         * @todo Get the type for this variable.
+         */
+        var contextHolder: unknown;
+        /**
+         * The facet access holder.
+         *
+         * @todo Get the type for this variable.
+         */
+        var facetAccessHolder: unknown;
+        /**
+         * The facet spy data.
+         */
+        var facetSpyData: {
+            /**
+             * The shared facets.
+             *
+             * This only includes facets that are in the {@link FacetList}.
+             */
+            sharedFacets: { [FacetType in FacetList[number]]: SharedFacet<FacetType> };
+        };
+        /**
+         * The current list of facets that have been forcefully loaded.
+         */
+        var forceLoadedFacets: { [FacetType in FacetList[number]]?: true };
+        /**
+         * The list of accessed facets.
+         *
+         * This includes any new facets that are not in the {@link FacetList}.
+         *
+         * This only includes facets that have been accessed at least once.
+         */
+        var accessedFacets: Partial<
+            { [FacetType in FacetList[number]]: (a?: unknown) => SharedFacet<FacetType> } & { [key in string]: (a?: unknown) => SharedFacetBase<key> }
+        >;
+        /**
+         * A list of new facets that have been detected that are not in the {@link FacetList}.
+         */
+        var notedNewFacets: string[];
+        /**
+         * Forcefully loads a facet that is not loaded (meaning it is not accessible through the {@link getAccessibleFacetSpyFacets} function).
+         *
+         * @param facetName The name of the facet to load.
+         * @param timeout The timeout in milliseconds to wait for the facet to load. If set to `0` or `Infinity`, it will never time out. Defaults to `5000ms`.
+         * @returns A promise that resolves with the loaded facet's value, if the facet it already loaded it will resolve with its current value.
+         *
+         * @throws {ReferenceError} If the request times out (can happen if the facet doesn't exist).
+         * @throws {any} If the facet request throws an error.
+         */
+        function forceLoadFacet<FacetType extends LooseAutocomplete<FacetList[number]>>(
+            facetName: FacetType,
+            timeout?: number
+        ): Promise<FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown>;
+        /**
+         * Forcefully discards a facet.
+         *
+         * This will attempt to discard the facet even if it appears to not be loaded.
+         *
+         * @param facetName The name of the facet to unload.
+         */
+        function forceUnloadFacet(facetName: LooseAutocomplete<FacetList[number]>): void;
+        /**
+         * Unloads a facet that was forcefully loaded.
+         *
+         * This will attampt to unload the facet even if it appears to not be loaded, as long as it was originally loaded forcefully.
+         *
+         * @param facetName The name of the facet to unload.
+         * @returns `true` if is was unloaded or `false` if the facet was not a forcefully loaded facet.
+         */
+        function unloadForceLoadedFacet(facetName: LooseAutocomplete<FacetList[number]>): boolean;
+        /**
+         * The list of currently loading facets.
+         *
+         * Only exists when the {@link forceLoadUnloadedFacets} function is run with the `enableLoadingFacetsTracking` option set to `true`.
+         */
+        var loadingFacets: { [FacetType in FacetList[number]]?: true } | undefined;
+        /**
+         * Forcefully loads all facets that are not loaded (meaning they are not accessible through the {@link getAccessibleFacetSpyFacets} function).
+         *
+         * @param options Debugging options.
+         * @returns An array of tuples containing the facet name and its data if it was successfully loaded or was already loaded, or the error that occured if it failed.
+         */
+        function forceLoadUnloadedFacets(
+            options?:
+                | {
+                      /**
+                       * Whether to log errors to the console.
+                       *
+                       * @default false
+                       */
+                      enableErrorLogging?: boolean | undefined;
+                      /**
+                       * Whether to log success to the console.
+                       *
+                       * @default false
+                       */
+                      enableSuccessLogging?: boolean | undefined;
+                      /**
+                       * Whether to log already loaded facets to the console.
+                       *
+                       * @default false
+                       */
+                      enableAlreadyLoadedLogging?: boolean | undefined;
+                      /**
+                       * Whether to track the loading of facets in a global {@link loadingFacets} variable.
+                       *
+                       * @default false
+                       */
+                      enableLoadingFacetsTracking?: boolean | undefined;
+                  }
+                | undefined
+        ): Promise<
+            (
+                | {
+                      [key in FacetList[number]]: [facetName: key, facetData: FacetTypeMap[key], status: "success" | "alreadyLoaded", newFacetType: false];
+                  }[FacetList[number]]
+                | [facetName: LooseAutocomplete<FacetList[number]>, facetData: unknown, status: "success" | "alreadyLoaded", newFacetType: true]
+                | [facetName: LooseAutocomplete<FacetList[number]>, error: any, status: "error"]
+            )[]
+        >;
+        /**
+         * Unloads all forcefully loaded facets.
+         *
+         * @returns A list of the unloaded facets and whether they were successfully unloaded.
+         */
+        function unloadForceLoadedFacets(): [facetName: LooseAutocomplete<FacetList[number]>, successfullyUnloaded: boolean][];
+        /**
+         * Returns a list of all accessible facets from the facetSpy data.
+         *
+         * It sources from both {@link facetSpyData.sharedFacets} and {@link accessedFacets}.
+         *
+         * @returns The accessible facets.
+         *
+         * @todo Maybe add a parameter for context for getting facets from accessedFacets.
+         */
+        function getAccessibleFacetSpyFacets(): Partial<{ [FacetType in FacetList[number]]: FacetTypeMap[FacetType] }> & Record<string, unknown>;
+
+        //#region Ore UI Native
+
+        // copyTextToClipboardAsync(Object.entries(__commands__).map(v=>`${v[0]}: {${Object.keys(v[1]).map(v2=>`${v2}: {
+        //     id: number;
+        //     callable(...args: unknown[]): unknown;
+        // };\n`).join("")}};`).join("\n"))
+
+        /**
+         * The Ore UI native commands.
+         */
+        var __commands__: {
+            vanilla_menus_update_settings: {
+                updateNumber: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                updateString: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                updateOption: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                updateBoolean: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanilla_menus_invoke_action_settings: {
+                invokeAction: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            coreStorageCommandGroup: {
+                changeStorage: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            soundCommandGroup: {
+                isPlaying: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                fadeOut: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                play: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            coreTranslateCommandGroup: {
+                translate: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            routerCommandGroup: {
+                go: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                back: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                replace: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                push: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanillaGameplayRecipeBookFilteringCommandGroup: {
+                setRecipeBookFiltering: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanillaGameplayTradeCommandGroup: {
+                performAutoTrade: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                pullInIngredientsForSelectedTrade: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                selectTrade: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanillaGameplayRecipeBookSearchStringCommandGroup: {
+                setRecipeBookSearchString: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanillaGameplayAnvilCommandGroup: {
+                setPreviewItemName: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            coreHapticsCommandGroup: {
+                vibrate: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+            vanillaGameplayContainerCommandGroup: {
+                autoCraftAllItemsFromRecipe: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                autoCraftOneItemFromRecipe: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                selectRecipe: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                setDistributeAllSource: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                splitSingleItem: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                splitMultipleItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                autoPlaceItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                coalesceOrAutoPlaceItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                coalesceItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                dropOneItem: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                dropAllItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                placeAmountOfItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                placeOneItem: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                placeAllItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                takeHalfItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                takeOneItem: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                takeAllItems: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+                closeContainer: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+        } & {
+            [commandGroup: string]: {
+                [command: string]: {
+                    id: number;
+                    callable(...args: unknown[]): unknown;
+                };
+            };
+        };
+
+        var engine: {
+            on<T extends EngineEventID>(
+                name: T,
+                callback: (...args: EngineEvent<T>) => void,
+                context?: unknown
+            ): {
+                clear(): void;
+            };
+            off<T extends EngineEventID>(name: T, handler: (...args: EngineEvent<T>) => void, context?: unknown): void;
+            trigger<T extends EngineEventID>(name: T, ...args: EngineEvent<T>): void;
+            // TODO: Fill in the rest of the engine properties.
+            [otherProperties: PropertyKey]: unknown;
+        };
+
+        type EngineEventID = LooseAutocomplete<
+            | "facet:request"
+            | `facet:updated:${FacetList[number]}`
+            | `facet:error:${FacetList[number]}`
+            | "facet:discard"
+            | "engine:gamepad:onPress"
+            | "engine:gamepad:onJoystickMovement"
+            | "core:keyboard:changed"
+            | "core:keyboard:submitted"
+            | "core:keyboard:dismissed"
+            | "core:keyboard:tabbed"
+            | "core:exception"
+            | "core:gui:resize-hack"
+            | `query:subscribed/${any}` // TODO: Figure out what this any value actually is.
+            | `query:updated/${any}` // TODO: Figure out what this any value actually is.
+            | `query:subscribe/${any}` // TODO: Figure out what this any value actually is.
+            | "query:unsubscribe"
+            | "core:routing:not-found"
+            | "core:telemetry:firstMeaningfulPaint"
+            | "core:telemetry:firstContentfulPaint"
+        >;
+        type EngineEvent<T extends EngineEventID> = T extends "facet:request" | "facet:discard"
+            ? [facetName: FacetList[number]]
+            : T extends `facet:updated:${infer Facet}`
+            ? Facet extends FacetList[number]
+                ? [facetValue: FacetTypeMap[Facet]]
+                : [facetValue: unknown]
+            : T extends `facet:error:${infer _Facet}`
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "engine:gamepad:onPress"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "engine:gamepad:onJoystickMovement"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:keyboard:changed"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:keyboard:submitted"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:keyboard:dismissed"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:keyboard:tabbed"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:exception"
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "core:gui:resize-hack"
+            ? []
+            : T extends `query:subscribed/${infer _QueryName}` // TODO: Figure out what values QueryName actually uses.
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends `query:updated/${infer _QueryName}` // TODO: Figure out what values QueryName actually uses.
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends `query:subscribe/${infer _QueryName}` // TODO: Figure out what values QueryName actually uses.
+            ? [...args: unknown[]] // TODO: Figure out the type of this.
+            : T extends "query:unsubscribe"
+            ? [queryName: unknown] // TODO: Figure out the type of this.
+            : T extends "core:telemetry:firstMeaningfulPaint" | "core:telemetry:firstContentfulPaint"
+            ? []
+            : [...args: unknown[]];
+
+        /**
+         * A list of all the known facets.
          */
         type FacetList = [
             "core.animation",
@@ -436,25 +847,20 @@ declare global {
             "vanilla.realmsWorldEditorWorldDetailsQueries",
             "vanilla.realmsCommitCommandsFacet",
             "vanilla.realmsCommitQueriesFacet",
-            "vanilla.realmsPurchaseQueries"
+            "vanilla.realmsPurchaseQueries",
+
+            // Found in 1.21.120.4 (but may have existed before that).
+            "vanilla.connectionErrorInfoFacet",
+            "vanilla.partyReceivedInviteList",
+            "vanilla.joinablePartyList",
+            "vanilla.realmsFeatureFlags",
+            "vanilla.realmsStories.reports",
+            "vanilla.realmsStories.reportCommands",
+            "vanilla.openAndCloseRealmCommandsFacet",
+            "dev.realmsCommitCommandsFacet",
+            "dev.realmsCommitQueriesFacet",
+            "vanilla.newPlayerChoices"
         ];
-        /**
-         * An interface that represents a route history item.
-         */
-        interface RouteHistoryItem {
-            /**
-             * The hash component of the route.
-             */
-            hash: string;
-            /**
-             * The path component of the route.
-             */
-            pathname: string;
-            /**
-             * The search component of the route.
-             */
-            search: string;
-        }
         /**
          * An interface that maps facets to their types.
          */
@@ -493,7 +899,7 @@ declare global {
                 platform: number;
             };
             "core.featureFlags": {
-                flags: PartialArrayType<string>;
+                flags: CoherentArrayProxy<string>;
             };
             "core.input": {
                 keyboardType: number;
@@ -509,7 +915,8 @@ declare global {
                 translate(...args: unknown[]): unknown;
                 translateWithParameters(...args: unknown[]): unknown;
             };
-            "core.performanceFacet": unknown; // May not exist.
+            // NOTE: Not present in 1.21.120.4 (may exist in dev builds).
+            "core.performanceFacet": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
             "core.router": {
                 /**
                  * The history object.
@@ -548,7 +955,7 @@ declare global {
                     /**
                      * The history stack.
                      */
-                    list: PartialArrayType<RouteHistoryItem>;
+                    list: CoherentArrayProxy<RouteHistoryItem>;
                 };
             };
             "core.safeZone": {
@@ -570,7 +977,7 @@ declare global {
                 splitScreenPosition: number;
                 isPrimaryUser: boolean;
             };
-            "core.social": unknown; // Exists but not yet accessed.
+            "core.social": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
             "core.sound": {
                 /**
                  * Plays a sound.
@@ -597,10 +1004,10 @@ declare global {
                  */
                 isPlaying(id: number): boolean;
             };
-            "core.user": unknown; // May not exist.
-            "core.vrMode": unknown; // Found in dev build file.
-            "vanilla.achievements": unknown;
-            "vanilla.achievementsReward": unknown; // May not exist.
+            "core.user": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "core.vrMode": unknown; // TODO: Get the type for this facet. // Found in dev build file. // DEPRECATED: May have been removed.
+            "vanilla.achievements": unknown; // TODO: Get the type for this facet.
+            "vanilla.achievementsReward": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
             "vanilla.buildSettings": {
                 currentGameVersion: {
                     isBeta: boolean;
@@ -615,20 +1022,26 @@ declare global {
             };
             "vanilla.clipboard": {
                 isClipboardCopySupported: boolean;
-                copyToClipboard(...args: unknown[]): unknown;
+                /**
+                 * Copies text to the clipboard.
+                 *
+                 * @param {string} text The text to copy to the clipboard.
+                 * @returns {undefined | null} `undefined` if the parameters are invalid, `null` otherwise.
+                 */
+                copyToClipboard(text: string): undefined | null;
             };
-            "vanilla.createNewWorld": unknown;
-            "vanilla.createPreviewRealmFacet": unknown;
-            "vanilla.debugSettings": unknown;
-            "vanilla.editor": unknown;
-            "vanilla.editorInput": unknown; // May not exist.
-            "vanilla.editorLogging": unknown;
-            "vanilla.editorScripting": unknown;
-            "vanilla.editorSelectionFacet": unknown; // May not exist.
-            "vanilla.editorSettings": unknown;
+            "vanilla.createNewWorld": unknown; // TODO: Get the type for this facet.
+            "vanilla.createPreviewRealmFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.debugSettings": unknown; // TODO: Get the type for this facet.
+            "vanilla.editor": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorInput": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.editorLogging": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorScripting": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorSelectionFacet": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.editorSettings": unknown; // TODO: Get the type for this facet.
             "vanilla.externalServerWorldList": {
                 addedServerId: number;
-                externalServerWorlds: PartialArrayType<{
+                externalServerWorlds: CoherentArrayProxy<{
                     msgOfTheDay: string;
                     image: string;
                     capacity: number;
@@ -639,14 +1052,23 @@ declare global {
                     name: string;
                     id: string;
                 }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 addExternalServerWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 editExternalServerWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 removeExternalServerWorld(...args: unknown[]): unknown;
             };
-            "vanilla.followersList": unknown;
+            "vanilla.followersList": unknown; // TODO: Get the type for this facet.
             "vanilla.friendsListFacet": {
-                platformFriends: PartialArrayType<unknown>;
-                xblFriends: PartialArrayType<{
+                platformFriends: CoherentArrayProxy<unknown>;
+                xblFriends: CoherentArrayProxy<{
                     favoriteStatus: number;
                     playingOnServerId: null;
                     isCurrentlyPlaying: boolean;
@@ -663,25 +1085,28 @@ declare global {
                 }>;
                 platformLoadingState: number;
                 xblLoadingState: number;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 userControlledUpdateGameList(...args: unknown[]): unknown;
             };
-            "vanilla.friendsManagerFacet": unknown; // Exists but not yet accessed.
-            "vanilla.gameplay.activeLevelHardcoreMode": unknown;
-            "vanilla.gameplay.bedtime": unknown;
-            "vanilla.gameplay.closeContainerCommand": unknown; // May not exist.
-            "vanilla.gameplay.containerBlockActorType": unknown;
-            "vanilla.gameplay.containerItemQuery": unknown; // May not exist.
-            "vanilla.gameplay.containerSizeQuery": unknown; // May not exist.
-            "vanilla.gameplay.furnace": unknown;
-            "vanilla.gameplay.immediateRespawn": unknown;
-            "vanilla.gameplay.leaveGame": unknown;
-            "vanilla.gameplay.playerDeathInfo": unknown;
-            "vanilla.gameplay.playerPositionHudElement": unknown; // May not exist.
-            "vanilla.gameplay.playerRespawn": unknown;
-            "vanilla.gamertagSearch": unknown;
-            "vanilla.inbox": unknown;
+            "vanilla.friendsManagerFacet": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
+            "vanilla.gameplay.activeLevelHardcoreMode": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.bedtime": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.closeContainerCommand": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.gameplay.containerBlockActorType": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.containerItemQuery": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.gameplay.containerSizeQuery": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.gameplay.furnace": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.immediateRespawn": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.leaveGame": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.playerDeathInfo": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.playerPositionHudElement": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.gameplay.playerRespawn": unknown; // TODO: Get the type for this facet.
+            "vanilla.gamertagSearch": unknown; // TODO: Get the type for this facet.
+            "vanilla.inbox": unknown; // TODO: Get the type for this facet.
             "vanilla.lanWorldList": {
-                lanWorlds: PartialArrayType<{
+                lanWorlds: CoherentArrayProxy<{
                     ping: string;
                     capacity: number;
                     playerCount: number;
@@ -709,12 +1134,12 @@ declare global {
                  */
                 localWorlds: ArrayLike<LocalWorldDataType>;
             };
-            "vanilla.marketplaceSuggestions": unknown;
-            "vanilla.marketplacePassWorldTemplateList": unknown;
+            "vanilla.marketplaceSuggestions": unknown; // TODO: Get the type for this facet.
+            "vanilla.marketplacePassWorldTemplateList": unknown; // TODO: Get the type for this facet.
             "vanilla.networkWorldDetails": {
                 hasLoadedDetails: boolean;
                 networkDetails: {
-                    activities: PartialArrayType<unknown>;
+                    activities: CoherentArrayProxy<unknown>;
                     newsDescription: string;
                     newsTitle: string;
                     type: number;
@@ -739,25 +1164,55 @@ declare global {
                 loadNetworkWorldDetails(id: `${number}`, type: 0 | 1 | 2 | 3): undefined | null;
             };
             "vanilla.networkWorldJoiner": {
-                joinLANServerTaskState: number;
-                joinLANServerResult: null | number;
-                joinFriendServerTaskState: number;
-                joinFriendServerResult: null | number;
-                joinRealmTaskState: number;
-                joinRealmResult: null | number;
-                joinExternalServerTaskState: number;
-                joinExternalServerResult: null | number;
-                joinThirdPartyServerTaskState: number;
-                joinThirdPartyServerResult: null | number;
+                joinLANServerTaskState: number; // TODO: MAKE ENUM
+                joinLANServerResult: null | number; // TODO: MAKE ENUM
+                joinFriendServerTaskState: number; // TODO: MAKE ENUM
+                joinFriendServerResult: null | number; // TODO: MAKE ENUM
+                joinRealmTaskState: number; // TODO: MAKE ENUM
+                joinRealmResult: null | number; // TODO: MAKE ENUM
+                joinExternalServerTaskState: number; // TODO: MAKE ENUM
+                joinExternalServerResult: null | number; // TODO: MAKE ENUM
+                joinThirdPartyServerTaskState: number; // TODO: MAKE ENUM
+                joinThirdPartyServerResult: null | number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 joinThirdPartyServer(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearJoinThirdPartServerTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 joinExternalServer(serverID: string): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearJoinExternalServerTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 joinFriendServer(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearJoinFriendServerTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 joinLanServer(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearJoinLANServerTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 joinRealmWorld(realmID: string, joinRealmTaskState: number): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearJoinRealmTaskState(...args: unknown[]): unknown;
             };
             "vanilla.notificationOptions": {
@@ -785,24 +1240,30 @@ declare global {
                  */
                 setDoNotShowExperimentalWorldWarning(worldId: string, value: boolean): null;
             };
-            "vanilla.notifications": unknown;
-            "vanilla.options": unknown;
-            "vanilla.party": unknown; // Found in dev build file.
-            "vanilla.playerAchievements": unknown;
-            "vanilla.playerBanned": unknown;
-            "vanilla.playerFollowingList": unknown;
-            "vanilla.playerLinkedPlatformProfile": unknown; // Found in dev build file.
+            "vanilla.notifications": unknown; // TODO: Get the type for this facet.
+            "vanilla.options": unknown; // TODO: Get the type for this facet.
+            "vanilla.party": unknown; // TODO: Get the type for this facet. // Found in dev build file.
+            "vanilla.playerAchievements": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerBanned": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerFollowingList": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerLinkedPlatformProfile": unknown; // TODO: Get the type for this facet. // Found in dev build file.
             "vanilla.playermessagingservice": {
-                data: { messages: PartialArrayType<unknown>; messageCount: number };
+                data: { messages: CoherentArrayProxy<unknown>; messageCount: number };
                 status: number;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 reportClick(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 reportDismiss(...args: unknown[]): unknown;
             };
-            "vanilla.playerPermissions": unknown; // Exists but not yet accessed.
-            "vanilla.playerProfile": unknown;
-            "vanilla.playerReport": unknown;
-            "vanilla.playerSocialManager": unknown;
-            "vanilla.playerStatistics": unknown;
+            "vanilla.playerPermissions": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
+            "vanilla.playerProfile": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerReport": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerSocialManager": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerStatistics": unknown; // TODO: Get the type for this facet.
             "vanilla.privacyAndOnlineSafetyFacet": {
                 isCheckingCompleted: boolean;
                 getAllowCapturesResult: boolean;
@@ -810,7 +1271,7 @@ declare global {
                 getMultiplayerCheckResult: boolean;
                 checkClubAndMultiplayerPermissions(): null;
             };
-            "vanilla.profanityFilter": unknown;
+            "vanilla.profanityFilter": unknown; // TODO: Get the type for this facet.
             "vanilla.realmsListFacet": {
                 realms: ArrayLike<RealmDataType>;
                 error: number;
@@ -835,7 +1296,7 @@ declare global {
             "vanilla.realmsMembership": {
                 clearFetchRealm(): null;
                 fetchRealm(id: string): null;
-                leaveRealmResult: null | number; // MAKE ENUM
+                leaveRealmResult: null | number; // TODO: MAKE ENUM
                 leaveRealmProgress: number;
                 joinedRealmName: string;
                 joinedRealmId: string;
@@ -843,8 +1304,8 @@ declare global {
                 joinRealmProgress: number;
                 fetchRealmError: null | (typeof JoinRealmsServerError)[keyof typeof JoinRealmsServerError];
                 fetchRealmResult: null | {
-                    onlinePlayers: PartialArrayType<PlayerData>;
-                    players: PartialArrayType<PlayerData>;
+                    onlinePlayers: CoherentArrayProxy<PlayerData>;
+                    players: CoherentArrayProxy<PlayerData>;
                     closed: boolean;
                     lastSaved: null | number;
                     description: string;
@@ -866,18 +1327,18 @@ declare global {
                 leaveRealm(id: number): null;
                 clearLeaveRealm(): null;
             };
-            "vanilla.realmsStories.actions": unknown;
-            "vanilla.realmsStories.localScreenshots": unknown; // May not exist.
-            "vanilla.realmsStories.persistentData": unknown;
-            "vanilla.realmsStories.players": unknown;
-            "vanilla.realmsStories.realmData": unknown;
-            "vanilla.realmsStories.settings": unknown;
-            "vanilla.realmsStories.stories": unknown;
-            "vanilla.RealmsPDPFacet": unknown;
-            "vanilla.RealmWorldUploaderFacet": unknown;
+            "vanilla.realmsStories.actions": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.localScreenshots": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.realmsStories.persistentData": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.players": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.realmData": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.settings": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.stories": unknown; // TODO: Get the type for this facet.
+            "vanilla.RealmsPDPFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.RealmWorldUploaderFacet": unknown; // TODO: Get the type for this facet.
             "vanilla.recentlyPlayedWithList": {
                 xboxAPICallResult: number;
-                playerList: PartialArrayType<{
+                playerList: CoherentArrayProxy<{
                     description: string;
                     isFollowedByMe: boolean;
                     isFollowingMe: boolean;
@@ -890,7 +1351,7 @@ declare global {
             };
             "vanilla.recommendedFriendsList": {
                 xboxAPICallResult: number;
-                playerList: PartialArrayType<{
+                playerList: CoherentArrayProxy<{
                     description: string;
                     isFollowedByMe: boolean;
                     isFollowingMe: boolean;
@@ -901,37 +1362,67 @@ declare global {
                 }>;
                 isLoading: boolean;
             };
-            "vanilla.resourcePackOverrides": unknown;
-            "vanilla.resourcePacks": unknown;
-            "vanilla.screenshotGalleryList": unknown; // May not exist.
-            "vanilla.screenSpecificOptions": unknown;
-            "vanilla.screenTechStack": unknown;
+            "vanilla.resourcePackOverrides": unknown; // TODO: Get the type for this facet.
+            "vanilla.resourcePacks": unknown; // TODO: Get the type for this facet.
+            "vanilla.screenshotGalleryList": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.screenSpecificOptions": unknown; // TODO: Get the type for this facet.
+            "vanilla.screenTechStack": unknown; // TODO: Get the type for this facet.
             "vanilla.seedTemplates": {
                 failedToFetch: boolean;
-                templates: PartialArrayType<{ image: string; seedValue: string; title: string }>;
+                templates: CoherentArrayProxy<{ image: string; seedValue: string; title: string }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 refresh(...args: unknown[]): unknown;
             };
             "vanilla.share": {
                 isShareSupported: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 share(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 shareFile(...args: unknown[]): unknown;
             };
             "vanilla.simulationDistanceOptions": {
-                simulationDistanceOptions: PartialArrayType<number>;
+                simulationDistanceOptions: CoherentArrayProxy<number>;
             };
             "vanilla.telemetry": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 fireEvent(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 fireEventButtonPressed(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 fireEventModalShown(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 trackOptionChanged(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 fireEventOptionsChanged(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 discardTrackedOptions(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 fireEventRealmsStoriesOptIn(...args: unknown[]): unknown;
             };
             "vanilla.thirdPartyWorldList": {
                 fetchThirdPartyWorldsTaskState: number;
                 thirdPartyServersStatus: number;
-                thirdPartyWorlds: PartialArrayType<{
+                thirdPartyWorlds: CoherentArrayProxy<{
                     msgOfTheDay: string;
                     image: string;
                     capacity: number;
@@ -944,9 +1435,12 @@ declare global {
                 }>;
             };
             "vanilla.unpairedRealmsListFacet": {
-                realms: PartialArrayType<unknown>;
+                realms: CoherentArrayProxy<unknown>;
                 state: number;
                 compatibility: undefined;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 forceFetchUnpairedRealmsList(...args: unknown[]): unknown;
             };
             "vanilla.userAccount": {
@@ -965,29 +1459,65 @@ declare global {
                 banReason: string;
                 isBanned: boolean;
                 userPermissions: {
-                    viewProfiles: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
-                    addFriends: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
-                    multiplayer: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
+                    viewProfiles: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
+                    addFriends: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
+                    multiplayer: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
                 };
                 isLoggedInWithMicrosoftAccount: boolean;
                 isTrialAccount: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 updateMultiplayerPrivilegeUsingSystemModal(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 showPremiumNetworkUpsellModal(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 signOutOfMicrosoftAccount(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 manageMicrosoftAccount(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 unlinkMicrosoftAccount(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearAccountUnlinkState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 signInToPlatformNetwork(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 resetSignInPlatformNetwork(...args: unknown[]): unknown;
             };
             "vanilla.webBrowserFacet": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 openLink(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 openLinkWithParams(...args: unknown[]): unknown;
             };
             "vanilla.worldCloudSyncFacet": {
                 syncWorldTaskState: number;
                 syncWorldResult: null;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 syncWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearSyncWorldTaskState(...args: unknown[]): unknown;
             };
             "vanilla.worldEditor": {
@@ -1008,7 +1538,7 @@ declare global {
                     achievementsDisabled: boolean;
                     isUsingTemplate: boolean;
                     isLockedTemplate: boolean;
-                    betaFeatures: PartialArrayType<{
+                    betaFeatures: CoherentArrayProxy<{
                         isEnabled: boolean;
                         isTogglePermanentlyDisabled: boolean;
                         category: number;
@@ -1079,20 +1609,44 @@ declare global {
                         worldName: string;
                     };
                 };
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 saveLocalWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearSaveLocalWorldTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 saveRealmsWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clearSaveRealmsWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 addWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 loadWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 closeWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 reloadWorld(...args: unknown[]): unknown;
             };
-            "vanilla.worldOperations": unknown;
-            "vanilla.worldPackages": unknown;
-            "vanilla.worldPlayersList": unknown; // Exists but not yet accessed.
-            "vanilla.worldStartup": unknown;
-            "vanilla.worldTemplateList": unknown;
+            "vanilla.worldOperations": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldPackages": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldPlayersList": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
+            "vanilla.worldStartup": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldTemplateList": unknown; // TODO: Get the type for this facet.
             "vanilla.worldTransfer": {
                 backupWorldProgress: number;
                 backupWorldResult: null | number;
@@ -1109,11 +1663,14 @@ declare global {
                 };
                 importWorld_v2(): null;
                 resetImportWorld(): void;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 backupWorld(): unknown;
                 resetBackupWorld(): void;
             };
             "vanilla.friendworldlist": {
-                friendWorlds: PartialArrayType<{
+                friendWorlds: CoherentArrayProxy<{
                     friendOfFriendWorld: boolean;
                     capacity: number;
                     playerCount: number;
@@ -1138,89 +1695,121 @@ declare global {
                 isFinishedQueryingProductsAndPurchases: boolean;
             };
             "vanilla.realmsSettingsFacet": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 openRealm(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 closeRealm(...args: unknown[]): unknown;
             };
-            "vanilla.achievementCategories": unknown;
-            "vanilla.blockInformation": unknown;
-            "debug.worldTransfer": unknown;
-            "vanilla.flatWorldPresets": unknown;
-            "vanilla.inGame": unknown;
-            "vanilla.playerPrivacy": unknown;
-            "vanilla.realmsPurchase": unknown;
-            "vanilla.realmsSubscriptionsData": unknown;
-            "vanilla.realmsSubscriptionsMethods": unknown;
-            "vanilla.realmsWorldContextCommands": unknown;
-            "vanilla.realmsWorldContextQueries": unknown;
-            "vanilla.realmsStories.sessions": unknown;
-            "vanilla.realmsListActionsFacet": unknown;
-            "vanilla.developerOptionsFacet": unknown;
-            "vanilla.realmsStories.comments": unknown;
-            "vanilla.screenshotGallery": unknown;
-            "vanilla.playerShowcasedGallery": unknown;
-            "vanilla.trialMode": unknown;
-            "vanilla.featuredWorldTemplateList": unknown;
-            "vanilla.ownedWorldTemplateList": unknown;
-            "vanilla.worldTemplateOperations": unknown;
-            "test.vector": unknown;
-            "vanilla.editorBlockPalette": unknown;
-            "vanilla.editorInputBinding": unknown;
-            "vanilla.editorInputState": unknown;
-            "vanilla.editorProjectConstants": unknown;
-            "vanilla.editorStructure": unknown;
-            "vanilla.editorTutorial": unknown;
-            "vanilla.gameplay.localPlayerWeatherLightningFacet": unknown;
-            "vanilla.levelInfo": unknown;
-            "vanilla.currentParty": unknown;
-            "vanilla.partyCommands": unknown;
-            "vanilla.worldRealmEditor": unknown; // Found in dev build file.
-            "vanilla.worldRealmEditorCommands": unknown;
-            "vanilla.worldRealmEditorQueries": unknown;
-            "vanilla.realmBackupsCommands": unknown;
-            "vanilla.realmBackupsQueries": unknown;
-            "vanilla.realmsPurchaseCommands": unknown;
-            "vanilla.realmsPurchaseReconcilerQueries": unknown;
-            "vanilla.character-selector": unknown;
-            "vanilla.progressTracker": unknown;
+            "vanilla.achievementCategories": unknown; // TODO: Get the type for this facet.
+            "vanilla.blockInformation": unknown; // TODO: Get the type for this facet.
+            "debug.worldTransfer": unknown; // TODO: Get the type for this facet.
+            "vanilla.flatWorldPresets": unknown; // TODO: Get the type for this facet.
+            "vanilla.inGame": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerPrivacy": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsPurchase": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsSubscriptionsData": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsSubscriptionsMethods": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsWorldContextCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsWorldContextQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.sessions": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsListActionsFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.developerOptionsFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.comments": unknown; // TODO: Get the type for this facet.
+            "vanilla.screenshotGallery": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerShowcasedGallery": unknown; // TODO: Get the type for this facet.
+            "vanilla.trialMode": unknown; // TODO: Get the type for this facet.
+            "vanilla.featuredWorldTemplateList": unknown; // TODO: Get the type for this facet.
+            "vanilla.ownedWorldTemplateList": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldTemplateOperations": unknown; // TODO: Get the type for this facet.
+            "test.vector": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorBlockPalette": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorInputBinding": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorInputState": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorProjectConstants": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorStructure": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorTutorial": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.localPlayerWeatherLightningFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.levelInfo": unknown; // TODO: Get the type for this facet.
+            "vanilla.currentParty": unknown; // TODO: Get the type for this facet.
+            "vanilla.partyCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldRealmEditor": unknown; // TODO: Get the type for this facet. // Found in dev build file.
+            "vanilla.worldRealmEditorCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldRealmEditorQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmBackupsCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmBackupsQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsPurchaseCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsPurchaseReconcilerQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.character-selector": unknown; // TODO: Get the type for this facet.
+            "vanilla.progressTracker": unknown; // TODO: Get the type for this facet.
 
-            "vanilla.realmsWorldEditorGameRulesCommands": unknown;
-            "vanilla.realmsWorldEditorGameRulesQueries": unknown;
-            "vanilla.realmsWorldEditorWorldDetailsQueries": unknown;
-            "vanilla.realmsCommitCommandsFacet": unknown;
-            "vanilla.realmsCommitQueriesFacet": unknown;
-            "vanilla.realmsPurchaseQueries": unknown;
+            "vanilla.realmsWorldEditorGameRulesCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsWorldEditorGameRulesQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsWorldEditorWorldDetailsQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsCommitCommandsFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsCommitQueriesFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsPurchaseQueries": unknown; // TODO: Get the type for this facet.
+
+            "vanilla.connectionErrorInfoFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.partyReceivedInviteList": unknown; // TODO: Get the type for this facet.
+            "vanilla.joinablePartyList": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsFeatureFlags": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.reports": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.reportCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.openAndCloseRealmCommandsFacet": unknown; // TODO: Get the type for this facet.
+            "dev.realmsCommitCommandsFacet": unknown; // TODO: Get the type for this facet.
+            "dev.realmsCommitQueriesFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.newPlayerChoices": unknown; // TODO: Get the type for this facet.
         }
-        /**
-         * The context holder.
-         */
-        var contextHolder: unknown;
-        /**
-         * The facet access holder.
-         */
-        var facetAccessHolder: unknown;
-        /**
-         * The list of accessed facets.
-         */
-        var accessedFacets: Partial<{ [FacetType in FacetList[number]]: SharedFacet<FacetType> }>;
-        /**
-         * The facet spy data.
-         */
-        var facetSpyData: { sharedFacets: { [FacetType in FacetList[number]]: SharedFacet<FacetType> } };
         /**
          * A shared facet.
+         *
+         * @see {@link SharedFacetBase}
          */
-        interface SharedFacet<FacetType extends FacetList[number]> {
-            get(): FacetTypeMap[FacetType] | symbol;
-            observe(callback: (value: FacetTypeMap[FacetType]) => void): void;
-            set(value: FacetTypeMap[FacetType]): void;
+        interface SharedFacet<FacetType extends FacetList[number]> extends SharedFacetBase<FacetType> {}
+        /**
+         * The base type for a shared facet (use this for facets that are not in the {@link FacetList}).
+         */
+        interface SharedFacetBase<FacetType extends LooseAutocomplete<FacetList[number]>> {
+            /**
+             * Gets the current value of the facet.
+             */
+            get(): (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | symbol;
+            /**
+             * Watches for changes to the value of the facet.
+             *
+             * @param callback The callback to call when the value of the facet changes.
+             */
+            observe(callback: (value: FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) => void): void;
+            /**
+             * Sets the value of the facet.
+             *
+             * @param value The new value of the facet.
+             */
+            set(value: FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown): void;
             [k: PropertyKey]: unknown;
         }
+
         /**
-         * Returns a list of all accessible facets from the facetSpy data.
-         *
-         * @returns {Partial<globalThis["facetSpyData"]["sharedFacets"]>} The accessible facets.
+         * An interface that represents a route history item.
          */
-        function getAccessibleFacetSpyFacets(): Partial<{ [FacetType in FacetList[number]]: FacetTypeMap[FacetType] }>;
+        interface RouteHistoryItem {
+            /**
+             * The hash component of the route.
+             */
+            hash: string;
+            /**
+             * The path component of the route.
+             */
+            pathname: string;
+            /**
+             * The search component of the route.
+             */
+            search: string;
+        }
         /**
          * The local world data type.
          */
@@ -1291,8 +1880,8 @@ declare global {
         }
         interface RealmDataType {
             world: {
-                onlinePlayers: PartialArrayType<PlayerData>;
-                players: PartialArrayType<PlayerData>;
+                onlinePlayers: CoherentArrayProxy<PlayerData>;
+                players: CoherentArrayProxy<PlayerData>;
                 closed: boolean;
                 lastSaved: null | number;
                 description: string;
@@ -1322,7 +1911,7 @@ declare global {
             slotImage: string;
         }
 
-        type PartialArrayType<T> = ArrayLike<T> & {
+        type CoherentArrayProxy<T> = ArrayLike<T> & {
             length: number;
             filter: Array<T>["filter"];
             map: Array<T>["map"];
@@ -1343,6 +1932,7 @@ declare global {
             values(): ArrayIterator<T>;
             toString(): string;
         };
+        //#endregion
         type ConstNumberObjectEnumToEnumMappingType<T extends { [key: string]: number }> = MergeObjectTypes<
             {
                 [K in keyof T as T[K]]: K;
@@ -1372,7 +1962,7 @@ interface b {
         scalingModeOverride: string;
     };
     "core.deviceInformation": {
-        activeMultiplayerServiceIds: PartialArrayType<number>;
+        activeMultiplayerServiceIds: CoherentArrayProxy<number>;
         changeStorageTask: number;
         storageType: number;
         supportsSizeQuery: boolean;
@@ -1392,13 +1982,13 @@ interface b {
         displayWidth: number;
         pixelsPerMillimeter: number;
         isLowMemoryDevice: boolean;
-        inputMethods: PartialArrayType<number>;
+        inputMethods: CoherentArrayProxy<number>;
         arvrPlatform: number;
         platform: number;
         changeStorage(...args: unknown[]): unknown;
     };
     "core.featureFlags": {
-        flags: PartialArrayType<string>;
+        flags: CoherentArrayProxy<string>;
     };
     "core.input": {
         keyboardType: number;
@@ -1416,7 +2006,7 @@ interface b {
     };
     "core.router": {
         history: {
-            list: PartialArrayType<{ hash: string; search: string; pathname: string }>;
+            list: CoherentArrayProxy<{ hash: string; search: string; pathname: string }>;
             location: { hash: string; search: string; pathname: string };
             action: string;
             length: number;
@@ -1453,7 +2043,7 @@ interface b {
     };
     "vanilla.achievements": {
         data: {
-            achievements: PartialArrayType<{
+            achievements: CoherentArrayProxy<{
                 suggestedOrder: number;
                 rewardId: string;
                 rewardRarity: number;
@@ -1506,7 +2096,7 @@ interface b {
             achievementsDisabled: boolean;
             isUsingTemplate: boolean;
             isLockedTemplate: boolean;
-            betaFeatures: PartialArrayType<{
+            betaFeatures: CoherentArrayProxy<{
                 isEnabled: boolean;
                 isTogglePermanentlyDisabled: boolean;
                 category: number;
@@ -1603,7 +2193,7 @@ interface b {
         getCreatedPreviewRealmId(...args: unknown[]): unknown;
     };
     "vanilla.debugSettings": {
-        allBiomes: PartialArrayType<{ dimension: number; id: number; label: string }>;
+        allBiomes: CoherentArrayProxy<{ dimension: number; id: number; label: string }>;
         isBiomeOverrideActive: boolean;
         biomeOverrideId: number;
         defaultSpawnBiome: boolean;
@@ -1627,8 +2217,8 @@ interface b {
     "vanilla.editorLogging": {
         tagFilter: string;
         logLevelFilter: number;
-        tagList: PartialArrayType<unknown>;
-        messageList: PartialArrayType<unknown>;
+        tagList: CoherentArrayProxy<unknown>;
+        messageList: CoherentArrayProxy<unknown>;
         flush(...args: unknown[]): unknown;
     };
     "vanilla.editorScripting": {
@@ -1642,7 +2232,7 @@ interface b {
     "vanilla.editorSettings": {
         fontZoom: number;
         currentThemeId: string;
-        themesMap: {};
+        themesMap: Record<string, never>;
         isEditorMode: boolean;
         selectedTool: string;
         selectedOperator: number;
@@ -1656,7 +2246,7 @@ interface b {
     };
     "vanilla.externalServerWorldList": {
         addedServerId: number;
-        externalServerWorlds: PartialArrayType<{
+        externalServerWorlds: CoherentArrayProxy<{
             msgOfTheDay: string;
             image: string;
             capacity: number;
@@ -1673,7 +2263,7 @@ interface b {
     };
     "vanilla.followersList": {
         xboxAPICallResult: number;
-        playerList: PartialArrayType<{
+        playerList: CoherentArrayProxy<{
             description: string;
             isFollowedByMe: boolean;
             isFollowingMe: boolean;
@@ -1685,8 +2275,8 @@ interface b {
         isLoading: boolean;
     };
     "vanilla.friendsListFacet": {
-        platformFriends: PartialArrayType<unknown>;
-        xblFriends: PartialArrayType<{
+        platformFriends: CoherentArrayProxy<unknown>;
+        xblFriends: CoherentArrayProxy<{
             favoriteStatus: number;
             playingOnServerId: null;
             isCurrentlyPlaying: boolean;
@@ -1741,7 +2331,7 @@ interface b {
     };
     "vanilla.gamertagSearch": {
         xboxAPICallResult: number;
-        searchResults: PartialArrayType<unknown>;
+        searchResults: CoherentArrayProxy<unknown>;
         isLoading: boolean;
         search(...args: unknown[]): unknown;
     };
@@ -1756,17 +2346,17 @@ interface b {
             toggleMessageBadges(...args: unknown[]): unknown;
             toggleOnlyFriendInvites(...args: unknown[]): unknown;
         };
-        categoryData: PartialArrayType<{
+        categoryData: CoherentArrayProxy<{
             imageUrl: string;
             unreadMessages: number;
             localizedName: string;
             categoryName: string;
         }>;
         realmsSubscriber: boolean;
-        inboxMessages: PartialArrayType<{
+        inboxMessages: CoherentArrayProxy<{
             style: number;
             gamedrop: null;
-            items: PartialArrayType<{
+            items: CoherentArrayProxy<{
                 button: {
                     action: number;
                     link: string;
@@ -1784,7 +2374,7 @@ interface b {
                 };
                 id: string;
             }>;
-            buttons: PartialArrayType<{
+            buttons: CoherentArrayProxy<{
                 action: number;
                 link: string;
                 description: string;
@@ -1792,7 +2382,7 @@ interface b {
                 id: string;
                 openExternalLink(...args: unknown[]): unknown;
             }>;
-            images: PartialArrayType<{
+            images: CoherentArrayProxy<{
                 isLoaded: boolean;
                 imageSize: null;
                 nonAnimatedUrl: string;
@@ -1831,7 +2421,7 @@ interface b {
     };
     "vanilla.localWorldList": {
         otherStorageTypeHasWorlds: boolean;
-        localWorlds: PartialArrayType<{
+        localWorlds: CoherentArrayProxy<{
             isMultiplayerEnabled: boolean;
             requiresCloudSync: boolean;
             allContentOwned: boolean;
@@ -1867,7 +2457,7 @@ interface b {
     "vanilla.marketplacePassWorldTemplateList": {
         refreshTaskState: number;
         seeMoreMarketplacePassRouteData: { pageId: string; title: string };
-        marketplacePassWorldTemplates: PartialArrayType<{
+        marketplacePassWorldTemplates: CoherentArrayProxy<{
             storeCatalogCategory: number;
             isUpdateAvailable: boolean;
             isInstalled: boolean;
@@ -1885,7 +2475,7 @@ interface b {
     "vanilla.networkWorldDetails": {
         hasLoadedDetails: boolean;
         networkDetails: {
-            activities: PartialArrayType<unknown>;
+            activities: CoherentArrayProxy<unknown>;
             newsDescription: string;
             newsTitle: string;
             type: number;
@@ -1955,7 +2545,7 @@ interface b {
     };
     "vanilla.playerAchievements": {
         data: {
-            achievements: PartialArrayType<unknown>;
+            achievements: CoherentArrayProxy<unknown>;
             maxGamerScore: number;
             currentGamerScore: number;
             maxAchievements: number;
@@ -1969,18 +2559,18 @@ interface b {
         openXboxLiveBannedInfoPage(...args: unknown[]): unknown;
     };
     "vanilla.playerFollowingList": {
-        playerList: PartialArrayType<unknown>;
+        playerList: CoherentArrayProxy<unknown>;
         isLoading: boolean;
         load(...args: unknown[]): unknown;
     };
     "vanilla.playermessagingservice": {
-        data: { messages: PartialArrayType<unknown>; messageCount: number };
+        data: { messages: CoherentArrayProxy<unknown>; messageCount: number };
         status: number;
         reportClick(...args: unknown[]): unknown;
         reportDismiss(...args: unknown[]): unknown;
     };
     "vanilla.playerProfile": {
-        playerProfiles: PartialArrayType<{
+        playerProfiles: CoherentArrayProxy<{
             state: {
                 platformError: number;
                 platformState: number;
@@ -2018,10 +2608,10 @@ interface b {
     "vanilla.playerReport": {
         hasReachedReportLimit: boolean;
         screenshot: string;
-        reportReasonOptions: PartialArrayType<unknown>;
-        reportAreaOptions: PartialArrayType<unknown>;
-        reportableChatMessages: PartialArrayType<unknown>;
-        selectedChatMessages: PartialArrayType<unknown>;
+        reportReasonOptions: CoherentArrayProxy<unknown>;
+        reportAreaOptions: CoherentArrayProxy<unknown>;
+        reportableChatMessages: CoherentArrayProxy<unknown>;
+        selectedChatMessages: CoherentArrayProxy<unknown>;
         galleryScreenshotId: string;
         platformId: string;
         xuid: string;
@@ -2044,7 +2634,7 @@ interface b {
         unfavorite(...args: unknown[]): unknown;
     };
     "vanilla.playerStatistics": {
-        data: PartialArrayType<unknown>;
+        data: CoherentArrayProxy<unknown>;
         loaded: boolean;
         load(...args: unknown[]): unknown;
     };
@@ -2059,10 +2649,10 @@ interface b {
         isProfanityInString(...args: unknown[]): unknown;
     };
     "vanilla.realmsListFacet": {
-        realms: PartialArrayType<{
+        realms: CoherentArrayProxy<{
             world: {
-                onlinePlayers: PartialArrayType<unknown>;
-                players: PartialArrayType<unknown>;
+                onlinePlayers: CoherentArrayProxy<unknown>;
+                players: CoherentArrayProxy<unknown>;
                 closed: boolean;
                 lastSaved: null | number;
                 description: string;
@@ -2094,7 +2684,7 @@ interface b {
         isSlotSelected: boolean;
         isLoading: boolean;
         selectedRealmName: string;
-        realmSlots: PartialArrayType<unknown>;
+        realmSlots: CoherentArrayProxy<unknown>;
         status: number;
         selectSlot(...args: unknown[]): unknown;
         getSelectedRealmDetails(...args: unknown[]): unknown;
@@ -2173,7 +2763,7 @@ interface b {
     "vanilla.realmsStories.players": {
         fetchOnlineMembersStatus: number;
         fetchMembersStatus: number;
-        players: PartialArrayType<unknown>;
+        players: CoherentArrayProxy<unknown>;
     };
     "vanilla.realmsStories.realmData": {
         isHardcore: boolean;
@@ -2203,7 +2793,7 @@ interface b {
         postStoryStatus: number;
         storiesFirstPageReady: boolean;
         storiesStatus: number;
-        stories: PartialArrayType<unknown>;
+        stories: CoherentArrayProxy<unknown>;
     };
     "vanilla.RealmsPDPFacet": {
         isRealmsTrialAvailable: boolean;
@@ -2219,7 +2809,7 @@ interface b {
     };
     "vanilla.recentlyPlayedWithList": {
         xboxAPICallResult: number;
-        playerList: PartialArrayType<{
+        playerList: CoherentArrayProxy<{
             description: string;
             isFollowedByMe: boolean;
             isFollowingMe: boolean;
@@ -2232,7 +2822,7 @@ interface b {
     };
     "vanilla.recommendedFriendsList": {
         xboxAPICallResult: number;
-        playerList: PartialArrayType<{
+        playerList: CoherentArrayProxy<{
             description: string;
             isFollowedByMe: boolean;
             isFollowingMe: boolean;
@@ -2245,19 +2835,19 @@ interface b {
     };
     "vanilla.resourcePackOverrides": {
         lastUpdated: number;
-        definitions: PartialArrayType<unknown>;
+        definitions: CoherentArrayProxy<unknown>;
     };
     "vanilla.resourcePacks": {
         lastActivatedPackId: string;
         prompt: {
-            actions: PartialArrayType<unknown>;
+            actions: CoherentArrayProxy<unknown>;
             body: string;
             title: string;
             active: boolean;
             id: string;
             handleAction(...args: unknown[]): unknown;
         };
-        availableBehaviorPacks: PartialArrayType<{
+        availableBehaviorPacks: CoherentArrayProxy<{
             isAddon: boolean;
             hasSettings: boolean;
             isPlatformLocked: boolean;
@@ -2270,9 +2860,9 @@ interface b {
             type: string;
             name: string;
         }>;
-        activeBehaviorPacks: PartialArrayType<unknown>;
-        unownedTexturePacks: PartialArrayType<unknown>;
-        realmsTexturePacks: PartialArrayType<{
+        activeBehaviorPacks: CoherentArrayProxy<unknown>;
+        unownedTexturePacks: CoherentArrayProxy<unknown>;
+        realmsTexturePacks: CoherentArrayProxy<{
             isAddon: boolean;
             hasSettings: boolean;
             isPlatformLocked: boolean;
@@ -2285,8 +2875,8 @@ interface b {
             type: string;
             name: string;
         }>;
-        globalTexturePacks: PartialArrayType<unknown>;
-        availableTexturePacks: PartialArrayType<{
+        globalTexturePacks: CoherentArrayProxy<unknown>;
+        availableTexturePacks: CoherentArrayProxy<{
             isAddon: boolean;
             hasSettings: boolean;
             isPlatformLocked: boolean;
@@ -2299,7 +2889,7 @@ interface b {
             type: string;
             name: string;
         }>;
-        activeTexturePacks: PartialArrayType<unknown>;
+        activeTexturePacks: CoherentArrayProxy<unknown>;
         importProgress: number;
         downloadProgress: number;
         marketplacePackId: string;
@@ -2324,7 +2914,7 @@ interface b {
     };
     "vanilla.seedTemplates": {
         failedToFetch: boolean;
-        templates: PartialArrayType<{ image: string; seedValue: string; title: string }>;
+        templates: CoherentArrayProxy<{ image: string; seedValue: string; title: string }>;
         refresh(...args: unknown[]): unknown;
     };
     "vanilla.share": {
@@ -2333,7 +2923,7 @@ interface b {
         shareFile(...args: unknown[]): unknown;
     };
     "vanilla.simulationDistanceOptions": {
-        simulationDistanceOptions: PartialArrayType<number>;
+        simulationDistanceOptions: CoherentArrayProxy<number>;
     };
     "vanilla.telemetry": {
         fireEvent(...args: unknown[]): unknown;
@@ -2347,7 +2937,7 @@ interface b {
     "vanilla.thirdPartyWorldList": {
         fetchThirdPartyWorldsTaskState: number;
         thirdPartyServersStatus: number;
-        thirdPartyWorlds: PartialArrayType<{
+        thirdPartyWorlds: CoherentArrayProxy<{
             msgOfTheDay: string;
             image: string;
             capacity: number;
@@ -2360,7 +2950,7 @@ interface b {
         }>;
     };
     "vanilla.unpairedRealmsListFacet": {
-        realms: PartialArrayType<unknown>;
+        realms: CoherentArrayProxy<unknown>;
         state: number;
         compatibility: undefined;
         forceFetchUnpairedRealmsList(...args: unknown[]): unknown;
@@ -2381,9 +2971,9 @@ interface b {
         banReason: string;
         isBanned: boolean;
         userPermissions: {
-            viewProfiles: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
-            addFriends: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
-            multiplayer: { allowed: boolean; denyReasons: PartialArrayType<unknown> };
+            viewProfiles: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
+            addFriends: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
+            multiplayer: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
         };
         isLoggedInWithMicrosoftAccount: boolean;
         isTrialAccount: boolean;
@@ -2424,7 +3014,7 @@ interface b {
             achievementsDisabled: boolean;
             isUsingTemplate: boolean;
             isLockedTemplate: boolean;
-            betaFeatures: PartialArrayType<{
+            betaFeatures: CoherentArrayProxy<{
                 isEnabled: boolean;
                 isTogglePermanentlyDisabled: boolean;
                 category: number;
@@ -2532,7 +3122,7 @@ interface b {
         lastConsultedPackSizesTaskState: number;
         lastConsultedPackSizesError: null;
         packDownloadErrorData: {
-            packTitles: PartialArrayType<unknown>;
+            packTitles: CoherentArrayProxy<unknown>;
             storageSpaceNeeded: string;
         };
         packDownloadStatus: number;
@@ -2541,13 +3131,13 @@ interface b {
         packDownloadName: string;
         packDownloadError: null;
         worldPacksData: {
-            availableBehaviorPacks: PartialArrayType<unknown>;
-            activeBehaviorPacks: PartialArrayType<unknown>;
-            unownedTexturePacks: PartialArrayType<unknown>;
-            realmsTexturePacks: PartialArrayType<unknown>;
-            globalTexturePacks: PartialArrayType<unknown>;
-            availableTexturePacks: PartialArrayType<unknown>;
-            activeTexturePacks: PartialArrayType<unknown>;
+            availableBehaviorPacks: CoherentArrayProxy<unknown>;
+            activeBehaviorPacks: CoherentArrayProxy<unknown>;
+            unownedTexturePacks: CoherentArrayProxy<unknown>;
+            realmsTexturePacks: CoherentArrayProxy<unknown>;
+            globalTexturePacks: CoherentArrayProxy<unknown>;
+            availableTexturePacks: CoherentArrayProxy<unknown>;
+            activeTexturePacks: CoherentArrayProxy<unknown>;
             realmsSubscriber: boolean;
             realmsPlusSupported: boolean;
         };
@@ -2573,9 +3163,9 @@ interface b {
             cancel(...args: unknown[]): unknown;
             clear(...args: unknown[]): unknown;
         };
-        brokenPacksToStart: PartialArrayType<unknown>;
+        brokenPacksToStart: CoherentArrayProxy<unknown>;
         missingPacksSize: string;
-        missingPacksToStart: PartialArrayType<unknown>;
+        missingPacksToStart: CoherentArrayProxy<unknown>;
         missingTemplateToStart: string;
         hasMissingResources: boolean;
         startLocalWorldTaskState: number;
@@ -2584,9 +3174,9 @@ interface b {
         clearStartLocalWorldResult(...args: unknown[]): unknown;
     };
     "vanilla.worldTemplateList": {
-        templates: PartialArrayType<unknown>;
-        customTemplates: PartialArrayType<unknown>;
-        premiumTemplates: PartialArrayType<unknown>;
+        templates: CoherentArrayProxy<unknown>;
+        customTemplates: CoherentArrayProxy<unknown>;
+        premiumTemplates: CoherentArrayProxy<unknown>;
     };
     "vanilla.worldTransfer": {
         backupWorldProgress: number;
@@ -2608,7 +3198,7 @@ interface b {
         resetBackupWorld(...args: unknown[]): unknown;
     };
     "vanilla.friendworldlist": {
-        friendWorlds: PartialArrayType<{
+        friendWorlds: CoherentArrayProxy<{
             friendOfFriendWorld: boolean;
             capacity: number;
             playerCount: number;

@@ -184,6 +184,89 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.8.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>Added the ability for the console to display unhandled exceptions and promise rejections.</li>
+                            <li>The console can now display <code>console.info</code> logs, they are displayed in an emerald green color.</li>
+                            <li>The console execution history now persists across Ore UI reload (it persists until the game is fully restarted).</li>
+                            <li>
+                                The console now has special handling for displaying errors. It displays the error type, message, and stack instead of an error
+                                object, but can still be clicked on to be expanded to see the contents of the error object.
+                            </li>
+                            <li>
+                                When executing code in the console and the result of that code is a symbol, the console will now display that symbol instead of
+                                <code>undefined</code>.
+                            </li>
+                            <li>
+                                When executing code in the console, if the code throws an error that is an object or function, the console now displays it as an
+                                expandable object/function instead of <code>[object Object]</code> of the result of the function's
+                                <code>toString()</code> method.
+                            </li>
+                            <li>Console messages sent before the console was loaded are now displayed in the console.</li>
+                            <li>Console messages now have word wrapping enabled so they don't go off of the screen.</li>
+                            <li>Added the <code>CTRL + F8</code> keyboard shortcut to reload the UI.</li>
+                            <li>
+                                Added 3 new tabs to the 8Crafter Utilities menu:
+                                <ul>
+                                    <li>Router</li>
+                                    <li>Debug</li>
+                                    <li>Dev</li>
+                                </ul>
+                            </li>
+                            <li>Added the list of keyboard shortcuts to the About tab of the 8Crafter Utilities menu.</li>
+                        </ul>
+                        <h2>Changes</h2>
+                        <ul>
+                            <li>v1.21.120 is now fully supported!</li>
+                            <li>
+                                The <code>Small Corner Debug Overlay</code> has been reworked to update on keyboard and mouse events, have a lot more new
+                                information, and many other improvements.
+                            </li>
+                            <li>
+                                The keyboard shortcuts are now a lot more strict, they now only trigger if you are holding the key combo without any other
+                                additional modifier keys.
+                            </li>
+                            <li>
+                                When the <code>oreUICustomizer8CrafterConfig.js</code> file is missing, the config and version now say that they are missing in
+                                the General tab of the 8Crafter Utilities menu.
+                            </li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>Fixed a bug where the Lite Play Screen was completely broken in Minecraft versions 1.21.120 and above.</li>
+                            <li>
+                                Fixed a few bugs with the code of a few of a buttons of the 8Crafter Utilities menu (some of the buttons had quotation marks in
+                                their <code>onclick</code> events).
+                            </li>
+                        </ul>
+                        <h2>Technical Additions</h2>
+                        <ul>
+                            <li>Added many new functions and global variables for messing with Ore UI and accessing facets.</li>
+                            <li>Added multiple new type declaration files and documented many more types of native Ore UI things.</li>
+                        </ul>
+                        <h2>Notes</h2>
+                        <ul>
+                            <li>
+                                In 1.21.120 and above, the Lite Play Screen causes the title bar at the top of the screen to be unable to be interacted with, as
+                                well as any vanilla menus entered through the screen, and the screen cannot be exited.
+                                <br />
+                                This happens with anything that reloads Ore UI (ex. <code>CTRL + F8</code>). It is a bug with that version of Minecraft.
+                                <br />
+                                There is a workaround though, whenever this bug occurs, just use a controller and press a key on it, then press an arrow key on
+                                your keyboard, and that fixes it.
+                            </li>
+                            <li>
+                                In the No Reload mode of the Lite Play Screen, clicking on any tab other than worlds causes the UI to crash, as it causes an
+                                error with one of the vanilla play screen functions (since they are not unloaded because it isn't reloaded).
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.7.0</h2>
                     </div>
                     <div class="collapsible-group-content">

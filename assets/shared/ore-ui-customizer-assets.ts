@@ -1874,7 +1874,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.20 preview (index-fe5c0.js)
                  */
                 new RegExp(
-                    `function ([a-zA-Z0-9_$]{2})\\(\\{generalData:e,isLockedTemplate:t,isUsingTemplate:([a-zA-Z0-9_$]{1}),achievementsDisabledMessages:([a-zA-Z0-9_$]{1}),isHardcoreMode:o\\}\\)\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=${extractedSymbolNames.translationStringResolver}\\("CreateNewWorld\\.general"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=${extractedSymbolNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)=>(?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>\\{const (?:[a-zA-Z0-9_$]{1})=\\[([a-zA-Z0-9_$]{2})\\(\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeSurvivalLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeSurvivalDescription"\\),value:([a-zA-Z0-9_$]{2})\\.SURVIVAL\\},1===(?:[a-zA-Z0-9_$]{1})\\.length\\?\\{narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\),\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeCreativeLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeCreativeDescription"\\),value:(?:[a-zA-Z0-9_$]{2})\\.CREATIVE,narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixDisablesAchievements"\\)\\}\\];return\\((?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\)&&(?:[a-zA-Z0-9_$]{1})\\.push\\((?:[a-zA-Z0-9_$]{2})\\(\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeAdventureLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\(t\\?"\\.gameModeAdventureTemplateDescription":"\\.gameModeAdventureDescription"\\),value:(?:[a-zA-Z0-9_$]{2})\\.ADVENTURE\\},1===(?:[a-zA-Z0-9_$]{1})\\.length\\?\\{narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\)\\),(?:[a-zA-Z0-9_$]{1})\\}\\),\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useNotifyMountComplete\\)\\(\\);return ${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeTitle"\\),disabled:(?:[a-zA-Z0-9_$]{1}),options:(?:[a-zA-Z0-9_$]{1}),onMountComplete:(?:[a-zA-Z0-9_$]{1}),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_$]{1})=>(?:[a-zA-Z0-9_$]{1})\\.gameMode\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\((?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)=>(?:[a-zA-Z0-9_$]{1})=>\\{const ([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\.gameMode;(?:[a-zA-Z0-9_$]{1})\\.gameMode=(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})&&(?:[a-zA-Z0-9_$]{1})\\.trackOptionChanged\\(([a-zA-Z0-9_$]{2})\\.GameModeChanged,(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\}`
+                    `function ([a-zA-Z0-9_$]{2})\\(\\{generalData:e,isLockedTemplate:t,isUsingTemplate:([a-zA-Z0-9_$]{1}),achievementsDisabledMessages:([a-zA-Z0-9_$]{1}),isHardcoreMode:o\\}\\)\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=${extractedSymbolNames.translationStringResolver}\\("CreateNewWorld\\.general"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=${extractedSymbolNames.translationStringResolver}\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)=>(?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>\\{const (?:[a-zA-Z0-9_$]{1})=\\[([a-zA-Z0-9_$]{2})\\(\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeSurvivalLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeSurvivalDescription"\\),value:([a-zA-Z0-9_$]{2})\\.SURVIVAL\\},1===(?:[a-zA-Z0-9_$]{1})\\.length\\?\\{narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\),\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeCreativeLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeCreativeDescription"\\),value:(?:[a-zA-Z0-9_$]{2})\\.CREATIVE,narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixDisablesAchievements"\\)\\}\\];return\\((?:[a-zA-Z0-9_$]{1})\\|\\|(?:[a-zA-Z0-9_$]{1})\\)&&(?:[a-zA-Z0-9_$]{1})\\.push\\((?:[a-zA-Z0-9_$]{2})\\(\\{label:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeAdventureLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\(t\\?"\\.gameModeAdventureTemplateDescription":"\\.gameModeAdventureDescription"\\),value:(?:[a-zA-Z0-9_$]{2})\\.ADVENTURE\\},1===(?:[a-zA-Z0-9_$]{1})\\.length\\?\\{narrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixEnablesAchievements"\\)\\}:\\{\\}\\)\\),(?:[a-zA-Z0-9_$]{1})\\}\\),\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=(\\(0,${extractedSymbolNames.facetHolder}\\.useNotifyMountComplete\\)|[a-zA-Z0-9_$]{2})\\(\\);return ${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:(?:[a-zA-Z0-9_$]{1})\\("\\.gameModeTitle"\\),disabled:(?:[a-zA-Z0-9_$]{1}),options:(?:[a-zA-Z0-9_$]{1}),onMountComplete:(?:[a-zA-Z0-9_$]{1}),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_$]{1})=>(?:[a-zA-Z0-9_$]{1})\\.gameMode\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\((?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)=>(?:[a-zA-Z0-9_$]{1})=>\\{const ([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\.gameMode;(?:[a-zA-Z0-9_$]{1})\\.gameMode=(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})&&(?:[a-zA-Z0-9_$]{1})\\.trackOptionChanged\\(([a-zA-Z0-9_$]{2})\\.GameModeChanged,(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\}`
                 ),
             ],
             /**
@@ -1976,7 +1976,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.20 preview (index-fe5c0.js)
                  */
                 new RegExp(
-                    `(?:[a-zA-Z0-9_$]{1})(?:&&!(?:[a-zA-Z0-9_$]{1})\\?|\\?null\\:)${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.Mount,\\{when:([a-zA-Z0-9_$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{label:([a-zA-Z0-9_$]{1})\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_$]{2})\\.Overworld,label:(?:[a-zA-Z0-9_$]{1})\\("\\.vanillaWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_$]{2})\\.Flat,label:(?:[a-zA-Z0-9_$]{1})\\("\\.flatWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_$]{2})\\.Void,label:(?:[a-zA-Z0-9_$]{1})\\("\\.voidWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:([a-zA-Z0-9_$]{1})\\.value,onChange:(?:[a-zA-Z0-9_$]{1})\\.onChange\\}\\)\\)\\)(?::null)?`
+                    `(?:[a-zA-Z0-9_$]{1})(?:&&!(?:[a-zA-Z0-9_$]{1})\\?|\\?null\\:)${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.Mount,\\{when:([a-zA-Z0-9_$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{label:([a-zA-Z0-9_$]{1})\\("\\.generatorTypeLabel"\\),options:\\[\\{value:([a-zA-Z0-9_$]{2})\\.Overworld,label:(?:[a-zA-Z0-9_$]{1})\\("\\.vanillaWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.vanillaWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_$]{2})\\.Flat,label:(?:[a-zA-Z0-9_$]{1})\\("\\.flatWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.flatWorldGeneratorDescription"\\)\\},\\{value:(?:[a-zA-Z0-9_$]{2})\\.Void,label:(?:[a-zA-Z0-9_$]{1})\\("\\.voidWorldGeneratorLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.voidWorldGeneratorDescription"\\)\\}\\],value:([a-zA-Z0-9_$]{1})\\.value,onChange:(?:[a-zA-Z0-9_$]{1})\\.onChange\\}\\)\\)\\)(?::null)?`
                 ),
             ],
             /**
@@ -2081,7 +2081,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.21 preview (index-aaad2.js)
                  */
                 new RegExp(
-                    `([a-zA-Z0-9_$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:([a-zA-Z0-9_$]{1}),isSeedChangeLocked:([a-zA-Z0-9_$]{1}),showSeedTemplates:o\\}\\)=>\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=([a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=(?:[a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(([a-zA-Z0-9_$]{2})\\),)?(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),(?:[a-zA-Z0-9_$]{1})\\.queueSnackbar\\((?:[a-zA-Z0-9_$]{1})\\("\\.copyToClipboard"\\)\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?(?:[a-zA-Z0-9_$]{1}):\\(\\)=>(?:[a-zA-Z0-9_$]{1})\\.push\\("/create-new-world/seed-templates"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?"":(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\((?:[a-zA-Z0-9_$]{1})\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>t\\|\\|(?:[a-zA-Z0-9_$]{1})(?:&&(?:[a-zA-Z0-9_$]{1}))?&&!(?:[a-zA-Z0-9_$]{1})&&e\\.generatorType!=([a-zA-Z0-9_$]{2})\\.Overworld\\),\\[(?:[a-zA-Z0-9_$]{1})(?:,(?:[a-zA-Z0-9_$]{1}))?\\],\\[e,(?:[a-zA-Z0-9_$]{1}),t\\]\\);return o\\?${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{data:(?:[a-zA-Z0-9_$]{1})\\},\\(e=>(?:[a-zA-Z0-9_$]{1})&&!e\\?${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2})\\.WithButton,\\{buttonInputLegend:(?:[a-zA-Z0-9_$]{1}),buttonText:(?:[a-zA-Z0-9_$]{1}),buttonOnClick:(?:[a-zA-Z0-9_$]{1}),textDisabled:(?:[a-zA-Z0-9_$]{1}),disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1}),buttonNarrationHint:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
+                    `([a-zA-Z0-9_$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:([a-zA-Z0-9_$]{1}),isSeedChangeLocked:([a-zA-Z0-9_$]{1}),showSeedTemplates:o\\}\\)=>\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=([a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=(?:[a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(([a-zA-Z0-9_$]{2})\\),)?(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),(?:[a-zA-Z0-9_$]{1})\\.queueSnackbar\\((?:[a-zA-Z0-9_$]{1})\\("\\.copyToClipboard"\\)\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?(?:[a-zA-Z0-9_$]{1}):\\(\\)=>(?:[a-zA-Z0-9_$]{1})\\.push\\("/create-new-world/seed-templates"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?"":(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\((?:[a-zA-Z0-9_$]{1})\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>t\\|\\|(?:[a-zA-Z0-9_$]{1})(?:&&(?:[a-zA-Z0-9_$]{1}))?&&!(?:[a-zA-Z0-9_$]{1})&&e\\.generatorType!=([a-zA-Z0-9_$]{2})\\.Overworld\\),\\[(?:[a-zA-Z0-9_$]{1})(?:,(?:[a-zA-Z0-9_$]{1}))?\\],\\[e,(?:[a-zA-Z0-9_$]{1}),t\\]\\);return o\\?${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{data:(?:[a-zA-Z0-9_$]{1})\\},\\(e=>(?:[a-zA-Z0-9_$]{1})&&!e\\?${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2})\\.WithButton,\\{buttonInputLegend:(?:[a-zA-Z0-9_$]{1}),buttonText:(?:[a-zA-Z0-9_$]{1}),buttonOnClick:(?:[a-zA-Z0-9_$]{1}),textDisabled:(?:[a-zA-Z0-9_$]{1}),disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1}),buttonNarrationHint:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
                 ),
             ],
         },
@@ -2290,9 +2290,9 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.20 preview (index-fe5c0.js)
                  */
                 new RegExp(
-                    `function ([a-zA-Z0-9_$]{2})\\(\\{(?:worldData:e,achievementsDisabledMessages:t,)?onUnlockTemplateSettings:(?:[a-zA-Z0-9_$]{1}),onExportTemplate:(?:[a-zA-Z0-9_$]{1}),onClearPlayerData:(?:[a-zA-Z0-9_$]{1}),isEditorWorld:(?:[a-zA-Z0-9_$]{1})\\}\\)\\{const (?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),)?(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>(function\\(e,t\\)\\{const a=\\[\\];for\\(let t=0;t<e\\.length;t\\+\\+\\)a\\[t\\]=\\{label:\\(n=e\\[t\\]\\)\\.label,dimension:n\\.dimension,value:n\\.id\\};var n;return a\\}|[a-zA-Z0-9_$]{2})\\(e(?:,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\))?\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_$]{2})\\(e\\.platform\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e&&(?:[a-zA-Z0-9_$]{1})\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\);return ${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMountProvider,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{(?:isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,)?narrationText:"Debug",onUnlockTemplateSettings:(?:[a-zA-Z0-9_$]{1}),isEditorWorld:(?:[a-zA-Z0-9_$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"Flat nether",(?:gamepad:\\{index:0\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange` +
-                        `:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatNether=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Enable game version override",(?:gamepad:\\{index:1\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.enableGameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{label:"Game version override",(?:gamepadIndex:2,)?placeholder:"0\\.0\\.0",maxLength:30,disabled:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>!e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.gameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.gameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),` +
-                        `${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"World biome settings"\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",(?:gamepad:\\{index:3\\},)?disabled:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.defaultSpawnBiome=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\),${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onMountComplete:\\(0,${extractedSymbolNames.facetHolder}\\.useNotifyMountComplete\\)\\(\\),title:"Spawn dimension filter",disabled:(?:[a-zA-Z0-9_$]{1}),wrapToggleText:!0,options:\\[\\{label:"Overworld",value:0\\},\\{label:"Nether",value:1\\}\\],value:(?:[a-zA-Z0-9_$]{1}),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.spawnDimensionId=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.DeferredMount,null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"Spawn biome",options:(?:[a-zA-Z0-9_$]{1}),onItemSelect:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>e\\.spawnBiomeId=t\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),disabled:(?:[a-zA-Z0-9_$]{1}),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>t\\.filter\\(\\(t=>t\\.value===e\\)\\)\\.length>0\\?e:t\\[0\\]\\.value\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),focusOnSelectedItem:!0\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Biome override",description:"Set the world to a selected biome\\. This will override the Spawn biome!",(?:gamepad:\\{index:6\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.isBiomeOverrideActive=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Biome override",` +
+                    `function ([a-zA-Z0-9_$]{2})\\(\\{(?:worldData:e,achievementsDisabledMessages:t,)?onUnlockTemplateSettings:(?:[a-zA-Z0-9_$]{1}),onExportTemplate:(?:[a-zA-Z0-9_$]{1}),onClearPlayerData:(?:[a-zA-Z0-9_$]{1}),isEditorWorld:(?:[a-zA-Z0-9_$]{1})\\}\\)\\{const (?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(\\{allBiomes:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isLockedTemplate\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.achievementsDisabled\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),)?(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(\\{spawnDimensionId:e\\}\\)=>e\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>(function\\(e,t\\)\\{const a=\\[\\];for\\(let t=0;t<e\\.length;t\\+\\+\\)a\\[t\\]=\\{label:\\(n=e\\[t\\]\\)\\.label,dimension:n\\.dimension,value:n\\.id\\};var n;return a\\}|[a-zA-Z0-9_$]{2})\\(e(?:,\\(e=>\\(\\{label:e\\.label,dimension:e\\.dimension,value:e\\.id\\}\\)\\))?\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>([a-zA-Z0-9_$]{2})\\(e,\\(e=>e\\.dimension===t\\)\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.spawnBiomeId\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\|\\|e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>([a-zA-Z0-9_$]{2})\\(e\\.platform\\)\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e&&(?:[a-zA-Z0-9_$]{1})\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\);return ${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMountProvider|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{(?:isLockedTemplate:u,achievementsDisabled:d,achievementsDisabledMessages:t,)?narrationText:"Debug",onUnlockTemplateSettings:(?:[a-zA-Z0-9_$]{1}),isEditorWorld:(?:[a-zA-Z0-9_$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"Flat nether",(?:gamepad:\\{index:0\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.flatNether\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange` +
+                        `:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.flatNether=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Enable game version override",(?:gamepad:\\{index:1\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.enableGameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{label:"Game version override",(?:gamepadIndex:2,)?placeholder:"0\\.0\\.0",maxLength:30,disabled:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>!e\\.enableGameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.gameVersionOverride\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.gameVersionOverride=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),` +
+                        `${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"World biome settings"\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Default spawn biome",description:"Using the default spawn biome will mean a random overworld spawn is selected",(?:gamepad:\\{index:3\\},)?disabled:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.defaultSpawnBiome\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.defaultSpawnBiome=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onMountComplete:(\\(0,${extractedSymbolNames.facetHolder}\\.useNotifyMountComplete\\)|[a-zA-Z0-9_$]{2})\\(\\),title:"Spawn dimension filter",disabled:(?:[a-zA-Z0-9_$]{1}),wrapToggleText:!0,options:\\[\\{label:"Overworld",value:0\\},\\{label:"Nether",value:1\\}\\],value:(?:[a-zA-Z0-9_$]{1}),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.spawnDimensionId=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:"Spawn biome",options:(?:[a-zA-Z0-9_$]{1}),onItemSelect:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>e\\.spawnBiomeId=t\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),disabled:(?:[a-zA-Z0-9_$]{1}),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t\\)=>t\\.filter\\(\\(t=>t\\.value===e\\)\\)\\.length>0\\?e:t\\[0\\]\\.value\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),focusOnSelectedItem:!0\\}\\)\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Biome override",description:"Set the world to a selected biome\\. This will override the Spawn biome!",(?:gamepad:\\{index:6\\},)?value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onChange:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.isBiomeOverrideActive=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\)\\}\\),${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{title:"Biome override",` +
                         `description:"Select biome to be used in the entire world",options:(?:[a-zA-Z0-9_$]{1}),disabled:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>!e\\.isBiomeOverrideActive\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),onItemSelect:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(e=>t=>\\{e\\.biomeOverrideId=t\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),value:\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.biomeOverrideId\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),focusOnSelectedItem:!0\\}\\),${extractedSymbolNames.contextHolder}\\.createElement\\(${extractedSymbolNames.facetHolder}\\.Mount,\\{when:(?:[a-zA-Z0-9_$]{1})\\},${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onExportTemplate:(?:[a-zA-Z0-9_$]{1}),onClearPlayerData:(?:[a-zA-Z0-9_$]{1})\\}\\)\\)\\)\\)\\}`
                 ),
             ],
@@ -2650,7 +2650,7 @@ export const builtInPlugins = [
         name: "Add exact ping count to servers tab.",
         id: "add-exact-ping-count-to-servers-tab",
         namespace: "built-in",
-        version: "0.25.0",
+        version: "1.0.0",
         uuid: "a1ffa1f2-a8d1-4948-a307-4067d4a82880",
         description: "A built-in plugin that adds the exact ping count to the servers tab.",
         actions: [
@@ -2687,7 +2687,7 @@ export const builtInPlugins = [
         name: "Add max player count to servers tab.",
         id: "add-max-player-count-to-servers-tab",
         namespace: "built-in",
-        version: "0.25.0",
+        version: "1.0.0",
         uuid: "09b88cde-e265-4f42-b203-564f0df6ca1e",
         description: "A built-in plugin that adds the max player count to the servers tab.",
         actions: [
@@ -2718,14 +2718,14 @@ export const builtInPlugins = [
         name: "Facet spy.",
         id: "facet-spy",
         namespace: "built-in",
-        version: "1.0.0",
+        version: "1.1.0",
         uuid: "e2355295-b202-4f4b-96b8-7bd7b6eaac23",
         description: "Facet spy.",
         actions: [
             {
                 id: "inject-facet-spy",
                 context: "per_text_file",
-                action: async (currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> => {
+                async action(currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> {
                     if (!/(?:index|gameplay|editor)-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)) return currentFileContent;
                     const origData: string = await file.getText();
                     if (
@@ -2921,6 +2921,18 @@ export const builtInPlugins = [
                 "vanilla.realmsCommitCommandsFacet",
                 "vanilla.realmsCommitQueriesFacet",
                 "vanilla.realmsPurchaseQueries",
+
+                // Found in 1.21.120.4 (but may have existed before that).
+                "vanilla.connectionErrorInfoFacet",
+                "vanilla.partyReceivedInviteList",
+                "vanilla.joinablePartyList",
+                "vanilla.realmsFeatureFlags",
+                "vanilla.realmsStories.reports",
+                "vanilla.realmsStories.reportCommands",
+                "vanilla.openAndCloseRealmCommandsFacet",
+                "dev.realmsCommitCommandsFacet",
+                "dev.realmsCommitQueriesFacet",
+                "vanilla.newPlayerChoices",
             ];
             function facetSpy({}) {
                 let data = globalThis.facetSpyData ?? {
@@ -2952,10 +2964,142 @@ export const builtInPlugins = [
                 globalThis.facetSpyData = data;
                 return null;
             }
+            function forceLoadFacet(facetName, timeout = 5000, ignoreAlreadyLoadedData = false) {
+                return new Promise((resolve, reject) => {
+                    const currentFacetData = ignoreAlreadyLoadedData ? undefined : (globalThis.facetSpyData.sharedFacets[facetName] ?? accessedFacets[facetName]?.())?.get();
+                    if ((currentFacetData?.toString?.() ?? "Symbol(NoValue)") !== "Symbol(NoValue)") {
+                        resolve(currentFacetData);
+                        return;
+                    }
+                    /**
+                     * @type {"unloaded" | "loaded" | "failed"}
+                     */
+                    let facetStatus = "unloaded";
+                    const callback = (value) => {
+                        try {
+                            globalThis.forceLoadedFacets[facetName] = true;
+                            const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
+                            const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
+                            if (!targetFacetA && !targetFacetB)
+                                throw new ReferenceError(
+                                    \`No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets for facet: \${facetName}\`
+                                );
+                            targetFacetA?.set(value);
+                            targetFacetB?.set(value);
+                            engine.off(\`facet:updated:\${facetName}\`, callback);
+                            engine.off(\`facet:error:\${facetName}\`, failureCallback);
+                            facetStatus = "loaded";
+                            resolve(value);
+                        } catch (e) {
+                            facetStatus = "failed";
+                            reject(e);
+                        }
+                    };
+                    const failureCallback = (e) => {
+                        try {
+                            engine.off(\`facet:updated:\${facetName}\`, callback);
+                            engine.off(\`facet:error:\${facetName}\`, failureCallback);
+                            facetStatus = "failed";
+                            reject(e);
+                        } catch (e) {
+                            facetStatus = "failed";
+                            reject(e);
+                        }
+                    };
+                    engine.on(\`facet:updated:\${facetName}\`, callback);
+                    engine.on(\`facet:error:\${facetName}\`, failureCallback);
+                    engine.trigger("facet:request", facetName, facetName, {});
+                    timeout &&
+                        timeout < Infinity &&
+                        setTimeout(() => {
+                            if (facetStatus !== "unloaded") return;
+                            facetStatus = "failed";
+                            engine.off(\`facet:updated:\${facetName}\`, callback);
+                            engine.off(\`facet:error:\${facetName}\`, failureCallback);
+                            reject(new ReferenceError(\`Timed out while fetching facet: \${facetName} (timeout: \${timeout})\`));
+                        }, timeout);
+                });
+            }
+            function unloadForceLoadedFacet(facetName) {
+                if (globalThis.forceLoadedFacets[facetName]) {
+                    forceUnloadFacet(facetName);
+                    delete globalThis.forceLoadedFacets[facetName];
+                    return true;
+                }
+                return false;
+            }
+            function forceUnloadFacet(facetName) {
+                engine.trigger("facet:discard", facetName);
+                const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
+                const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
+                try {
+                    targetFacetA?.set(Symbol.for("NoValue"));
+                } catch (e) {
+                    if (globalThis.logForceUnloadFacetSetValueErrors) {
+                        console.error(e);
+                    }
+                }
+                try {
+                    targetFacetB?.set(Symbol.for("NoValue"));
+                } catch (e) {
+                    if (globalThis.logForceUnloadFacetSetValueErrors) {
+                        console.error(e);
+                    }
+                }
+            }
+            function forceLoadUnloadedFacets({
+                enableErrorLogging = false,
+                enableSuccessLogging = false,
+                enableAlreadyLoadedLogging = false,
+                enableLoadingFacetsTracking = false,
+            }) {
+                if (!globalThis.facetSpyData) throw new ReferenceError("The global facetSpyData variable was not found.");
+                enableLoadingFacetsTracking && (globalThis.loadingFacets = {});
+                return Promise.all(
+                    facetList.map(async (facetName, i) => {
+                        enableLoadingFacetsTracking && (loadingFacets[facetName + i] = true);
+                        try {
+                            const currentFacetData = (globalThis.facetSpyData.sharedFacets[facetName] ?? accessedFacets[facetName]())?.get();
+                            if ((currentFacetData?.toString?.() ?? "Symbol(NoValue)") === "Symbol(NoValue)") {
+                                const result = [facetName, await forceLoadFacet(facetName), "success", !facetList.includes(facetName)];
+                                if (enableSuccessLogging) console.log(i, ...result);
+                                return result;
+                            } else {
+                                const result = [facetName, currentFacetData, "alreadyLoaded", !facetList.includes(facetName)];
+                                enableAlreadyLoadedLogging && console.log(i, ...result);
+                            }
+                        } catch (e) {
+                            enableErrorLogging && console.error(e, i, facetName, "error");
+                            return [facetName, e, "error"];
+                        } finally {
+                            enableLoadingFacetsTracking && delete loadingFacets[facetName + i];
+                        }
+                    })
+                );
+            }
+            function unloadForceLoadedFacets() {
+                return Object.keys(globalThis.forceLoadedFacets).map((facetName) => [facetName, unloadForceLoadedFacet(facetName)]);
+            }
+            globalThis.forceLoadedFacets = {};
             globalThis.facetSpy = facetSpy;
-            globalThis.accessedFacets = {};/* 
-            
-            function facetSpy({}) {
+            globalThis.forceLoadFacet = forceLoadFacet;
+            globalThis.forceUnloadFacet = forceUnloadFacet;
+            globalThis.unloadForceLoadedFacet = unloadForceLoadedFacet;
+            globalThis.forceLoadUnloadedFacets = forceLoadUnloadedFacets;
+            globalThis.unloadForceLoadedFacets = unloadForceLoadedFacets;
+            globalThis.accessedFacets = {};
+            globalThis.notedNewFacets = [];
+            setInterval(function checkForNewFacets() {
+                if (!globalThis.accessedFacets || typeof globalThis.accessedFacets !== "object") return;
+                for (const facetName in globalThis.accessedFacets) {
+                    if (facetList.includes(facetName)) continue;
+                    if (globalThis.notedNewFacets.includes(facetName)) continue;
+                    globalThis.notedNewFacets.push(facetName);
+                    console.info(\`New facet discovered!: \${facetName}\`);
+                }
+            }, 1);
+
+            /* function facetSpy({}) {
                 let data = {
                     sharedFacets: {
                         "vanilla.clipboard": (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(Ii),
@@ -2995,36 +3139,49 @@ export const builtInPlugins = [
             /**
              * Returns a list of all accessible facets from the facetSpy data.
              *
-             * @returns {Partial<globalThis["facetSpyData"]['sharedFacets']>} The accessible facets.
+             * It sources from both {@link facetSpyData.sharedFacets} and {@link accessedFacets}.
+             *
+             * @returns The accessible facets.
+             *
+             * @todo Maybe add a parameter for context for getting facets from accessedFacets.
              */
             function getAccessibleFacetSpyFacets() {
                 return Object.fromEntries(
-                    Object.entries(globalThis.facetSpyData?.sharedFacets || {}).filter(([name, facet]) => {
-                        try {
-                            return facet.get()?.toString?.() !== "Symbol(NoValue)";
-                        } catch {
-                            return false;
-                        }
-                    }).map(([name, facet]) => [
-                        name,
-                        facet?.get?.() ?? facet
-                    ])
+                    Object.entries({ ...accessedFacets, ...(facetSpyData?.sharedFacets || {}) })
+                        .filter(([_name, facet]) => {
+                            try {
+                                return facet && ("get" in facet ? facet : facet()).get()?.toString?.() !== "Symbol(NoValue)";
+                            } catch {
+                                return false;
+                            }
+                        })
+                        .map(([name, facet]) => [name, ("get" in facet ? facet : facet())?.get?.() ?? ("get" in facet ? facet : facet())])
                 );
             }
             globalThis.getAccessibleFacetSpyFacets = getAccessibleFacetSpyFacets;` as const;
-                    currentFileContent = currentFileContent.replace(
-                        /index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)
-                            ? new RegExp(
-                                  `var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`
-                              )
-                            : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)
-                            ? new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`)
-                            : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`),
-                        facetSpyFunction
-                    );
-                    currentFileContent = currentFileContent.replace(
-                        /(?:[a-zA-Z0-9_])\.sharedFacet=function\(([a-zA-Z0-9_]),([a-zA-Z0-9_])=([a-zA-Z0-9_])\.NO_VALUE\)\{const ([a-zA-Z0-9_])=\(0,([a-zA-Z0-9_])\.default\)\(\(([a-zA-Z0-9_])=>\(0,\3\.createFacet\)\(\{initialValue:\2,startSubscription:\2=>\6\(\1,\2\)\}\)\)\);return \4.factory=\3\.FACET_FACTORY,\4\}/,
-                        `$2.sharedFacet = (name, $2) => {
+                    {
+                        // Brackets so that the 5 MiB variable is discarded immediately afterwards.
+                        const preInjectionContent = currentFileContent;
+                        currentFileContent = currentFileContent.replace(
+                            /index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)
+                                ? new RegExp(
+                                      `var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`
+                                  )
+                                : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)
+                                ? new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`)
+                                : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`),
+                            facetSpyFunction
+                        );
+                        if (currentFileContent === preInjectionContent) {
+                            throw new Error("Failed to inject facetSpy function.");
+                        }
+                    }
+                    {
+                        // Brackets so that the 5 MiB variable is discarded immediately afterwards.
+                        const preInjectionContent = currentFileContent;
+                        currentFileContent = currentFileContent.replace(
+                            /(?:[a-zA-Z0-9_])\.sharedFacet=function\(([a-zA-Z0-9_]),([a-zA-Z0-9_])=([a-zA-Z0-9_])\.NO_VALUE\)\{const ([a-zA-Z0-9_])=\(0,([a-zA-Z0-9_])\.default\)\(\(([a-zA-Z0-9_])=>\(0,\3\.createFacet\)\(\{initialValue:\2,startSubscription:\2=>\6\(\1,\2\)\}\)\)\);return \4.factory=\3\.FACET_FACTORY,\4\}/,
+                            `$2.sharedFacet = (name, $2) => {
                     if (globalThis.accessedFacets[name]) {
                         return globalThis.accessedFacets[name];
                     }
@@ -3033,16 +3190,26 @@ export const builtInPlugins = [
                         return ($4.factory = $3.FACET_FACTORY), $4;
                     })(name, $2));
                 };`
-                    );
+                        );
+                        if (currentFileContent === preInjectionContent) {
+                            throw new Error("Failed to inject into sharedFacet function.");
+                        }
+                    }
                     return currentFileContent;
                 },
             },
             {
                 id: "inject-into-routes",
                 context: "per_text_file",
-                action: async (currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> => {
+                async action(currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> {
                     if (/routes\.json$/.test(file.data?.filename!)) {
-                        const origData: string = await file.getText();
+                        if (
+                            !/(?<="fileName"(?:[\s\n]*):([\s\n]*)"\/hbui\/index\.html",(?:[\s\n]*)"scope":(?:[\s\n]*)\[(?:[\s\n]*)"in-game"(?:[\s\n]*),(?:[\s\n]*)"out-of-game"(?:[\s\n]*)\](?:[\s\n]*),(?:[\s\n]*)(?:"defaultRoute"(?:[\s\n]*):(?:[\s\n]*)""(?:[\s\n]*),(?:[\s\n]*))?"supportedRoutes"(?:[\s\n]*):(?:[\s\n]*)\[([\s\n]*))(?=\{([\s\n]*)")/.test(
+                                currentFileContent
+                            )
+                        ) {
+                            throw new Error("Failed to inject routes into routes.json.");
+                        }
                         currentFileContent = currentFileContent.replace(
                             /(?<="fileName"(?:[\s\n]*):([\s\n]*)"\/hbui\/index\.html",(?:[\s\n]*)"scope":(?:[\s\n]*)\[(?:[\s\n]*)"in-game"(?:[\s\n]*),(?:[\s\n]*)"out-of-game"(?:[\s\n]*)\](?:[\s\n]*),(?:[\s\n]*)(?:"defaultRoute"(?:[\s\n]*):(?:[\s\n]*)""(?:[\s\n]*),(?:[\s\n]*))?"supportedRoutes"(?:[\s\n]*):(?:[\s\n]*)\[([\s\n]*))(?=\{([\s\n]*)")/,
                             `{$3"route":$1"/ouic/:menu/:tab?",$3"modes":$1[],$3"regexp":$1"^\\\\/ouic\\\\/([^\\\\/]+?)(?:\\\\/([^\\\\/]+?))?(?:\\\\/)?$",$3"params":$1[{"name":"menu","prefix":"/","delimiter":"/","optional":false,"repeat":false,"pattern":"[^\\\\/]+?"},{"name":"tab","prefix":"/","delimiter":"/","optional":true,"repeat":false,"pattern":"[^\\\\/]+?"}],$3"transition":$1"RouteSlideTransition"$2},$2`
