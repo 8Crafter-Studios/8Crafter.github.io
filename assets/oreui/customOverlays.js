@@ -63,9 +63,11 @@ if (console.everything === undefined) {
                 type: logType,
                 timeStamp: TS(),
                 value: Array.from(arguments),
+                stack: new Error().stack?.split("\n").slice(1).join("\n"),
             };
             console.everything.push(data);
-            original.apply(console, Array.from(arguments));
+            //@ts-ignore
+            original.apply(console, arguments);
             (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
                 f(data);
             });
@@ -81,6 +83,128 @@ if (console.everything === undefined) {
         console[logType] = hookLogType(logType);
     });
 }
+
+/**
+ * @type {boolean}
+ */
+const __CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__ = Boolean(
+    JSON.parse(localStorage.getItem("setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__") ?? "null") ?? false
+);
+
+const hookedEngineSubscriptions = {
+    on: {},
+    off: {},
+    trigger: {},
+};
+
+/**
+ * @type {{[method in keyof typeof hookedEngineSubscriptions]: Record<"before" | "after", ((...args: Parameters<typeof engine[method]>) => void)[]>}}
+ */
+const engineHookTriggerCallbacks = {
+    on: { before: [], after: [] },
+    off: { before: [], after: [] },
+    trigger: { before: [], after: [] },
+};
+
+/**
+ * @type {{[method in keyof typeof hookedEngineSubscriptions]: typeof engine[method]}}
+ */
+const originalEngineMethods = {
+    on: engine.on.bind(engine),
+    off: engine.off.bind(engine),
+    trigger: engine.trigger.bind(engine),
+};
+
+{
+    /**
+     * @type {FacetTypeMap["core.input"] | undefined}
+     */
+    let __coreInput_value__ = undefined;
+    engineHookTriggerCallbacks.trigger.before.push(function (id, ...args) {
+        if (id === "query:subscribe/core.input") {
+            // console.debug(6, id, ...args);
+            originalEngineMethods.on(`query:subscribed/${args[0]}`, (/** @type {FacetTypeMap["core.input"]} */ value) => {
+                // console.debug(7, arguments);
+                __coreInput_value__ = value;
+            });
+        }
+    });
+    engineHookTriggerCallbacks.trigger.after.push(function (id, ...args) {
+        if (id === "query:subscribe/core.input") {
+            if (typeof __coreInput_value__ !== "undefined") {
+                // console.log(5, __coreInput_value__);
+
+                localStorage.setItem("queryValueCache:query:subscribe/core.input", JSON.stringify(__coreInput_value__));
+            } else if (localStorage.getItem("queryValueCache:query:subscribe/core.input")) {
+                // console.log(
+                //     4,
+                //     localStorage.getItem("queryValueCache:query:subscribe/core.input"),
+                //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                // );
+                originalEngineMethods.trigger(
+                    `query:subscribed/${args[0]}`,
+                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                );
+            } else if (globalThis.getAccessibleFacetSpyFacets?.()["core.input"]) {
+                originalEngineMethods.trigger(`query:subscribed/"${args[0]}`, globalThis.getAccessibleFacetSpyFacets?.()["core.input"]);
+            } else {
+                globalThis.forceLoadFacet("core.input").then((facetData) => {
+                    originalEngineMethods.trigger(`query:subscribed/"${args[0]}`, facetData);
+                });
+            }
+        }
+    });
+}
+
+/**
+ * @param {keyof typeof hookedEngineSubscriptions} method
+ */
+function hookEngineMethod(method) {
+    const original = originalEngineMethods[method];
+    engine[method] = function (id, ...args) {
+        //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        engineHookTriggerCallbacks[method].before.forEach((f) => f(id, ...args));
+        //@ts-ignore
+        const result = original.apply(engine, arguments);
+        //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        engineHookTriggerCallbacks[method].after.forEach((f) => f(id, ...args));
+        if (__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__) {
+            //@ts-ignore
+            hookedEngineSubscriptions[method][id] ??= [];
+            //@ts-ignore
+            hookedEngineSubscriptions[method][id].push(args);
+        }
+        return result;
+    };
+    //@ts-ignore
+    engine[method].name = method;
+}
+
+//@ts-ignore
+Object.keys(hookedEngineSubscriptions).forEach(hookEngineMethod);
+
+// engine.on("query:subscribe/core.input", console.debug);
+// engine.on("query:updated/core.input", console.debug);
+// engine.on("query:subscribed/933789883", console.info);
+// try {
+//     engine.on(
+//         "query:subscribe/core.input",
+//         /**
+//          * @param {number} value
+//          */
+//         function fixBrokenInput(value) {
+//             engine.trigger(`query:subscribed/${value}`, {
+//                 keyboardType: 0,
+//                 enableControllerHints: true,
+//                 currentInputType: 2,
+//                 swapXYButtons: false,
+//                 swapABButtons: false,
+//             });
+//         }
+//     );
+// } catch (e) {
+//     console.error(e);
+// }
 
 /**
  * @type {HTMLDivElement}
@@ -368,7 +492,7 @@ async function autoJoinRealm(realmName) {
  * Joins a server by name.
  *
  * @param {string} serverName The name of the server to join.
- * @returns {Promise<{success: boolean, message: string, stack?: string, error?: Error}>} The result.
+ * @returns {Promise<{success: boolean, message: string, error?: unknown}>} The result.
  *
  * @description
  * 1. Switches to the servers tab, it it is not already open.
@@ -379,11 +503,11 @@ async function autoJoinRealm(realmName) {
  */
 async function autoJoinServer(serverName) {
     try {
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 101; i++) {
             if (document.querySelector("div[data-testid='play-screen-tab-bar-servers']") !== null) {
                 break;
             }
-            if (i >= 99) {
+            if (i >= 100) {
                 console.error(`Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`);
                 return {
                     success: false,
@@ -428,7 +552,7 @@ async function autoJoinServer(serverName) {
                 ?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
         let addServerButtonContainer = addServerButton?.parentElement ?? null;
         let serversList = addServerButtonContainer?.parentElement ?? null;
-        for (let i = 0; i < 101; i++) {
+        for (let i = 0; i < 100; i++) {
             addServerButtonClass ??= document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1] ?? null;
             addServerButton ??=
                 Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")?.parentElement
@@ -436,7 +560,7 @@ async function autoJoinServer(serverName) {
             addServerButtonContainer ??= addServerButton?.parentElement ?? null;
             serversList ??= addServerButtonContainer?.parentElement ?? null;
             if (!addServerButton || !serversList) {
-                if (i >= 100) {
+                if (i >= 99) {
                     console.error(
                         `Failed to join server: ${serverName}; Failed to find ${!addServerButton ? "add server button" : "servers list"}. Timed out.`
                     );
@@ -459,6 +583,7 @@ async function autoJoinServer(serverName) {
                     const button = div.parentElement?.parentElement?.parentElement?.parentElement?.classList.contains(addServerButton.classList.item(0))
                         ? div.parentElement.parentElement.parentElement.parentElement
                         : div.parentElement?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
+                    if (!button) continue;
                     button.dispatchEvent(new Event("click"));
                     for (let i = 0; i < 100; i++) {
                         if (document.querySelector("div[data-testid='server-play-button']") !== null) {
@@ -475,10 +600,12 @@ async function autoJoinServer(serverName) {
                     }
                     await new Promise((resolve) => setTimeout(resolve, 100));
                     const playServerButton = document.querySelector("div[data-testid='server-play-button']");
-                    const playServerButtonSection = playServerButton.parentElement.parentElement.parentElement;
-                    const playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                    const playServerButtonSection = playServerButton?.parentElement?.parentElement?.parentElement;
+                    if (!playServerButtonSection) continue;
+                    let playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
                     for (let i = 0; i < 100; i++) {
-                        if (playServerButtonSectionServerNameSpan.textContent === serverName) {
+                        playServerButtonSectionServerNameSpan ??= playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                        if (playServerButtonSectionServerNameSpan && playServerButtonSectionServerNameSpan.textContent === serverName) {
                             playServerButton.dispatchEvent(new Event("click"));
                             console.log(`Joined server: ${serverName}`);
                             return {
@@ -495,21 +622,18 @@ async function autoJoinServer(serverName) {
                     };
                 }
             }
-            if (i >= 99) {
-                console.error(`Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`);
-                return {
-                    success: false,
-                    message: `Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`,
-                };
-            }
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
-    } catch (e) {
-        console.error(e.message, e.stack);
+        console.error(`Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`);
         return {
             success: false,
-            message: e.message,
-            stack: e.stack,
+            message: `Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`,
+        };
+    } catch (e) {
+        console.error(e);
+        return {
+            success: false,
+            message: e instanceof Error ? e.message : String(e),
             error: e,
         };
     }
@@ -519,7 +643,7 @@ async function autoJoinServer(serverName) {
  * Joins a world by name.
  *
  * @param {string} worldName The name of the world to join.
- * @returns {{success: boolean, message: string, stack?: string, error?: Error}} The result.
+ * @returns {Promise<{success: boolean, message: string, error?: any}>} The result.
  *
  * @description
  * 1. Switches to the worlds tab, it it is not already open.
@@ -530,63 +654,72 @@ async function autoJoinServer(serverName) {
  */
 async function autoJoinWorld(worldName) {
     try {
+        let playScreenTabBarAll = null;
         for (let i = 0; i < 100; i++) {
-            if (document.querySelector("div[data-testid='play-screen-tab-bar-all']") !== null) {
+            if ((playScreenTabBarAll = document.querySelector("div[data-testid='play-screen-tab-bar-all']")) !== null) {
                 break;
-            }
-            if (i >= 99) {
-                console.error(`Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`);
-                return {
-                    success: false,
-                    message: `Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`,
-                };
             }
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        document.querySelector("div[data-testid='play-screen-tab-bar-all']").dispatchEvent(new Event("click"));
+        if ((playScreenTabBarAll ??= document.querySelector("div[data-testid='play-screen-tab-bar-all']")) === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`,
+            };
+        }
+        playScreenTabBarAll.dispatchEvent(new Event("click"));
+        let multiplayerWorldListItemPrimaryAction0 = null;
         for (let i = 0; i < 100; i++) {
-            if (document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null) {
+            if ((multiplayerWorldListItemPrimaryAction0 = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) !== null) {
                 break;
-            }
-            if (i >= 99) {
-                console.error(`Failed to join world: ${worldName}; Failed to load worlds. Timed out.`);
-                return {
-                    success: false,
-                    message: `Failed to join world: ${worldName}; Failed to load worlds. Timed out.`,
-                };
             }
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        const worldsList = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']").parentElement.parentElement;
+        if ((multiplayerWorldListItemPrimaryAction0 ??= document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to load worlds. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to load worlds. Timed out.`,
+            };
+        }
+        let worldsList = multiplayerWorldListItemPrimaryAction0.parentElement?.parentElement ?? null;
         for (let i = 0; i < 100; i++) {
-            for (const div of Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
-                /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid"))
-            )) {
-                if (div.querySelector("div.vanilla-neutral-text")?.textContent === worldName) {
-                    // await new Promise((resolve) => setTimeout(resolve, 100));
-                    div.dispatchEvent(new Event("click"));
-                    console.log(`Joined world: ${worldName}`);
-                    return {
-                        success: true,
-                        message: `Joined world: ${worldName}`,
-                    };
+            if ((worldsList ??= multiplayerWorldListItemPrimaryAction0.parentElement?.parentElement ?? null) !== null) {
+                for (const div of Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
+                    /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid") ?? "")
+                )) {
+                    if (div.querySelector("div.vanilla-neutral-text")?.textContent === worldName) {
+                        // await new Promise((resolve) => setTimeout(resolve, 100));
+                        div.dispatchEvent(new Event("click"));
+                        console.log(`Joined world: ${worldName}`);
+                        return {
+                            success: true,
+                            message: `Joined world: ${worldName}`,
+                        };
+                    }
                 }
             }
-            if (i >= 99) {
-                console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
-                return {
-                    success: false,
-                    message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
-                };
-            }
             await new Promise((resolve) => setTimeout(resolve, 100));
         }
+        if (worldsList === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to find world list. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find world list. Timed out.`,
+            };
+        } else {
+            console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
+            };
+        }
     } catch (e) {
-        console.error(e.message, e.stack);
+        console.error(e);
         return {
             success: false,
-            message: e.message,
-            stack: e.stack,
+            message: e instanceof Error ? e.message : String(e),
             error: e,
         };
     }
@@ -598,57 +731,108 @@ async function enableAutoJoinForOpenServer() {
         document.querySelector("div[data-testid='play-realm-button']") !== null
     ) {
         const playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
-        const playRealmButtonSection = playRealmButton.parentElement.parentElement.parentElement;
+        if (!playRealmButton) throw new Error("Impossible state reached, could not find play realm button even though it was already found.");
+        const playRealmButtonSection = playRealmButton.parentElement?.parentElement?.parentElement ?? null;
+        if (!playRealmButtonSection) throw new ReferenceError("Could not find play realm button section.");
         const playRealmButtonSectionRealmNameSpan = playRealmButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        if (!playRealmButtonSectionRealmNameSpan) throw new ReferenceError("Could not find play realm button section realm name span.");
+        if (!playRealmButtonSectionRealmNameSpan.textContent) throw new ReferenceError("The play realm button section realm name span was empty.");
         window.localStorage.setItem("autoJoinName", playRealmButtonSectionRealmNameSpan.textContent);
         window.localStorage.setItem("autoJoinType", "realm");
-        try {
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = playRealmButtonSectionRealmNameSpan.textContent;
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "Realm";
-        } catch {}
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = playRealmButtonSectionRealmNameSpan.textContent;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "Realm";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
         promptForConfirmation(`Successfully enabled auto rejoin for the following realm: ${playRealmButtonSectionRealmNameSpan.textContent}`, "OK", "");
     } else if (
         document.querySelector("div[data-testid='play-screen-tab-bar-servers']")?.querySelector("div.vanilla-neutral-icon") !== null &&
         document.querySelector("div[data-testid='server-play-button']") !== null
     ) {
         const playServerButton = document.querySelector("div[data-testid='server-play-button']");
-        const playServerButtonSection = playServerButton.parentElement.parentElement.parentElement;
+        if (!playServerButton) throw new Error("Impossible state reached, could not find play server button even though it was already found.");
+        const playServerButtonSection = playServerButton.parentElement?.parentElement?.parentElement ?? null;
+        if (!playServerButtonSection) throw new ReferenceError("Could not find play server button section.");
         const playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        if (!playServerButtonSectionServerNameSpan) throw new ReferenceError("Could not find play server button section server name span.");
+        if (!playServerButtonSectionServerNameSpan.textContent) throw new ReferenceError("The play server button section server name span was empty.");
         window.localStorage.setItem("autoJoinName", playServerButtonSectionServerNameSpan.textContent);
         window.localStorage.setItem("autoJoinType", "server");
-        try {
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = playServerButtonSectionServerNameSpan.textContent;
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "Server";
-        } catch {}
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = playServerButtonSectionServerNameSpan.textContent;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "Server";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
         promptForConfirmation(`Successfully enabled auto rejoin for the following server: ${playServerButtonSectionServerNameSpan.textContent}`, "OK", "");
     } else if (
         document.querySelector("div[data-testid='play-screen-tab-bar-all']")?.querySelector("div.vanilla-neutral-icon") !== null &&
         document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null
     ) {
-        const worldsList = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']").parentElement.parentElement;
+        const worldsListItemButton = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']");
+        if (!worldsListItemButton) throw new Error("Impossible state reached, could not find worlds list item button even though it was already found.");
+        const worldsList = worldsListItemButton.parentElement?.parentElement;
+        if (!worldsList) throw new ReferenceError("Could not find worlds list.");
         const worlds = Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
-            /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid"))
+            /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid") ?? "")
         );
         const r = await buttonSelectionMenu({
             body: "Select a world to enable auto rejoin for.",
-            buttons: worlds.map((world) => [world.querySelector("div.vanilla-neutral-text").textContent]),
+            buttons: worlds.map((world) => [world.querySelector("div.vanilla-neutral-text")?.textContent ?? "MISSING NAME!"]),
             style: "1column",
         });
-        if (r.canceled) return;
+        if (r.canceled || r.selection === undefined) return;
         const world = worlds[r.selection];
-        const worldName = world.querySelector("div.vanilla-neutral-text").textContent;
+        const worldName = world.querySelector("div.vanilla-neutral-text")?.textContent;
+        if (!worldName) throw new ReferenceError("Could not find world name.");
         window.localStorage.setItem("autoJoinName", worldName);
         window.localStorage.setItem("autoJoinType", "world");
-        try {
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = worldName;
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = "World";
-        } catch {}
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = worldName;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "World";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
         promptForConfirmation(`Successfully enabled auto rejoin for the following world: ${worldName}`, "OK", "");
     } else {
         promptForConfirmation(
@@ -880,10 +1064,25 @@ async function buttonSelectionMenu(options) {
 if (localStorage.getItem("autoJoinName")) {
     setTimeout(() => {
         try {
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").removeAttribute("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin").classList.remove("disabled");
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName").textContent = localStorage.getItem("autoJoinName");
-            document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType").textContent = localStorage.getItem("autoJoinType");
+            const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+            if (disableAutoRejoinButton) {
+                disableAutoRejoinButton.removeAttribute("disabled");
+                disableAutoRejoinButton.classList.remove("disabled");
+            } else {
+                console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+            }
+            const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+            if (autoRejoinNameSpan) {
+                autoRejoinNameSpan.textContent = localStorage.getItem("autoJoinName");
+            } else {
+                console.warn(new ReferenceError("Could not find auto rejoin name span."));
+            }
+            const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+            if (autoRejoinTypeSpan) {
+                autoRejoinTypeSpan.textContent = localStorage.getItem("autoJoinType");
+            } else {
+                console.warn(new ReferenceError("Could not find auto rejoin type span."));
+            }
         } catch {}
     }, 1);
     switch (localStorage.getItem("autoJoinType")) {
@@ -1223,12 +1422,12 @@ function setCSSEditorMode(mode) {
 
 function cssEditor_rootElementStylesMode() {
     setCSSEditorMode("root");
-    cssEditorTextBox.value = document.getElementById("root").getAttribute("style") ?? "";
+    cssEditorTextBox.value = document.getElementById("root")?.getAttribute("style") ?? "";
 }
 
 function cssEditor_globalStyleElementStylesMode() {
     setCSSEditorMode("globalStyleElement");
-    cssEditorTextBox.value = customGlobalCSSStyleElement.textContent;
+    cssEditorTextBox.value = customGlobalCSSStyleElement.textContent ?? "";
 }
 
 /**
@@ -1458,6 +1657,8 @@ class ConsoleExecutionHistory {
     static clearHistory() {
         ConsoleExecutionHistory.entries.length = 0;
         ConsoleExecutionHistory.saveToLocalStorage();
+        currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+        savedConsoleInputFieldContents = "";
     }
     /**
      * Saves the history to local storage.
@@ -1483,6 +1684,38 @@ class ConsoleExecutionHistory {
 }
 
 ConsoleExecutionHistory.loadFromLocalStorage();
+
+/**
+ * Reads the keys of the {@link localStorage}.
+ *
+ * There is a bug with the Ore UI environment where localStorage.key() returns null for all indexes other than 0, so this works by removing keys one at a time
+ * to read them and then restoring them.
+ *
+ * @returns {string[]} The keys of the {@link localStorage}.
+ */
+function readLocalStorageKeys() {
+    /**
+     * @type {string[]}
+     */
+    const keys = [];
+    /**
+     * @type {[key: string, value: string][]}
+     */
+    const valueBackups = [];
+    const length = localStorage.length;
+    for (let i = 0; i < length; i++) {
+        const key = localStorage.key(0);
+        if (key === null) continue;
+        const value = localStorage.getItem(key);
+        if (value !== null) {
+            keys.push(key);
+            valueBackups.push([key, value]);
+            localStorage.removeItem(key);
+        }
+    }
+    valueBackups.reverse().forEach(([key, value]) => localStorage.setItem(key, value));
+    return keys;
+}
 
 /* function consoleOverlayExecute() {
     const input = consoleOverlayInputFieldElement.value;
@@ -1551,7 +1784,7 @@ function consoleOverlayExecute() {
     if (
         consoleOverlayTextElement.children.length > 0 &&
         consoleOverlayTextElement.lastChild instanceof HTMLElement &&
-        consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
+        !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
     ) {
         commandElem.style.borderTop = "1px solid #888888";
     }
@@ -1573,15 +1806,25 @@ function consoleOverlayExecute() {
          * @type {any}
          */
         const result = eval(input);
-        if (consoleOverlayTextElement.lastChild instanceof HTMLElement && consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length) {
-            resultElem.style.borderTop = "1px solid #888888";
-        }
         if ((typeof result === "object" && result !== null) || typeof result === "function") {
-            resultElem.appendChild(createExpandableObjectView(result, true));
+            resultElem.appendChild(
+                createExpandableObjectView(result, true, undefined, {
+                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                })
+            );
         } else if (typeof result === "symbol") {
             resultElem.textContent = result.toString();
+            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
         } else {
             resultElem.textContent = JSONB.stringify(result);
+            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
         }
         consoleOverlayTextElement.appendChild(resultElem);
         consoleOverlayInputFieldElement.value = "";
@@ -1591,16 +1834,28 @@ function consoleOverlayExecute() {
             resultElem.appendChild(
                 createExpandableObjectView(e, true, false, {
                     summaryValueOverride: e.stack,
+                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
                 })
             );
         } else {
             if ((typeof e === "object" && e !== null) || typeof e === "function") {
-                resultElem.appendChild(createExpandableObjectView(e, true));
+                resultElem.appendChild(
+                    createExpandableObjectView(e, true, undefined, {
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                    })
+                );
             } else if (typeof e === "symbol") {
                 resultElem.textContent = e.toString();
             } else {
                 resultElem.textContent = JSONB.stringify(e);
             }
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
         }
         consoleOverlayTextElement.appendChild(resultElem);
     }
@@ -1643,6 +1898,302 @@ function setConsoleInputFieldContentsToHistoryItem(index) {
 }
 
 /**
+ * Shows a context menu.
+ *
+ * @param {ContextMenuCreationOptions} menu The menu to show.
+ * @returns {void}
+ */
+function showContextMenu(menu) {
+    window.dispatchEvent(new CustomEvent("ouic-context-menu-open"));
+    const menuElement = document.createElement("div");
+    menuElement.classList.add("context-menu");
+    menuElement.style.position = "fixed";
+    menuElement.style.top = `${menu.y}px`;
+    menuElement.style.left = `${menu.x}px`;
+    let width = menu.width ?? Math.min(window.innerWidth - menu.x, 300);
+    let height = menu.height ?? Math.min(window.innerHeight - menu.y, 300);
+    if (width > window.innerWidth - menu.x) {
+        if (menu.x - width < 0) {
+            if (window.innerWidth - menu.x > window.innerWidth - width) {
+                width = window.innerWidth - menu.x;
+            } else {
+                width = window.innerWidth - width;
+                // These two CSS property assignments may need to be swapped to be in the if statement instead of the else statement, it has not been tested yet.
+                menuElement.style.left = "";
+                menuElement.style.right = `${window.innerWidth - menu.x}px`;
+            }
+        } else {
+            menuElement.style.left = "";
+            menuElement.style.right = `${window.innerWidth - menu.x}px`;
+        }
+    }
+    if (height > window.innerHeight - menu.y) {
+        if (menu.y - height < 0) {
+            if (window.innerHeight - menu.y > window.innerHeight - height) {
+                height = window.innerHeight - menu.y;
+            } else {
+                height = window.innerHeight - height;
+                // These two CSS property assignments may need to be swapped to be in the if statement instead of the else statement, it has not been tested yet.
+                menuElement.style.top = "";
+                menuElement.style.bottom = `${window.innerHeight - menu.y}px`;
+            }
+        } else {
+            menuElement.style.top = "";
+            menuElement.style.bottom = `${window.innerHeight - menu.y}px`;
+        }
+    }
+    menuElement.style.maxWidth = `${width}px`;
+    menuElement.style.maxHeight = `${height}px`;
+    menuElement.style.zIndex = "20000000";
+    menuElement.style.overflow = "hidden";
+    menuElement.style.backgroundColor = "#00000080";
+    /**
+     * @type {(e: MouseEvent) => void}
+     */
+    const onClickHandler = (event) => {
+        if (event.target instanceof Node && !menuElement.contains(event.target) && menuElement !== event.target) {
+            closeMenu();
+        }
+    };
+    window.addEventListener("ouic-context-menu-open", closeMenu);
+    function closeMenu() {
+        menuElement.remove();
+        window.removeEventListener("click", onClickHandler);
+        window.removeEventListener("ouic-context-menu-open", closeMenu);
+    }
+    /**
+     * Creates a view for a context menu submenu.
+     *
+     * @param {Extract<ContextMenuItemCreationOptions, { type: "submenu" }>} submenu The submenu to create a view for.
+     * @param {number} depth The depth of the submenu.
+     * @returns {HTMLElement} The view for the submenu.
+     */
+    function createContextMenuView(submenu, depth) {
+        const submenuElement = document.createElement("div");
+        submenuElement.classList.add("context-menu-submenu");
+        submenuElement.style.position = "fixed";
+        submenuElement.style.top = menuElement.style.top;
+        submenuElement.style.bottom = menuElement.style.bottom;
+        submenuElement.style.left = menuElement.style.left;
+        submenuElement.style.right = menuElement.style.right;
+        submenuElement.style.width = menuElement.style.width;
+        submenuElement.style.height = menuElement.style.height;
+        submenuElement.style.zIndex = `${20000000 + depth}`;
+        submenuElement.style.backgroundColor = "#00000080";
+        submenuElement.setAttribute("title", "");
+        submenuElement.style.display = "none";
+        const backElement = document.createElement("div");
+        backElement.textContent = "< Back";
+        backElement.classList.add("context-menu-submenu-back");
+        backElement.classList.add("context-menu-item");
+        backElement.addEventListener("click", () => {
+            submenuElement.style.display = "none";
+        });
+        submenuElement.appendChild(backElement);
+        submenu.submenu.forEach((item) => {
+            submenuElement.appendChild(createContextMenuItem(item, depth));
+        });
+        return submenuElement;
+    }
+    /**
+     * Creates a view for a context menu item.
+     *
+     * @param {ContextMenuItemCreationOptions} item The item to create a view for.
+     * @param {number} depth The depth of the item.
+     * @returns {HTMLElement} The view for the item.
+     */
+    function createContextMenuItem(item, depth = 0) {
+        switch (item.type) {
+            case "action":
+            case undefined: {
+                const itemElement = document.createElement("div");
+                itemElement.textContent = item.label;
+                if (item.title) itemElement.title = item.title;
+                itemElement.classList.add("context-menu-item-action");
+                itemElement.classList.add("context-menu-item");
+                if (item.disabled) itemElement.setAttribute("disabled", "");
+                itemElement.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    item.action();
+                    closeMenu();
+                });
+                return itemElement;
+            }
+            case "separator": {
+                const itemElement = document.createElement("hr");
+                itemElement.classList.add("context-menu-item-separator");
+                itemElement.classList.add("context-menu-item");
+                return itemElement;
+            }
+            case "submenu": {
+                const itemElement = document.createElement("div");
+                itemElement.classList.add("context-menu-item-submenu");
+                itemElement.classList.add("context-menu-item");
+                itemElement.textContent = item.label;
+                if (item.title) itemElement.title = item.title;
+                if (item.disabled) itemElement.setAttribute("disabled", "");
+                const submenuElement = itemElement.appendChild(createContextMenuView(item, depth + 1));
+                itemElement.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    submenuElement.style.display = "";
+                });
+                return itemElement;
+            }
+        }
+    }
+    menu.items.forEach((item) => {
+        menuElement.appendChild(createContextMenuItem(item));
+    });
+    document.body.appendChild(menuElement);
+    window.addEventListener("click", onClickHandler);
+}
+
+/**
+ * Adds a context menu to a primitive value element at the top level of the console.
+ *
+ * @template {HTMLElement} T
+ * @param {string | number | boolean | bigint | symbol | null | undefined} primitiveValue The primitive value to add a context menu to.
+ * @param {T} primitiveValueElement The element to add a context menu to.
+ * @param {{ copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined }} [options] Additional options for the context menu.
+ * @returns {T} The element with a context menu added.
+ */
+function addContextMenuToTopLevelPrimitiveConsoleValue(primitiveValue, primitiveValueElement, options) {
+    if (typeof primitiveValue === "function") throw new TypeError("Functions are not primitive values.");
+    if (typeof primitiveValue === "object" && primitiveValue !== null) throw new TypeError("Non-null objects are not primitive values.");
+    /**
+     * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+     */
+    const contextMenu = {
+        width: 400,
+        height: 600,
+        items: [],
+    };
+    switch (typeof primitiveValue) {
+        case "bigint":
+            contextMenu.items.push({
+                label: "Copy bigint",
+                action() {
+                    copyTextToClipboardAsync(`${primitiveValue}n`);
+                },
+            });
+            break;
+        case "boolean":
+        case "number":
+        case "object": // null
+        case "undefined":
+            contextMenu.items.push({
+                label: `Copy ${typeof primitiveValue}`,
+                action() {
+                    copyTextToClipboardAsync(`${primitiveValue}`);
+                },
+            });
+            break;
+        case "string":
+            contextMenu.items.push(
+                {
+                    label: "Copy string contents",
+                    action() {
+                        copyTextToClipboardAsync(primitiveValue);
+                    },
+                },
+                {
+                    label: "Copy string as JavaScript literal",
+                    action() {
+                        /**
+                         * @type {string}
+                         */
+                        const str = primitiveValue;
+                        /**
+                         * @type {string}
+                         */
+                        const jsonifiedStr = JSON.stringify(str);
+                        copyTextToClipboardAsync(
+                            str.includes("'")
+                                ? str.includes('"')
+                                    ? str.includes("`")
+                                        ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                        : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+                                    : jsonifiedStr
+                                : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                        );
+                    },
+                },
+                {
+                    label: "Copy string as JSON literal",
+                    action() {
+                        copyTextToClipboardAsync(JSON.stringify(primitiveValue, null, 4));
+                    },
+                }
+            );
+    }
+    if (contextMenu.items.length > 0) {
+        contextMenu.items.push({
+            /**
+             * @type {"separator"}
+             */
+            type: "separator",
+        });
+    }
+    contextMenu.items.push({
+        label: "Store as global variable",
+        action() {
+            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+            window[`temp${__console_last_temp_variable_id__}`] = primitiveValue;
+            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+        },
+    });
+    if (options?.copyConsoleMessageStackCallback) {
+        contextMenu.items.push(
+            { type: "separator" },
+            {
+                label: "Copy console message stack",
+                action: options.copyConsoleMessageStackCallback,
+                disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+            }
+        );
+    }
+    /**
+     * @type {number | null}
+     */
+    let clickStartTime = null;
+    primitiveValueElement.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+        clickStartTime = Date.now();
+    });
+    primitiveValueElement.addEventListener("mouseleave", () => {
+        clickStartTime = null;
+    });
+    primitiveValueElement.addEventListener("click", (event) => {
+        if (event.button !== 0) return;
+        if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        }
+        clickStartTime = null;
+    });
+    primitiveValueElement.addEventListener("mouseup", (event) => {
+        if (event.button !== 2) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+    });
+    return primitiveValueElement;
+}
+
+/**
+ * The last used ID for a temporary variable from the console.
+ *
+ * @type {bigint}
+ *
+ * @default 0n
+ */
+var __console_last_temp_variable_id__ = 0n;
+
+/**
  * The last used ID for a console expansion arrow.
  *
  * @type {bigint}
@@ -1654,10 +2205,10 @@ var consoleExpansionArrowID = 0n;
 /**
  * Creates a view for an expandable object for use in the console.
  *
- * @param {Object} obj The object to create a view for.
+ * @param {Record<PropertyKey, any>} obj The object to create a view for.
  * @param {boolean} [isRoot=false] Whether the object is the root object. Defaults to `false`.
  * @param {boolean} [forceObjectMode=false] Whether to force the value into object mode. Defaults to `false`.
- * @param {{summaryValueOverride?: string, summaryValueOverride_toStringTag?: string, displayKey?: string}} [options] The options for creating the view.
+ * @param {{ summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; displayKey?: string | undefined; objectKeysSource?: Record<PropertyKey, any> | undefined; copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined; showReadonly?: boolean | undefined }} [options] The options for creating the view.
  * @returns {HTMLDivElement} The view for the object.
  */
 function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false, options) {
@@ -1667,12 +2218,41 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
     arrow.style = "float: left; display: inline;";
     arrow.src = "assets/arrowForwardWhite-9acff.png";
     container.appendChild(arrow); */
+    let isCoherentArrayProxy = false;
+    try {
+        isCoherentArrayProxy =
+            typeof obj === "object" && obj?.constructor?.name === "CoherentArrayProxy" /*  && obj?.constructor?.constructor?.name === "CoherentArrayProxy" */;
+    } catch {}
     const summary = document.createElement("div");
+    summary.classList.add("console-value-summary");
     summary.textContent = JSONBConsole.stringify(
-        obj,
-        undefined,
+        //@ts-ignore
+        isCoherentArrayProxy ? Array.from(obj) : obj,
+        (key, value) => {
+            try {
+                if (
+                    typeof value === "object" &&
+                    obj?.constructor?.name === "CoherentArrayProxy" &&
+                    obj?.constructor?.constructor?.name === "CoherentArrayProxy"
+                ) {
+                    return Array.from(value);
+                }
+            } catch {}
+            return value;
+        },
         4,
-        { bigint: true, undefined: true, Infinity: true, NegativeInfinity: true, NaN: true, get: true, set: true, function: true, class: false },
+        {
+            bigint: true,
+            undefined: true,
+            Infinity: true,
+            NegativeInfinity: true,
+            NaN: true,
+            get: true,
+            set: true,
+            function: true,
+            class: false,
+            includeProtoValues: false,
+        },
         5,
         2
     );
@@ -1690,29 +2270,40 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
         }${options.summaryValueOverride
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
-            .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
-        //@ts-ignore
+            .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`)}</span>`;
     } else if (obj?.[Symbol.toStringTag]) {
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
         }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
             options?.displayKey ? `${options.displayKey}: ` : ""
-        }<i style="display: inline; font-style: italic;">${
-            //@ts-ignore
-            String(obj[Symbol.toStringTag]).replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-        }</i> ${summary.textContent
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
+        }<i style="display: inline; font-style: italic;">${String(obj[Symbol.toStringTag]).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
+    } else if (obj?.constructor?.name && obj.constructor !== Array && obj.constructor !== Object) {
+        summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
+            isRoot ? 0 : -22
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+            options?.displayKey ? `${options.displayKey}: ` : ""
+        }<i style="display: inline; font-style: italic;">${String(obj.constructor.name).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
     } else {
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
         }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
             options?.displayKey ? `${options.displayKey}: ` : ""
-        }${summary.textContent
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
+        }${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
     }
     const evaluatedUponFirstExpandingInfo = document.createElement("div");
     evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
@@ -1720,7 +2311,7 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
     const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
     evaluatedUponFirstExpandingInfoIcon.style =
         "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information-44f83.png";
+    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
     evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
         evaluatedUponFirstExpandingInfoText.style.display = "inline";
     });
@@ -1733,67 +2324,892 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
         "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
     evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
     evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+    //@ts-ignore
     summary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
     summary.style.cursor = "pointer";
     summary.style.display = "block";
     if (isRoot) {
         summary.style.paddingLeft = "22px";
+        /**
+         * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+         */
+        const contextMenu = {
+            width: 400,
+            height: 600,
+            items: [
+                {
+                    label: "Copy property path",
+                    action() {
+                        console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                    },
+                    disabled: true,
+                },
+                {
+                    label: "Copy object",
+                    action() {
+                        console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                    },
+                    disabled: true,
+                },
+                {
+                    label: "Copy object as JSON literal",
+                    action() {
+                        copyTextToClipboardAsync(JSON.stringify(obj, null, 4));
+                    },
+                },
+                {
+                    label: "Copy object as JSONB literal",
+                    action() {
+                        copyTextToClipboardAsync(JSONB.stringify(obj, null, 4));
+                    },
+                },
+                {
+                    label: "Copy object as JSON literal (+non-enumerable)",
+                    action() {
+                        copyTextToClipboardAsync(
+                            JSON.stringify(
+                                Object.fromEntries(
+                                    [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)])].map((key) => [
+                                        typeof key === "symbol" ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__` : key,
+                                        obj[key],
+                                    ])
+                                ),
+                                null,
+                                4
+                            )
+                        );
+                    },
+                },
+                {
+                    label: "Copy object as JSONB literal (+non-enumerable)",
+                    action() {
+                        copyTextToClipboardAsync(
+                            JSONB.stringify(
+                                Object.fromEntries(
+                                    [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)])].map((key) => [
+                                        typeof key === "symbol" ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__` : key,
+                                        obj[key],
+                                    ])
+                                ),
+                                null,
+                                4
+                            )
+                        );
+                    },
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Store as global variable",
+                    action() {
+                        while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                        window[`temp${__console_last_temp_variable_id__}`] = obj;
+                        displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                    },
+                },
+            ],
+        };
+        if (options?.copyConsoleMessageStackCallback) {
+            contextMenu.items.push(
+                { type: "separator" },
+                {
+                    label: "Copy console message stack",
+                    action: options.copyConsoleMessageStackCallback,
+                    disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                }
+            );
+        }
+        /**
+         * @type {number | null}
+         */
+        let clickStartTime = null;
+        summary.addEventListener("mousedown", (event) => {
+            if (event.button !== 0) return;
+            clickStartTime = Date.now();
+        });
+        summary.addEventListener("mouseleave", () => {
+            clickStartTime = null;
+        });
+        summary.addEventListener("click", (event) => {
+            if (event.button !== 0) return;
+            if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            }
+            clickStartTime = null;
+        });
+        summary.addEventListener("mouseup", (event) => {
+            if (event.button !== 2) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        });
     }
     container.appendChild(summary);
 
-    summary.addEventListener("click", () => {
-        if (container.childNodes.length === 1) {
-            try {
-                document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
-            } catch (e) {
-                console.error(e.toString(), e.stack);
-            }
-            summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
-            const details = document.createElement("div");
-            /**
-             * @type {(string | number | symbol | {displayName: string, key: string})[]}
-             */
-            const keys = [
-                ...new Set([
-                    ...Object.keys(obj),
-                    ...(() => {
-                        try {
-                            return Object.getOwnPropertyNames(obj.__proto__).filter((key) => {
-                                try {
-                                    // Make sure the property won't throw an error when accessed.
-                                    obj[key];
-                                    return key in obj;
-                                } catch (e) {
-                                    return false;
+    summary.addEventListener("click", (event) => {
+        setTimeout(() => {
+            if (event.defaultPrevented) return;
+            if (container.childNodes.length === 1) {
+                try {
+                    //@ts-ignore
+                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
+                } catch (e) {
+                    console.error(e);
+                }
+                //@ts-ignore
+                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                const details = document.createElement("div");
+                details.classList.add("console-value-details");
+                /**
+                 * @type {(string | number | symbol | { displayName: string; key: string } | { displayName: string; objectKeysSource: Record<PropertyKey, any>; summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; propertyName?: string | undefined })[]}
+                 */
+                const keys = [
+                    ...new Set([
+                        //@ts-ignore
+                        ...Object.keys(options?.objectKeysSource ?? (isCoherentArrayProxy ? Array.from(obj) : obj)),
+                        // Proto values should actually only be included in the `[[Prototype]]` key.
+                        // ...(() => {
+                        //     try {
+                        //         return Object.getOwnPropertyNames(obj.__proto__).filter((key) => {
+                        //             try {
+                        //                 // Make sure the property won't throw an error when accessed.
+                        //                 obj[key];
+                        //                 return key in obj;
+                        //             } catch (e) {
+                        //                 return false;
+                        //             }
+                        //         });
+                        //     } catch (e) {
+                        //         return [];
+                        //     }
+                        // })(),
+                        ...Object.getOwnPropertyNames(options?.objectKeysSource ?? obj),
+                        ...Object.getOwnPropertySymbols(options?.objectKeysSource ?? obj),
+                    ]),
+                ];
+                if ((options?.objectKeysSource ?? obj)?.__proto__)
+                    keys.push({
+                        displayName: "[[Prototype]]",
+                        objectKeysSource: (options?.objectKeysSource ?? obj).__proto__,
+                        summaryValueOverride:
+                            (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj) ? "Object" : "circular reference",
+                        propertyName: "__proto__",
+                    });
+                for (const keyRaw of keys) {
+                    /**
+                     * @type {PropertyKey | Extract<typeof keys[number], { objectKeysSource: Record<PropertyKey, any> }>}
+                     */
+                    //@ts-ignore
+                    const key = ["number", "string", "symbol"].includes(typeof keyRaw) ? keyRaw : "objectKeysSource" in keyRaw ? keyRaw : keyRaw.key;
+                    /**
+                     * @type {string}
+                     */
+                    //@ts-ignore
+                    const displayName = ["number", "string", "symbol"].includes(typeof keyRaw) ? keyRaw.toString() : keyRaw.displayName;
+                    const item = document.createElement("div");
+                    item.style.marginLeft = "44px";
+                    try {
+                        if (typeof key === "object") {
+                            const expandableObjectView = createExpandableObjectView(obj, false, false, {
+                                objectKeysSource: key.objectKeysSource,
+                                summaryValueOverride: key.summaryValueOverride,
+                                summaryValueOverride_toStringTag: key.summaryValueOverride_toStringTag,
+                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                showReadonly: options?.showReadonly,
+                            });
+                            expandableObjectView.children[0].children[1].insertAdjacentText("afterbegin", `${displayName}: `);
+                            item.appendChild(expandableObjectView);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        Object.keys(key.objectKeysSource).map((key) => [
+                                                            key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        Object.keys(key.objectKeysSource).map((key) => [
+                                                            key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(key.objectKeysSource),
+                                                                ...Object.getOwnPropertyNames(key.objectKeysSource),
+                                                                ...Object.getOwnPropertySymbols(key.objectKeysSource),
+                                                            ]),
+                                                        ].map((key) => [
+                                                            typeof key === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                                : key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(key.objectKeysSource),
+                                                                ...Object.getOwnPropertyNames(key.objectKeysSource),
+                                                                ...Object.getOwnPropertySymbols(key.objectKeysSource),
+                                                            ]),
+                                                        ].map((key) => [
+                                                            typeof key === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                                : key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = key.objectKeysSource;
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        } else if (forceObjectMode || (typeof obj[key] === "object" && obj[key] !== null) /*  || typeof obj[key] === "function" */) {
+                            const expandableObjectView = createExpandableObjectView(obj[key], undefined, undefined, {
+                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                showReadonly: options?.showReadonly,
+                            });
+                            expandableObjectView.children[0].children[1].insertAdjacentText("afterbegin", `${displayName}: `);
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    expandableObjectView.children[0].children[1].insertAdjacentHTML(
+                                        "afterbegin",
+                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                    );
+                                }
+                            }
+                            item.appendChild(expandableObjectView);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal",
+                                        action() {
+                                            copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(obj[key], null, 4, {
+                                                    bigint: true,
+                                                    undefined: true,
+                                                    Infinity: true,
+                                                    NegativeInfinity: true,
+                                                    NaN: true,
+                                                    get: false,
+                                                    set: false,
+                                                    function: true,
+                                                    class: false, // IDEA: Add a button to copy with getters and setters.
+                                                })
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(obj[key]),
+                                                                ...Object.getOwnPropertyNames(obj[key]),
+                                                                ...Object.getOwnPropertySymbols(obj[key]),
+                                                            ]),
+                                                        ].map((objKey) => [
+                                                            typeof objKey === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                                : objKey,
+                                                            obj[key][objKey],
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(obj[key]),
+                                                                ...Object.getOwnPropertyNames(obj[key]),
+                                                                ...Object.getOwnPropertySymbols(obj[key]),
+                                                            ]),
+                                                        ].map((objKey) => [
+                                                            typeof objKey === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                                : objKey,
+                                                            obj[key][objKey],
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        } else if (typeof obj[key] === "function") {
+                            const arrowID = (consoleExpansionArrowID++).toString(36);
+                            const funcSummary = document.createElement("span");
+                            let preSummaryLabelHTMLContent = "";
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    preSummaryLabelHTMLContent = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`;
+                                }
+                            }
+                            funcSummary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}">${
+                                preSummaryLabelHTMLContent ?? ""
+                            }<span style="display: inline; white-space: pre-wrap;">${displayName}: ${JSONBConsole.stringify(
+                                obj[key],
+                                (key, value) => {
+                                    try {
+                                        if (
+                                            typeof value === "object" &&
+                                            obj?.constructor?.name === "CoherentArrayProxy" &&
+                                            obj?.constructor?.constructor?.name === "CoherentArrayProxy"
+                                        ) {
+                                            return Array.from(value);
+                                        }
+                                    } catch {}
+                                    return value;
+                                },
+                                4,
+                                {
+                                    bigint: true,
+                                    undefined: true,
+                                    Infinity: true,
+                                    NegativeInfinity: true,
+                                    NaN: true,
+                                    get: true,
+                                    set: true,
+                                    function: true,
+                                    class: false,
+                                    includeProtoValues: false,
+                                },
+                                5,
+                                1
+                            )
+                                .replaceAll("<", "&lt;")
+                                .replaceAll(">", "&gt;")
+                                .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
+                            funcSummary.style.cursor = "pointer";
+                            const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                            evaluatedUponFirstExpandingInfo.style =
+                                "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                            evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                            const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                            evaluatedUponFirstExpandingInfoIcon.style =
+                                "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                            evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                                evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                            });
+                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                                evaluatedUponFirstExpandingInfoText.style.display = "none";
+                            });
+                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                            const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                            evaluatedUponFirstExpandingInfoText.style =
+                                "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                            evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                            //@ts-ignore
+                            funcSummary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
+                            item.appendChild(funcSummary);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy stringified function",
+                                        action() {
+                                            copyTextToClipboardAsync(obj[key].toString());
+                                        },
+                                    },
+                                    {
+                                        label: "Copy function as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(obj[key], null, 4, {
+                                                    bigint: true,
+                                                    undefined: true,
+                                                    Infinity: true,
+                                                    NegativeInfinity: true,
+                                                    NaN: true,
+                                                    get: false,
+                                                    set: false,
+                                                    function: true,
+                                                    class: false, // IDEA: Add a button to copy with getters and setters.
+                                                })
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime = null;
+                            funcSummary.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            funcSummary.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            funcSummary.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            funcSummary.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+
+                            funcSummary.addEventListener("click", () => {
+                                if (event.defaultPrevented) return;
+                                if (funcSummary.nextSibling) {
+                                    //@ts-expect-error
+                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
+                                    //@ts-expect-error
+                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                                    funcSummary.nextSibling.remove();
+                                } else {
+                                    //@ts-expect-error
+                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
+                                    //@ts-expect-error
+                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                                    const funcDetails = document.createElement("div");
+                                    const funcName = document.createElement("div");
+                                    funcName.textContent = `name: ${obj[key].name}`;
+                                    funcName.style.marginLeft = "44px";
+                                    funcName.style.whiteSpace = "pre-wrap";
+                                    funcName.style.display = "inline";
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                                            funcName.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    funcDetails.appendChild(funcName);
+                                    const funcLength = document.createElement("div");
+                                    funcLength.textContent = `length: ${obj[key].length}`;
+                                    funcLength.style.marginLeft = "44px";
+                                    funcName.style.whiteSpace = "pre-wrap";
+                                    // funcName.style.display = "inline"; // DEBUG
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                                            funcLength.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    funcDetails.appendChild(funcLength);
+                                    const arrowIDB = (consoleExpansionArrowID++).toString(36);
+                                    const funcToStringContainer = document.createElement("div");
+                                    const funcToString = document.createElement("span");
+                                    funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">toString: ƒ toString()</span>`;
+                                    funcToString.style.cursor = "pointer";
+                                    funcToString.style.marginLeft = "44px";
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                                            funcToString.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                                    evaluatedUponFirstExpandingInfo.style =
+                                        "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                                    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                                    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                                    evaluatedUponFirstExpandingInfoIcon.style =
+                                        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                                    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                                        evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                                    });
+                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                                        evaluatedUponFirstExpandingInfoText.style.display = "none";
+                                    });
+                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                                    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                                    evaluatedUponFirstExpandingInfoText.style =
+                                        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                                    evaluatedUponFirstExpandingInfoText.textContent =
+                                        "This value was evaluated upon first expanding. It may have changed since then.";
+                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                                    funcToString.appendChild(evaluatedUponFirstExpandingInfo);
+                                    funcToStringContainer.appendChild(funcToString);
+                                    funcDetails.appendChild(funcToStringContainer);
+                                    Object.getOwnPropertySymbols(obj[key]).forEach((symbol) => {
+                                        try {
+                                            const symbolDetails = document.createElement("div");
+                                            symbolDetails.textContent = `${symbol.toString()}: ${JSONB.stringify(obj[key][symbol], undefined, undefined, {
+                                                bigint: true,
+                                                undefined: true,
+                                                Infinity: true,
+                                                NegativeInfinity: true,
+                                                NaN: true,
+                                                get: true,
+                                                set: true,
+                                                function: true,
+                                                class: false,
+                                            })}`;
+                                            symbolDetails.style.marginLeft = "44px";
+                                            if (options?.showReadonly) {
+                                                if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                                                    symbolDetails.insertAdjacentHTML(
+                                                        "afterbegin",
+                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                                    );
+                                                }
+                                            }
+                                            funcDetails.appendChild(symbolDetails);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    });
+
+                                    if (obj[key].__proto__) {
+                                        try {
+                                            const prototypeExpandableObjectView = createExpandableObjectView(obj[key], false, true, {
+                                                displayKey: "[[Prototype]]",
+                                                objectKeysSource: obj[key].__proto__,
+                                                summaryValueOverride:
+                                                    (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj)
+                                                        ? "Object"
+                                                        : "circular reference",
+                                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                                showReadonly: options?.showReadonly,
+                                            });
+                                            // prototypeExpandableObjectView.children[0].children[1].insertAdjacentText("afterbegin", `[[Prototype]]: `);
+                                            prototypeExpandableObjectView.style.marginLeft = "44px";
+                                            if (options?.showReadonly) {
+                                                if (Object.getOwnPropertyDescriptor(obj[key], "__proto__")?.writable === false) {
+                                                    funcName.insertAdjacentHTML(
+                                                        "afterbegin",
+                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                                    );
+                                                }
+                                            }
+                                            funcDetails.appendChild(prototypeExpandableObjectView);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    } else {
+                                        console.warn(`No prototype found for ${displayName}`);
+                                    }
+
+                                    funcToString.addEventListener("click", () => {
+                                        if (funcToString.nextSibling) {
+                                            //@ts-expect-error
+                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(0deg)";
+                                            //@ts-expect-error
+                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                                            funcToString.nextSibling.remove();
+                                        } else {
+                                            //@ts-expect-error
+                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(90deg)";
+                                            //@ts-expect-error
+                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                                            const funcSource = document.createElement("pre");
+                                            funcSource.classList.add("funcSource");
+                                            funcSource.textContent = obj[key].toString();
+                                            funcSource.style.marginLeft = "88px";
+                                            funcToStringContainer.appendChild(funcSource);
+                                        }
+                                    });
+
+                                    item.appendChild(funcDetails);
                                 }
                             });
-                        } catch (e) {
-                            return [];
-                        }
-                    })(),
-                    ...Object.getOwnPropertyNames(obj),
-                    ...Object.getOwnPropertySymbols(obj),
-                ]),
-            ];
-            if (obj.__proto__) keys.push({ displayName: "[[Prototype]]", key: "__proto__" });
-            for (const keyRaw of keys) {
-                const key = ["number", "string", "symbol"].includes(typeof keyRaw) ? keyRaw : keyRaw.key;
-                const displayName = ["number", "string", "symbol"].includes(typeof keyRaw) ? keyRaw.toString() : keyRaw.displayName;
-                const item = document.createElement("div");
-                item.style.marginLeft = "44px";
-                try {
-                    if (forceObjectMode || (typeof obj[key] === "object" && obj[key] !== null) /*  || typeof obj[key] === "function" */) {
-                        const expandableObjectView = createExpandableObjectView(obj[key]);
-                        expandableObjectView.children[0].children[1].insertAdjacentText("afterbegin", `${displayName}: `);
-                        item.appendChild(expandableObjectView);
-                    } else if (typeof obj[key] === "function") {
-                        const arrowID = (consoleExpansionArrowID++).toString(36);
-                        const funcSummary = document.createElement("span");
-                        funcSummary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${displayName}: ${JSONBConsole.stringify(
-                            obj[key],
-                            undefined,
-                            4,
-                            {
+                        } else {
+                            item.textContent = `${displayName}: ${JSONB.stringify(obj[key], undefined, undefined, {
                                 bigint: true,
                                 undefined: true,
                                 Infinity: true,
@@ -1803,221 +3219,321 @@ function createExpandableObjectView(obj, isRoot = false, forceObjectMode = false
                                 set: true,
                                 function: true,
                                 class: false,
-                            },
-                            5,
-                            1
-                        )
-                            .replaceAll("<", "&lt;")
-                            .replaceAll(">", "&gt;")
-                            .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
-                        funcSummary.style.cursor = "pointer";
-                        const evaluatedUponFirstExpandingInfo = document.createElement("div");
-                        evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
-                        evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
-                        const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
-                        evaluatedUponFirstExpandingInfoIcon.style =
-                            "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-                        evaluatedUponFirstExpandingInfoIcon.src = "assets/Information-44f83.png";
-                        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
-                            evaluatedUponFirstExpandingInfoText.style.display = "inline";
-                        });
-                        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
-                            evaluatedUponFirstExpandingInfoText.style.display = "none";
-                        });
-                        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
-                        const evaluatedUponFirstExpandingInfoText = document.createElement("span");
-                        evaluatedUponFirstExpandingInfoText.style =
-                            "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
-                        evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
-                        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
-                        funcSummary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
-                        item.appendChild(funcSummary);
-
-                        funcSummary.addEventListener("click", () => {
-                            if (funcSummary.nextSibling) {
-                                document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
-                                funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
-                                funcSummary.nextSibling.remove();
-                            } else {
-                                document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
-                                funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
-                                const funcDetails = document.createElement("div");
-                                const funcName = document.createElement("div");
-                                funcName.textContent = `name: ${obj[key].name}`;
-                                funcName.style.marginLeft = "44px";
-                                funcDetails.appendChild(funcName);
-                                const funcLength = document.createElement("div");
-                                funcLength.textContent = `length: ${obj[key].length}`;
-                                funcLength.style.marginLeft = "44px";
-                                funcDetails.appendChild(funcLength);
-                                const arrowIDB = (consoleExpansionArrowID++).toString(36);
-                                const funcToStringContainer = document.createElement("div");
-                                const funcToString = document.createElement("span");
-                                funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">toString: ƒ toString()</span>`;
-                                funcToString.style.cursor = "pointer";
-                                funcToString.style.marginLeft = "44px";
-                                const evaluatedUponFirstExpandingInfo = document.createElement("div");
-                                evaluatedUponFirstExpandingInfo.style =
-                                    "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
-                                evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
-                                const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
-                                evaluatedUponFirstExpandingInfoIcon.style =
-                                    "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-                                evaluatedUponFirstExpandingInfoIcon.src = "assets/Information-44f83.png";
-                                evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
-                                    evaluatedUponFirstExpandingInfoText.style.display = "inline";
-                                });
-                                evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
-                                    evaluatedUponFirstExpandingInfoText.style.display = "none";
-                                });
-                                evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
-                                const evaluatedUponFirstExpandingInfoText = document.createElement("span");
-                                evaluatedUponFirstExpandingInfoText.style =
-                                    "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
-                                evaluatedUponFirstExpandingInfoText.textContent =
-                                    "This value was evaluated upon first expanding. It may have changed since then.";
-                                evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
-                                funcToString.appendChild(evaluatedUponFirstExpandingInfo);
-                                funcToStringContainer.appendChild(funcToString);
-                                funcDetails.appendChild(funcToStringContainer);
-                                Object.getOwnPropertySymbols(obj[key]).forEach((symbol) => {
-                                    try {
-                                        const symbolDetails = document.createElement("div");
-                                        symbolDetails.textContent = `${symbol.toString()}: ${JSONB.stringify(obj[key][symbol], undefined, undefined, {
-                                            bigint: true,
-                                            undefined: true,
-                                            Infinity: true,
-                                            NegativeInfinity: true,
-                                            NaN: true,
-                                            get: true,
-                                            set: true,
-                                            function: true,
-                                            class: false,
-                                        })}`;
-                                        symbolDetails.style.marginLeft = "44px";
-                                        funcDetails.appendChild(symbolDetails);
-                                    } catch (e) {
-                                        console.error(e, e.stack);
-                                    }
-                                });
-
-                                if (obj[key].__proto__) {
-                                    try {
-                                        const prototypeExpandableObjectView = createExpandableObjectView(obj[key].__proto__, false, true);
-                                        prototypeExpandableObjectView.children[0].children[1].insertAdjacentText("afterbegin", `[[Prototype]]: `);
-                                        prototypeExpandableObjectView.style.marginLeft = "44px";
-                                        funcDetails.appendChild(prototypeExpandableObjectView);
-                                    } catch (e) {
-                                        console.error(e, e.stack);
-                                    }
-                                } else {
-                                    console.warn(`No prototype found for ${displayName}`);
+                            })}`;
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    item.insertAdjacentHTML("afterbegin", `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`);
                                 }
-
-                                funcToString.addEventListener("click", () => {
-                                    if (funcToString.nextSibling) {
-                                        document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(0deg)";
-                                        funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
-                                        funcToString.nextSibling.remove();
-                                    } else {
-                                        document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(90deg)";
-                                        funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
-                                        const funcSource = document.createElement("pre");
-                                        funcSource.classList.add("funcSource");
-                                        funcSource.textContent = obj[key].toString();
-                                        funcSource.style.marginLeft = "88px";
-                                        funcToStringContainer.appendChild(funcSource);
-                                    }
-                                });
-
-                                item.appendChild(funcDetails);
                             }
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    ...(typeof obj[key] === "bigint"
+                                        ? [
+                                              {
+                                                  label: "Copy bigint",
+                                                  action() {
+                                                      copyTextToClipboardAsync(`${obj[key]}n`);
+                                                  },
+                                              },
+                                          ]
+                                        : [
+                                              "boolean",
+                                              "number",
+                                              "object", // null
+                                              "undefined",
+                                          ].includes(typeof obj[key])
+                                        ? [
+                                              {
+                                                  label: `Copy ${typeof obj[key]}`,
+                                                  action() {
+                                                      copyTextToClipboardAsync(`${obj[key]}`);
+                                                  },
+                                              },
+                                          ]
+                                        : typeof obj[key] === "string"
+                                        ? [
+                                              {
+                                                  label: "Copy string contents",
+                                                  action() {
+                                                      copyTextToClipboardAsync(obj[key]);
+                                                  },
+                                              },
+                                              {
+                                                  label: "Copy string as JavaScript literal",
+                                                  action() {
+                                                      /**
+                                                       * @type {string}
+                                                       */
+                                                      const str = obj[key];
+                                                      /**
+                                                       * @type {string}
+                                                       */
+                                                      const jsonifiedStr = JSON.stringify(str);
+                                                      copyTextToClipboardAsync(
+                                                          str.includes("'")
+                                                              ? str.includes('"')
+                                                                  ? str.includes("`")
+                                                                      ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                                      : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+                                                                  : jsonifiedStr
+                                                              : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                      );
+                                                  },
+                                              },
+                                              {
+                                                  label: "Copy string as JSON literal",
+                                                  action() {
+                                                      copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
+                                                  },
+                                              },
+                                          ]
+                                        : []),
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        }
+                        details.appendChild(item);
+                    } catch (e) {
+                        //@ts-ignore
+                        const exceptionExpandableObjectView = createExpandableObjectView(e, false, false, {
+                            summaryValueOverride: `(Exception)`,
+                            //@ts-ignore
+                            summaryValueOverride_toStringTag: e?.name ?? e?.[Symbol.toStringTag],
+                            displayKey: displayName,
+                            copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                            copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                            showReadonly: options?.showReadonly,
                         });
-                    } else {
-                        item.textContent = `${displayName}: ${JSONB.stringify(obj[key], undefined, undefined, {
-                            bigint: true,
-                            undefined: true,
-                            Infinity: true,
-                            NegativeInfinity: true,
-                            NaN: true,
-                            get: true,
-                            set: true,
-                            function: true,
-                            class: false,
-                        })}`;
+                        if (options?.showReadonly) {
+                            if (
+                                (typeof key === "object"
+                                    ? key.propertyName !== undefined
+                                        ? Object.getOwnPropertyDescriptor(obj, key.propertyName)
+                                        : undefined
+                                    : Object.getOwnPropertyDescriptor(obj, key)
+                                )?.writable === false
+                            ) {
+                                exceptionExpandableObjectView.children[0].children[1].insertAdjacentHTML(
+                                    "afterbegin",
+                                    `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                );
+                            }
+                        }
+                        item.appendChild(exceptionExpandableObjectView);
+                        details.appendChild(item);
                     }
-                    details.appendChild(item);
-                } catch (e) {
-                    const exceptionExpandableObjectView = createExpandableObjectView(e, false, false, {
-                        summaryValueOverride: `(Exception)`,
-                        summaryValueOverride_toStringTag: e?.name ?? e?.[Symbol.toStringTag],
-                        displayKey: displayName,
-                    });
-                    item.appendChild(exceptionExpandableObjectView);
-                    details.appendChild(item);
                 }
+                container.appendChild(details);
+            } else {
+                try {
+                    //@ts-ignore
+                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
+                } catch (e) {
+                    console.error(e);
+                }
+                //@ts-ignore
+                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                container.removeChild(container.childNodes[1]);
             }
-            container.appendChild(details);
-        } else {
-            try {
-                document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
-            } catch (e) {
-                console.error(e, e.stack);
-            }
-            summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
-            container.removeChild(container.childNodes[1]);
-        }
+        }, 1);
     });
 
     return container;
 }
 
+/**
+ *
+ * @param {`temp${bigint}`} variableName
+ */
+function displayStoredConsoleTempVariable(variableName) {
+    /**
+     * The command element.
+     *
+     * @type {HTMLDivElement}
+     */
+    const commandElem = document.createElement("div");
+    commandElem.style.whiteSpace = "pre-wrap";
+    commandElem.style.overflowWrap = "anywhere";
+    if (
+        consoleOverlayTextElement.children.length > 0 &&
+        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+        !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
+    ) {
+        commandElem.style.borderTop = "1px solid #888888";
+    }
+    commandElem.textContent = `> ${variableName}`;
+    consoleOverlayTextElement.appendChild(commandElem);
+
+    /**
+     * The result element that will display the result of the executed command.
+     *
+     * @type {HTMLDivElement}
+     */
+    const resultElem = document.createElement("div");
+    resultElem.style.whiteSpace = "pre-wrap";
+    resultElem.style.overflowWrap = "anywhere";
+    try {
+        /**
+         * The result of the executed command.
+         *
+         * @type {any}
+         */
+        const result = window[variableName];
+        if ((typeof result === "object" && result !== null) || typeof result === "function") {
+            resultElem.appendChild(createExpandableObjectView(result, true));
+        } else if (typeof result === "symbol") {
+            resultElem.textContent = result.toString();
+        } else {
+            resultElem.textContent = JSONB.stringify(result);
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+        consoleOverlayInputFieldElement.value = "";
+    } catch (e) {
+        resultElem.style.backgroundColor = "#FF000055";
+        if (e instanceof Error) {
+            resultElem.appendChild(
+                createExpandableObjectView(e, true, false, {
+                    summaryValueOverride: e.stack,
+                })
+            );
+        } else {
+            if ((typeof e === "object" && e !== null) || typeof e === "function") {
+                resultElem.appendChild(createExpandableObjectView(e, true));
+            } else if (typeof e === "symbol") {
+                resultElem.textContent = e.toString();
+            } else {
+                resultElem.textContent = JSONB.stringify(e);
+            }
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+    }
+}
+
 // This is not good enough yet.
-/* copyTextToClipboard(
-    JSONB.stringify(getAccessibleFacetSpyFacets(), (k, v) => {
-        if (typeof v === "object") {
-            return v === null
-                ? null
-                : "slice" in v && !(v instanceof Array)
-                ? { $PartialArrayType: Array.from(v) }
-                : v instanceof Array
-                ? v
-                : Object.fromEntries(
-                      [
-                          ...new Set([
-                              ...Object.keys(v),
-                              ...(() => {
-                                  try {
-                                      return Object.getOwnPropertyNames(v.__proto__).filter((key) => {
-                                          try {
-                                              // Make sure the property won't throw an error when accessed.
-                                              v[key];
-                                              return key in v;
-                                          } catch {
-                                              return false;
-                                          }
-                                      });
-                                  } catch (e) {
-                                      return [];
-                                  }
-                              })(),
-                              ...Object.getOwnPropertyNames(v),
-                              ...Object.getOwnPropertySymbols(v),
-                          ]),
-                      ].map((key) => {
-                          try {
-                              return [key, v[key]];
-                          } catch (e) {
-                              return { ERROR: e };
-                          }
-                      })
-                  );
-        }
-        if (typeof v === "function") {
-            return v.toString();
-        }
-        return typeof v;
-    })
+/* 
+const facetList = [...new Set([...Object.keys(accessedFacets), ...Object.keys(facetSpyData.sharedFacets)])];
+
+Promise.all(facetList.map((v) => forceLoadFacet(v).catch(() => {}))).then(() =>
+    copyTextToClipboardAsync(
+        JSONB.stringify({ ...Object.fromEntries(facetList.map((v) => [v, Symbol.for("__MISSING__")])), ...getAccessibleFacetSpyFacets() }, (k, v) => {
+            if (typeof v === "object") {
+                return v === null
+                    ? null
+                    : v.constructor?.name === "CoherentArrayProxy"
+                    ? { $PartialArrayType: Array.from(v) }
+                    : v instanceof Array
+                    ? v
+                    : Object.fromEntries(
+                          [
+                              ...new Set([
+                                  ...Object.keys(v),
+                                  ...(() => {
+                                      try {
+                                          return Object.getOwnPropertyNames(v.__proto__).filter((key) => {
+                                              try {
+                                                  // Make sure the property won't throw an error when accessed.
+                                                  v[key];
+                                                  return key in v;
+                                              } catch {
+                                                  return false;
+                                              }
+                                          });
+                                      } catch (e) {
+                                          return [];
+                                      }
+                                  })(),
+                                  ...Object.getOwnPropertyNames(v),
+                                  ...Object.getOwnPropertySymbols(v),
+                              ]),
+                          ].map((key) => {
+                              try {
+                                  return [key, v[key]];
+                              } catch (e) {
+                                  return { ERROR: e };
+                              }
+                          })
+                      );
+            }
+            if (typeof v === "function") {
+                return v.toString();
+            }
+            if (v === Symbol.for("__MISSING__")) return "__MISSING__";
+            return typeof v;
+        })
+    )
 ); */
 
 /**
@@ -2031,6 +3547,8 @@ var consoleOverlayOnLoadMessageQueue = [];
  * The callback called by the hook on the {@link console} methods.
  *
  * @param {ConsoleEverythingEntry} data The data of the message.
+ *
+ * @idea Make a system where it uses the click location to determine what text was right-clicked or long-pressed on to determine which context menu to show.
  */
 function consoleOverlayConsoleLogCallback(data) {
     if (!consoleOverlayTextElement) {
@@ -2041,8 +3559,15 @@ function consoleOverlayConsoleLogCallback(data) {
     if (Array.isArray(data.value) && data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
         return;
     }
+    function copyConsoleMessageStackCallback() {
+        if (data.stack !== undefined) copyTextToClipboardAsync(data.stack);
+        else console.error("The stack of the console message could not be copied to the clipboard as it is not available.");
+    }
     const elem = document.createElement("pre");
-    elem.style.whiteSpace = "pre-wrap";
+    // elem.style.display = "flex";
+    // elem.style.flexDirection = "row";
+    // elem.style.width = "auto";
+    // elem.style.whiteSpace = "pre-wrap";
     switch (data.type) {
         case "exception":
             elem.style.backgroundColor = "#ff004055";
@@ -2061,94 +3586,377 @@ function consoleOverlayConsoleLogCallback(data) {
             elem.style.backgroundColor = "#5555BB55";
             break;
         default:
-            if (
-                consoleOverlayTextElement.children.length > 0 &&
-                consoleOverlayTextElement.lastChild instanceof HTMLElement &&
-                consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
-            ) {
-                elem.style.borderTop = "1px solid #888888";
-            }
     }
-    elem.textContent = `[${data.timeStamp}] [${
+    /**
+     * @type {HTMLPreElement | null}
+     */
+    let currentTextContentOuterElem = document.createElement("pre");
+    currentTextContentOuterElem.style.display = "inline";
+    currentTextContentOuterElem.style.width = "100%";
+    currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+    /**
+     * @type {HTMLSpanElement | null}
+     */
+    let currentTextContentElem = document.createElement("span");
+    currentTextContentElem.style.display = "inline";
+    currentTextContentElem.style.width = "auto";
+    currentTextContentElem.style.whiteSpace = "pre-wrap";
+    currentTextContentElem.textContent = `[${data.timeStamp}] [${
         data.type === "exception"
             ? `unhandled exception] [${data.value.filename}:${data.value.lineno}:${data.value.colno}`
             : data.type === "promiseRejection"
             ? "unhandled promise rejection"
             : data.type
     }]`;
-    /**
-     * @type {HTMLPreElement | HTMLSpanElement | null}
-     */
-    let currentTextContentElem = elem;
     function appendCurrentTextContentElem() {
+        if (!currentTextContentOuterElem) return;
         if (!currentTextContentElem) return;
-        if (currentTextContentElem !== elem && currentTextContentElem.textContent?.length) {
-            consoleOverlayTextElement.appendChild(currentTextContentElem);
+        if (currentTextContentElem.textContent?.length) {
+            // if (currentTextContentOuterElem.children.length) {
+            //     const spacer = currentTextContentOuterElem.appendChild(document.createElement("span"));
+            //     spacer.style.display = "inline";
+            //     spacer.style.whiteSpace = "pre-wrap";
+            //     spacer.textContent = " ";
+            // }
+            currentTextContentOuterElem.appendChild(currentTextContentElem);
         }
         currentTextContentElem = null;
     }
+    function appendCurrentTextContentOuterElem() {
+        if (!currentTextContentOuterElem) return;
+        appendCurrentTextContentElem();
+        if (currentTextContentOuterElem.children.length) {
+            elem.appendChild(currentTextContentOuterElem);
+        }
+        currentTextContentOuterElem = null;
+    }
+    function createNewTextContentOuterElemIfNecessary() {
+        if (currentTextContentOuterElem) return;
+        currentTextContentOuterElem = document.createElement("pre");
+        // currentTextContentOuterElem.style.cssText = elem.style.cssText;
+        currentTextContentOuterElem.style.display = "inline";
+        currentTextContentOuterElem.style.overflowX = "auto";
+        currentTextContentOuterElem.style.maxWidth = "100%";
+        currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+        currentTextContentOuterElem.style.overflowWrap = "break-word";
+    }
     function createNewTextContentElemIfNecessary() {
+        createNewTextContentOuterElemIfNecessary();
         if (currentTextContentElem) return;
         currentTextContentElem = document.createElement("span");
-        elem.style.whiteSpace = "pre-wrap";
+        currentTextContentElem.style.display = "inline";
+        currentTextContentElem.style.whiteSpace = "pre-wrap";
+        currentTextContentElem.style.overflowWrap = "break-word";
     }
     if (data.type === "exception") {
+        appendCurrentTextContentOuterElem();
         const value = data.value;
-        appendCurrentTextContentElem();
         elem.appendChild(
             createExpandableObjectView(value, true, false, {
                 summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+                copyConsoleMessageStackCallback,
+                copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
             })
         );
     } else if (data.type === "promiseRejection") {
+        appendCurrentTextContentOuterElem();
         const value = data.value;
-        appendCurrentTextContentElem();
         elem.appendChild(
             createExpandableObjectView(value, true, false, {
                 summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason.message ?? String(value.reason),
+                copyConsoleMessageStackCallback,
+                copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
             })
         );
     } else {
         for (const v of data.value) {
             if (v instanceof Error) {
-                appendCurrentTextContentElem();
+                appendCurrentTextContentOuterElem();
                 elem.appendChild(
                     createExpandableObjectView(v, true, false, {
                         summaryValueOverride: v.stack,
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
                     })
                 );
             } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
-                appendCurrentTextContentElem();
-                elem.appendChild(createExpandableObjectView(v, true));
+                appendCurrentTextContentOuterElem();
+                elem.appendChild(
+                    createExpandableObjectView(v, true, undefined, {
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                    })
+                );
             } else if (v === null) {
                 createNewTextContentElemIfNecessary();
-                currentTextContentElem.textContent += " null";
+                currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + "null";
+                // addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
+                //     copyConsoleMessageStackCallback,
+                //     copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                // });
             } else {
                 createNewTextContentElemIfNecessary();
                 switch (typeof v) {
                     case "symbol":
-                        currentTextContentElem.textContent += " " + v.toString();
+                        currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + v.toString();
                         break;
                     case "bigint":
-                    case "object":
-                        currentTextContentElem.textContent += " " + JSONB.stringify(v);
-                        break;
-                    case "function":
-                        currentTextContentElem.textContent += " " + v.toString();
+                        currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + JSONB.stringify(v);
                         break;
                     case "boolean":
                     case "number":
                     case "string":
                     case "undefined":
                     default:
-                        currentTextContentElem.textContent += " " + v;
+                        currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}${v}`;
                 }
+                // addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
+                //     copyConsoleMessageStackCallback,
+                //     copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                // });
+                appendCurrentTextContentElem();
             }
         }
-        appendCurrentTextContentElem();
     }
+    if (
+        consoleOverlayTextElement.children.length > 0 &&
+        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+        (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (elem.style.backgroundColor ?? "")
+    ) {
+        elem.style.borderTop = "1px solid #888888";
+    }
+    appendCurrentTextContentOuterElem();
+    /**
+     * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+     */
+    const contextMenu = {
+        width: 400,
+        height: 600,
+        items: [
+            {
+                label: "Copy message stack",
+                action: copyConsoleMessageStackCallback,
+                disabled: data.stack === undefined,
+            },
+            {
+                type: "separator",
+            },
+            {
+                label: "Clear console",
+                action() {
+                    consoleOverlayTextElement.replaceChildren();
+                },
+            },
+            {
+                label: "Clear console history",
+                action() {
+                    ConsoleExecutionHistory.clearHistory();
+                },
+            },
+            {
+                type: "separator",
+            },
+            {
+                label: "Copy console",
+                action() {
+                    if (consoleOverlayTextElement.textContent) copyTextToClipboardAsync(consoleOverlayTextElement.textContent);
+                    else console.warn("Could not copy console to clipboard because the console is empty.");
+                },
+                disabled: !consoleOverlayTextElement.textContent,
+            },
+        ],
+    };
+    /**
+     * @type {number | null}
+     */
+    let clickStartTime = null;
+    elem.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+        clickStartTime = Date.now();
+    });
+    elem.addEventListener("mouseleave", () => {
+        clickStartTime = null;
+    });
+    elem.addEventListener("click", (event) => {
+        if (event.button !== 0) return;
+        if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        }
+        clickStartTime = null;
+    });
+    elem.addEventListener("mouseup", (event) => {
+        if (event.button !== 2) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+    });
     consoleOverlayTextElement.appendChild(elem);
 }
+
+// function consoleOverlayConsoleLogCallback(data) {
+//     if (!consoleOverlayTextElement) {
+//         consoleOverlayOnLoadMessageQueue.push(data);
+//         return;
+//     }
+//     // To prevent error spam from trying to load all of the vanilla facets.
+//     if (Array.isArray(data.value) && data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
+//         return;
+//     }
+//     const elem = document.createElement("pre");
+//     // elem.style.display = "flex";
+//     // elem.style.flexDirection = "row";
+//     // elem.style.width = "auto";
+//     // elem.style.whiteSpace = "pre-wrap";
+//     switch (data.type) {
+//         case "exception":
+//             elem.style.backgroundColor = "#ff004055";
+//         case "promiseRejection":
+//             elem.style.backgroundColor = "#ff009555";
+//         case "error":
+//             elem.style.backgroundColor = "#FF000055";
+//             break;
+//         case "warn":
+//             elem.style.backgroundColor = "#FFA50055";
+//             break;
+//         case "info":
+//             elem.style.backgroundColor = "#00FF8855";
+//             break;
+//         case "debug":
+//             elem.style.backgroundColor = "#5555BB55";
+//             break;
+//         default:
+//     }
+//     /**
+//      * @type {HTMLPreElement | null}
+//      */
+//     let currentTextContentOuterElem = document.createElement("pre");
+//     currentTextContentOuterElem.style.display = "inline";
+//     currentTextContentOuterElem.style.width = "100%";
+//     currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+//     /**
+//      * @type {HTMLSpanElement | null}
+//      */
+//     let currentTextContentElem = document.createElement("span");
+//     currentTextContentElem.style.display = "inline";
+//     currentTextContentElem.style.width = "auto";
+//     currentTextContentElem.style.whiteSpace = "pre-wrap";
+//     currentTextContentElem.textContent = `[${data.timeStamp}] [${
+//         data.type === "exception"
+//             ? `unhandled exception] [${data.value.filename}:${data.value.lineno}:${data.value.colno}`
+//             : data.type === "promiseRejection"
+//             ? "unhandled promise rejection"
+//             : data.type
+//     }]`;
+//     function appendCurrentTextContentElem() {
+//         if (!currentTextContentOuterElem) return;
+//         if (!currentTextContentElem) return;
+//         if (currentTextContentElem.textContent?.length) {
+//             if (currentTextContentOuterElem.children.length) {
+//                 const spacer = currentTextContentOuterElem.appendChild(document.createElement("span"));
+//                 spacer.style.display = "inline";
+//                 spacer.style.whiteSpace = "pre-wrap";
+//                 spacer.textContent = " ";
+//             }
+//             currentTextContentOuterElem.appendChild(currentTextContentElem);
+//         }
+//         currentTextContentElem = null;
+//     }
+//     function appendCurrentTextContentOuterElem() {
+//         if (!currentTextContentOuterElem) return;
+//         appendCurrentTextContentElem();
+//         if (currentTextContentOuterElem.children.length) {
+//             elem.appendChild(currentTextContentOuterElem);
+//         }
+//         currentTextContentOuterElem = null;
+//     }
+//     function createNewTextContentOuterElemIfNecessary() {
+//         if (currentTextContentOuterElem) return;
+//         currentTextContentOuterElem = document.createElement("pre");
+//         // currentTextContentOuterElem.style.cssText = elem.style.cssText;
+//         currentTextContentOuterElem.style.display = "inline";
+//         currentTextContentOuterElem.style.overflowX = "auto";
+//         currentTextContentOuterElem.style.maxWidth = "100%";
+//         currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+//         currentTextContentOuterElem.style.overflowWrap = "break-word";
+//     }
+//     function createNewTextContentElemIfNecessary() {
+//         createNewTextContentOuterElemIfNecessary();
+//         if (currentTextContentElem) return;
+//         currentTextContentElem = document.createElement("span");
+//         currentTextContentElem.style.display = "inline";
+//         currentTextContentElem.style.whiteSpace = "pre-wrap";
+//         currentTextContentElem.style.overflowWrap = "break-word";
+//     }
+//     if (data.type === "exception") {
+//         const value = data.value;
+//         currentTextContentOuterElem.appendChild(
+//             createExpandableObjectView(value, true, false, {
+//                 summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+//             })
+//         );
+//     } else if (data.type === "promiseRejection") {
+//         const value = data.value;
+//         currentTextContentOuterElem.appendChild(
+//             createExpandableObjectView(value, true, false, {
+//                 summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason.message ?? String(value.reason),
+//             })
+//         );
+//     } else {
+//         for (const v of data.value) {
+//             if (v instanceof Error) {
+//                 appendCurrentTextContentElem();
+//                 currentTextContentOuterElem.appendChild(
+//                     createExpandableObjectView(v, true, false, {
+//                         summaryValueOverride: v.stack,
+//                     })
+//                 );
+//             } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
+//                 appendCurrentTextContentOuterElem();
+//                 elem.appendChild(createExpandableObjectView(v, true));
+//             } else if (v === null) {
+//                 appendCurrentTextContentElem();
+//                 createNewTextContentElemIfNecessary();
+//                 currentTextContentElem.textContent = "null";
+//                 addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem);
+//                 appendCurrentTextContentElem();
+//             } else {
+//                 appendCurrentTextContentElem();
+//                 createNewTextContentElemIfNecessary();
+//                 switch (typeof v) {
+//                     case "symbol":
+//                         currentTextContentElem.textContent = v.toString();
+//                         break;
+//                     case "bigint":
+//                         currentTextContentElem.textContent = JSONB.stringify(v);
+//                         break;
+//                     case "boolean":
+//                     case "number":
+//                     case "string":
+//                     case "undefined":
+//                     default:
+//                         currentTextContentElem.textContent = `${v}`;
+//                 }
+//                 addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem);
+//                 appendCurrentTextContentElem();
+//             }
+//         }
+//     }
+//     if (
+//         consoleOverlayTextElement.children.length > 0 &&
+//         consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+//         (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (elem.style.backgroundColor ?? "")
+//     ) {
+//         elem.style.borderTop = "1px solid #888888";
+//     }
+//     appendCurrentTextContentOuterElem();
+//     consoleOverlayTextElement.appendChild(elem);
+// }
 
 // This is so that any messages logged before the console overlay was loaded will be displayed.
 (async function loadConsoleOverlayOnLoadMessageQueue() {
@@ -2315,12 +4123,14 @@ let types_KeyboardKey = {
     SHIFT: 16,
     CTRL: 17,
     ALT: 18,
+    PAUSE: 19,
     CAPS_LOCK: 20,
     ESCAPE: 27,
     SPACE: 32,
     PG_UP: 33,
     PG_DOWN: 34,
     END: 35,
+    HOME: 36,
     LEFT: 37,
     UP: 38,
     RIGHT: 39,
@@ -2337,8 +4147,8 @@ let types_KeyboardKey = {
     KEY_7: 55,
     KEY_8: 56,
     KEY_9: 57,
-    SEMICOLON: 59,
-    EQUALS: 61,
+    // SEMICOLON: 59, // Not the actual semicolon key.
+    // EQUALS: 61, // Not the actual equal sign key.
     KEY_A: 65,
     KEY_B: 66,
     KEY_C: 67,
@@ -2365,6 +4175,8 @@ let types_KeyboardKey = {
     KEY_X: 88,
     KEY_Y: 89,
     KEY_Z: 90,
+    META_LFET: 91,
+    CONTEXT_MENU: 93,
     NUMPAD_0: 96,
     NUMPAD_1: 97,
     NUMPAD_2: 98,
@@ -2375,7 +4187,12 @@ let types_KeyboardKey = {
     NUMPAD_7: 103,
     NUMPAD_8: 104,
     NUMPAD_9: 105,
-    MINUS: 109,
+    NUMPAD_MULTIPLY: 106,
+    NUMPAD_PLUS: 107,
+    // NUMPAD_ENTER: 108, // Not supported, it just maps to regular ENTER.
+    NUMPAD_MINUS: 109,
+    NUMPAD_PERIOD: 110,
+    NUMPAD_DIVIDE: 111,
     F1: 112,
     F2: 113,
     F3: 114,
@@ -2388,7 +4205,24 @@ let types_KeyboardKey = {
     F10: 121,
     F11: 122,
     F12: 123,
+    F13: 124,
+    F14: 125,
+    F15: 126,
+    F16: 127,
+    F17: 128,
+    F18: 129,
+    F19: 130,
+    F20: 131,
+    F21: 132,
+    F22: 133,
+    F23: 134,
+    F24: 135,
+    NUM_LOCK: 144,
+    SCROLL_LOCK: 145,
+    SEMICOLON: 186,
+    EQUALS: 187,
     COMMA: 188,
+    MINUS: 189,
     PERIOD: 190,
     SLASH: 191,
     GRAVE: 192,
@@ -2411,6 +4245,11 @@ let types_KeyboardKey = {
     BACKSLASH: 220,
     BRACKET_CLOSE: 221,
     APOSTROPHE: 222,
+    INTL_BACKSLASH: 226,
+    KANA_MODE: 246,
+    CR_SEL: 247,
+    EX_SEL: 248,
+    ERASE_EOF: 249,
 };
 
 // const container = consoleOverlayTextElement;
@@ -2422,7 +4261,7 @@ let types_KeyboardKey = {
  * Creates a custom text box element.
  *
  * @param {HTMLElement} container - The container element to create the custom text box in.
- * @returns {HTMLDivElement} The created custom text box element.
+ * @returns {HTMLDivElement | undefined} The created custom text box element, or `undefined` if the element could not be created.
  *
  * @todo This is a work in progress.
  */
@@ -2449,26 +4288,54 @@ function createCustomTextBox(container) {
         textBoxValueDisplay.classList.add("customTextBox_valueDisplay");
         textBox.appendChild(textBoxValueDisplay);
         const textBoxTextarea = document.createElement("textarea");
-        textBoxTextarea.style.opacity = 0;
+        textBoxTextarea.style.opacity = "0";
         textBoxTextarea.classList.add("customTextBox_textareaElement");
 
         // Add event listeners for copy, cut, and paste
         textBox.addEventListener("copy", (e) => {
-            const selectedText = window.getSelection().toString();
+            const selectedText = window.getSelection()?.toString() ?? null;
+            if (selectedText === null) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
             e.clipboardData.setData("text", selectedText);
             e.preventDefault();
         });
 
         textBox.addEventListener("cut", (e) => {
-            const selectedText = window.getSelection().toString();
+            const selectedText = window.getSelection()?.toString() ?? null;
+            if (selectedText === null) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
             e.clipboardData.setData("text", selectedText);
+            if (textBoxValueDisplay.textContent === null) {
+                console.warn(new ReferenceError("Text box value display has null text content."));
+                return;
+            }
             textBoxValueDisplay.textContent = textBoxValueDisplay.textContent.replace(selectedText, "");
             e.preventDefault();
         });
 
         textBox.addEventListener("paste", (e) => {
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
             const pastedText = e.clipboardData.getData("text");
             const selection = window.getSelection();
+            if (!selection) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
             selection.deleteFromDocument();
             textBoxValueDisplay.textContent += pastedText;
             e.preventDefault();
@@ -2476,6 +4343,10 @@ function createCustomTextBox(container) {
 
         textBoxValueDisplay.addEventListener("mouseup", () => {
             const selection = window.getSelection();
+            if (!selection) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
             textBoxSelection.selectionStart = selection.anchorOffset;
             textBoxSelection.selectionEnd = selection.focusOffset;
         });
@@ -2513,7 +4384,7 @@ function createCustomTextBox(container) {
                     case types_KeyboardKey.ENTER:
                         newText = text.substring(0, textBoxSelection.selectionStart) + "\n" + text.substring(textBoxSelection.selectionEnd);
                         break;
-                    case types_KeyboardKey.ARROW_LEFT:
+                    case types_KeyboardKey.LEFT:
                         if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
                             if (e.shiftKey) {
                                 textBoxSelection.selectionStart -= 1;
@@ -2527,7 +4398,7 @@ function createCustomTextBox(container) {
                             textBoxSelection.selectionEnd = textBoxSelection.selectionStart;
                         }
                         break;
-                    case types_KeyboardKey.ARROW_RIGHT:
+                    case types_KeyboardKey.RIGHT:
                         if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
                             textBoxSelection.selectionStart += 1;
                             textBoxSelection.selectionEnd += 1;
@@ -2736,19 +4607,6 @@ async function enableLitePlayScreen(noReload = false) {
         return;
     }
     globalThis.litePlayScreenActive = true;
-    let i = 0;
-    while (
-        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
-            (element) =>
-                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
-        )
-    ) {
-        if (i === 100) {
-            return;
-        }
-        await new Promise((resolve) => setTimeout(resolve, 10));
-        i++;
-    }
     /**
      * The router facet.
      *
@@ -2763,11 +4621,11 @@ async function enableLitePlayScreen(noReload = false) {
      */
     const originalRouterLocation = { ...router.history.location };
     if (
-        !originalRouterLocation.pathname.startsWith("/ouic/play") ||
+        !originalRouterLocation.pathname.startsWith("/ouic/play") /*  ||
         !originalRouterLocation.search
             .replace("?", "")
             .split("&")
-            .some((param) => param.split("=")[0] === "isLitePlayScreen" && param.split("=")[1] === "true")
+            .some((param) => param.split("=")[0] === "isLitePlayScreen" && param.split("=")[1] === "true") */
     ) {
         if (noReload) {
             const titleBarElement = Array.from(document.querySelectorAll("div#root > div > div > div > div.vanilla-neutral20-background"))[0];
@@ -2788,7 +4646,28 @@ async function enableLitePlayScreen(noReload = false) {
         if (noReload) {
             Array.from(document.querySelectorAll("div#root > div > div")).forEach((v) => v.remove());
         }
-        if (!noReload) location.reload();
+        if (!noReload) {
+            if (router.history.location.pathname.startsWith("/ouic/play")) {
+                location.reload();
+                return;
+            } else {
+                console.error("Failed to enable lite play screen, the router path was not changed when attempting to change it.");
+                return;
+            }
+        }
+    }
+    let i = 0;
+    while (
+        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        )
+    ) {
+        if (i === 100) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        i++;
     }
     for (let i = 0; i < 1000; i++) {
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -2894,6 +4773,7 @@ async function enableLitePlayScreen(noReload = false) {
     function changePage(page, tab, clickTab = true) {
         currentPage = page;
         currentTab = tab;
+        if (!router) throw new ReferenceError("The router facet has become unavailable.");
         getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
             `/ouic/play/${tab}?${[
                 ...router.history.location.search
@@ -2925,12 +4805,14 @@ async function enableLitePlayScreen(noReload = false) {
                 tabListButtons[i].classList.add("selected");
             }
             silentClick = false;
+            if (!tabContent) throw new ReferenceError("The tab content element could not be found.");
             Array.from(tabContent.children).forEach((element) => element.remove());
             /**
              * The ID of the tab button.
              *
              * @type {typeof tabIDs[number]}
              */
+            //@ts-ignore
             const tabButtonID = tabListButtons[i].getAttribute("data-tab-id") ?? "worlds";
             switch (tabButtonID) {
                 case "worlds": {
@@ -2942,6 +4824,7 @@ async function enableLitePlayScreen(noReload = false) {
                      *
                      * @type {HTMLButtonElement | null}
                      */
+                    //@ts-ignore
                     const worldsTabButton = document.getElementById("litePlayScreen_worldsTabButton");
                     if (worldsTabButton) {
                         worldsTabButton.textContent = `Worlds (${worldListIterable?.length ?? 0})`;
@@ -2977,7 +4860,7 @@ async function enableLitePlayScreen(noReload = false) {
                         emptyListInfo.style.padding = "0.2rem 0";
                         emptyListInfo.style.margin = "6px 0";
                         emptyListInfo.style.fontFamily = "Minecraft Seven v2";
-                        friendWorldListContainer.appendChild(emptyListInfo);
+                        worldListContainer.appendChild(emptyListInfo);
                     } else {
                         if (currentPage < 0 || currentPage >= pageCount) {
                             changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
@@ -3003,9 +4886,12 @@ async function enableLitePlayScreen(noReload = false) {
                                 "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
                             worldButton_worldDetails.textContent = `Size: ${world.fileSize} | Version: ${world.gameVersion.major}.${world.gameVersion.minor}.${
                                 world.gameVersion.patch
-                            }.${world.gameVersion.revision}${world.isBeta ? "-beta" : ""}${
+                            }.${world.gameVersion.revision}${world.gameVersion.isBeta ? "-beta" : ""}${
                                 world.isMultiplayerEnabled ? " | Multiplayer" : " | Singleplayer"
-                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${world.isExperimental ? " | Experimental" : ""}${
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[world.gameMode]
+                            }${world.isHardcore ? " | Hardcore" : ""}${world.isExperimental ? " | Experimental" : ""}${
                                 world.playerHasDied ? " | Player Has Died" : ""
                             }`;
                             worldButton.appendChild(worldButton_worldDetails);
@@ -3044,6 +4930,7 @@ async function enableLitePlayScreen(noReload = false) {
                     }
                     tabContent.appendChild(worldListContainer);
                     const leftButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
                     if (currentPage >= pageCount - 1) {
                         leftButtons.children[1].classList.add("disabled");
                     }
@@ -3063,6 +4950,7 @@ async function enableLitePlayScreen(noReload = false) {
                         changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
                     });
                     const rightButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
                     rightButtons.children[0].addEventListener("click", () => {
                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                         const router = getAccessibleFacetSpyFacets()["core.router"];
@@ -3088,6 +4976,7 @@ async function enableLitePlayScreen(noReload = false) {
                      *
                      * @type {HTMLButtonElement | null}
                      */
+                    //@ts-ignore
                     const realmsTabButton = document.getElementById("litePlayScreen_realmsTabButton");
                     if (realmsTabButton) {
                         realmsTabButton.textContent = `Realms (${realmListIterable?.length ?? 0})`;
@@ -3122,7 +5011,7 @@ async function enableLitePlayScreen(noReload = false) {
                         emptyListInfo.style.padding = "0.2rem 0";
                         emptyListInfo.style.margin = "6px 0";
                         emptyListInfo.style.fontFamily = "Minecraft Seven v2";
-                        friendWorldListContainer.appendChild(emptyListInfo);
+                        realmListContainer.appendChild(emptyListInfo);
                     } else {
                         if (currentPage < 0 || currentPage >= pageCount) {
                             changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
@@ -3161,9 +5050,12 @@ async function enableLitePlayScreen(noReload = false) {
                                     : realm.isOwner
                                     ? ` | Days Left: ${realm.world.daysLeft}`
                                     : ""
-                            } | ${GameModeIDMap[realm.world.gameMode]}${realm.world.isHardcore ? " | Hardcore" : ""}${
-                                !realm.world.isInitialized ? " | Not Initialized" : ""
-                            }${realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""} | Description: ${realm.world.description}`;
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[realm.world.gameMode]
+                            }${realm.world.isHardcore ? " | Hardcore" : ""}${!realm.world.isInitialized ? " | Not Initialized" : ""}${
+                                realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""
+                            } | Description: ${realm.world.description}`;
                             realmButton.appendChild(realmButton_realmDetails);
                             const realmID = realm.world.id;
                             realmButton.addEventListener("click", async () => {
@@ -3200,27 +5092,36 @@ async function enableLitePlayScreen(noReload = false) {
         <p data-realm-options-overlay-field="lastSaved"></p>
         <p>Realm ID: ${realm.world.id}</p>
         <p>Owner XUID: ${realm.world.ownerXuid}</p>
-        <p>Game Mode: ${GameModeIDMap[realm.world.gameMode]}</p>
+        <p>Game Mode: ${
+            //@ts-ignore
+            GameModeIDMap[realm.world.gameMode]
+        }</p>
     </div>
     <div id="realmOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_joinRealmButton">Join Realm</button>
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_realmsStoriesButton">Realm Stories</button>
     </div>
 </div>`;
+                                //@ts-ignore
                                 realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='realmName']").textContent = realm.world.realmName;
+                                //@ts-ignore
                                 realmOptionsOverlayElement.querySelector(
                                     "[data-realm-options-overlay-field='slotName']"
                                 ).textContent = `Slot Name: ${realm.world.slotName}`;
+                                //@ts-ignore
                                 realmOptionsOverlayElement.querySelector(
                                     "[data-realm-options-overlay-field='description']"
                                 ).textContent = `Description: ${realm.world.description}`;
                                 if (realm.world.lastSaved !== null) {
+                                    //@ts-ignore
                                     realmOptionsOverlayElement.querySelector(
                                         "[data-realm-options-overlay-field='lastSaved']"
                                     ).textContent = `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
                                 } else {
+                                    //@ts-ignore
                                     realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").remove();
                                 }
+                                //@ts-ignore
                                 realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton").addEventListener("click", async () => {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                     const networkWorldJoiner =
@@ -3229,6 +5130,7 @@ async function enableLitePlayScreen(noReload = false) {
                                         networkWorldJoiner.joinRealmWorld(realmID.toString(), 0);
                                     }
                                 });
+                                //@ts-ignore
                                 realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton").addEventListener("click", () => {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                     const router = getAccessibleFacetSpyFacets()["core.router"];
@@ -3276,6 +5178,7 @@ async function enableLitePlayScreen(noReload = false) {
                     }
                     tabContent.appendChild(realmListContainer);
                     const leftButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
                     if (currentPage >= pageCount - 1) {
                         leftButtons.children[1].classList.add("disabled");
                     }
@@ -3295,6 +5198,7 @@ async function enableLitePlayScreen(noReload = false) {
                         changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
                     });
                     const rightButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
                     rightButtons.children[0].addEventListener("click", () => {
                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                         const router = getAccessibleFacetSpyFacets()["core.router"];
@@ -3320,6 +5224,7 @@ async function enableLitePlayScreen(noReload = false) {
                      *
                      * @type {HTMLButtonElement | null}
                      */
+                    //@ts-ignore
                     const friendsTabButton = document.getElementById("litePlayScreen_friendsTabButton");
                     if (friendsTabButton) {
                         friendsTabButton.textContent = `Friends (${friendWorldList?.length ?? 0})`;
@@ -3381,9 +5286,10 @@ async function enableLitePlayScreen(noReload = false) {
                                 "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
                             friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
                                 "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : " | LAN"
-                            } | ${GameModeIDMap[world.gameMode]}${world.isHardcore ? " | Hardcore" : ""}${
-                                "ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""
-                            }${
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[world.gameMode]
+                            }${world.isHardcore ? " | Hardcore" : ""}${"ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""}${
                                 "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
                                     ? ` | Address: ${world.address}:${world.port}`
                                     : ""
@@ -3428,16 +5334,22 @@ async function enableLitePlayScreen(noReload = false) {
             "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
         }"></p>
         <p>World ID: ${world.id}</p>
-        <p>Game Mode: ${GameModeIDMap[world.gameMode]}</p>
+        <p>Game Mode: ${
+            //@ts-ignore
+            GameModeIDMap[world.gameMode]
+        }</p>
     </div>
     <div id="friendWorldOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
     </div>
 </div>`;
+                                    //@ts-ignore
                                     friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='friendWorldName']").textContent =
                                         world.name;
+                                    //@ts-ignore
                                     friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='ownerName']").textContent =
                                         world.ownerName;
+                                    //@ts-ignore
                                     friendWorldOptionsOverlayElement
                                         .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
                                         .addEventListener("click", async () => {
@@ -3470,6 +5382,7 @@ async function enableLitePlayScreen(noReload = false) {
                     }
                     tabContent.appendChild(friendWorldListContainer);
                     const leftButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
                     if (currentPage >= pageCount - 1) {
                         leftButtons.children[1].classList.add("disabled");
                     }
@@ -3489,6 +5402,7 @@ async function enableLitePlayScreen(noReload = false) {
                         changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
                     });
                     const rightButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
                     rightButtons.children[0].addEventListener("click", () => {
                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                         const router = getAccessibleFacetSpyFacets()["core.router"];
@@ -3544,7 +5458,7 @@ async function enableLitePlayScreen(noReload = false) {
                         emptyListInfo.style.padding = "0.2rem 0";
                         emptyListInfo.style.margin = "6px 0";
                         emptyListInfo.style.fontFamily = "Minecraft Seven v2";
-                        friendWorldListContainer.appendChild(emptyListInfo);
+                        serverListContainer.appendChild(emptyListInfo);
                     } else {
                         if (currentPage < 0 || currentPage >= pageCount) {
                             changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
@@ -3673,6 +5587,7 @@ async function enableLitePlayScreen(noReload = false) {
                     }
                     tabContent.appendChild(serverListContainer);
                     const leftButtons = document.getElementById("litePlayScreen_serversTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
                     if (currentPage >= pageCount - 1) {
                         leftButtons.children[1].classList.add("disabled");
                     }
@@ -3692,6 +5607,7 @@ async function enableLitePlayScreen(noReload = false) {
                         changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
                     });
                     const rightButtons = document.getElementById("litePlayScreen_serversTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
                     rightButtons.children[0].addEventListener("click", () => {
                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                         const router = getAccessibleFacetSpyFacets()["core.router"];
@@ -3711,6 +5627,7 @@ async function enableLitePlayScreen(noReload = false) {
                      *
                      * @type {HTMLButtonElement | null}
                      */
+                    //@ts-ignore
                     const featuredTabButton = document.getElementById("litePlayScreen_featuredTabButton");
                     if (featuredTabButton) {
                         featuredTabButton.textContent = `Featured (${serverListIterable?.length ?? 0})`;
@@ -3743,7 +5660,7 @@ async function enableLitePlayScreen(noReload = false) {
                         emptyListInfo.style.padding = "0.2rem 0";
                         emptyListInfo.style.margin = "6px 0";
                         emptyListInfo.style.fontFamily = "Minecraft Seven v2";
-                        friendWorldListContainer.appendChild(emptyListInfo);
+                        serverListContainer.appendChild(emptyListInfo);
                     } else {
                         if (currentPage < 0 || currentPage >= pageCount) {
                             changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
@@ -3811,10 +5728,13 @@ async function enableLitePlayScreen(noReload = false) {
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
     </div>
 </div>`;
+                                    //@ts-ignore
                                     serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                    //@ts-ignore
                                     serverOptionsOverlayElement.querySelector(
                                         "[data-server-options-overlay-field='description']"
                                     ).textContent = `Description: ${server.description}`;
+                                    //@ts-ignore
                                     serverOptionsOverlayElement
                                         .querySelector("#serverOptionsOverlayElement_joinServerButton")
                                         .addEventListener("click", async () => {
@@ -4396,7 +6316,7 @@ function setLitePlayScreenEnabled(value, noReload = false) {
              *
              * @type {FacetTypeMap["core.router"] | undefined}
              */
-            const router = globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+            const router = globalThis.facetSpyData && globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
             if (!router) {
                 // If the router facet is not available, wait for a short time and try again.
                 await new Promise((resolve) => setTimeout(resolve, 10));
@@ -4453,8 +6373,38 @@ function setLitePlayScreenEnabled(value, noReload = false) {
                 }
             };
             facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
-            const externalServerWorldList =
-                getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ?? (await forceLoadFacet("vanilla.externalServerWorldList"));
+            let localForceLoadedFacets = [];
+            try {
+                let forceLoadedExternalServerWorldListFacet = false;
+                var externalServerWorldList =
+                    getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ??
+                    ((forceLoadedExternalServerWorldListFacet = true), await forceLoadFacet("vanilla.externalServerWorldList"));
+                if (forceLoadedExternalServerWorldListFacet) localForceLoadedFacets.push("vanilla.externalServerWorldList");
+            } catch (e) {
+                if (e === "activate-facet-not-found") {
+                    try {
+                        let forceLoadedInGameFacet = false;
+                        const inGameFacet =
+                            getAccessibleFacetSpyFacets()["vanilla.inGame"] ?? ((forceLoadedInGameFacet = true), await forceLoadFacet("vanilla.inGame"));
+                        if (forceLoadedInGameFacet) localForceLoadedFacets.push("vanilla.inGame");
+                        if (inGameFacet.isInGame) {
+                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                            return;
+                        }
+                        console.error(new ReferenceError('Unable to get "vanilla.externalServerWorldList" facet.'));
+                        // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                        return;
+                    } catch (e) {
+                        if (e === "activate-facet-not-found") {
+                            console.warn(new ReferenceError('Unable to get "vanilla.inGame" facet.'));
+                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                            return;
+                        }
+                        throw e;
+                    }
+                }
+                throw e;
+            }
             const externalServerWorlds = externalServerWorldList.externalServerWorlds;
             if (
                 localStorage.getItem("enableLitePlayScreen") !== null ||
@@ -4482,7 +6432,7 @@ function setLitePlayScreenEnabled(value, noReload = false) {
             }
             return;
         } catch (e) {
-            // console.error(e);
+            console.error(e instanceof Error ? e : new Error(String(e), { cause: e }));
             await new Promise((resolve) => setTimeout(resolve, 10));
             continue;
         }
@@ -4641,11 +6591,11 @@ async function copyTextToClipboardAsync(text, timeout = 100, allowErrorLogging =
                 }
             } catch (e) {
                 // If the copy operation failed, store the error in the localStorage so it can be accessed in the context and route that triggered the copy operation.
-                localStorage.setItem("clipboardCopyError", e + e.stack);
+                localStorage.setItem("clipboardCopyError", e instanceof Error ? e.stack ?? String(e) : String(e));
                 // If the copy operation failed, store the error in a global variable for debugging purposes.
                 globalThis.__DEBUG_copyTextToClipboard_old_GLOBALS_copyError__ = e;
                 // Log the error to the console.
-                console.error("Failed to copy text to clipboard:", e, e.stack);
+                console.error("Failed to copy text to clipboard:", e);
             }
             // If the copy operation failed, remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
             localStorage.removeItem("textToCopy");
@@ -4653,6 +6603,7 @@ async function copyTextToClipboardAsync(text, timeout = 100, allowErrorLogging =
             localStorage.setItem("clipboardCopyStatus", "failed");
 
             // Close the add friend page and return to the previous page and context.
+            //@ts-ignore
             getAccessibleFacetSpyFacets()["core.router"].history.goBack();
             return false;
         })();
@@ -4921,7 +6872,10 @@ Modifiers: ${[
      * @type {HTMLElement}
      */
     screenDisplayElement = document.createElement("div");
-    screenDisplayElement.innerHTML = `<div id="textDisplayBoxRootA" style="pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: 100vw; height: 50vh; position: fixed; top: 0; left: 0; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere">Nothing selected!</div>`;
+    screenDisplayElement.id = "screenDisplayElement";
+    screenDisplayElement.style.cssText =
+        "pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: 100vw; height: 50vh; position: fixed; top: 0; left: 0; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere";
+    screenDisplayElement.textContent = "Nothing selected!";
     document.body.appendChild(screenDisplayElement);
 
     // General element debug info overlay, accessed with CTRL+ALT+I.
@@ -4945,21 +6899,23 @@ Modifiers: ${[
 
     // CSS Editor, accessed with CTRL+P.
     cssEditorDisplayElement = document.createElement("div");
-    cssEditorDisplayElement.innerHTML = `<div id="cssEditorBoxRootA" style="background-color: #00000080; color: #FFFFFFFF; width: 500px; height: 500px; max-width: 100%; max-height: 100%; position: fixed; top: 0; left: 0; z-index: 10000000; display: none;" draggable="true">
-    <div id="cssEditor_mainDiv" style="display: block;">
-        <h3 id="cssEditor_title" style="margin: 0; text-align: center;">CSS Editor</h3>
-        <h6 id="cssEditor_subtitle" style="margin: 0;">Nothing selected!</h6>
-        <textarea style="pointer-events: auto; user-select: text; width: auto; height: 300px; background-color: #808080FF; pointer-events: none;" id="cssEditorTextBoxA"></textarea>
-        <button type="button" id="cssEditorSelectTargetButton" onclick="cssEditorDisplayElement.style.display = 'none'; cssEditorInSelectMode = true; event.preventDefault();">Select Target</button>
-        <!-- <button type="button" id="cssEditorSelectStyleSheetTargetButton" onclick="cssEditor_selectDocumentStyleSheet_activate(); event.preventDefault();">Select Style Sheet Target</button> -->
-        <button type="button" id="cssEditorEditRootCSSButton" onclick="cssEditor_rootElementStylesMode(); event.preventDefault();">Edit Root CSS</button>
-        <button type="button" id="cssEditorEditGlobalStyleSheetButton" onclick="cssEditor_globalStyleElementStylesMode(); event.preventDefault();">Edit Global Style Sheet</button>
-        <button type="button" id="cssEditorSaveChangesButton" onclick="cssEditor_saveChanges(); event.preventDefault();" disabled>Save Changes</button>
-        <p id="cssEditorErrorText" style="color: red"></p>
-    </div>
-    <!-- <div id="cssEditor_documentStyleSelectorDiv" style="display: none;">
-    </div> -->
-</div>`;
+    cssEditorDisplayElement.id = "cssEditorBoxRootA";
+    cssEditorDisplayElement.style.cssText =
+        "background-color: #00000080; color: #FFFFFFFF; width: 500px; height: 500px; max-width: 100%; max-height: 100%; position: fixed; top: 0; left: 0; z-index: 10000000; display: none;";
+    cssEditorDisplayElement.setAttribute("draggable", "true");
+    cssEditorDisplayElement.innerHTML = `<div id="cssEditor_mainDiv" style="display: block;">
+    <h3 id="cssEditor_title" style="margin: 0; text-align: center;">CSS Editor</h3>
+    <h6 id="cssEditor_subtitle" style="margin: 0;">Nothing selected!</h6>
+    <textarea style="pointer-events: auto; user-select: text; width: auto; height: 300px; background-color: #808080FF; pointer-events: none;" id="cssEditorTextBoxA"></textarea>
+    <button type="button" id="cssEditorSelectTargetButton" onclick="cssEditorDisplayElement.style.display = 'none'; cssEditorInSelectMode = true; event.preventDefault();">Select Target</button>
+    <!-- <button type="button" id="cssEditorSelectStyleSheetTargetButton" onclick="cssEditor_selectDocumentStyleSheet_activate(); event.preventDefault();">Select Style Sheet Target</button> -->
+    <button type="button" id="cssEditorEditRootCSSButton" onclick="cssEditor_rootElementStylesMode(); event.preventDefault();">Edit Root CSS</button>
+    <button type="button" id="cssEditorEditGlobalStyleSheetButton" onclick="cssEditor_globalStyleElementStylesMode(); event.preventDefault();">Edit Global Style Sheet</button>
+    <button type="button" id="cssEditorSaveChangesButton" onclick="cssEditor_saveChanges(); event.preventDefault();" disabled>Save Changes</button>
+    <p id="cssEditorErrorText" style="color: red"></p>
+</div>
+<!-- <div id="cssEditor_documentStyleSelectorDiv" style="display: none;">
+</div> -->`;
     window.document.body.appendChild(cssEditorDisplayElement);
     //@ts-ignore
     cssEditorTextBox = cssEditorDisplayElement.querySelector("#cssEditorTextBoxA");
@@ -5006,6 +6962,68 @@ Modifiers: ${[
     consoleOverlayTextElement = document.getElementById("consoleOverlayTextElement");
     //@ts-ignore
     consoleOverlayInputFieldElement = document.getElementById("consoleOverlayInputFieldElement");
+
+    {
+        /**
+         * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+         */
+        const contextMenu = {
+            width: 400,
+            height: 600,
+            items: [
+                {
+                    label: "Clear console",
+                    action() {
+                        consoleOverlayTextElement.replaceChildren();
+                    },
+                },
+                {
+                    label: "Clear console history",
+                    action() {
+                        ConsoleExecutionHistory.clearHistory();
+                    },
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Copy console",
+                    action() {
+                        if (consoleOverlayTextElement.textContent) copyTextToClipboardAsync(consoleOverlayTextElement.textContent);
+                        else console.warn("Could not copy console to clipboard because the console is empty.");
+                    },
+                    disabled: !consoleOverlayTextElement.textContent,
+                },
+            ],
+        };
+        /**
+         * @type {number | null}
+         */
+        let clickStartTime = null;
+        consoleOverlayTextElement.addEventListener("mousedown", (event) => {
+            if (event.button !== 0) return;
+            clickStartTime = Date.now();
+        });
+        consoleOverlayTextElement.addEventListener("mouseleave", () => {
+            clickStartTime = null;
+        });
+        consoleOverlayTextElement.addEventListener("click", (event) => {
+            if (event.button !== 0) return;
+            if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            }
+            clickStartTime = null;
+        });
+        consoleOverlayTextElement.addEventListener("mouseup", (event) => {
+            if (event.button !== 2) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+        });
+    }
 
     // setInterval(()=>console.log(consoleOverlayInputFieldElement.value), 1000)
 
@@ -5065,17 +7083,17 @@ Modifiers: ${[
                 }
             </p>
             <p>
-                Source: https://www.8crafter.com/utilities/ore-ui-customizer
+                <span style="display: inline;">Source: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://www.8crafter.com/utilities/ore-ui-customizer');})()">https://www.8crafter.com/utilities/ore-ui-customizer</span></span>
             </p>
             <h3>Support</h3>
             <p>
-                Discord: https://discord.gg/jrCTeHGuhx
+                <span style="display: inline;">Discord: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://discord.8crafter.com');})()">https://discord.8crafter.com</span></span>
             </p>
             <p>
-                GitHub: https://github.com/8Crafter-Studios/8Crafter.github.io
+                <span style="display: inline;">GitHub: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://github.com/8Crafter-Studios/8Crafter.github.io');})()">https://github.com/8Crafter-Studios/8Crafter.github.io</span></span>
             </p>
             <p>
-                Email: 8crafteryt@gmail.com
+                <span style="display: inline;">Email: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('mailto:8crafteryt@gmail.com');})()">8crafteryt@gmail.com</span></span>
             </p>
             <h3>Keyboard Shortcuts</h3>
             <ul>
@@ -5118,21 +7136,24 @@ Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
             <p style="margin-top: 0;">
 Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
             </p>
-        </div><!--
+        </div>
         <div id="8CrafterUtilitiesMenu_router" style="display: none;">
             <center>
                 <h1>Router</h1>
             </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
-            <button type="button" class="btn nsel disabled" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById('8CrafterUtilitiesMenu_span_autoJoinName').textContent = 'None'; document.getElementById('8CrafterUtilitiesMenu_span_autoJoinType').textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
-            <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
-            <p style="margin-top: 0; margin-bottom: 0;">
-Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
-            </p>
-            <p style="margin-top: 0;">
-Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
-            </p>
-        </div>-->
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goBack" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goBack(); event.preventDefault();">Go Back</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goForward" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goForward(); event.preventDefault();">Go Forward</button>
+            <hr />
+            <label for="8CrafterUtilitiesMenu_input_router_path">Route</label>
+            <input type="text" style="font-size: 0.5in; line-height: 0.7142857143in; width: 100%;" id="8CrafterUtilitiesMenu_input_router_path" placeholder="/example/route?p1=v1&amp;p2=v2#anchor" />
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_replaceRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.replace(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Replace</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_pushRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.push(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Push</button>
+            <hr />
+            <center>
+                <h2>Current Router Stack</h2>
+            </center>
+            <div id="8CrafterUtilitiesMenu_div_router_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
+        </div>
         <div id="8CrafterUtilitiesMenu_performance" style="display: none;">
             <center>
                 <h1>Performance</h1>
@@ -5155,25 +7176,8 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
                 <h1>Debug</h1>
             </center>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_clearLocalStorage" onclick="localStorage.clear(); event.preventDefault();">Clear localStorage</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyLocalStorageToClipboard" onclick="copyTextToClipboardAsync(JSON.stringify(Object.fromEntries(Array.from({ length: localStorage.length }, (_v, i) => localStorage.key(i)).map(v=>[v, localStorage.getItem(v)])), null, 4)); event.preventDefault();">Copy localStorage</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyLocalStorageToClipboard" onclick="copyTextToClipboardAsync(JSON.stringify(Object.fromEntries(readLocalStorageKeys().map(v=>[v, localStorage.getItem(v)])), null, 4)); event.preventDefault();">Copy localStorage</button>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_reload" onclick="location.reload(); event.preventDefault();">Reload</button>
-        </div>
-        <div id="8CrafterUtilitiesMenu_router" style="display: none;">
-            <center>
-                <h1>Router</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goBack" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goBack(); event.preventDefault();">Go Back</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goForward" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goForward(); event.preventDefault();">Go Forward</button>
-            <hr />
-            <label for="8CrafterUtilitiesMenu_input_router_path">Route</label>
-            <input type="text" style="font-size: 0.5in; line-height: 0.7142857143in; width: 100%;" id="8CrafterUtilitiesMenu_input_router_path" placeholder="/example/route?p1=v1&amp;p2=v2#anchor" />
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_replaceRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.replace(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Replace</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_pushRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.push(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Push</button>
-            <hr />
-            <center>
-                <h2>Current Router Stack</h2>
-            </center>
-            <div id="8CrafterUtilitiesMenu_div_router_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
         </div>
         <!-- <div id="8CrafterUtilitiesMenu_facets" style="display: none;">
             <center>

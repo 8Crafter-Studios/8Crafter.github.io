@@ -2747,6 +2747,7 @@ export const builtInPlugins = [
                             /([a-zA-Z0-9_])\.createElement\((?:[a-zA-Z0-9_]),\{visible:(?:[a-zA-Z0-9_]),alwaysMounted:(?:[a-zA-Z0-9_]),/
                         )![1]!}.createElement(facetSpy,null)`
                     );
+                    const isEditorMode: boolean = /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!);
                     /**
                      * The facet spy function that will be injected into the file.
                      */
@@ -2785,7 +2786,6 @@ export const builtInPlugins = [
                 "vanilla.debugSettings",
                 "vanilla.editor",
                 "vanilla.editorInput",
-                // "vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview.
                 "vanilla.editorScripting",
                 "vanilla.editorSelectionFacet",
                 "vanilla.editorSettings",
@@ -2867,9 +2867,6 @@ export const builtInPlugins = [
 
                 "vanilla.friendworldlist",
                 "vanilla.offerRepository",
-                "vanilla.realmsStories.actions",
-                "vanilla.realmsStories.realmData",
-                "vanilla.realmsStories.persistentData",
                 "vanilla.realmsSettingsFacet",
 
                 "vanilla.achievementCategories",
@@ -2894,12 +2891,6 @@ export const builtInPlugins = [
                 "vanilla.ownedWorldTemplateList",
                 "vanilla.worldTemplateOperations",
                 "test.vector",
-                // "vanilla.editorBlockPalette", // Crashes the game.
-                // "vanilla.editorInputBinding",
-                // "vanilla.editorInputState",
-                // "vanilla.editorProjectConstants",
-                // "vanilla.editorStructure",
-                // "vanilla.editorTutorial",
                 "vanilla.gameplay.localPlayerWeatherLightningFacet",
                 "vanilla.levelInfo",
                 "vanilla.currentParty",
@@ -2933,6 +2924,15 @@ export const builtInPlugins = [
                 "dev.realmsCommitCommandsFacet",
                 "dev.realmsCommitQueriesFacet",
                 "vanilla.newPlayerChoices",
+
+                // Editor mode only facets (crashes the game when not in editor mode).
+                ${isEditorMode ? "" : "// "}"vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview when not in editor mode.
+                ${isEditorMode ? "" : "// "}"vanilla.editorBlockPalette", // Crashes the game when not in editor mode
+                ${isEditorMode ? "" : "// "}"vanilla.editorInputBinding", // Crashes the game when not in editor mode
+                ${isEditorMode ? "" : "// "}"vanilla.editorInputState", // Crashes the game when not in editor mode
+                ${isEditorMode ? "" : "// "}"vanilla.editorProjectConstants", // Crashes the game when not in editor mode
+                ${isEditorMode ? "" : "// "}"vanilla.editorStructure", // Crashes the game when not in editor mode
+                ${isEditorMode ? "" : "// "}"vanilla.editorTutorial", // Crashes the game when not in editor mode
             ];
             function facetSpy({}) {
                 let data = globalThis.facetSpyData ?? {
@@ -3052,7 +3052,7 @@ export const builtInPlugins = [
                 enableSuccessLogging = false,
                 enableAlreadyLoadedLogging = false,
                 enableLoadingFacetsTracking = false,
-            }) {
+            } = {}) {
                 if (!globalThis.facetSpyData) throw new ReferenceError("The global facetSpyData variable was not found.");
                 enableLoadingFacetsTracking && (globalThis.loadingFacets = {});
                 return Promise.all(

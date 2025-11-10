@@ -712,7 +712,6 @@ declare global {
             "vanilla.debugSettings",
             "vanilla.editor",
             "vanilla.editorInput",
-            // "vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview.
             "vanilla.editorScripting",
             "vanilla.editorSelectionFacet",
             "vanilla.editorSettings",
@@ -794,9 +793,6 @@ declare global {
 
             "vanilla.friendworldlist",
             "vanilla.offerRepository",
-            "vanilla.realmsStories.actions",
-            "vanilla.realmsStories.realmData",
-            "vanilla.realmsStories.persistentData",
             "vanilla.realmsSettingsFacet",
 
             "vanilla.achievementCategories",
@@ -821,12 +817,6 @@ declare global {
             "vanilla.ownedWorldTemplateList",
             "vanilla.worldTemplateOperations",
             "test.vector",
-            // "vanilla.editorBlockPalette", // Crashes the game.
-            // "vanilla.editorInputBinding",
-            // "vanilla.editorInputState",
-            // "vanilla.editorProjectConstants",
-            // "vanilla.editorStructure",
-            // "vanilla.editorTutorial",
             "vanilla.gameplay.localPlayerWeatherLightningFacet",
             "vanilla.levelInfo",
             "vanilla.currentParty",
@@ -859,7 +849,16 @@ declare global {
             "vanilla.openAndCloseRealmCommandsFacet",
             "dev.realmsCommitCommandsFacet",
             "dev.realmsCommitQueriesFacet",
-            "vanilla.newPlayerChoices"
+            "vanilla.newPlayerChoices",
+
+            // Editor mode only facets (crashes the game when not in editor mode).
+            editorModeOnly: "vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview when not in editor mode.
+            editorModeOnly: "vanilla.editorBlockPalette", // Crashes the game when not in editor mode.
+            editorModeOnly: "vanilla.editorInputBinding", // Crashes the game when not in editor mode.
+            editorModeOnly: "vanilla.editorInputState", // Crashes the game when not in editor mode.
+            editorModeOnly: "vanilla.editorProjectConstants", // Crashes the game when not in editor mode.
+            editorModeOnly: "vanilla.editorStructure", // Crashes the game when not in editor mode.
+            editorModeOnly: "vanilla.editorTutorial" // Crashes the game when not in editor mode.
         ];
         /**
          * An interface that maps facets to their types.
@@ -871,12 +870,15 @@ declare global {
                 MAX_FIXED_GUI_SCALE_MODIFIER: number;
                 MIN_FIXED_GUI_SCALE_MODIFIER: number;
                 fixedGuiScaleModifier: number;
-                scalingModeOverride: string;
+                scalingModeOverride: LooseAutocomplete<"legacy">;
             };
             "core.deviceInformation": {
-                activeMultiplayerServiceIds: ArrayLike<number>;
+                activeMultiplayerServiceIds: CoherentArrayProxy<number>;
                 changeStorageTask: number;
-                storageType: number;
+                /**
+                 * @see {@link StorageType}
+                 */
+                storageType: StorageType<"values">;
                 supportsSizeQuery: boolean;
                 isStorageLow: boolean;
                 isStorageFull: boolean;
@@ -894,17 +896,34 @@ declare global {
                 displayWidth: number;
                 pixelsPerMillimeter: number;
                 isLowMemoryDevice: boolean;
-                inputMethods: ArrayLike<number>;
-                arvrPlatform: number;
-                platform: number;
+                /**
+                 * @see {@link InputMethod}
+                 */
+                inputMethods: CoherentArrayProxy<InputMethod<"values">>;
+                /**
+                 * @see {@link ARVRPlatform}
+                 *
+                 * @deprecated This was removed in 1.21.80 with the removal of VR support.
+                 */
+                arvrPlatform?: ARVRPlatform<"values">;
+                /**
+                 * @see {@link Platform}
+                 */
+                platform: Platform<"values">;
             };
             "core.featureFlags": {
                 flags: CoherentArrayProxy<string>;
             };
             "core.input": {
-                keyboardType: number;
+                /**
+                 * @see {@link KeyboardType}
+                 */
+                keyboardType: KeyboardType<"values">;
                 enableControllerHints: boolean;
-                currentInputType: number;
+                /**
+                 * @see {@link InputMethod}
+                 */
+                currentInputType: InputMethod<"values">;
                 swapXYButtons: boolean;
                 swapABButtons: boolean;
             };
@@ -915,8 +934,10 @@ declare global {
                 translate(...args: unknown[]): unknown;
                 translateWithParameters(...args: unknown[]): unknown;
             };
-            // NOTE: Not present in 1.21.120.4 (may exist in dev builds).
-            "core.performanceFacet": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            /**
+             * NOTE: Not present in 1.21.120.4 (may exist in dev builds).
+             */
+            "core.performanceFacet": unknown; // TODO: Get the type for this facet.
             "core.router": {
                 /**
                  * The history object.
@@ -956,6 +977,14 @@ declare global {
                      * The history stack.
                      */
                     list: CoherentArrayProxy<RouteHistoryItem>;
+                    /**
+                     * The length of the history stack.
+                     */
+                    length?: number;
+                    /**
+                     * The last action performed on the history stack.
+                     */
+                    action?: LooseAutocomplete<"REPLACE" | "PUSH" | "POP">;
                 };
             };
             "core.safeZone": {
@@ -968,7 +997,13 @@ declare global {
                 isIdle: boolean;
                 isUITextToSpeechEnabled: boolean;
                 isChatTextToSpeechEnabled: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 read(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
                 clear(...args: unknown[]): unknown;
             };
             "core.splitScreen": {
@@ -977,7 +1012,10 @@ declare global {
                 splitScreenPosition: number;
                 isPrimaryUser: boolean;
             };
-            "core.social": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "core.social": unknown; // TODO: Get the type for this facet.
             "core.sound": {
                 /**
                  * Plays a sound.
@@ -1004,10 +1042,26 @@ declare global {
                  */
                 isPlaying(id: number): boolean;
             };
-            "core.user": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "core.vrMode": unknown; // TODO: Get the type for this facet. // Found in dev build file. // DEPRECATED: May have been removed.
-            "vanilla.achievements": unknown; // TODO: Get the type for this facet.
-            "vanilla.achievementsReward": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "core.user": unknown; // TODO: Get the type for this facet.
+            /**
+             * @deprecated This has been removed.
+             */
+            "core.vrMode": unknown; // TODO: Get the type for this facet. // Found in dev build file.
+            "vanilla.achievements": {
+                data: PlayerAchievementData;
+                status: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setTrackedStatus(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.achievementsReward": unknown; // TODO: Get the type for this facet.
             "vanilla.buildSettings": {
                 currentGameVersion: {
                     isBeta: boolean;
@@ -1030,15 +1084,363 @@ declare global {
                  */
                 copyToClipboard(text: string): undefined | null;
             };
-            "vanilla.createNewWorld": unknown; // TODO: Get the type for this facet.
-            "vanilla.createPreviewRealmFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.debugSettings": unknown; // TODO: Get the type for this facet.
-            "vanilla.editor": unknown; // TODO: Get the type for this facet.
-            "vanilla.editorInput": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            "vanilla.createNewWorld": {
+                applyTemplateTaskState: number; // TODO: MAKE ENUM
+                consumeResetFlag: boolean;
+                inWorldCreation: boolean;
+                showedAchievementWarning: boolean;
+                worldData: {
+                    achievementsPermanentlyDisabled: boolean;
+                    achievementsDisabled: boolean;
+                    isUsingTemplate: boolean;
+                    isLockedTemplate: boolean;
+                    betaFeatures: CoherentArrayProxy<{
+                        isEnabled: boolean;
+                        isTogglePermanentlyDisabled: boolean;
+                        category: number; // TODO: MAKE ENUM
+                        description: string;
+                        title: string;
+                        id: string;
+                    }>;
+                    resourcePacks: { sharedPacksEnabled: boolean };
+                    cheats: {
+                        tickSpeed: string;
+                        educationEdition: boolean;
+                        commandBlocks: boolean;
+                        weather: boolean;
+                        entitiesDropLoot: boolean;
+                        mobGriefing: boolean;
+                        mobSpawning: boolean;
+                        keepInventory: boolean;
+                        daylightCycle: number; // TODO: MAKE ENUM
+                        cheatsEnabled: boolean;
+                    };
+                    scriptingCoding?: {
+                        consoleCommandsEnabled: boolean;
+                        codeBuilderEnabled: boolean;
+                    };
+                    multiplayer: {
+                        locatorBarEnabled: boolean;
+                        friendlyFire: boolean;
+                        visibleToLanPlayers: boolean;
+                        playerPermissions: number; // TODO: MAKE ENUM
+                        playerAccess: number; // TODO: MAKE ENUM
+                        generalWarningState: number; // TODO: MAKE ENUM
+                        platformPlayerFriendsOfFriendsAccessSupported: boolean;
+                        platformPlayerInviteAccessSupported: boolean;
+                        platformPlayerAccessEnabled: boolean;
+                        platformPlayerAccessSupported: boolean;
+                        platformPlayerAccess: number; // TODO: MAKE ENUM
+                        multiplayerGame: boolean;
+                        multiplayerSupported: boolean;
+                    };
+                    advanced: {
+                        flatWorldPreset: string;
+                        worldSeed: string;
+                        respawnRadius: string;
+                        immediateRespawn: boolean;
+                        sleepSkipNightPercent: number;
+                        sleepSkipNight: boolean;
+                        tileDrops: boolean;
+                        naturalRegeneration: boolean;
+                        mobLoot: boolean;
+                        respawnBlocksExplode: boolean;
+                        tntExplodes: boolean;
+                        recipesUnlock: boolean;
+                        firesSpreads: boolean;
+                        friendlyFire: boolean;
+                        showDaysPlayed: boolean;
+                        showCoordinates: boolean;
+                        bonusChest: boolean;
+                        startWithMap: boolean;
+                        simulationDistance: number;
+                        generatorType: number; // TODO: MAKE ENUM
+                        useFlatWorld: boolean;
+                    };
+                    general: {
+                        difficulty: number; // TODO: MAKE ENUM
+                        playerHasDied: boolean;
+                        isHardcore: boolean;
+                        gameMode: number; // TODO: MAKE ENUM
+                        worldName: string;
+                    };
+                };
+                worldPreviewImagePath: string;
+                createOnRealmsError: null | number; // TODO: MAKE ENUM
+                createWorldError: null | number; // TODO: MAKE ENUM
+                isCreatingWorld: boolean;
+                isEditorWorld: boolean;
+                isRandomSeedAllowed: boolean;
+                checkDlcError: string;
+                inputError: string;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                createWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                createOnRealms(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearErrors(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                applyTemplate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                selectRealmToCreateOn(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                createWorldOnPreviewRealm(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                unlockTemplateSettings(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                checkIfUserHasChangedSettings(...args: unknown[]): unknown;
+            };
+            "vanilla.createPreviewRealmFacet": {
+                createPreviewRealmFromSubscriptionResult: null | number; // TODO: MAKE ENUM
+                createPreviewRealmFromSubscriptionTaskState: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                createPreviewRealmFromSubscriptionId(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                activateNewPreviewRealm(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reset(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getCreatedPreviewRealmId(...args: unknown[]): unknown;
+            };
+            "vanilla.debugSettings": {
+                allBiomes: CoherentArrayProxy<{
+                    dimension: number;
+                    id: number;
+                    label: string;
+                }>;
+                isBiomeOverrideActive: boolean;
+                biomeOverrideId: number;
+                defaultSpawnBiome: boolean;
+                spawnBiomeId: number;
+                spawnDimensionId: number;
+                gameVersionOverride: string;
+                enableGameVersionOverride: boolean;
+                flatNether: boolean;
+            };
+            /**
+             * This CAN be used outside of editor mode.
+             */
+            "vanilla.editor": {
+                canShowModeShortcutToast: boolean;
+                editorMode: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openPauseMenu(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                shouldDisplayReloadModal(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resizeViewport(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                onViewportFocusAreaResized(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openConsole(...args: unknown[]): unknown;
+                /**
+                 * Opens whatever URI is passed into it (no restrictions).
+                 *
+                 * @param {string} uri The URI to open.
+                 * @returns {null} Returns `null`.
+                 */
+                navigateUri(uri: string): null;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getCursorBlockName(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.editorInput": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorLogging": unknown; // TODO: Get the type for this facet.
-            "vanilla.editorScripting": unknown; // TODO: Get the type for this facet.
-            "vanilla.editorSelectionFacet": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "vanilla.editorSettings": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorScripting": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                sendMessage(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                dispatchDataStoreEvent(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reload(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                attachDebugger(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                addCleanupMessage(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getMouseRayCastActionPayload(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.editorSelectionFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.editorSettings": {
+                selectedOperator: number;
+                selectedTool: string;
+                isEditorMode: boolean;
+                themesMap: Partial<
+                    Record<
+                        LooseAutocomplete<
+                            | "minecraft:editor:theme:dark"
+                            | "minecraft:editor:theme:light"
+                            | "minecraft:editor:theme:redstone"
+                            | "minecraft:editor:theme:high_contrast"
+                            | "andexdb:editor:theme:8CrafterServerUtilitiesTheme"
+                        >,
+                        {
+                            colorProps: Partial<
+                                Record<
+                                    LooseAutocomplete<
+                                        | "SecondaryBackground3"
+                                        | "TitleBarBackground"
+                                        | "ElementBorder"
+                                        | "PanelBackground"
+                                        | "Caret"
+                                        | "PrimaryMute"
+                                        | "HeaderBackground"
+                                        | "CursorVolumeBorder"
+                                        | "Confirm2"
+                                        | "PrimaryActive"
+                                        | "PlacementVolumeFill"
+                                        | "PanelBorder"
+                                        | "PrimaryDefault"
+                                        | "DisableBackground"
+                                        | "FocusOutline"
+                                        | "PrimaryDisable"
+                                        | "CoordinateControlX"
+                                        | "Coordinate3"
+                                        | "PrimaryBackground1"
+                                        | "HotbarOutline"
+                                        | "PrimaryBackground2"
+                                        | "Coordinate1"
+                                        | "PrimaryBackground3"
+                                        | "PrefillVolumeBorder"
+                                        | "PrimaryBackground4"
+                                        | "SecondaryActive"
+                                        | "SecondaryDefault"
+                                        | "PrefillVolumeFill"
+                                        | "DisableText"
+                                        | "SecondaryMute"
+                                        | "SecondaryDisable"
+                                        | "SecondaryBackground1"
+                                        | "Error"
+                                        | "SecondaryBackground2"
+                                        | "DropDown1"
+                                        | "ConfirmFill"
+                                        | "DropDown2"
+                                        | "DropDown3"
+                                        | "SelectionVolumeBorder"
+                                        | "Destroy2"
+                                        | "ScrollBar"
+                                        | "ViewportOutline"
+                                        | "FocusErrorOutline"
+                                        | "CoordinateControlY"
+                                        | "Coordinate2"
+                                        | "Warning"
+                                        | "DisableOutline"
+                                        | "DisableFill"
+                                        | "Info3"
+                                        | "Confirm1"
+                                        | "Info1"
+                                        | "Confirm3"
+                                        | "DestroyFill"
+                                        | "Destroy1"
+                                        | "Destroy3"
+                                        | "InfoFill"
+                                        | "Info2"
+                                        | "PlacementVolumeBorder"
+                                        | "CursorVolumeFill"
+                                        | "SelectionVolumeFill"
+                                        | "SelectionVolumeOutlineBorder"
+                                        | "SelectionVolumeOutlineFill"
+                                        | "ControlsGeneralFill"
+                                        | "ControlsGeneralHighlight"
+                                        | "CoordinateControlZ"
+                                    >,
+                                    { [channel in "alpha" | "blue" | "green" | "red"]: number }
+                                >
+                            >;
+                            sourceThemeId: string;
+                            isMutatable: boolean;
+                            name: string;
+                            id: string;
+                        }
+                    >
+                >;
+                fontZoom: number;
+                currentThemeId: string;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                addNewTheme(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                updateThemeColor(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deleteTheme(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getKey(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setKey(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setKeys(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                hasKey(...args: unknown[]): unknown;
+            };
             "vanilla.externalServerWorldList": {
                 addedServerId: number;
                 externalServerWorlds: CoherentArrayProxy<{
@@ -1050,7 +1452,7 @@ declare global {
                     ping: string;
                     description: string;
                     name: string;
-                    id: string;
+                    id: `${number}`;
                 }>;
                 /**
                  * @todo Figure out the types for this method.
@@ -1065,7 +1467,19 @@ declare global {
                  */
                 removeExternalServerWorld(...args: unknown[]): unknown;
             };
-            "vanilla.followersList": unknown; // TODO: Get the type for this facet.
+            "vanilla.followersList": {
+                xboxAPICallResult: number;
+                playerList: CoherentArrayProxy<{
+                    description: string;
+                    isFollowedByMe: boolean;
+                    isFollowingMe: boolean;
+                    isOnline: boolean;
+                    gamerIcon: string;
+                    gamertag: string;
+                    xuid: string;
+                }>;
+                isLoading: boolean;
+            };
             "vanilla.friendsListFacet": {
                 platformFriends: CoherentArrayProxy<unknown>;
                 xblFriends: CoherentArrayProxy<{
@@ -1090,21 +1504,222 @@ declare global {
                  */
                 userControlledUpdateGameList(...args: unknown[]): unknown;
             };
-            "vanilla.friendsManagerFacet": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
-            "vanilla.gameplay.activeLevelHardcoreMode": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.bedtime": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.closeContainerCommand": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.friendsManagerFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.activeLevelHardcoreMode": {
+                isHardcoreMode: null | boolean;
+            };
+            "vanilla.gameplay.bedtime": {
+                canChangeSleepSettings: boolean;
+                isAbleToSleep: boolean;
+                remotePlayersCount: number;
+                chatAvailability: number; // TODO: MAKE ENUM
+                requiredSleepingPlayerCount: number;
+                sleepingPlayerCount: number;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                wakeUp(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.gameplay.closeContainerCommand": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.gameplay.containerBlockActorType": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.containerItemQuery": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "vanilla.gameplay.containerSizeQuery": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.gameplay.containerItemQuery": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.gameplay.containerSizeQuery": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.gameplay.furnace": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.immediateRespawn": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.leaveGame": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.playerDeathInfo": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.playerPositionHudElement": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "vanilla.gameplay.playerRespawn": unknown; // TODO: Get the type for this facet.
-            "vanilla.gamertagSearch": unknown; // TODO: Get the type for this facet.
-            "vanilla.inbox": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.immediateRespawn": {
+                immediateRespawn: null | boolean;
+            };
+            "vanilla.gameplay.leaveGame": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                leaveGame(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                leaveGameThenJoinFriendsWorld(...args: unknown[]): unknown;
+            };
+            "vanilla.gameplay.playerDeathInfo": {
+                /**
+                 * @default ""
+                 */
+                deathInfo: string;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.gameplay.playerPositionHudElement": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.playerRespawn": {
+                isAlive: boolean;
+                /**
+                 * @returns {null} Returns `null`.
+                 */
+                respawn(): null;
+            };
+            "vanilla.gamertagSearch": {
+                xboxAPICallResult: number;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                searchResults: CoherentArrayProxy<unknown>;
+                isLoading: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                search(...args: unknown[]): unknown;
+            };
+            "vanilla.inbox": {
+                messagingServiceFailed: boolean;
+                marketplacePassSubscriber: boolean;
+                settings: {
+                    showOnlyFriendInvites: boolean;
+                    showMessageBadges: boolean;
+                    showInvitesBadges: boolean;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    toggleInvitesBadges(...args: unknown[]): unknown;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    toggleMessageBadges(...args: unknown[]): unknown;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    toggleOnlyFriendInvites(...args: unknown[]): unknown;
+                };
+                categoryData: CoherentArrayProxy<{
+                    imageUrl: string;
+                    unreadMessages: number;
+                    localizedName: string;
+                    categoryName: string;
+                }>;
+                realmsSubscriber: boolean;
+                inboxMessages: CoherentArrayProxy<{
+                    style: number; // TODO: MAKE ENUM
+                    /**
+                     * @default null
+                     */
+                    gamedrop: null | unknown;
+                    items: CoherentArrayProxy<{
+                        button: {
+                            action: number;
+                            link: string;
+                            description: string;
+                            text: string;
+                            id: string;
+                            /**
+                             * @todo Figure out the types for this method.
+                             */
+                            openExternalLink(...args: unknown[]): unknown;
+                        };
+                        image: {
+                            isLoaded: boolean;
+                            imageSize: null | { height: number; width: number };
+                            nonAnimatedUrl: string;
+                            animatedUrl: string;
+                            id: string;
+                        };
+                        id: string;
+                    }>;
+                    buttons: CoherentArrayProxy<{
+                        action: number;
+                        link: string;
+                        description: string;
+                        text: string;
+                        id: string;
+                        /**
+                         * @todo Figure out the types for this method.
+                         */
+                        openExternalLink(...args: unknown[]): unknown;
+                    }>;
+                    images: CoherentArrayProxy<{
+                        isLoaded: boolean;
+                        imageSize: null | { height: number; width: number };
+                        nonAnimatedUrl: string;
+                        animatedUrl: string;
+                        id: string;
+                    }>;
+                    template: string;
+                    worldId: string;
+                    instanceId: string;
+                    invStatus: number; // TODO: MAKE ENUM
+                    /**
+                     * @default null
+                     */
+                    expiryDaysLeft: null | unknown;
+                    invType: number;
+                    imgSource: string;
+                    invitationId: string;
+                    read: boolean;
+                    inboxCategory: string;
+                    content: string;
+                    senderXuid: string;
+                    sender: string;
+                    subtitle: string;
+                    title: string;
+                    dateString: string;
+                    dateReceived: number;
+                    id: string;
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setNotificationRead(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                acceptInvitation(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                rejectInvitation(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deleteNotification(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                saveSettings(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reloadInvites(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                markAllRead(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deleteAllRead(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportClick(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                requestMessages(...args: unknown[]): unknown;
+            };
             "vanilla.lanWorldList": {
                 lanWorlds: CoherentArrayProxy<{
                     ping: string;
@@ -1132,10 +1747,56 @@ declare global {
                 /**
                  * The local worlds.
                  */
-                localWorlds: ArrayLike<LocalWorldDataType>;
+                localWorlds: CoherentArrayProxy<LocalWorldDataType>;
             };
-            "vanilla.marketplaceSuggestions": unknown; // TODO: Get the type for this facet.
-            "vanilla.marketplacePassWorldTemplateList": unknown; // TODO: Get the type for this facet.
+            "vanilla.marketplaceSuggestions": {
+                getMorePacks: {
+                    /**
+                     * @example "MultiItemPage_0182b00f-3b8f-411a-9e40-69d904408f90%7cPagedList_342ec38f-e305-2bc6-7b61-04c33682aed7"
+                     */
+                    pageId: string;
+                    /**
+                     * @example "store.upsell.resourcepicker"
+                     */
+                    title: string;
+                };
+            };
+            "vanilla.marketplacePassWorldTemplateList": {
+                refreshTaskState: number; // TODO: MAKE ENUM
+                seeMoreMarketplacePassRouteData: {
+                    /**
+                     * @example "MultiItemPage_0182b00f-3b8f-411a-9e40-69d904408f90%7cPagedList_af5d5474-a360-e5f6-2de7-08514e8f12a8"
+                     */
+                    pageId: string;
+                    /**
+                     * @example "selectTemplate.marketplacePass"
+                     */
+                    title: string;
+                };
+                marketplacePassWorldTemplates: CoherentArrayProxy<{
+                    storeCatalogCategory: number; // TODO: MAKE ENUM
+                    isUpdateAvailable: boolean;
+                    isInstalled: boolean;
+                    packId: string;
+                    isExpired: boolean;
+                    ratingData: {
+                        totalRatingsCount: string;
+                        averageRating: number;
+                    };
+                    thumbnailPath: string;
+                    creator: string;
+                    name: string;
+                    id: string;
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                refreshOffers(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearRefreshTaskState(...args: unknown[]): unknown;
+            };
             "vanilla.networkWorldDetails": {
                 hasLoadedDetails: boolean;
                 networkDetails: {
@@ -1157,11 +1818,11 @@ declare global {
                 /**
                  * Loads the details of a network world.
                  *
-                 * @param {`${number}`} id The ID of the server.
+                 * @param {`${number | bigint}`} id The ID of the server.
                  * @param {0 | 1 | 2 | 3} type `0` = Featured Server, `1` = External Server, `2` = Realm, `3` = LAN Server
                  * @returns {undefined | null} `undefined` if the parameters are invalid, `null` otherwise.
                  */
-                loadNetworkWorldDetails(id: `${number}`, type: 0 | 1 | 2 | 3): undefined | null;
+                loadNetworkWorldDetails(id: `${number | bigint}`, type: 0 | 1 | 2 | 3): undefined | null;
             };
             "vanilla.networkWorldJoiner": {
                 joinLANServerTaskState: number; // TODO: MAKE ENUM
@@ -1216,6 +1877,8 @@ declare global {
                 clearJoinRealmTaskState(...args: unknown[]): unknown;
             };
             "vanilla.notificationOptions": {
+                doNotShowFriendsListFTUE: boolean;
+                doNotShowManageFeedDeleteWarning: boolean;
                 doNotShowEntitlementsWarning: boolean;
                 doNotShowOldWorldsWarning: boolean;
                 doNotShowAddonStackingWarning: boolean;
@@ -1240,16 +1903,103 @@ declare global {
                  */
                 setDoNotShowExperimentalWorldWarning(worldId: string, value: boolean): null;
             };
-            "vanilla.notifications": unknown; // TODO: Get the type for this facet.
-            "vanilla.options": unknown; // TODO: Get the type for this facet.
+            "vanilla.notifications": {
+                /**
+                 * Queues a snackbar message to be shown.
+                 *
+                 * Snackbar messages are the little popup messages that appear at the bottom of the screen (ex. when saving your world or adding/removing a pack).
+                 *
+                 * Snackbar mesages are one of the very few things in Ore UI that actually support [formatting codes](https://minecraft.wiki/w/Formatting_codes).
+                 *
+                 * @param {string} message The message to show. Any newlines will cause the message to be truncated there and appended with ellipses.
+                 * @returns {null} Returns `null`.
+                 */
+                queueSnackbar(message: string): null;
+            };
+            "vanilla.options": {
+                playVideoInTouchControlSelectionScreen: boolean;
+                useMobileDataOnce: boolean;
+                showTouchControlSelectionScreen: boolean;
+                touchControlScheme: number; // TODO: MAKE ENUM
+                showRenderDistanceWarningModal: boolean;
+                maxRenderDistance: number;
+                defaultRenderDistance: number;
+                renderDistance: number;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.party": unknown; // TODO: Get the type for this facet. // Found in dev build file.
-            "vanilla.playerAchievements": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerBanned": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerFollowingList": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerAchievements": {
+                data: PlayerAchievementData;
+                status: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                load(...args: unknown[]): unknown;
+            };
+            "vanilla.playerBanned": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openBannedInfoPage(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openXboxLiveBannedInfoPage(...args: unknown[]): unknown;
+            };
+            "vanilla.playerFollowingList": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                playerList: CoherentArrayProxy<unknown>;
+                isLoading: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                load(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.playerLinkedPlatformProfile": unknown; // TODO: Get the type for this facet. // Found in dev build file.
             "vanilla.playermessagingservice": {
-                data: { messages: CoherentArrayProxy<unknown>; messageCount: number };
-                status: number;
+                data: {
+                    messages: CoherentArrayProxy<{
+                        style: number;
+                        /**
+                         * @default null
+                         */
+                        gamedrop: null | unknown;
+                        buttons: CoherentArrayProxy<{
+                            action: number;
+                            link: string;
+                            description: string;
+                            text: string;
+                            id: string;
+                            /**
+                             * @todo Figure out the types for this method.
+                             */
+                            openExternalLink(...args: unknown[]): unknown;
+                        }>;
+                        images: CoherentArrayProxy<{
+                            isLoaded: boolean;
+                            imageSize: null | { height: number; width: number };
+                            nonAnimatedUrl: string;
+                            animatedUrl: string;
+                            id: string;
+                        }>;
+                        body: string;
+                        subtitle: string;
+                        header: string;
+                        template: string;
+                        surface: string;
+                        instanceId: string;
+                        id: string;
+                    }>;
+                    messageCount: number;
+                };
+                status: number; // TODO: MAKE ENUM
                 /**
                  * @todo Figure out the types for this method.
                  */
@@ -1259,11 +2009,204 @@ declare global {
                  */
                 reportDismiss(...args: unknown[]): unknown;
             };
-            "vanilla.playerPermissions": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
-            "vanilla.playerProfile": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerReport": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerSocialManager": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerStatistics": unknown; // TODO: Get the type for this facet.
+            "vanilla.playerPermissions": {
+                kickCommandState: number; // TODO: MAKE ENUM
+                operatorCommandsRevokedFlag: boolean;
+                selectedPlayerPermissionsChangedFlag: boolean;
+                selectedPlayerLeftFlag: boolean;
+                playerPermissionsMissingFlag: boolean;
+                playerIdInvalidFlag: boolean;
+                isWorldTemplateOptionsLocked: boolean;
+                areCheatsEnabled: boolean;
+                canKickPlayer: boolean;
+                canEditPermissions: boolean;
+                playerPermissionList: CoherentArrayProxy<{
+                    isEnabled: boolean;
+                    abilityIndex: number;
+                }>;
+                playerPermissionLevel: null | PlayerPermissionLevel<"values">; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadPlayerPermissions(playerName: unknown): unknown;
+                /**
+                 * @todo Figure out the return type for this method.
+                 */
+                requestSavePermissions(): unknown;
+                /**
+                 * @param {unknown} playerId The ID of the player to set the permission level for.
+                 * @param {PlayerPermissionLevel<"values">} permissionLevel The {@link PlayerPermissionLevel|permission level} to set.
+                 *
+                 * @todo Figure out the types for this method.
+                 */
+                setPlayerPermissionLevel(playerId: unknown, permissionLevel: PlayerPermissionLevel<"values">): unknown;
+                /**
+                 * @param {unknown} playerId The ID of the player to set the permission for.
+                 * @param {number} abilityIndex The index of the permission to set.
+                 * @param {boolean} isEnabled Whether the permission should be enabled or disabled.
+                 *
+                 * @todo Figure out the types for this method.
+                 */
+                setPlayerPermission(playerId: unknown, abilityIndex: number, isEnabled: boolean): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                kickPlayer(playerId: unknown): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                enableCheats(): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearErrorFlag(arg0: unknown): unknown;
+            };
+            "vanilla.playerProfile": {
+                playerProfiles: CoherentArrayProxy<{
+                    state: {
+                        platformError: number;
+                        platformState: number;
+                        xblError: number;
+                        xblState: number;
+                    };
+                    data: {
+                        favoriteStatus: number;
+                        isInSameGame: boolean;
+                        playingOnServerId: string;
+                        url: string;
+                        qrCode: string;
+                        presenceMessage: string;
+                        titleId: undefined;
+                        titleName: string;
+                        presence: number;
+                        isMuted: boolean;
+                        isBlocked: boolean;
+                        /**
+                         * @see {@link PlayerRelation}
+                         */
+                        relation: PlayerRelation<"values">;
+                        platformProfilePic: string;
+                        xblProfilePic: string;
+                        avatarState: number;
+                        avatar: string;
+                        realName: string;
+                        platformName: string;
+                        xblName: string;
+                        offlineName: string;
+                        platformId: string;
+                        xuid: string;
+                    };
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                subscribeToProfile(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                refetchProfile(...args: unknown[]): unknown;
+            };
+            "vanilla.playerReport": {
+                hasReachedReportLimit: boolean;
+                screenshot: string;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportReasonOptions: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportAreaOptions: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportableChatMessages: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                selectedChatMessages: CoherentArrayProxy<unknown>;
+                galleryScreenshotId: string;
+                platformId: string;
+                xuid: string;
+                reportMessage: string;
+                reportReason: number; // TODO: MAKE ENUM
+                reportArea: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                isChatAvailable(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                decideReportReasonOptions(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                finishReport(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                startReport(...args: unknown[]): unknown;
+            };
+            "vanilla.playerSocialManager": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                addFriend(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                removeFriend(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                block(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                unblock(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                mute(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                unmute(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                favorite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                unfavorite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                showXboxProfileCard(...args: unknown[]): unknown;
+            };
+            "vanilla.playerStatistics": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                data: CoherentArrayProxy<{
+                    currentUserValueNarration: string;
+                    currentUserValueDisplay: string;
+                    currentUserValueRaw: number;
+                    valueNarration: string;
+                    valueDisplay: string;
+                    valueRaw: number;
+                    icon: number;
+                    label: LooseAutocomplete<"Time played" | "Blocks broken" | "Mobs defeated" | "Distance traveled">;
+                    name: LooseAutocomplete<"MinutesPlayed" | "BlockBrokenTotal" | "MobKilled.IsMonster.1" | "DistanceTravelled">;
+                }>;
+                loaded: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                load(...args: unknown[]): unknown;
+            };
             "vanilla.privacyAndOnlineSafetyFacet": {
                 isCheckingCompleted: boolean;
                 getAllowCapturesResult: boolean;
@@ -1271,12 +2214,20 @@ declare global {
                 getMultiplayerCheckResult: boolean;
                 checkClubAndMultiplayerPermissions(): null;
             };
-            "vanilla.profanityFilter": unknown; // TODO: Get the type for this facet.
+            "vanilla.profanityFilter": {
+                /**
+                 * Checks if a string contains profanity.
+                 *
+                 * @param {string} string The string to check.
+                 * @returns {boolean} `true` if the string contains profanity, `false` otherwise.
+                 */
+                isProfanityInString(string: string): boolean;
+            };
             "vanilla.realmsListFacet": {
-                realms: ArrayLike<RealmDataType>;
-                error: number;
-                state: number;
-                compatibility: number;
+                realms: CoherentArrayProxy<RealmDataType>;
+                error: number; // TODO: MAKE ENUM
+                state: number; // TODO: MAKE ENUM
+                compatibility: number; // TODO: MAKE ENUM
             };
             "vanilla.realmSlots": {
                 realmSlots: [slot0: RealmSlot, slot1: RealmSlot, slot2: RealmSlot];
@@ -1296,13 +2247,19 @@ declare global {
             "vanilla.realmsMembership": {
                 clearFetchRealm(): null;
                 fetchRealm(id: string): null;
-                leaveRealmResult: null | number; // TODO: MAKE ENUM
+                /**
+                 * @see {@link LeaveRealmsServerError}
+                 */
+                leaveRealmResult: null | LeaveRealmsServerError<"values">;
                 leaveRealmProgress: number;
                 joinedRealmName: string;
                 joinedRealmId: string;
-                joinRealmError: null | (typeof JoinRealmsServerError)[keyof typeof JoinRealmsServerError];
+                /**
+                 * @see {@link JoinRealmsServerError}
+                 */
+                joinRealmError: null | JoinRealmsServerError<"values">;
                 joinRealmProgress: number;
-                fetchRealmError: null | (typeof JoinRealmsServerError)[keyof typeof JoinRealmsServerError];
+                fetchRealmError: null | number; // TODO: MAKE ENUM
                 fetchRealmResult: null | {
                     onlinePlayers: CoherentArrayProxy<PlayerData>;
                     players: CoherentArrayProxy<PlayerData>;
@@ -1327,17 +2284,245 @@ declare global {
                 leaveRealm(id: number): null;
                 clearLeaveRealm(): null;
             };
-            "vanilla.realmsStories.actions": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.localScreenshots": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "vanilla.realmsStories.persistentData": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.players": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.realmData": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.settings": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.stories": unknown; // TODO: Get the type for this facet.
-            "vanilla.RealmsPDPFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.RealmWorldUploaderFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.actions": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                init(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reset(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                joinRealmFromInvite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                postStory(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearPostStoryStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                postComment(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearPostCommentStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchStories(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearStoryFeedStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchStoryImage(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchEvents(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearEventsStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchMembers(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchSessions(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearFetchMembersStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadStoriesSlice(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchStoryComments(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setViewed(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearSetViewedStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                toggleLike(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearFetchSessionsStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearToggleLikeStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                delete(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearDeleteStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setPlayerOptInStatusAndPostWithOptInTelemetry(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRealmEventsStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRealmCoordinatesStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRealmTimelineStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRealmTimelineRequirementStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRealmNotificationStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                postSettings(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                postSettingsOnExit(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchSettings(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearSettingsStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportToClubOwner(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearReportToClubOwnerStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportFeedItemToXbox(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportGamertagToXbox(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearReportToXboxStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openManageMembersScreen(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.realmsStories.localScreenshots": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsStories.persistentData": {
+                newPostAvailable: boolean;
+                currentMemberSortOption: number; // TODO: MAKE ENUM
+                currentMemberFilterOption: number; // TODO: MAKE ENUM
+                currentMemberSearchText: string;
+                storyScreenshotSelectionFilePath: string;
+                commentInProgressBody: string;
+                postInProgressBody: string;
+                currentStoryId: string;
+            };
+            "vanilla.realmsStories.players": {
+                fetchOnlineMembersStatus: number; // TODO: MAKE ENUM
+                fetchMembersStatus: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                players: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.realmsStories.realmData": {
+                isHardcore: boolean;
+                isFetchingRealmWorld: boolean;
+                isRealmWorldValid: boolean;
+                userXuid: string;
+                ownerXuid: string;
+                description: string;
+                name: string;
+            };
+            "vanilla.realmsStories.settings": {
+                newPostAvailable: boolean;
+                currentMemberSortOption: number; // TODO: MAKE ENUM
+                currentMemberFilterOption: number; // TODO: MAKE ENUM
+                currentMemberSearchText: string;
+                storyScreenshotSelectionFilePath: string;
+                commentInProgressBody: string;
+                postInProgressBody: string;
+                currentStoryId: string;
+            };
+            "vanilla.realmsStories.stories": {
+                mostRecentStoriesViewed: boolean;
+                pageLength: number;
+                unreadStoryCount: number;
+                totalStories: number;
+                postStoryStatus: number; // TODO: MAKE ENUM
+                storiesFirstPageReady: boolean;
+                storiesStatus: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                stories: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.RealmsPDPFacet": {
+                isRealmsTrialAvailable: boolean;
+            };
+            "vanilla.RealmWorldUploaderFacet": {
+                choosePreviewRealm: boolean;
+                uploadedRealmWorldId: number;
+                uploadWorldToRealmError: null | number; // TODO: MAKE ENUM
+                uploadWorldToRealmTaskState: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                uploadWorldToRealm(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setPreviewRealmForUpload(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearUploadWorldToRealmTaskState(...args: unknown[]): unknown;
+            };
             "vanilla.recentlyPlayedWithList": {
-                xboxAPICallResult: number;
+                xboxAPICallResult: number; // TODO: MAKE ENUM
                 playerList: CoherentArrayProxy<{
                     description: string;
                     isFollowedByMe: boolean;
@@ -1350,7 +2535,7 @@ declare global {
                 isLoading: boolean;
             };
             "vanilla.recommendedFriendsList": {
-                xboxAPICallResult: number;
+                xboxAPICallResult: number; // TODO: MAKE ENUM
                 playerList: CoherentArrayProxy<{
                     description: string;
                     isFollowedByMe: boolean;
@@ -1362,11 +2547,202 @@ declare global {
                 }>;
                 isLoading: boolean;
             };
-            "vanilla.resourcePackOverrides": unknown; // TODO: Get the type for this facet.
-            "vanilla.resourcePacks": unknown; // TODO: Get the type for this facet.
-            "vanilla.screenshotGalleryList": unknown; // TODO: Get the type for this facet. // NOTE: May not exist.
-            "vanilla.screenSpecificOptions": unknown; // TODO: Get the type for this facet.
-            "vanilla.screenTechStack": unknown; // TODO: Get the type for this facet.
+            "vanilla.resourcePackOverrides": {
+                lastUpdated: number;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                definitions: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.resourcePacks": {
+                lastActivatedPackId: string;
+                prompt: {
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    actions: CoherentArrayProxy<unknown>;
+                    body: string;
+                    title: string;
+                    active: boolean;
+                    id: string;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    handleAction(...args: unknown[]): unknown;
+                };
+                availableBehaviorPacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Behavior";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                activeBehaviorPacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Behavior";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                unownedTexturePacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Resource";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                realmsTexturePacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Resource";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                globalTexturePacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Resource";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                availableTexturePacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Resource";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                activeTexturePacks: CoherentArrayProxy<{
+                    isAddon: boolean;
+                    hasSettings: boolean;
+                    isPlatformLocked: boolean;
+                    isMarketplaceItem: boolean;
+                    image: string;
+                    contentId: string;
+                    id: string;
+                    size: string;
+                    description: string;
+                    type: "Resource";
+                    name: string;
+                    /**
+                     * May not actually be part of the type.
+                     */
+                    creator?: string;
+                }>;
+                importProgress: number;
+                downloadProgress: number;
+                marketplacePackId: string;
+                resourcePackToDownload: { body: string; title: string };
+                realmsSubscriber: boolean;
+                realmsPlusSupported: boolean;
+                status: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                activate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deactivate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                showSettings(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                cancelDownload(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                changePackPriority(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearLastActivatedPackId(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
+            "vanilla.screenshotGalleryList": unknown; // TODO: Get the type for this facet.
+            "vanilla.screenSpecificOptions": {
+                devPlayScreenHideLanWorlds: boolean;
+                playScreenWorldLayoutMode: number; // TODO: MAKE ENUM
+            };
+            "vanilla.screenTechStack": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                selectTechStackForScreen(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getTechStackForScreen(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getPreferredTechStackForScreen(...args: unknown[]): unknown;
+            };
             "vanilla.seedTemplates": {
                 failedToFetch: boolean;
                 templates: CoherentArrayProxy<{ image: string; seedValue: string; title: string }>;
@@ -1387,6 +2763,14 @@ declare global {
                 shareFile(...args: unknown[]): unknown;
             };
             "vanilla.simulationDistanceOptions": {
+                /**
+                 * The options for the simulation distance dropdown.
+                 *
+                 * @example
+                 * ```ts
+                 * [4, 6, 8, 10, 12]
+                 * ```
+                 */
                 simulationDistanceOptions: CoherentArrayProxy<number>;
             };
             "vanilla.telemetry": {
@@ -1431,7 +2815,7 @@ declare global {
                     ping: string;
                     description: string;
                     name: string;
-                    id: string;
+                    id: `${bigint}`;
                 }>;
             };
             "vanilla.unpairedRealmsListFacet": {
@@ -1444,10 +2828,10 @@ declare global {
                 forceFetchUnpairedRealmsList(...args: unknown[]): unknown;
             };
             "vanilla.userAccount": {
-                signInPlatformNetworkTaskResult: null;
-                signInPlatformNetworkTaskState: number;
+                signInPlatformNetworkTaskResult: null | number; // TODO: MAKE ENUM
+                signInPlatformNetworkTaskState: number; // TODO: MAKE ENUM
                 isSignedInPlatformNetwork: boolean;
-                accountUnlinkState: number;
+                accountUnlinkState: number; // TODO: MAKE ENUM
                 currentXuid: string;
                 currentPlatformId: string;
                 isMarketplacePassSubscriptionActive: boolean;
@@ -1459,9 +2843,27 @@ declare global {
                 banReason: string;
                 isBanned: boolean;
                 userPermissions: {
-                    viewProfiles: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
-                    addFriends: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
-                    multiplayer: { allowed: boolean; denyReasons: CoherentArrayProxy<unknown> };
+                    viewProfiles: {
+                        allowed: boolean;
+                        /**
+                         * @todo Figure out the types for this array.
+                         */
+                        denyReasons: CoherentArrayProxy<unknown>;
+                    };
+                    addFriends: {
+                        allowed: boolean;
+                        /**
+                         * @todo Figure out the types for this array.
+                         */
+                        denyReasons: CoherentArrayProxy<unknown>;
+                    };
+                    multiplayer: {
+                        allowed: boolean;
+                        /**
+                         * @todo Figure out the types for this array.
+                         */
+                        denyReasons: CoherentArrayProxy<unknown>;
+                    };
                 };
                 isLoggedInWithMicrosoftAccount: boolean;
                 isTrialAccount: boolean;
@@ -1509,8 +2911,8 @@ declare global {
                 openLinkWithParams(...args: unknown[]): unknown;
             };
             "vanilla.worldCloudSyncFacet": {
-                syncWorldTaskState: number;
-                syncWorldResult: null;
+                syncWorldTaskState: number; // TODO: MAKE ENUM
+                syncWorldResult: null | number; // TODO: MAKE ENUM
                 /**
                  * @todo Figure out the types for this method.
                  */
@@ -1521,12 +2923,12 @@ declare global {
                 clearSyncWorldTaskState(...args: unknown[]): unknown;
             };
             "vanilla.worldEditor": {
-                loadWorldTaskState: number;
-                loadWorldError: null;
-                saveRealmsWorldTaskState: number;
-                saveRealmsWorldError: null;
-                saveLocalWorldTaskState: number;
-                saveLocalWorldError: null;
+                loadWorldTaskState: number; // TODO: MAKE ENUM
+                loadWorldError: null | number; // TODO: MAKE ENUM
+                saveRealmsWorldTaskState: number; // TODO: MAKE ENUM
+                saveRealmsWorldError: null | number; // TODO: MAKE ENUM
+                saveLocalWorldTaskState: number; // TODO: MAKE ENUM
+                saveLocalWorldError: null | number; // TODO: MAKE ENUM
                 worldHasBeenModified: boolean;
                 worldIsInitialized: boolean;
                 currentWorldId: string;
@@ -1541,7 +2943,7 @@ declare global {
                     betaFeatures: CoherentArrayProxy<{
                         isEnabled: boolean;
                         isTogglePermanentlyDisabled: boolean;
-                        category: number;
+                        category: number; // TODO: MAKE ENUM
                         description: string;
                         title: string;
                         id: string;
@@ -1556,10 +2958,10 @@ declare global {
                         mobGriefing: boolean;
                         mobSpawning: boolean;
                         keepInventory: boolean;
-                        daylightCycle: number;
+                        daylightCycle: number; // TODO: MAKE ENUM
                         cheatsEnabled: boolean;
                     };
-                    scriptingCoding: {
+                    scriptingCoding?: {
                         consoleCommandsEnabled: boolean;
                         codeBuilderEnabled: boolean;
                     };
@@ -1567,19 +2969,19 @@ declare global {
                         locatorBarEnabled: boolean;
                         friendlyFire: boolean;
                         visibleToLanPlayers: boolean;
-                        playerPermissions: number;
-                        playerAccess: number;
-                        generalWarningState: number;
+                        playerPermissions: number; // TODO: MAKE ENUM
+                        playerAccess: number; // TODO: MAKE ENUM
+                        generalWarningState: number; // TODO: MAKE ENUM
                         platformPlayerFriendsOfFriendsAccessSupported: boolean;
                         platformPlayerInviteAccessSupported: boolean;
                         platformPlayerAccessEnabled: boolean;
                         platformPlayerAccessSupported: boolean;
-                        platformPlayerAccess: number;
+                        platformPlayerAccess: number; // TODO: MAKE ENUM
                         multiplayerGame: boolean;
                         multiplayerSupported: boolean;
                     };
                     advanced: {
-                        flatWorldPreset: null;
+                        flatWorldPreset: null | string;
                         worldSeed: string;
                         respawnRadius: string;
                         immediateRespawn: boolean;
@@ -1598,14 +3000,14 @@ declare global {
                         bonusChest: boolean;
                         startWithMap: boolean;
                         simulationDistance: number;
-                        generatorType: number;
+                        generatorType: number; // TODO: MAKE ENUM
                         useFlatWorld: boolean;
                     };
                     general: {
-                        difficulty: number;
+                        difficulty: number; // TODO: MAKE ENUM
                         playerHasDied: boolean;
                         isHardcore: boolean;
-                        gameMode: number;
+                        gameMode: number; // TODO: MAKE ENUM
                         worldName: string;
                     };
                 };
@@ -1642,21 +3044,271 @@ declare global {
                  */
                 reloadWorld(...args: unknown[]): unknown;
             };
-            "vanilla.worldOperations": unknown; // TODO: Get the type for this facet.
-            "vanilla.worldPackages": unknown; // TODO: Get the type for this facet.
-            "vanilla.worldPlayersList": unknown; // TODO: Get the type for this facet. // NOTE: Exists but not yet accessed.
-            "vanilla.worldStartup": unknown; // TODO: Get the type for this facet.
-            "vanilla.worldTemplateList": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldOperations": {
+                clearPlayerDataTaskState: number; // TODO: MAKE ENUM
+                startClearPlayerDataError: null | number; // TODO: MAKE ENUM
+                exportWorldStatus: number; // TODO: MAKE ENUM
+                exportWorldResult: null | number; // TODO: MAKE ENUM
+                makeWorldInfiniteProgress: number;
+                makeWorldInfiniteState: number; // TODO: MAKE ENUM
+                makeWorldInfiniteError: null | number; // TODO: MAKE ENUM
+                duplicateWorldTaskState: number; // TODO: MAKE ENUM
+                duplicateWorldError: null | number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                startDuplicateWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearDuplicateWorldTaskState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                makeWorldInfinite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearMakeWorldInfiniteState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deleteWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                exportWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                exportWorldAsTemplate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearExportWorldResult(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearPlayerData(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetClearPlayerData(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                saveScreenshotAsWorldIcon(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetWorldIconToDefault(...args: unknown[]): unknown;
+            };
+            "vanilla.worldPackages": {
+                lastConsultedPackSizes: string;
+                lastConsultedPackSizesTaskState: number; // TODO: MAKE ENUM
+                lastConsultedPackSizesError: null | number; // TODO: MAKE ENUM
+                packDownloadErrorData: {
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    packTitles: CoherentArrayProxy<unknown>;
+                    storageSpaceNeeded: string;
+                };
+                packDownloadStatus: number; // TODO: MAKE ENUM
+                packDownloadTaskState: number; // TODO: MAKE ENUM
+                packDownloadProgress: number;
+                packDownloadName: string;
+                packDownloadError: null | number; // TODO: MAKE ENUM
+                worldPacksData: {
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    availableBehaviorPacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    activeBehaviorPacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    unownedTexturePacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    realmsTexturePacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    globalTexturePacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    availableTexturePacks: CoherentArrayProxy<unknown>;
+                    /**
+                     * @todo Figure out the types for this array.
+                     */
+                    activeTexturePacks: CoherentArrayProxy<unknown>;
+                    realmsSubscriber: boolean;
+                    realmsPlusSupported: boolean;
+                };
+                isReadyForDownload: boolean;
+                isInitialized: boolean;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadPacksData(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                activatePack(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deactivatePack(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                changePackPriority(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                continuePackActivation(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                continuePackDeactivation(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                downloadPacks(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                cancelPackDownload(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getPackSizes(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getPackSizesReset(...args: unknown[]): unknown;
+            };
+            "vanilla.worldPlayersList": {
+                isInRealm: boolean;
+                enableInviteToPlayButton: boolean;
+                playersInMyWorld: CoherentArrayProxy<{
+                    /**
+                     * @see {@link PlayerRelation}
+                     */
+                    relation: PlayerRelation<"values">;
+                    isMuted: boolean;
+                    isBlocked: boolean;
+                    /**
+                     * @see {@link PlayerPermissionLevel}
+                     */
+                    permissionLevel: PlayerPermissionLevel<"values">;
+                    favoriteStatus: FriendFavoriteStatus<"values">;
+                    isCurrentlyPlaying: boolean;
+                    titleHistory: number;
+                    presenceMessage: string;
+                    isInSameGame: boolean;
+                    titleName: string;
+                    partyPresence: number;
+                    presence: number;
+                    gamerIcon: string;
+                    playingOnServerId: string;
+                    gamerTag: string;
+                    platformId: string;
+                    xuid: string;
+                    actorId: string;
+                }>;
+                players: CoherentArrayProxy<{
+                    platform: number;
+                    isHosting: boolean;
+                    permissionLevel: number;
+                    profileImage: string;
+                    name: string;
+                    connectionType: number;
+                    id: string;
+                }>;
+                /**
+                 * Wheter the player whose client is running this code is the host of the world.
+                 */
+                isLocalPlayerHosting: boolean;
+                /**
+                 * The UUID of the player whose client is running this code.
+                 *
+                 * This is the same UUID stored in the world data and that would be accessed through the scripting API.
+                 *
+                 * @example "-4294967295"
+                 */
+                localPlayerID: `${bigint}`;
+            };
+            "vanilla.worldStartup": {
+                backupThenStartLocalWorld: {
+                    progress: null | number; // TODO: MAKE ENUM
+                    state: number; // TODO: MAKE ENUM
+                    result: null | number; // TODO: MAKE ENUM
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    run(...args: unknown[]): unknown;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    cancel(...args: unknown[]): unknown;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    clear(...args: unknown[]): unknown;
+                };
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                brokenPacksToStart: CoherentArrayProxy<unknown>;
+                missingPacksSize: string;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                missingPacksToStart: CoherentArrayProxy<unknown>;
+                missingTemplateToStart: string;
+                hasMissingResources: boolean;
+                startLocalWorldTaskState: number; // TODO: MAKE ENUM
+                startLocalWorldResult: null; // TODO: Figure out the non-null type of this.
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                startLocalWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearStartLocalWorldResult(...args: unknown[]): unknown;
+            };
+            "vanilla.worldTemplateList": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                templates: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                customTemplates: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                premiumTemplates: CoherentArrayProxy<unknown>;
+            };
             "vanilla.worldTransfer": {
                 backupWorldProgress: number;
-                backupWorldResult: null | number;
+                backupWorldResult: null | number; // TODO: MAKE ENUM
                 importWorldProgress: number;
                 importWorldProgressPercentage: number;
-                importWorldResult: null | number;
+                importWorldResult: null | number; // TODO: MAKE ENUM
                 importWorld: {
                     progress: null | number;
-                    state: number;
-                    result: null | number;
+                    state: number; // TODO: MAKE ENUM
+                    result: null | number; // TODO: MAKE ENUM
                     run(): void;
                     cancel(): void;
                     clear(): void;
@@ -1694,6 +3346,9 @@ declare global {
                 isRealmsTrialOfferAvailable: boolean;
                 isFinishedQueryingProductsAndPurchases: boolean;
             };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.realmsSettingsFacet": {
                 /**
                  * @todo Figure out the types for this method.
@@ -1704,65 +3359,906 @@ declare global {
                  */
                 closeRealm(...args: unknown[]): unknown;
             };
-            "vanilla.achievementCategories": unknown; // TODO: Get the type for this facet.
-            "vanilla.blockInformation": unknown; // TODO: Get the type for this facet.
+            "vanilla.achievementCategories": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                releaseCategoryData: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                standardCategoryData: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.blockInformation": {
+                blockDisplayName: Partial<
+                    Record<
+                        | "minecraft:cobblestone"
+                        | "minecraft:bedrock"
+                        | "minecraft:deepslate"
+                        | "minecraft:snow_layer"
+                        | "minecraft:dirt"
+                        | "minecraft:grass_block"
+                        | "minecraft:sandstone"
+                        | "minecraft:gravel"
+                        | "minecraft:sand"
+                        | "minecraft:snow"
+                        | "minecraft:stone"
+                        | "minecraft:water",
+                        string
+                    >
+                > & {
+                    [blockNamespacedID: string]: string;
+                };
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "debug.worldTransfer": unknown; // TODO: Get the type for this facet.
-            "vanilla.flatWorldPresets": unknown; // TODO: Get the type for this facet.
-            "vanilla.inGame": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerPrivacy": unknown; // TODO: Get the type for this facet.
+            "vanilla.flatWorldPresets": {
+                /**
+                 * The flat world presets.
+                 */
+                presets: Partial<
+                    Record<
+                        LooseAutocomplete<
+                            | "Desert"
+                            | "BottomlessPit"
+                            | "ClassicFlat"
+                            | "WaterWorld"
+                            | "TunnelersDream"
+                            | "Overworld"
+                            | "SnowyKingdom"
+                            | "RedstoneReady"
+                            | "TheVoid"
+                        >,
+                        {
+                            /**
+                             * The layers of this flat world preset.
+                             */
+                            layers: CoherentArrayProxy<{
+                                /**
+                                 * The number of blocks thick this layer is.
+                                 */
+                                height: number;
+                                /**
+                                 * The namespaced ID of the block type.
+                                 */
+                                material: string;
+                            }>;
+                            /**
+                             * The biome of this flat world preset.
+                             *
+                             * @todo Find a preset that has a biome other than `undefined` to figure out its type.
+                             */
+                            biome: unknown | undefined;
+                            /**
+                             * The index this flat world preset should be displayed in the presets list.
+                             */
+                            id: number;
+                        }
+                    >
+                >;
+            };
+            "vanilla.inGame": {
+                isInMultiplayerSession: boolean;
+                isHosting: boolean;
+                /**
+                 * @todo Figure out the format of the level IDs in this.
+                 */
+                currentLevelId: "" | `${any}`;
+                isInGame: boolean;
+            };
+            "vanilla.playerPrivacy": {
+                loaded: boolean;
+                data: {
+                    viewTargetProfile: boolean;
+                };
+                load(xuid: string): null;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.realmsPurchase": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsSubscriptionsData": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsSubscriptionsMethods": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsWorldContextCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsWorldContextQueries": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.sessions": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsListActionsFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.developerOptionsFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.comments": unknown; // TODO: Get the type for this facet.
-            "vanilla.screenshotGallery": unknown; // TODO: Get the type for this facet.
-            "vanilla.playerShowcasedGallery": unknown; // TODO: Get the type for this facet.
-            "vanilla.trialMode": unknown; // TODO: Get the type for this facet.
-            "vanilla.featuredWorldTemplateList": unknown; // TODO: Get the type for this facet.
-            "vanilla.ownedWorldTemplateList": unknown; // TODO: Get the type for this facet.
-            "vanilla.worldTemplateOperations": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsSubscriptionsData": {
+                /**
+                 * An array of realm subscriptions.
+                 */
+                subscriptions: CoherentArrayProxy<{
+                    /**
+                     * The ID of the store this realm subscription was purchased from.
+                     */
+                    storeId: LooseAutocomplete<"onestore.store">;
+                    /**
+                     * The ID of the subscription as a hexadecimal string.
+                     */
+                    subscriptionId: string;
+                    /**
+                     * The ID of the realm.
+                     */
+                    realmId: `${bigint}`;
+                }>;
+                canBuyPlusRealm: boolean;
+                canBuyCoreRealm: boolean;
+                state: number; // TODO: MAKE ENUM
+            };
+            "vanilla.realmsSubscriptionsMethods": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reset(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                initialize(...args: unknown[]): unknown;
+            };
+            "vanilla.realmsWorldContextCommands": {
+                /**
+                 * Fetches the realm data for the realm with the given ID.
+                 *
+                 * @param {`${bigint}`} realmId The ID of the realm.
+                 * @returns {null} Returns `null`.
+                 */
+                fetchRealmsWorld(realmId: `${bigint}`): null;
+                /**
+                 * Unloads the fetched realm data.
+                 *
+                 * @returns {null} Returns `null`.
+                 */
+                reset(): null;
+            };
+            "vanilla.realmsWorldContextQueries": {
+                /**
+                 * Whether the realm is expired.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `false`.
+                 *
+                 * @default false
+                 */
+                expired: boolean;
+                /**
+                 * Whether the realm is closed.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `false`.
+                 *
+                 * @default false
+                 */
+                closed: boolean;
+                /**
+                 * The max players for the realm.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `0`.
+                 *
+                 * @default 0
+                 */
+                maxPlayers: LooseAutocompleteB<number, 0 | 2 | 10>;
+                /**
+                 * The active slot index of the realm.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `-1`.
+                 *
+                 * @default -1
+                 */
+                activeSlotIndex: LooseAutocompleteB<number, -1 | 0 | 1 | 2>;
+                /**
+                 * The ID of the realm.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `"0"`.
+                 *
+                 * @default "0"
+                 */
+                realmId: `${bigint}`;
+                /**
+                 * The name of the realm.
+                 *
+                 * When no realm data has been fetched in the `vanilla.realmsWorldContextCommands` facet this will be `""`.
+                 *
+                 * @default ""
+                 */
+                realmName: string;
+                state: number; // TODO: MAKE ENUM
+            };
+            "vanilla.realmsStories.sessions": {
+                fetchSessionStatus: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                sessions: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.realmsListActionsFacet": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                forceFetchRealmList(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearRealmUnreadCount(...args: unknown[]): unknown;
+            };
+            "vanilla.developerOptionsFacet": {
+                isRealmsPreproductionEnvironment: boolean;
+            };
+            "vanilla.realmsStories.comments": {
+                postCommentStatus: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                comments: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.screenshotGallery": {
+                deleteScreenshotsError: number; // TODO: MAKE ENUM
+                isDeleteScreenshotsInProgress: boolean;
+                modifyShowcaseGalleryError: number; // TODO: MAKE ENUM
+                isModifyShowcaseGalleryInProgress: boolean;
+                isAddShowcasedImageInProgress: boolean;
+                isAddFeaturedImageInProgress: boolean;
+                loadGalleryError: number; // TODO: MAKE ENUM
+                isLoadGalleryInProgress: boolean;
+                isLoadingCount: boolean;
+                isLoadingFeaturedScreenshot: boolean;
+                maxScreenshots: number;
+                featuredScreenshot: string;
+                undownloadedCount: number;
+                count: number;
+                screenshots: CoherentArrayProxy<{
+                    loadingImage: boolean;
+                    featured: boolean;
+                    showcased: boolean;
+                    lastModifiedTime: number;
+                    captureTimeLabel: string;
+                    captureTime: number;
+                    /**
+                     * The absolute file path of the screenshot.
+                     */
+                    filePath: string;
+                    image: string;
+                    thumbnail: string;
+                    /**
+                     * A UUID that is the ID of this screenshot.
+                     */
+                    id: string;
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearLoadGalleryError(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearModifyShowcaseGalleryError(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearDeleteScreenshotsError(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                retryLoadGallery(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                addScreenshotToShowcase(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                removeShowcasedScreenshot(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                deleteScreenshots(...args: unknown[]): unknown;
+            };
+            "vanilla.playerShowcasedGallery": {
+                isLoadingCount: boolean;
+                isLoadingFeaturedScreenshot: boolean;
+                isLoadingScreenshots: boolean;
+                maxScreenshots: number;
+                featuredScreenshot: string;
+                count: number;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                screenshots: CoherentArrayProxy<unknown>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadGallery(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadCount(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadShowcasedScreenshot(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadFeaturedScreenshot(...args: unknown[]): unknown;
+            };
+            "vanilla.trialMode": {
+                purchaseGameError: null | number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                purchaseGame(...args: unknown[]): unknown;
+            };
+            "vanilla.featuredWorldTemplateList": {
+                refreshTaskState: number; // TODO: MAKE ENUM
+                seeMoreFeaturedRouteData: { pageId: string; title: string };
+                featuredWorldTemplates: CoherentArrayProxy<{
+                    storeCatalogCategory: number; // TODO: MAKE ENUM
+                    isUpdateAvailable: boolean;
+                    isInstalled: boolean;
+                    packId: string;
+                    isExpired: boolean;
+                    ratingData: { totalRatingsCount: string; averageRating: number };
+                    thumbnailPath: string;
+                    creator: string;
+                    name: string;
+                    id: string;
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                refreshOffers(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearRefreshTaskState(...args: unknown[]): unknown;
+            };
+            "vanilla.ownedWorldTemplateList": {
+                ownedTemplateWorldList: CoherentArrayProxy<{
+                    canBeRated: boolean;
+                    thumbnailPath: string;
+                    ownedWorldTemplateData: {
+                        isLocked: boolean;
+                        isInstalled: boolean;
+                        isPremium: boolean;
+                        creator: string;
+                        name: string;
+                        marketplaceId: string;
+                        localId: string;
+                    };
+                }>;
+            };
+            "vanilla.worldTemplateOperations": {
+                isTemplateScreenAvailable: boolean;
+                canDownloadBeCancelled: boolean;
+                importedPackName: string;
+                importingTaskResult: null | number; // TODO: MAKE ENUM
+                importingTaskState: number; // TODO: MAKE ENUM
+                downloadingTaskResult: null | number; // TODO: MAKE ENUM
+                downloadingTaskState: number; // TODO: MAKE ENUM
+                downloadingStatus: null | number; // TODO: MAKE ENUM
+                downloadTotalBytes: string;
+                downloadingProgressBytes: string;
+                downloadingProgressPercent: number;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                downloadWorldTemplate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                cancelDownload(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                importWorldTemplate(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetDownloadTask(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetImportTask(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "test.vector": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorBlockPalette": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorInputBinding": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorInputState": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorProjectConstants": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorStructure": unknown; // TODO: Get the type for this facet.
+            /**
+             * @warning THIS CRASHES THE GAME WHEN NOT IN EDITOR MODE!
+             */
             "vanilla.editorTutorial": unknown; // TODO: Get the type for this facet.
-            "vanilla.gameplay.localPlayerWeatherLightningFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.levelInfo": unknown; // TODO: Get the type for this facet.
-            "vanilla.currentParty": unknown; // TODO: Get the type for this facet.
-            "vanilla.partyCommands": unknown; // TODO: Get the type for this facet.
+            "vanilla.gameplay.localPlayerWeatherLightningFacet": {
+                isLightning: null | boolean;
+            };
+            "vanilla.levelInfo": {
+                isInitialized: boolean;
+                worldIconPath: string;
+                worldName: string;
+            };
+            "vanilla.currentParty": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                pendingInvitees: CoherentArrayProxy<unknown>;
+                leaderXuid: string;
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                members: CoherentArrayProxy<unknown>;
+                privacy: number;
+                partyId: string;
+                isInParty: boolean;
+            };
+            "vanilla.partyCommands": {
+                acceptInviteState: {
+                    hasError: boolean;
+                    /**
+                     * @default undefined
+                     */
+                    error: undefined | unknown;
+                    loading: boolean;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    clearError(...args: unknown[]): unknown;
+                };
+                joinPartyState: {
+                    hasError: boolean;
+                    /**
+                     * @default undefined
+                     */
+                    error: undefined | unknown;
+                    loading: boolean;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    clearError(...args: unknown[]): unknown;
+                };
+                createPartyState: {
+                    hasError: boolean;
+                    /**
+                     * @default undefined
+                     */
+                    error: undefined | unknown;
+                    loading: boolean;
+                    /**
+                     * @todo Figure out the types for this method.
+                     */
+                    clearError(...args: unknown[]): unknown;
+                };
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                sendInvite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                ignoreInvite(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setPrivacy(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                leaveParty(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                removeMember(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setLeader(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                createParty(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                joinParty(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                acceptInvite(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.worldRealmEditor": unknown; // TODO: Get the type for this facet. // Found in dev build file.
-            "vanilla.worldRealmEditorCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.worldRealmEditorQueries": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmBackupsCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmBackupsQueries": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsPurchaseCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsPurchaseReconcilerQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.worldRealmEditorCommands": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                saveRealmWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetRealmWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearRealmWorldEditorState(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setUseRealmWorldBackend(...args: unknown[]): unknown;
+            };
+            "vanilla.worldRealmEditorQueries": {
+                realmWorldEditorStateStatus: number; // TODO: MAKE ENUM
+                realmWorldEditorState: number; // TODO: MAKE ENUM
+                useRealmsWorldBackend: boolean;
+                realmWorldHasBeenModified: boolean;
+                realmWorldData: {
+                    achievementsPermanentlyDisabled: boolean;
+                    achievementsDisabled: boolean;
+                    isUsingTemplate: boolean;
+                    isLockedTemplate: boolean;
+                    betaFeatures: CoherentArrayProxy<{
+                        isEnabled: boolean;
+                        isTogglePermanentlyDisabled: boolean;
+                        category: number;
+                        description: string;
+                        title: string;
+                        id: string;
+                    }>;
+                    resourcePacks: { sharedPacksEnabled: boolean };
+                    cheats: {
+                        tickSpeed: string;
+                        educationEdition: boolean;
+                        commandBlocks: boolean;
+                        weather: boolean;
+                        entitiesDropLoot: boolean;
+                        mobGriefing: boolean;
+                        mobSpawning: boolean;
+                        keepInventory: boolean;
+                        daylightCycle: number;
+                        cheatsEnabled: boolean;
+                    };
+                    multiplayer: {
+                        locatorBarEnabled: boolean;
+                        friendlyFire: boolean;
+                        visibleToLanPlayers: boolean;
+                        playerPermissions: number; // TODO: MAKE ENUM
+                        playerAccess: number; // TODO: MAKE ENUM
+                        generalWarningState: number; // TODO: MAKE ENUM
+                        platformPlayerFriendsOfFriendsAccessSupported: boolean;
+                        platformPlayerInviteAccessSupported: boolean;
+                        platformPlayerAccessEnabled: boolean;
+                        platformPlayerAccessSupported: boolean;
+                        platformPlayerAccess: number; // TODO: MAKE ENUM
+                        multiplayerGame: boolean;
+                        multiplayerSupported: boolean;
+                    };
+                    advanced: {
+                        flatWorldPreset: null | string;
+                        worldSeed: string;
+                        respawnRadius: string;
+                        immediateRespawn: boolean;
+                        sleepSkipNightPercent: number;
+                        sleepSkipNight: boolean;
+                        tileDrops: boolean;
+                        naturalRegeneration: boolean;
+                        mobLoot: boolean;
+                        respawnBlocksExplode: boolean;
+                        tntExplodes: boolean;
+                        recipesUnlock: boolean;
+                        firesSpreads: boolean;
+                        friendlyFire: boolean;
+                        showDaysPlayed: boolean;
+                        showCoordinates: boolean;
+                        bonusChest: boolean;
+                        startWithMap: boolean;
+                        simulationDistance: number;
+                        generatorType: number; // TODO: MAKE ENUM
+                        useFlatWorld: boolean;
+                    };
+                    general: {
+                        difficulty: number; // TODO: MAKE ENUM
+                        playerHasDied: boolean;
+                        isHardcore: boolean;
+                        gameMode: number; // TODO: MAKE ENUM
+                        worldName: string;
+                    };
+                };
+            };
+            "vanilla.realmBackupsCommands": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                downloadRealmWorld(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearRealmBackupsState(...args: unknown[]): unknown;
+            };
+            "vanilla.realmBackupsQueries": {
+                realmBackupsState: number; // TODO: MAKE ENUM
+                realmWorldSummary: {
+                    lastSaved: string;
+                    fileSize: string;
+                    worldIconPath: string;
+                };
+            };
+            "vanilla.realmsPurchaseCommands": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                purchase(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetPurchase(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                purchaseTrial(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                prepareAppStoreForPurchases(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                prepareAppStoreForTrialPurchases(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fulfillPriorRealmsPurchase(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                checkUnfulfilledPurchase(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                resetReconciler(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                prepareAppStoreForReconciliation(...args: unknown[]): unknown;
+            };
+            "vanilla.realmsPurchaseReconcilerQueries": {
+                failureReason: number; // TODO: MAKE ENUM
+                state: number; // TODO: MAKE ENUM
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.character-selector": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.progressTracker": unknown; // TODO: Get the type for this facet.
 
-            "vanilla.realmsWorldEditorGameRulesCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsWorldEditorGameRulesQueries": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsWorldEditorWorldDetailsQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsWorldEditorGameRulesCommands": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setShowCoordinates(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setShowDaysPlayed(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRecipesUnlock(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setFireSpreads(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setTNTExplodes(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRespawnBlocksExplode(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setMobsDropLoot(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setNaturalRegeneration(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setTileDrops(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setSleepSkipNight(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setSleepSkipNightPercent(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setImmediateRespawn(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setRespawnRadius(...args: unknown[]): unknown;
+            };
+            "vanilla.realmsWorldEditorGameRulesQueries": {
+                respawnRadius: number;
+                immediateRespawn: boolean;
+                sleepSkipNightPercent: number;
+                sleepSkipNight: boolean;
+                tileDrops: boolean;
+                naturalRegeneration: boolean;
+                mobLoot: boolean;
+                respawnBlocksExplode: boolean;
+                tntExplodes: boolean;
+                fireSpreads: boolean;
+                recipesUnlock: boolean;
+                showDaysPlayed: boolean;
+                showCoordinates: boolean;
+            };
+            "vanilla.realmsWorldEditorWorldDetailsQueries": {
+                simulationDistance: number;
+                bonusChest: boolean;
+                startWithMap: boolean;
+                generatorType: number; // TODO: MAKE ENUM
+                flatWorldPreset: string;
+                useFlatWorld: boolean;
+                worldSeed: string;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.realmsCommitCommandsFacet": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4.
+             */
             "vanilla.realmsCommitQueriesFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsPurchaseQueries": unknown; // TODO: Get the type for this facet.
+            "vanilla.realmsPurchaseQueries": {
+                purchaseDisabledDueToStoreVersion: boolean;
+                failureReason: number; // TODO: MAKE ENUM
+                state: number; // TODO: MAKE ENUM
+            };
 
-            "vanilla.connectionErrorInfoFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.partyReceivedInviteList": unknown; // TODO: Get the type for this facet.
-            "vanilla.joinablePartyList": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsFeatureFlags": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.reports": unknown; // TODO: Get the type for this facet.
-            "vanilla.realmsStories.reportCommands": unknown; // TODO: Get the type for this facet.
-            "vanilla.openAndCloseRealmCommandsFacet": unknown; // TODO: Get the type for this facet.
+            "vanilla.connectionErrorInfoFacet": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                getConnectionErrorInfo(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openLearnMoreLink(...args: unknown[]): unknown;
+            };
+            "vanilla.partyReceivedInviteList": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                invites: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.joinablePartyList": {
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                joinablePartyFriends: CoherentArrayProxy<unknown>;
+            };
+            /**
+             * @todo Try this.
+             */
+            "vanilla.realmsFeatureFlags": {
+                flags: CoherentArrayProxy<string>;
+            };
+            "vanilla.realmsStories.reports": {
+                hasDeleted: number;
+                pageLength: number;
+                totalStories: number;
+                storiesStatus: number; // TODO: MAKE ENUM
+                /**
+                 * @todo Figure out the types for this array.
+                 */
+                reports: CoherentArrayProxy<unknown>;
+            };
+            "vanilla.realmsStories.reportCommands": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reset(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchReportPaths(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                fetchReportImage(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                loadReportsSlice(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                dismiss(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearReportFeedStatus(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearReportStatuses(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                clearDeletionStatuses(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportFeedItemToXbox(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                reportGamertagToXbox(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                retryLoad(...args: unknown[]): unknown;
+            };
+            "vanilla.openAndCloseRealmCommandsFacet": {
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                openRealm(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                closeRealm(...args: unknown[]): unknown;
+            };
+            /**
+             * NOTE: Not present in 1.21.120.4 (however, it is referenced by the vanilla files there for some reason).
+             */
             "dev.realmsCommitCommandsFacet": unknown; // TODO: Get the type for this facet.
+            /**
+             * NOTE: Not present in 1.21.120.4 (however, it is referenced by the vanilla files there for some reason).
+             */
             "dev.realmsCommitQueriesFacet": unknown; // TODO: Get the type for this facet.
-            "vanilla.newPlayerChoices": unknown; // TODO: Get the type for this facet.
+            "vanilla.newPlayerChoices": {
+                selectedCharacterId: string;
+                selectableCharacters: CoherentArrayProxy<{
+                    id: string;
+                    name: string;
+                }>;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setSelectedCharacter(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                applySelectedCharacterSkin(...args: unknown[]): unknown;
+                /**
+                 * @todo Figure out the types for this method.
+                 */
+                setIsCreative(...args: unknown[]): unknown;
+            };
         }
         /**
          * A shared facet.
@@ -1887,11 +4383,11 @@ declare global {
                 description: string;
                 isInitialized: boolean;
                 isHardcore: boolean;
-                gameMode: number;
+                gameMode: number; // TODO: MAKE ENUM
                 expired: boolean;
                 daysLeft: number;
                 full: boolean;
-                maxPlayers: number;
+                maxPlayers: LooseAutocompleteB<number, 2 | 10>;
                 ownerXuid: `${bigint}`;
                 slotName: string;
                 realmName: string;
@@ -1909,6 +4405,113 @@ declare global {
             id: 0 | 1 | 2;
             worldName: string;
             slotImage: string;
+        }
+
+        interface AchievementData {
+            /**
+             * The suggested index of this achievement in the list.
+             *
+             * @example 125
+             */
+            suggestedOrder: number;
+            /**
+             * The UUID associated with the reward associated with this achievement.
+             *
+             * This will be a valid UUID even when this achievement has no reward.
+             *
+             * @example "aae5037a-76a2-6455-f7b2-158c50c38a76"
+             */
+            rewardId: string;
+            /**
+             * The rarity of the reward associated with this achievement.
+             *
+             * @default 0
+             */
+            rewardRarity: number; // TODO: MAKE ENUM
+            /**
+             * The image associated with the reward associated with this achievement.
+             *
+             * @default ""
+             */
+            rewardImage: string;
+            /**
+             * The name of the reward associated with this achievement.
+             *
+             * @default ""
+             */
+            rewardName: string;
+            /**
+             * Whether or not the reward associated with this achievement is owned by the user.
+             */
+            isRewardOwned: boolean;
+            /**
+             * Whether or not this achievement has a reward.
+             */
+            hasReward: boolean;
+            /**
+             * The thumbnail of this achievement.
+             *
+             * @example "id://193"
+             */
+            image: string;
+            trackedByUser: number; // TODO: MAKE ENUM
+            progressTarget: number; // TODO: MAKE ENUM
+            /**
+             * The progress of this achievement.
+             */
+            progress: number; // TODO: MAKE ENUM
+            /**
+             * Whether or not this achievement is secret.
+             */
+            isSecret: boolean;
+            /**
+             * Whether or not this achievement is locked.
+             */
+            isLocked: boolean;
+            /**
+             * The date this achievement was unlocked.
+             *
+             * @example 1724461987
+             */
+            dateUnlocked: number;
+            /**
+             * The gamerscore granted by completing this achievement.
+             *
+             * @example 10
+             */
+            gamerScore: number;
+            /**
+             * The description of this achievement.
+             *
+             * @example "Be near a Crafter when it crafts a Crafter"
+             */
+            description: string;
+            /**
+             * The name of this achievement.
+             *
+             * @example "Crafters Crafting Crafters"
+             */
+            name: string;
+            /**
+             * The platform independent ID of this achievement.
+             *
+             * @example "Crafters Crafting Crafters"
+             */
+            platformIndependentId: string;
+            /**
+             * The numeric ID of this achievement.
+             *
+             * @example "136"
+             */
+            id: `${bigint}`;
+        }
+
+        interface PlayerAchievementData {
+            achievements: CoherentArrayProxy<AchievementData>;
+            maxGamerScore: number;
+            currentGamerScore: number;
+            maxAchievements: number;
+            achievementsUnlocked: number;
         }
 
         type CoherentArrayProxy<T> = ArrayLike<T> & {
@@ -1933,11 +4536,17 @@ declare global {
             toString(): string;
         };
         //#endregion
-        type ConstNumberObjectEnumToEnumMappingType<T extends { [key: string]: number }> = MergeObjectTypes<
-            {
-                [K in keyof T as T[K]]: K;
-            } & T
-        >;
+        type ConstNumberObjectEnumToEnumMappingType<T extends { [key: string]: number }, Mode extends "enum" | "keys" | "values" = "enum"> = Mode extends "enum"
+            ? MergeObjectTypes<
+                  {
+                      [K in keyof T as T[K]]: K;
+                  } & T
+              >
+            : Mode extends "keys"
+            ? keyof T
+            : Mode extends "values"
+            ? T[keyof T]
+            : never;
 
         /**
          * @author 8Crafter
@@ -1948,8 +4557,10 @@ declare global {
 
 export {};
 
-type MissingFacetTypeMapKeys = Exclude<FacetList[number], keyof FacetTypeMap>;
+type __INTERNAL_DEV_MissingFacetTypeMapKeys__ = Exclude<FacetList[number], keyof FacetTypeMap>;
+type __INTERNAL_DEV_MissingFacetListEntries__ = Exclude<keyof FacetTypeMap, FacetList[number]>;
 
+//#vignore Debug Stuff
 interface b {
     "core.animation": {
         screenAnimationEnabled: boolean;
@@ -3227,6 +5838,7 @@ interface b {
         closeRealm(...args: unknown[]): unknown;
     };
 }
+//#endvignore Debug Stuff
 
 const JoinRealmsServerError = {
     RealmsAPIUnavailable: 0,
@@ -3239,17 +5851,39 @@ const JoinRealmsServerError = {
     UnexpectedServerResponse: 7,
     AnonymousAccount: 8,
 } as const;
-type JoinRealmsServerError = ConstNumberObjectEnumToEnumMappingType<typeof JoinRealmsServerError>;
+type JoinRealmsServerError<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof JoinRealmsServerError, Mode>;
+
+const LeaveRealmsServerError = {
+    RealmsAPIUnavailable: 0,
+    ErrorTaskInProgress: 1,
+    UnknownError: 2,
+    Success: 3,
+    Unknown: 4,
+};
+type LeaveRealmsServerError<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof LeaveRealmsServerError, Mode>;
+
 const ScreenType = {
     TV_SCREEN_TYPE: 0,
     DESKTOP_SCREEN_TYPE: 1,
     HANDHELD_SCREEN_TYPE: 2,
+    /**
+     * @deprecated This was removed in 1.21.110.25.
+     */
     VR_SCREEN_TYPE: 3,
 } as const;
-type ScreenType = ConstNumberObjectEnumToEnumMappingType<typeof ScreenType>;
+type ScreenType<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof ScreenType, Mode> & {
+    /**
+     * @deprecated This was removed in 1.21.110.25.
+     */
+    3: unknown;
+};
 
-const HandheldDeviceType = { PHONE: 0, TABLET: 1 } as const;
-type HandheldDeviceType = ConstNumberObjectEnumToEnumMappingType<typeof HandheldDeviceType>;
+const HandheldDeviceType = {
+    PHONE: 0,
+    TABLET: 1,
+} as const;
+type HandheldDeviceType<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof HandheldDeviceType, Mode>;
+
 const InputMethod = {
     GAMEPAD: 0,
     TOUCH: 1,
@@ -3257,8 +5891,11 @@ const InputMethod = {
     MOTION: 3,
     KEYBOARD: 4,
 } as const;
-type InputMethod = ConstNumberObjectEnumToEnumMappingType<typeof InputMethod>;
+type InputMethod<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof InputMethod, Mode>;
 
+/**
+ * @deprecated This was removed in 1.21.100.21.
+ */
 const ARVRPlatform = {
     ARVR_None: 0,
     ARVR_Rift: 1,
@@ -3268,8 +5905,16 @@ const ARVRPlatform = {
     ARVR_GearVR: 5,
     ARVR_DesktopXR: 6,
 } as const;
-type ARVRPlatform = ConstNumberObjectEnumToEnumMappingType<typeof ARVRPlatform>;
+/**
+ * @deprecated This was removed in 1.21.100.21.
+ */
+type ARVRPlatform<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof ARVRPlatform, Mode>;
 
+/**
+ * The platform type enum.
+ *
+ * There a second platform enum type in-game that includes all the removed entries and unsupported ones too (ex. `Linux`), that one is only used for the world players list facet.
+ */
 const Platform = {
     IOS: 0,
     GOOGLE: 1,
@@ -3278,14 +5923,12 @@ const Platform = {
     XBOX: 4,
     NX_HANDHELD: 5,
     PS4: 6,
-    GEARVR: 7,
-    WIN32: 8,
-    MACOS: 9,
-    AMAZON_TV: 10,
-    NX_TV: 11,
-    PS5: 12,
+    WIN32: 7,
+    MACOS: 8,
+    NX_TV: 9,
+    PS5: 10,
 } as const;
-type Platform = ConstNumberObjectEnumToEnumMappingType<typeof Platform>;
+type Platform<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof Platform, Mode>;
 
 const Controller = {
     XBOX: 0,
@@ -3294,14 +5937,20 @@ const Controller = {
     SWITCH: 3,
     QUEST: 4,
 } as const;
-type Controller = ConstNumberObjectEnumToEnumMappingType<typeof Controller>;
+type Controller<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof Controller, Mode>;
+
+const KeyboardType = {
+    Standard: 0,
+    FullKeyboard: 1,
+};
+type KeyboardType<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof KeyboardType, Mode>;
 
 const StorageType = {
     NONE: 0,
     EXTERNAL: 1,
     APPDATA: 2,
 } as const;
-type StorageType = ConstNumberObjectEnumToEnumMappingType<typeof StorageType>;
+type StorageType<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof StorageType, Mode>;
 
 const RealmPlayerRoleEnum = {
     NONMEMBER: -1,
@@ -3310,4 +5959,47 @@ const RealmPlayerRoleEnum = {
     OPERATOR: 2,
     OWNER: 3,
 } as const;
-type RealmPlayerRoleEnum = ConstNumberObjectEnumToEnumMappingType<typeof RealmPlayerRoleEnum>;
+type RealmPlayerRoleEnum<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof RealmPlayerRoleEnum, Mode>;
+
+const FriendPresence = {
+    Unknown: 0,
+    Online: 1,
+    Away: 2,
+    Offline: 3,
+};
+type FriendPresence<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof FriendPresence, Mode>;
+
+const FriendFavoriteStatus = {
+    UNKNOWN: 0,
+    FAVORITE: 1,
+    NOT_FAVORITE: 2,
+};
+type FriendFavoriteStatus<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof FriendFavoriteStatus, Mode>;
+
+const RealmsStoriesTimelineOptInStatus = {
+    OptedIn: 0,
+    OptedOut: 1,
+    None: 2,
+};
+type RealmsStoriesTimelineOptInStatus<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<
+    typeof RealmsStoriesTimelineOptInStatus,
+    Mode
+>;
+
+const PlayerPermissionLevel = {
+    Visitor: 0,
+    Member: 1,
+    Operator: 2,
+    Custom: 3,
+} as const;
+type PlayerPermissionLevel<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof PlayerPermissionLevel, Mode>;
+
+const PlayerRelation = {
+    Self: 0,
+    TwoWayFriend: 1,
+    Following: 2,
+    Follower: 3,
+    Stranger: 4,
+    Unknown: 5,
+} as const;
+type PlayerRelation<Mode extends "enum" | "keys" | "values" = "enum"> = ConstNumberObjectEnumToEnumMappingType<typeof PlayerRelation, Mode>;

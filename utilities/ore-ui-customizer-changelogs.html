@@ -184,6 +184,70 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.9.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Critical Fixes</h2>
+                        <ul>
+                            <li>Fixed a Minecraft bug where when reloading Ore UI it would cause the UI to be non-interactable (this also fixed the lite play screen).</li>
+                        </ul>
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>
+                                Added a context menu to the console and its messages with many new very useful options, including but not limited to:
+                                <ul>
+                                    <li>Copying string contents</li>
+                                    <li>Copying the stack of any console message.</li>
+                                    <li>
+                                        Copying any object as JSON or JSONB (JSON with support for functions, bigints, undefined, Infinity, -Infinity, NaN,
+                                        etc.).
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>Added much more descriptive error messages for many features, including the Auto Rejoiner.</li>
+                            <li>Made the links in the 8Crafter Utilities menu clickable (they now actually open in your web browser).</li>
+                        </ul>
+                        <h3>Website Version</h3>
+                        <ul>
+                            <li>Added the "v1.21.111 (PC)" preset.</li>
+                            <li>Added the "v1.21.113/114 (PC)" preset.</li>
+                            <li>Added the "v1.21.120/121 (PC)" preset.</li>
+                        </ul>
+                        <h2>Changes</h2>
+                        <ul>
+                            <li>
+                                Reworked the way properties are determined where to be shown in expanded objects in the console (properties from the objects
+                                prototype are now only shown in <code>[[Prototype]]</code> instead of also directly within the main object expansion (enumerable
+                                prototype properties are still always shown)).
+                            </li>
+                            <li>Load time and performance improvements to the lite play screen.</li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>Fixed a bug where disabled buttons in the 8Crafter Utilities menu were just gray outlines.</li>
+                            <li>
+                                Fixed a bug where there would be a console error saying <code>Failed to enable lite play screen, timed out.</code> when in-game,
+                                even when the lite play screen was disabled.
+                            </li>
+                            <li>
+                                Fixed a bug where the <code>Copy localStorage</code> button in the Debug tab of the 8Crafter Utilities menu would only copy the
+                                most recently set <code>localStorage</code> value.
+                            </li>
+                            <li>
+                                Fixed a bug where the console would add borders between adjacent messages with different colored backgrounds instead of adjacent
+                                ones with the same colored backgrounds.
+                            </li>
+                            <li>Fixed a bug where the information icon on expanded values in the console was invisible.</li>
+                            <li>Minor performance improvements and bug fixes.</li>
+                        </ul>
+                        <h2>Technical Additions</h2>
+                        <ul>
+                            <li>Documented many more types of native Ore UI things.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.8.0</h2>
                     </div>
                     <div class="collapsible-group-content">

@@ -1,4 +1,4 @@
-/* ©8Crafter 2025; Source: https://www.8crafter.com/assets/css/default.css */
+/* ©8Crafter 2025; Source: https://www.dev.8crafter.com/assets/css/default.css */
 
 /* * {
     line-height: 1em;
@@ -37,7 +37,56 @@
 }
 
 .reverse_m2lNR_rightPadding {
-    margin-right: -0.2rem
+    margin-right: -0.2rem;
+}
+
+.context-menu,
+.context-menu-submenu {
+    display: flex;
+    flex-direction: column;
+    background-color: #00000080;
+    border-radius: 4px;
+    padding: 2px;
+    overflow: hidden;
+    overflow-y: auto;
+    min-height: 0;
+    backdrop-filter: blur(5px);
+}
+
+.context-menu > hr,
+.context-menu-submenu > hr {
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;
+}
+
+.context-menu-item-action {
+    cursor: pointer;
+}
+
+.context-menu-item-action,
+.context-menu-item-submenu {
+    padding: 0.2em 0.4em;
+    border-radius: 2px;
+}
+
+.context-menu-item-action:hover,
+.context-menu-item-submenu:hover {
+    background-color: #00ff8822;
+}
+.context-menu-item-action:active,
+.context-menu-item-submenu:active {
+    background-color: #00ff8855;
+}
+.context-menu-item-action:hover:active,
+.context-menu-item-submenu:hover:active {
+    background-color: #00ff8888;
+}
+/* Disabled is repeated 3 times to increase the specificity. */
+.context-menu-item-action[disabled][disabled][disabled],
+.context-menu-item-submenu[disabled][disabled][disabled] {
+    background-color: #00ff8800;
+    filter: contrast(0.5);
+    cursor: auto;
 }
 
 @media (max-width: 762px) {
@@ -133,7 +182,7 @@
 .filter_sepia {
     --filter_sepia: 1;
     /* filter: hue-rotate(0,5.) */
-}/* 
+} /* 
 
 :root {
     filter: invert(var(--filter_invert, 0)) grayscale(var(--filter_grayscale, 0)) sepia(var(--filter_sepia, 0)) hue-rotate(var(--hue-rotate-deg));
@@ -256,6 +305,16 @@ main {
     /* min-height: 100vh; */
     gap: 2em;
     width: -webkit-fill-available;
+}
+
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    color: gray;
+    unicode-bidi: isolate;
+    overflow: hidden;
+    border: 1px solid gray;
 }
 
 test1a {
@@ -1054,10 +1113,11 @@ ul:not(:not(.horizontal-nav)) {
     outline: 0;
 }
 
-.btn:disabled,
-.btn.disabled,
-.btn[aria-disabled="true"],
-.radio_button_container_label:hover.hasDisabledInput/* ,
+/* Repeated to increase specificity, since :not() isn't supported by Ore UI. */
+.btn:disabled:disabled:disabled:disabled,
+.btn.disabled.disabled.disabled.disabled,
+.btn[aria-disabled="true"][aria-disabled="true"][aria-disabled="true"][aria-disabled="true"],
+.radio_button_container_label:hover.hasDisabledInput.hasDisabledInput.hasDisabledInput.hasDisabledInput/* ,
 .radio_button_container_label:hover:has(> input.disabled),
 .radio_button_container_label:hover:has(> input[aria-disabled="true"]) */ {
     cursor: default;

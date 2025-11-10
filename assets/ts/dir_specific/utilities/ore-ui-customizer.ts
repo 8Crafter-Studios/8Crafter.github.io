@@ -38,6 +38,9 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        "v1.21.120-121_PC": { displayName: "v1.21.120/121 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
+        "v1.21.113-114_PC": { displayName: "v1.21.113/114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
+        "v1.21.111_PC": { displayName: "v1.21.111 (PC)", url: "/assets/zip/gui_mc-v1.21.111_PC.zip" },
         "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
         "v1.21.100-101_Android": { displayName: "v1.21.100/101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
@@ -62,7 +65,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.8.0";
+    export const format_version = "1.9.0";
     /**
      * @type {File | undefined}
      */
@@ -2891,6 +2894,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/oreui/assets/8crafter.gif").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/8crafter.gif");
             addedCount++;
+            zipFs.addBlob("gui/dist/hbui/assets/Information_icon.png", await fetch("/assets/oreui/assets/Information_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Information_icon.png");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/assets/Readonly_icon.png", await fetch("/assets/oreui/assets/Readonly_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Readonly_icon.png");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/assets/Nonconfigurable_icon.png", await fetch("/assets/oreui/assets/Nonconfigurable_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Nonconfigurable_icon.png");
+            addedCount++;
             // Toggle
             zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/oreui/assets/toggle_off_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_off_hover.png");
@@ -3001,6 +3013,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 await fetch("/assets/oreui/assets/button_borderless_light_blue_pressed.png").then((r) => r.blob())
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/assets/disabledButton.png", await fetch("/assets/oreui/assets/disabledButton.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/disabledButton.png");
             addedCount++;
         } catch (e) {
             console.error(e);

@@ -528,21 +528,23 @@ globalThis.JSONB = JSONB;
                     for (k of [
                         ...new Set([
                             ...Object.keys(value),
-                            ...(() => {
-                                try {
-                                    return Object.getOwnPropertyNames(value.__proto__).filter((key) => {
-                                        try {
-                                            // Make sure the property won't throw an error when accessed.
-                                            value[key];
-                                            return key in value;
-                                        } catch {
-                                            return false;
-                                        }
-                                    });
-                                } catch (e) {
-                                    return [];
-                                }
-                            })(),
+                            ...(options.includeProtoValues ?? true
+                                ? (() => {
+                                      try {
+                                          return Object.getOwnPropertyNames(value.__proto__).filter((key) => {
+                                              try {
+                                                  // Make sure the property won't throw an error when accessed.
+                                                  value[key];
+                                                  return key in value;
+                                              } catch {
+                                                  return false;
+                                              }
+                                          });
+                                      } catch (e) {
+                                          return [];
+                                      }
+                                  })()
+                                : []),
                             ...Object.getOwnPropertyNames(value),
                             ...Object.getOwnPropertySymbols(value),
                         ]),
@@ -611,6 +613,7 @@ globalThis.JSONB = JSONB;
                 set: false,
                 function: true,
                 class: false,
+                includeProtoValues: true,
             },
             maxLength = Infinity,
             maxDepth = Infinity
