@@ -1893,7 +1893,7 @@ export declare const builtInPlugins: [{
     readonly name: "Add exact ping count to servers tab.";
     readonly id: "add-exact-ping-count-to-servers-tab";
     readonly namespace: "built-in";
-    readonly version: "0.25.0";
+    readonly version: "1.0.0";
     readonly uuid: "a1ffa1f2-a8d1-4948-a307-4067d4a82880";
     readonly description: "A built-in plugin that adds the exact ping count to the servers tab.";
     readonly actions: [{
@@ -1907,7 +1907,7 @@ export declare const builtInPlugins: [{
     readonly name: "Add max player count to servers tab.";
     readonly id: "add-max-player-count-to-servers-tab";
     readonly namespace: "built-in";
-    readonly version: "0.25.0";
+    readonly version: "1.0.0";
     readonly uuid: "09b88cde-e265-4f42-b203-564f0df6ca1e";
     readonly description: "A built-in plugin that adds the max player count to the servers tab.";
     readonly actions: [{
@@ -1921,7 +1921,7 @@ export declare const builtInPlugins: [{
     readonly name: "Facet spy.";
     readonly id: "facet-spy";
     readonly namespace: "built-in";
-    readonly version: "1.0.0";
+    readonly version: "1.1.0";
     readonly uuid: "e2355295-b202-4f4b-96b8-7bd7b6eaac23";
     readonly description: "Facet spy.";
     readonly actions: [{

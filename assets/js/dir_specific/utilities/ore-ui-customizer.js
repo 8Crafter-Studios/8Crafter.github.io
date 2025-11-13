@@ -29,6 +29,9 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        "v1.21.120-121_PC": { displayName: "v1.21.120/121 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
+        "v1.21.113-114_PC": { displayName: "v1.21.113/114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
+        "v1.21.111_PC": { displayName: "v1.21.111 (PC)", url: "/assets/zip/gui_mc-v1.21.111_PC.zip" },
         "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
         "v1.21.100-101_Android": { displayName: "v1.21.100/101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
@@ -53,7 +56,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.7.0";
+    OreUICustomizer.format_version = "1.10.0";
     /**
      * @type {File | undefined}
      */
@@ -1767,8 +1770,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         [iAA, cAA, uAA],
                         [$3, $2]
                     ),
-                    fAA = (0, ${extractedSymbolNames.facetHolder}.useNotifyMountComplete)();
-                return ${extractedSymbolNames.contextHolder}.createElement($10, {
+                    fAA = $10();
+                return ${extractedSymbolNames.contextHolder}.createElement($11, {
                     title: iAA(".gameModeTitle"),
                     disabled: mAA,
                     options: pAA,
@@ -1776,8 +1779,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA) => eAA.gameMode, [], [eAA]),
                     onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)(
                         (eAA, tAA) => ($2) => {
-                            const $11 = eAA.gameMode;
-                            (eAA.gameMode = $2), uAA && tAA.trackOptionChanged($12.GameModeChanged, $11, $2);
+                            const $12 = eAA.gameMode;
+                            (eAA.gameMode = $2), uAA && tAA.trackOptionChanged($13.GameModeChanged, $12, $2);
                         },
                         [uAA],
                         [eAA, dAA]
@@ -1827,49 +1830,49 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                           ${extractedSymbolNames.facetHolder}.Mount,
                                           { when: true /* $1 */ },
                                           ${extractedSymbolNames.contextHolder}.createElement(
-                                              ${extractedSymbolNames.facetHolder}.DeferredMount,
+                                              $2,
                                               null,
-                                              ${extractedSymbolNames.contextHolder}.createElement($2, {
-                                                  label: $3(".generatorTypeLabel"),
+                                              ${extractedSymbolNames.contextHolder}.createElement($3, {
+                                                  label: $4(".generatorTypeLabel"),
                                                   options: [
                                                       {
-                                                          value: $4.Legacy,
+                                                          value: $5.Legacy,
                                                           label: "Legacy",
                                                           description: "The old world type.",
                                                       },
                                                       {
-                                                          value: $4.Overworld,
-                                                          label: $3(".vanillaWorldGeneratorLabel"),
-                                                          description: $3(".vanillaWorldGeneratorDescription"),
+                                                          value: $5.Overworld,
+                                                          label: $4(".vanillaWorldGeneratorLabel"),
+                                                          description: $4(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: $4.Flat,
-                                                          label: $3(".flatWorldGeneratorLabel"),
-                                                          description: $3(".flatWorldGeneratorDescription"),
+                                                          value: $5.Flat,
+                                                          label: $4(".flatWorldGeneratorLabel"),
+                                                          description: $4(".flatWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: $4.Nether,
+                                                          value: $5.Nether,
                                                           label: "Nether",
-                                                          description: $3(".vanillaWorldGeneratorDescription"),
+                                                          description: $4(".vanillaWorldGeneratorDescription"),
                                                       },
                                                       {
-                                                          value: $4.TheEnd,
+                                                          value: $5.TheEnd,
                                                           label: "The End",
-                                                          description: $3(".vanillaWorldGeneratorDescription"),
+                                                          description: $4(".vanillaWorldGeneratorDescription"),
                                                       }, */
                                                       {
-                                                          value: $4.Void,
-                                                          label: $3(".voidWorldGeneratorLabel"),
-                                                          description: $3(".voidWorldGeneratorDescription"),
+                                                          value: $5.Void,
+                                                          label: $4(".voidWorldGeneratorLabel"),
+                                                          description: $4(".voidWorldGeneratorDescription"),
                                                       },/* 
                                                       {
-                                                          value: $4.Undefined,
+                                                          value: $5.Undefined,
                                                           label: "Undefined",
-                                                          description: $3(".vanillaWorldGeneratorDescription"),
+                                                          description: $4(".vanillaWorldGeneratorDescription"),
                                                       }, */
                                                   ],
-                                                  value: $5.value,
-                                                  onChange: $5.onChange,
+                                                  value: $6.value,
+                                                  onChange: $6.onChange,
                                               }) /* 
                                               (e[(e.Legacy = 0)] = "Legacy"),
                                                 (e[(e.Overworld = 1)] = "Overworld"),
@@ -1934,11 +1937,11 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         $13 = iAA(sAA ? ".worldSeedCopyButton" : ".worldSeedButton"),
                         y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((eAA, tAA, $2) => tAA || ($2 && uAA && !sAA && eAA.generatorType != $14.Overworld), [uAA, sAA], [eAA, $3, tAA]);
                     return ${extractedSymbolNames.contextHolder}.createElement(
-                              ${extractedSymbolNames.facetHolder}.DeferredMount,
+                              $15,
                               null,
-                              ${extractedSymbolNames.contextHolder}.createElement($15, { data: gAA }, (eAA) =>
+                              ${extractedSymbolNames.contextHolder}.createElement($16, { data: gAA }, (eAA) =>
                                   /* sAA && !eAA
-                                      ? ${extractedSymbolNames.contextHolder}.createElement($16, {
+                                      ? ${extractedSymbolNames.contextHolder}.createElement($17, {
                                             disabled: sAA,
                                             label: iAA(".worldSeedLabel"),
                                             description: iAA(".worldSeedDescription"),
@@ -1949,7 +1952,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                             disabledNarrationSuffix: cAA(".narrationSuffixTemplateLocked"),
                                             "data-testid": "world-seed-text-field",
                                         })
-                                      :  */${extractedSymbolNames.contextHolder}.createElement($16.WithButton, {
+                                      :  */${extractedSymbolNames.contextHolder}.createElement($17.WithButton, {
                                             buttonInputLegend: $13,
                                             buttonText: $13,
                                             buttonOnClick: hAA,
@@ -2044,10 +2047,10 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e && b, [b], [v]),
                     rawData = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e, [], [eAA]);
                 return ${extractedSymbolNames.contextHolder}.createElement(
-                    ${extractedSymbolNames.facetHolder}.DeferredMountProvider,
+                    $9,
                     null,
                     ${extractedSymbolNames.contextHolder}.createElement(
-                        $9,
+                        $10,
                         {
                             isLockedTemplate: u,
                             achievementsDisabled: d,
@@ -2057,9 +2060,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             isEditorWorld: iAA,
                         },
                         ${extractedSymbolNames.contextHolder}.createElement(
-                            ${extractedSymbolNames.facetHolder}.DeferredMount,
+                            $11,
                             null,
-                            ${extractedSymbolNames.contextHolder}.createElement($10, {
+                            ${extractedSymbolNames.contextHolder}.createElement($12, {
                                 title: "Flat nether",
                                 gamepad: { index: 0 },
                                 value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.flatNether, [], [c]),
@@ -2073,9 +2076,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             })
                         ),
                         ${extractedSymbolNames.contextHolder}.createElement(
-                            ${extractedSymbolNames.facetHolder}.DeferredMount,
+                            $11,
                             null,
-                            ${extractedSymbolNames.contextHolder}.createElement($10, {
+                            ${extractedSymbolNames.contextHolder}.createElement($12, {
                                 title: "Enable game version override",
                                 gamepad: { index: 1 },
                                 value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.enableGameVersionOverride, [], [c]),
@@ -2089,9 +2092,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             })
                         ),
                         ${extractedSymbolNames.contextHolder}.createElement(
-                            ${extractedSymbolNames.facetHolder}.DeferredMount,
+                            $11,
                             null,
-                            ${extractedSymbolNames.contextHolder}.createElement($11, {
+                            ${extractedSymbolNames.contextHolder}.createElement($13, {
                                 label: "Game version override",
                                 gamepadIndex: 2,
                                 placeholder: "0.0.0",
@@ -2107,8 +2110,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 ),
                             })
                         ),
-                        ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement($12, { title: "World biome settings" })),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement($14, { title: "World biome settings" })),
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "Default spawn biome",
                             description: "Using the default spawn biome will mean a random overworld spawn is selected",
                             gamepad: { index: 3 },
@@ -2123,10 +2126,10 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             ),
                         }),
                         ${extractedSymbolNames.contextHolder}.createElement(
-                            ${extractedSymbolNames.facetHolder}.DeferredMount,
+                            $11,
                             null,
-                            ${extractedSymbolNames.contextHolder}.createElement($13, {
-                                onMountComplete: (0, ${extractedSymbolNames.facetHolder}.useNotifyMountComplete)(),
+                            ${extractedSymbolNames.contextHolder}.createElement($15, {
+                                onMountComplete: (0, $16)(),
                                 title: "Spawn dimension filter",
                                 disabled: E,
                                 wrapToggleText: !0,
@@ -2145,9 +2148,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             })
                         ),
                         ${extractedSymbolNames.contextHolder}.createElement(
-                            ${extractedSymbolNames.facetHolder}.DeferredMount,
+                            $11,
                             null,
-                            ${extractedSymbolNames.contextHolder}.createElement($14, {
+                            ${extractedSymbolNames.contextHolder}.createElement($17, {
                                 title: "Spawn biome",
                                 options: f,
                                 onItemSelect: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.spawnBiomeId = t), [], [c]),
@@ -2156,7 +2159,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 focusOnSelectedItem: !0,
                             })
                         ),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "Biome override",
                             description: "Set the world to a selected biome. This will override the Spawn biome!",
                             gamepad: { index: 6 },
@@ -2169,7 +2172,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 [c]
                             ),
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($14, {
+                        ${extractedSymbolNames.contextHolder}.createElement($17, {
                             title: "Biome override",
                             description: "Select biome to be used in the entire world",
                             options: p,
@@ -2184,19 +2187,19 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             value: (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.biomeOverrideId, [], [c]),
                             focusOnSelectedItem: !0,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount, { when: y }, ${extractedSymbolNames.contextHolder}.createElement($15, { onExportTemplate: lAA, onClearPlayerData: oAA })),
-                        ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(rawValueEditor, { rawData: eAA })),
+                        ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount, { when: y }, ${extractedSymbolNames.contextHolder}.createElement($18, { onExportTemplate: lAA, onClearPlayerData: oAA })),
+                        ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(rawValueEditor, { rawData: eAA })),
                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                             ${extractedSymbolNames.contextHolder}.createElement(
                                 ${extractedSymbolNames.contextHolder}.Fragment,
                                 null,
                                 ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.headerFunciton}, null, "Debug Info - Raw"),
                                 ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.headerSpacingFunction}, { size: 1 }) /* 
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(e.get(), undefined, 2))),
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(u.get(), undefined, 2))),
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(t.get(), undefined, 2))), */,
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(e.get(), undefined, 2))),
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(u.get(), undefined, 2))),
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(t.get(), undefined, 2))), */,
                                 ${extractedSymbolNames.contextHolder}.createElement(
-                                    ${extractedSymbolNames.facetHolder}.DeferredMount,
+                                    $11,
                                     null,
                                     ${extractedSymbolNames.contextHolder}.createElement(
                                         function ({ children: e, align: t }) {
@@ -2214,7 +2217,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                             )
                                     )
                                 ),
-                                ${extractedSymbolNames.contextHolder}.createElement($11, {
+                                ${extractedSymbolNames.contextHolder}.createElement($13, {
                                     label: "rawData (read-only)",
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
@@ -2234,11 +2237,11 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 }),
                                 ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.headerFunciton}, null, "Debug Info - Property Descriptors"),
                                 ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.headerSpacingFunction}, { size: 1 }) /* 
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(Object.getOwnPropertyDescriptors(e.get()), undefined, 2))),
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(Object.getOwnPropertyDescriptors(u.get()), undefined, 2))),
-                                ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.DeferredMount, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(Object.getOwnPropertyDescriptors(t.get()), undefined, 2))), */,
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldSummary: " + JSON.stringify(Object.getOwnPropertyDescriptors(e.get()), undefined, 2))),
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "worldData: " + JSON.stringify(Object.getOwnPropertyDescriptors(u.get()), undefined, 2))),
+                                ${extractedSymbolNames.contextHolder}.createElement($11, null, ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.editWorldTextFunction}.Text, null, "achievementsDisabledMessages: " + JSON.stringify(Object.getOwnPropertyDescriptors(t.get()), undefined, 2))), */,
                                 ${extractedSymbolNames.contextHolder}.createElement(
-                                    ${extractedSymbolNames.facetHolder}.DeferredMount,
+                                    $11,
                                     null,
                                     ${extractedSymbolNames.contextHolder}.createElement(
                                         function ({ children: e, align: t }) {
@@ -2259,7 +2262,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                             )
                                     )
                                 ),
-                                ${extractedSymbolNames.contextHolder}.createElement($11, {
+                                ${extractedSymbolNames.contextHolder}.createElement($13, {
                                     label: "rawData (Property Descriptors) (read-only)",
                                     // gamepadIndex: 1,
                                     placeholder: "Raw Data JSON",
@@ -2296,10 +2299,10 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     ${extractedSymbolNames.contextHolder}.Fragment,
                     null,
                     ${extractedSymbolNames.contextHolder}.createElement(
-                        ${extractedSymbolNames.facetHolder}.DeferredMount,
+                        $11,
                         null,
                         ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.headerFunciton}, null, "Raw Value Editor"),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "worldSeed",
                             description: "The seed of the world. (advanced.worldSeed)",
                             gamepadIndex: 1,
@@ -2310,7 +2313,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "playerPermissions",
                             description: "?. (multiplayer.playerPermissions)",
                             gamepadIndex: 1,
@@ -2322,7 +2325,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             disabled: false,
                             title: "Player Permissions",
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "playerAccess",
                             description: "?. (multiplayer.playerAccess)",
                             gamepadIndex: 1,
@@ -2333,7 +2336,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "gameMode",
                             description: "?. (general.gameMode)",
                             gamepadIndex: 1,
@@ -2344,7 +2347,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "difficulty",
                             description: "?. (general.difficulty)",
                             gamepadIndex: 1,
@@ -2355,7 +2358,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "generatorType",
                             description: "?. (advanced.generatorType)",
                             gamepadIndex: 1,
@@ -2366,7 +2369,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($11, {
+                        ${extractedSymbolNames.contextHolder}.createElement($13, {
                             label: "simulationDistance",
                             description: "?. (advanced.simulationDistance)",
                             gamepadIndex: 1,
@@ -2377,7 +2380,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             filterProfanity: !1,
                             disabled: false,
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "achievementsDisabled (read-only)",
                             disabled: true,
                             description: "Whether or not achievements are disabled. (read-only)",
@@ -2388,7 +2391,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 [rawData]
                             ),
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "achievementsPermanentlyDisabled (read-only)",
                             soundEffectPressed: "ui.hardcore_toggle_press",
                             disabled: true,
@@ -2400,7 +2403,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 [rawData]
                             ),
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "isUsingTemplate (read-only)",
                             disabled: true,
                             description: "isUsingTemplate (read-only)",
@@ -2411,7 +2414,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 [rawData]
                             ),
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "isLockedTemplate",
                             disabled: false,
                             description: "isLockedTemplate",
@@ -2422,7 +2425,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 [rawData]
                             ),
                         }),
-                        ${extractedSymbolNames.contextHolder}.createElement($10, {
+                        ${extractedSymbolNames.contextHolder}.createElement($12, {
                             title: "playerHasDied (read-only)",
                             disabled: true,
                             description: "readonly general.playerHasDied",
@@ -2613,6 +2616,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/8crafter.gif", await fetch("/assets/oreui/assets/8crafter.gif").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/8crafter.gif");
             addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/Information_icon.png", await fetch("/assets/oreui/assets/Information_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Information_icon.png");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/Readonly_icon.png", await fetch("/assets/oreui/assets/Readonly_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Readonly_icon.png");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/Nonconfigurable_icon.png", await fetch("/assets/oreui/assets/Nonconfigurable_icon.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/Nonconfigurable_icon.png");
+            addedCount++;
             // Toggle
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/toggle_off_hover.png", await fetch("/assets/oreui/assets/toggle_off_hover.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/toggle_off_hover.png");
@@ -2685,6 +2697,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/button_borderless_light_blue_pressed.png", await fetch("/assets/oreui/assets/button_borderless_light_blue_pressed.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
             addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/disabledButton.png", await fetch("/assets/oreui/assets/disabledButton.png").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/assets/disabledButton.png");
+            addedCount++;
         }
         catch (e) {
             console.error(e);
@@ -2730,6 +2745,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
 const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)};`);
             console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
             addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts", await fetch("/assets/oreui/oreUICustomizer8CrafterConfig.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts");
+            addedCount++;
         }
         catch (e) {
             console.error(e);
@@ -2738,20 +2756,44 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/customOverlays.js", await fetch("/assets/oreui/customOverlays.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/customOverlays.js");
             addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/customOverlays.js.map", await fetch("/assets/oreui/customOverlays.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/customOverlays.js.map");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/customOverlays.d.ts", await fetch("/assets/oreui/customOverlays.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/customOverlays.d.ts");
+            addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/customOverlays.css", await fetch("/assets/oreui/customOverlays.css").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/customOverlays.css");
             addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/class_path.js", await fetch("/assets/oreui/class_path.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/class_path.js");
             addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/class_path.js.map", await fetch("/assets/oreui/class_path.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/class_path.js.map");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/class_path.d.ts", await fetch("/assets/oreui/class_path.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/class_path.d.ts");
+            addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/css.js", await fetch("/assets/oreui/css.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/css.js");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/css.js.map", await fetch("/assets/oreui/css.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/css.js.map");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/css.d.ts", await fetch("/assets/oreui/css.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/css.d.ts");
             addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetch("/assets/oreui/JSONB.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.js");
             addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.d.ts");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/types.d.ts", await fetch("/assets/oreui/types.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/types.d.ts");
+            addedCount++;
+            OreUICustomizer.zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums", await fetch("/assets/oreui/@ore-ui-types/enums").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/@ore-ui-types/enums");
             addedCount++;
             OreUICustomizer.zipFs.addBlob("gui/dist/hbui/assets/chevron_new_white_right.png", await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/assets/chevron_new_white_right.png");

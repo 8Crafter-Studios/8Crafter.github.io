@@ -1,24 +1,29 @@
 {
-  "name": "www.8crafter.com",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "index.js",
-    "generateSitemap": "node sitemap_generator.js"
-  },
-  "type": "module",
-  "keywords": [],
-  "author": "",
-  "license": "",
-  "dependencies": {
-    "express": "^4.21.1",
-    "jquery": "^3.7.1",
-    "sitemap-generator": "^8.5.1"
-  },
-  "devDependencies": {
-    "@types/jquery": "^3.5.32",
-    "@types/semver": "^7.7.0"
-  },
-  "private": true
+    "name": "www.8crafter.com",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "index.js",
+        "generateSitemap": "node sitemap_generator.js",
+        "$TODO_1": "Make the below install script work on `npm i <package-name>`.",
+        "install": "node postinstall.js"
+    },
+    "type": "module",
+    "keywords": [],
+    "author": "",
+    "license": "",
+    "dependencies": {
+        "@ore-ui-types/enums": "^1.0.0",
+        "express": "^4.21.1",
+        "jquery": "^3.7.1",
+        "sitemap-generator": "^8.5.1"
+    },
+    "devDependencies": {
+        "@types/jquery": "^3.5.32",
+        "@types/semver": "^7.7.0",
+        "json5": "^2.2.3",
+        "ore-ui-types": "^1.0.2"
+    },
+    "private": true
 }

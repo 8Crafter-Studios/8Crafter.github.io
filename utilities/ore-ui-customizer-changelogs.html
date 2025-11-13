@@ -184,12 +184,77 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.10.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>
+                                The Customizer now provides cached values for queries from the game if the game does not provide a response, this allows
+                                reloading to not break everything in 1.21.130+, if the game never provided a value for it to cache, it will use some fake
+                                premade values to make it work.
+                            </li>
+                            <li>
+                                The special context menus for strings, numbers, symbols, undefined, null, and booleans can now be used on ones logged at the top
+                                level (not within an expanded object).
+                            </li>
+                        </ul>
+                        <h2>Changes</h2>
+                        <ul>
+                            <li>
+                                The console can now display uncaught errors that were recieved as a multiple parameters instead of an instance of
+                                <code>ErrorEvent</code> from <code>window.onerror</code>.
+                            </li>
+                            <li>Increased the default console execution history limit from <code>10</code> to <code>100</code>.</li>
+                            <li>
+                                Strings logged in the console are now dynamically quoted when the first item in that log is not a string, to match DevTools.
+                            </li>
+                            <li>The <code>Copy console</code> option in the console context menu now inserts newlines in between each console message.</li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>
+                                Fixed a bug where uncaught exceptions and promise rejections used the background color for errors in the console instead of
+                                their own unique background colors.
+                            </li>
+                            <li>
+                                Fixed a bug where the <code>Copy object as JSONB literal</code> and
+                                <code>Copy object as JSONB literal (+non-enumerable)</code> options in the console context menu for top-level objects did not
+                                copy functions.
+                            </li>
+                            <li>Fixed wrapping for console messages that had multiple items.</li>
+                            <li>Logged empty strings now actually add an extra space in the console, to match DevTools.</li>
+                            <li>Fixed a bug where the <code>Copy console</code> option in the console context menu would always be disabled.</li>
+                        </ul>
+                        <h2>Technical Additions</h2>
+                        <ul>
+                            <li>
+                                Added new debug settings for intercepting and caching the following:
+                                <ul>
+                                    <li>
+                                        Calls to commands in <code>window.__commands__</code> (enabled by running
+                                        <code>localStorage.setItem("setting:__CACHING_VANILLA_COMMAND_CALLS_ENABLED__", "true")</code> in the console)
+                                    </li>
+                                    <li>
+                                        Calls and responses of requests for queries (enabled by running
+                                        <code>localStorage.setItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__", "true")</code> in the console)
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.9.0</h2>
                     </div>
                     <div class="collapsible-group-content">
                         <h2>Critical Fixes</h2>
                         <ul>
-                            <li>Fixed a Minecraft bug where when reloading Ore UI it would cause the UI to be non-interactable (this also fixed the lite play screen).</li>
+                            <li>
+                                Fixed a Minecraft bug where when reloading Ore UI it would cause the UI to be non-interactable (this also fixed the lite play
+                                screen).
+                            </li>
                         </ul>
                         <h2>Additions</h2>
                         <ul>
@@ -197,10 +262,10 @@
                                 Added a context menu to the console and its messages with many new very useful options, including but not limited to:
                                 <ul>
                                     <li>Copying string contents</li>
-                                    <li>Copying the stack of any console message.</li>
+                                    <li>Copying the stack of any console message</li>
                                     <li>
                                         Copying any object as JSON or JSONB (JSON with support for functions, bigints, undefined, Infinity, -Infinity, NaN,
-                                        etc.).
+                                        etc.)
                                     </li>
                                 </ul>
                             </li>

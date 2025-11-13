@@ -65,7 +65,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.9.0";
+    export const format_version = "1.10.0";
     /**
      * @type {File | undefined}
      */
@@ -3070,7 +3070,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts",
-                await fetch("./assets/oreui/oreUICustomizer8CrafterConfig.d.ts").then((r) => r.blob())
+                await fetch("/assets/oreui/oreUICustomizer8CrafterConfig.d.ts").then((r) => r.blob())
             );
             console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts");
             addedCount++;
@@ -3081,7 +3081,10 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             zipFs.addBlob("gui/dist/hbui/customOverlays.js", await fetch("/assets/oreui/customOverlays.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/customOverlays.js");
             addedCount++;
-            zipFs.addBlob("gui/dist/hbui/customOverlays.d.ts", await fetch("./assets/oreui/customOverlays.d.ts").then((r) => r.blob()));
+            zipFs.addBlob("gui/dist/hbui/customOverlays.js.map", await fetch("/assets/oreui/customOverlays.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/customOverlays.js.map");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/customOverlays.d.ts", await fetch("/assets/oreui/customOverlays.d.ts").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/customOverlays.d.ts");
             addedCount++;
             zipFs.addBlob("gui/dist/hbui/customOverlays.css", await fetch("/assets/oreui/customOverlays.css").then((r) => r.blob()));
@@ -3090,8 +3093,20 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             zipFs.addBlob("gui/dist/hbui/class_path.js", await fetch("/assets/oreui/class_path.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/class_path.js");
             addedCount++;
+            zipFs.addBlob("gui/dist/hbui/class_path.js.map", await fetch("/assets/oreui/class_path.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/class_path.js.map");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/class_path.d.ts", await fetch("/assets/oreui/class_path.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/class_path.d.ts");
+            addedCount++;
             zipFs.addBlob("gui/dist/hbui/css.js", await fetch("/assets/oreui/css.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/css.js");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/css.js.map", await fetch("/assets/oreui/css.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/css.js.map");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/css.d.ts", await fetch("/assets/oreui/css.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/css.d.ts");
             addedCount++;
             zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetch("/assets/oreui/JSONB.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.js");
@@ -3099,8 +3114,11 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.d.ts");
             addedCount++;
-            zipFs.addBlob("gui/dist/hbui/types.ts", await fetch("/assets/oreui/types.ts").then((r) => r.blob()));
-            console.log("Added gui/dist/hbui/types.ts");
+            zipFs.addBlob("gui/dist/hbui/types.d.ts", await fetch("/assets/oreui/types.d.ts").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/types.d.ts");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums", await fetch("/assets/oreui/@ore-ui-types/enums").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/@ore-ui-types/enums");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/chevron_new_white_right.png",

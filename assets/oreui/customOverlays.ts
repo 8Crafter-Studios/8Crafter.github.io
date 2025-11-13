@@ -1,0 +1,7919 @@
+/**
+ * @import {} from "./JSONB.d.ts"
+ * @import {} from "./types.d.ts"
+ * @import {} from "./customOverlays.d.ts"
+ * @import {} from "./oreUICustomizer8CrafterConfig.d.ts"
+ * @import {} from "./class_path.js"
+ */
+/* eslint-disable no-async-promise-executor, prefer-rest-params */
+
+// IDEA: Make the console able to read source maps and display the source locations.
+
+interface Console {
+    everything: ConsoleEverythingEntry[];
+}
+
+type LogType = "log" | "info" | "error" | "warn" | "debug";
+
+type ConsoleEverythingEntry =
+    | { type: "log" | "info" | "error" | "warn" | "debug"; timeStamp: string; value: any[]; stack?: string | undefined }
+    | {
+          type: "exception";
+          timeStamp: string;
+          value: ErrorEvent;
+          stack?: string | undefined;
+      }
+    | { type: "promiseRejection"; timeStamp: string; value: PromiseRejectionEvent; stack?: string | undefined };
+
+type ConsoleLogCallback = (data: ConsoleEverythingEntry) => void;
+
+interface ContextMenuCreationOptions {
+    x: number;
+    y: number;
+    width?: number | undefined;
+    height?: number | undefined;
+    items: ContextMenuItemCreationOptions[];
+}
+
+type ContextMenuItemCreationOptions =
+    | {
+          type?: "action" | undefined;
+          title?: string | undefined;
+          label: string;
+          action(): void;
+          disabled?: boolean | undefined;
+      }
+    | {
+          type: "separator";
+      }
+    | {
+          type: "submenu";
+          label: string;
+          title?: string | undefined;
+          submenu: ContextMenuItemCreationOptions[];
+          disabled?: boolean | undefined;
+      };
+
+type CSSEditorSelectedType = "none" | "element" | "styleSheet" | "root" | "globalStyleElement";
+
+interface Window {
+    /**
+     * @todo Add an actual option for this.
+     * @idea Make these displayed using the `Readonly_icon.png` icon instead of an italic 75% opacity `read-only` before the property name. The icon would be to the left of the expansion arrow (or where it would be when there isn't one).
+     */
+    showReadonlyPropertiesLabelInConsoleEnabled?: boolean | undefined;
+    /**
+     * @internal
+     */
+    observingExternalServerWorldListForLitePlayScreenServersTab?: boolean | undefined;
+    /**
+     * @internal
+     */
+    observingThirdPartyWorldListForLitePlayScreenServersTab?: boolean | undefined;
+    /**
+     * @internal
+     */
+    observingFriendWorldListForLitePlayScreenFriendsTab?: boolean | undefined;
+    /**
+     * @internal
+     */
+    observingLANWorldListForLitePlayScreenLanTab?: boolean | undefined;
+    /**
+     * @internal
+     */
+    observingNetworkWorldDetailsForLitePlayScreenServersTab?: boolean | undefined;
+    /**
+     * @internal
+     */
+    copying?: boolean | undefined;
+    /**
+     * Only present when using the {@link copyTextToClipboard_old} and the `core.router` facet is not available.
+     *
+     * @deprecated
+     */
+    __DEBUG_copyTextToClipboard_old_GLOBALS_copyError__?: unknown | undefined;
+    [key: `temp${bigint}`]: any;
+}
+
+// Hooks onto console data.
+if (console.everything === undefined) {
+    console.everything = [];
+    function TS() {
+        return new Date().toLocaleString("sv", { timeZone: "UTC" }) + "Z";
+    }
+    window.onerror = function (event, source, lineno, colno, error) {
+        /**
+         * @type {ErrorEvent}
+         */
+        let newEvent: ErrorEvent;
+        if (typeof event === "string") {
+            newEvent = new ErrorEvent("error", { error, message: event, filename: source, lineno: lineno, colno: colno });
+        } else if (!(event instanceof ErrorEvent)) {
+            console.warn("window.onerror had an event that was not an instance of ErrorEvent or a string. Arguments: ", arguments);
+            return false;
+        } else {
+            newEvent = event;
+        }
+        /**
+         * @type {Extract<ConsoleEverythingEntry, { type: "exception" }>}
+         */
+        const data: Extract<ConsoleEverythingEntry, { type: "exception" }> = {
+            type: "exception",
+            timeStamp: TS(),
+            value: newEvent,
+        };
+        console.everything.push(data);
+        (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
+            f(data);
+        });
+        return false;
+    };
+    window.onunhandledrejection = function (e) {
+        /**
+         * @type {Extract<ConsoleEverythingEntry, { type: "promiseRejection" }>}
+         */
+        const data: Extract<ConsoleEverythingEntry, { type: "promiseRejection" }> = {
+            type: "promiseRejection",
+            timeStamp: TS(),
+            value: e,
+        };
+        console.everything.push(data);
+        (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
+            f(data);
+        });
+    };
+
+    /**
+     * Hooks onto a {@link console} method.
+     *
+     * @param {LogType} logType
+     * @returns
+     */
+    function hookLogType(logType: LogType) {
+        const original = console[logType].bind(console);
+        return function () {
+            /**
+             * @type {Extract<ConsoleEverythingEntry, { type: LogType }>}
+             */
+            const data: Extract<ConsoleEverythingEntry, { type: LogType }> = {
+                type: logType,
+                timeStamp: TS(),
+                value: Array.from(arguments),
+                stack: new Error().stack?.split("\n").slice(1).join("\n"),
+            };
+            console.everything.push(data);
+            //@ts-ignore
+            original.apply(console, arguments);
+            (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
+                f(data);
+            });
+        };
+    }
+
+    /**
+     * @type {LogType[]}
+     */
+    const logTypes: LogType[] = ["log", "info", "error", "warn", "debug"];
+
+    logTypes.forEach((logType) => {
+        console[logType] = hookLogType(logType);
+    });
+}
+
+/**
+ * Whether to intercept engine subscriptions and store them in the {@link cachedEngineSubscriptions} object.
+ *
+ * This stores additions and removals of event subscription callbacks (from {@link engine.on} and {@link engine.off}), as well as the parameters of
+ * {@link engine.trigger} calls.
+ *
+ * To enable it, either set the `setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
+ *
+ * @type {boolean}
+ */
+let __CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__: boolean = Boolean(
+    JSON.parse(localStorage.getItem("setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__") ?? "null") ?? false
+);
+
+/**
+ * Whether to intercept engine query results and store them in the {@link cachedQueryResults} object.
+ *
+ * To enable it, either set the `setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
+ *
+ * @type {boolean}
+ */
+let __CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__: boolean = Boolean(
+    JSON.parse(localStorage.getItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__") ?? "null") ?? false
+);
+
+/**
+ * Whether to intercept vanilla command calls and store their parameters and results in the {@link cachedVanillaCommandCalls} object.
+ *
+ * To enable it, set the `setting:__CACHING_VANILLA_COMMAND_CALLS_ENABLED__` {@link localStorage} item to `"true"`, then reload the page.
+ *
+ * @type {boolean}
+ */
+const __CACHING_VANILLA_COMMAND_CALLS_ENABLED__: boolean = Boolean(
+    JSON.parse(localStorage.getItem("setting:__CACHING_VANILLA_COMMAND_CALLS_ENABLED__") ?? "null") ?? false
+);
+
+/**
+ * Whether to debug log vanilla command calls, their parameters, and their results to the console.
+ *
+ * To enable it the {@link __CACHING_VANILLA_COMMAND_CALLS_ENABLED__ | \_\_CACHING_VANILLA_COMMAND_CALLS_ENABLED\_\_} setting must be enabled first, then either set the
+ * `setting:__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
+ *
+ * @type {boolean}
+ */
+let __VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__: boolean = Boolean(
+    JSON.parse(localStorage.getItem("setting:__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__") ?? "null") ?? false
+);
+
+// localStorage.setItem("setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__", "true");
+// localStorage.setItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__", "true");
+
+const hookedEngineSubscriptions = {
+    on: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.on<EngineEventID>>, 1>[]>>{},
+    off: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.off<EngineEventID>>, 1>[]>>{},
+    trigger: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.trigger<EngineEventID>>, 1>[]>>{},
+};
+
+/**
+ * @type {{[key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key]][]} & {[key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key]][]} & Record<string, [timestamp: number, value: any][]>}
+ */
+const cachedQueryResults: { [key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key]][] } & {
+    [key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key]][];
+} & Record<string, [timestamp: number, value: any][]> = {};
+
+/**
+ * @type {{[method in keyof typeof hookedEngineSubscriptions]: { "before": ((...args: Parameters<typeof engine[method]>) => void | boolean)[]; "after": ((...args: Parameters<typeof engine[method]>) => void)[] }}}
+ */
+const engineHookTriggerCallbacks: {
+    [method in keyof typeof hookedEngineSubscriptions]: {
+        before: ((...args: Parameters<(typeof engine)[method]>) => void | boolean)[];
+        after: ((...args: Parameters<(typeof engine)[method]>) => void)[];
+    };
+} = {
+    on: {
+        before: [],
+        after: [],
+    },
+    off: { before: [], after: [] },
+    trigger: {
+        before: [
+            (id, ...args) => {
+                if (!__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__) return;
+                if (id.startsWith("query:subscribe/")) {
+                    originalEngineMethods.on(`query:subscribed/${args[0]}`, (value) => {
+                        const key = id.slice("query:subscribe/".length);
+                        cachedQueryResults[key] ??= [];
+                        cachedQueryResults[key].push([Date.now(), value]);
+                    });
+                }
+            },
+        ],
+        after: [],
+    },
+};
+
+/**
+ * @type {{[method in keyof typeof hookedEngineSubscriptions]: typeof engine[method]}}
+ */
+const originalUnboundEngineMethods: { [method in keyof typeof hookedEngineSubscriptions]: (typeof engine)[method] } = {
+    on: engine.on,
+    off: engine.off,
+    trigger: engine.trigger,
+};
+
+/**
+ * @type {Pick<typeof engine, keyof typeof hookedEngineSubscriptions>}
+ */
+const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscriptions> = {
+    on: originalUnboundEngineMethods.on.bind(engine),
+    off: originalUnboundEngineMethods.off.bind(engine),
+    trigger: originalUnboundEngineMethods.trigger.bind(engine),
+};
+
+{
+    /**
+     * @type {FacetTypeMap["core.input"] | undefined}
+     */
+    let __coreInput_value__: FacetTypeMap["core.input"] | undefined = undefined;
+    /**
+     * @type {Record<string, any>}
+     */
+    let cachedFacetQueryData: Record<string, any> = {};
+    /**
+     * @type {{[key in keyof EngineQueryNonFacetResultMap]?: (...args: EngineQuerySubscribeEventParamsMap[key]) => EngineQueryNonFacetResultMap[key]} & Record<PropertyKey, (...args: any[]) => any>}
+     */
+    const __queryResolvers__: {
+        [key in keyof EngineQueryNonFacetResultMap]?: (...args: EngineQuerySubscribeEventParamsMap[key]) => EngineQueryNonFacetResultMap[key];
+    } & Record<PropertyKey, (...args: any[]) => any> = {
+        // "vanilla.core.dataDrivenUICompositionQuery"(screenID) {
+        //     const dduiScreens = getDDUIScreens(getDDUIScreensFolders());
+        //     return {
+        //         __Type: `vanilla.core.dataDrivenUICompositionQuery$_$${
+        //             Object.keys(loadedFacets).length + Object.keys(engine.__queryResolvers__).indexOf("vanilla.core.dataDrivenUICompositionQuery")
+        //         }`,
+        //         children: [],
+        //         ...(dduiScreens[screenID] && resolveDDUIScreen(dduiScreens[screenID])),
+        //     };
+        // },
+        "vanilla.gameplay.furnace"() {
+            return {
+                __Type: `vanilla.gameplay.furnace$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayFurnace")}`,
+                burnProgress: 0.5,
+                litProgress: 0.5,
+            };
+        },
+        vanillaGameplayContainerItemQuery(containerID, slotIndex) {
+            if (containerID === 59) {
+                return {
+                    __Type: `vanillaGameplayContainerItemQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerItemQuery")}`,
+                    amount: 0,
+                    containerItemType: 0,
+                    damageValue: 0,
+                    hasDamageValue: false,
+                    image: "pack://textures/items/stick.png",
+                    maxDamage: 0,
+                    name: "Sticky the Stick",
+                };
+            }
+            return {
+                __Type: `vanillaGameplayContainerItemQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerItemQuery")}`,
+                amount: 69,
+                containerItemType: 0,
+                damageValue: 0,
+                hasDamageValue: false,
+                image: "pack://textures/items/stick.png",
+                maxDamage: 0,
+                name: "Sticky the Stick",
+            };
+        },
+        vanillaGameplayContainerSizeQuery() {
+            return {
+                __Type: `vanillaGameplayContainerSizeQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerSizeQuery")}`,
+                size: 36,
+            };
+        },
+        vanillaGameplayContainerNameQuery() {
+            return {
+                __Type: `vanillaGameplayContainerNameQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerNameQuery")}`,
+                name: "CONTAINER TEST",
+            };
+        },
+        vanillaGameplayContainerChestTypeQuery() {
+            /**
+             * @temp
+             */
+            const VanillaGameplayContainerChestType = {
+                Chest: 0,
+                TrappedChest: 1,
+                CopperChest: 2,
+                Barrel: 3,
+                EnderChest: 4,
+                ShulkerBox: 5,
+            } as const;
+            return {
+                __Type: `vanillaGameplayContainerChestTypeQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerChestTypeQuery")}`,
+                chestType: VanillaGameplayContainerChestType.Barrel,
+            };
+        },
+        vanillaGameplayRecipeBookFilteringQuery() {
+            return {
+                __Type: `vanillaGameplayRecipeBookFilteringQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayRecipeBookFilteringQuery")}`,
+                isFiltering: false,
+            };
+        },
+        vanillaGameplayRecipeBookSearchStringQuery() {
+            return {
+                __Type: `vanillaGameplayRecipeBookSearchStringQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayRecipeBookSearchStringQuery")}`,
+                searchString: "",
+            };
+        },
+        vanillaGameplayUIProfile() {
+            return {
+                __Type: `vanillaGameplayUIProfile$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayUIProfile")}`,
+                uiProfile: 0,
+            };
+        },
+        vanillaGameplayAnvilQuery() {
+            return {
+                __Type: `vanillaGameplayAnvilQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayAnvilQuery")}`,
+                costText: "69 Levels",
+                damageState: 1,
+                hasInputItem: true,
+                previewItemName: "Rick Astley",
+                shouldCrossOutIconBeVisible: false,
+            };
+        },
+        vanillaGameplayTradeOverviewQuery() {
+            return {
+                __Type: `vanillaGameplayTradeOverviewQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayTradeOverviewQuery")}`,
+                experiencePossibleProgress: 5,
+                experienceProgress: 0.6,
+                isExperienceBarVisible: true,
+                traderName: "Rick Astley",
+                tradeTiers: 5,
+            };
+        },
+        vanillaGameplayTradeTierQuery(tradeTier) {
+            return {
+                __Type: `vanillaGameplayTradeTierQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayTradeTierQuery")}`,
+                isTierUnlocked: tradeTier < 3,
+                isTierVisible: true,
+                tierName: `Tier ${tradeTier} - ${["Never", "gonna", "give", "you", "up."][tradeTier] ?? "UNNAMED"}`,
+                tradeOffers: 2,
+            };
+        },
+        vanillaGameplayTradeOfferQuery(tradeTier, tradeIndex) {
+            return {
+                __Type: `vanillaGameplayTradeOfferQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayTradeOfferQuery")}`,
+                buyAItemAmount: 9999,
+                buyAItemImage: "pack://textures/items/diamond.png",
+                buyAItemName: "Diamond",
+                buyBItemAmount: 9999,
+                buyBItemImage: "pack://textures/items/netherite_ingot.png",
+                buyBItemName: "Netherite Ingot",
+                sellItemAmount: 1,
+                sellItemImage: "pack://textures/items/rotten_flesh.png",
+                sellItemName: "Rotten Flesh",
+                hasSecondaryBuyItem: true,
+                isOutOfUses: tradeTier === 2 && tradeIndex === 1,
+                isSelectedTrade: tradeTier === 1 && tradeIndex === 0,
+                playerHasItemsForTrade: true,
+            };
+        },
+    };
+    engineHookTriggerCallbacks.trigger.before.push(function (id, ...args) {
+        if (id === "query:subscribe/core.input") {
+            // console.debug(6, id, ...args);
+            //@ts-ignore
+            originalEngineMethods.on(`query:subscribed/${args[0]}`, (/** @type {FacetTypeMap["core.input"]} */ value: FacetTypeMap["core.input"]) => {
+                // console.debug(7, arguments);
+                __coreInput_value__ = value;
+            });
+        } else if (id.startsWith("query:subscribe/")) {
+            const facetID = id.slice("query:subscribe/".length);
+            // ~DEBUG: This is for overriding these queries.
+            // if (__queryResolvers__[facetID]) {
+            //     originalEngineMethods.trigger(`query:subscribed/${args[0]}`, __queryResolvers__[facetID](...args.slice(1)));
+            //     return false;
+            // }
+            //@ts-ignore
+            originalEngineMethods.on(`query:subscribed/${args[0]}`, (/** @type {FacetTypeMap["core.input"]} */ value: FacetTypeMap["core.input"]) => {
+                // console.debug(7, arguments);
+                cachedFacetQueryData[facetID] = value;
+            });
+        }
+    });
+    engineHookTriggerCallbacks.trigger.after.push(function (id, ...args) {
+        if (id === "query:subscribe/core.input") {
+            if (typeof __coreInput_value__ !== "undefined") {
+                // console.log(5, __coreInput_value__);
+
+                localStorage.setItem("queryValueCache:query:subscribe/core.input", JSON.stringify(__coreInput_value__));
+            } else if (localStorage.getItem("queryValueCache:query:subscribe/core.input")) {
+                // console.log(
+                //     4,
+                //     localStorage.getItem("queryValueCache:query:subscribe/core.input"),
+                //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                // );
+                originalEngineMethods.trigger(
+                    `query:subscribed/${args[0]}`,
+                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                );
+            } else if (globalThis.getAccessibleFacetSpyFacets?.()["core.input"]) {
+                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, globalThis.getAccessibleFacetSpyFacets?.()["core.input"]);
+            } else {
+                globalThis.forceLoadFacet("core.input").then((facetData) => {
+                    originalEngineMethods.trigger(`query:subscribed/${args[0]}`, facetData);
+                });
+            }
+        } else if (id.startsWith("query:subscribe/")) {
+            const facetID = id.slice("query:subscribe/".length);
+            if (typeof cachedFacetQueryData[facetID] !== "undefined") {
+                // console.log(5, __coreInput_value__);
+
+                localStorage.setItem("queryValueCache:query:subscribe/" + facetID, JSON.stringify(cachedFacetQueryData[facetID]));
+            } else if (localStorage.getItem("queryValueCache:query:subscribe/" + facetID)) {
+                // console.log(
+                //     4,
+                //     localStorage.getItem("queryValueCache:query:subscribe/core.input"),
+                //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                // );
+                originalEngineMethods.trigger(
+                    `query:subscribed/${args[0]}`,
+                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/" + facetID) ?? "null")
+                );
+            } else if (__queryResolvers__[facetID]) {
+                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, __queryResolvers__[facetID](...args.slice(1)));
+            } else if (globalThis.getAccessibleFacetSpyFacets?.()[facetID]) {
+                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, globalThis.getAccessibleFacetSpyFacets?.()[facetID]);
+            } else {
+                globalThis.forceLoadFacet(facetID).then((facetData) => {
+                    originalEngineMethods.trigger(`query:subscribed/${args[0]}`, facetData);
+                });
+            }
+        }
+    });
+}
+
+/**
+ * @param {keyof typeof hookedEngineSubscriptions} method
+ */
+function hookEngineMethod(method: keyof typeof hookedEngineSubscriptions) {
+    const original = originalEngineMethods[method];
+    //@ts-ignore
+    engine[method] = function (id, ...args) {
+        //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        if (!engineHookTriggerCallbacks[method].before.every((f) => f(id, ...args) !== false)) return method === "on" ? { clear() {} } : void 0;
+        //@ts-ignore
+        const result = original.apply(engine, arguments);
+        //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        engineHookTriggerCallbacks[method].after.forEach((f) => f(id, ...args));
+        if (__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__) {
+            hookedEngineSubscriptions[method][id] ??= [];
+            hookedEngineSubscriptions[method][id].push(args as any);
+        }
+        return result;
+    };
+    //@ts-ignore
+    Object.defineProperty(engine[method], "name", { ...Object.getOwnPropertyDescriptor(engine[method], "name"), value: method });
+}
+
+/**
+ * This will only have values if {@link __CACHING_VANILLA_COMMAND_CALLS_ENABLED__} is set to `true`.
+ *
+ * @type {{[commandGroup in keyof typeof __commands__]?: {[command in keyof typeof __commands__[commandGroup]]?: { params?: Parameters<typeof __commands__[commandGroup][command]["callable"]>; result?: ReturnType<typeof __commands__[commandGroup][command]["callable"]> }[]}}}
+ */
+const cachedVanillaCommandCalls: {
+    [commandGroup in keyof typeof __commands__]?: {
+        [command in keyof (typeof __commands__)[commandGroup]]?: {
+            params?: Parameters<(typeof __commands__)[commandGroup][command]["callable"]>;
+            result?: ReturnType<(typeof __commands__)[commandGroup][command]["callable"]>;
+        }[];
+    };
+} = {};
+
+function vanillaCommandsInterceptor() {
+    if (!globalThis.__commands__) {
+        console.warn(new ReferenceError("Could not find globalThis.__commands__."));
+        return;
+    }
+    /**
+     * @type {(keyof typeof __commands__)[]}
+     */
+    const commandGroups: (keyof typeof __commands__)[] = Object.keys(__commands__);
+    for (const commandGroup of commandGroups) {
+        /**
+         * @type {(keyof typeof __commands__[typeof commandGroup])[]}
+         */
+        const commands: (keyof (typeof __commands__)[typeof commandGroup])[] = Object.keys(__commands__[commandGroup]!);
+        for (const command of commands) {
+            const original = __commands__[commandGroup]![command]!.callable.bind(__commands__[commandGroup]![command]);
+            __commands__[commandGroup]![command]!.callable = function (...args) {
+                cachedVanillaCommandCalls[commandGroup] ??= {};
+                cachedVanillaCommandCalls[commandGroup][command] ??= [];
+                try {
+                    var result = original(...args);
+                } finally {
+                    try {
+                        result;
+                        cachedVanillaCommandCalls[commandGroup][command].push({ ...(args.length > 0 ? { params: args } : {}), result });
+                    } catch {
+                        cachedVanillaCommandCalls[commandGroup][command].push({ ...(args.length > 0 ? { params: args } : {}) });
+                    }
+                    if (__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__)
+                        console.debug(commandGroup, command, ...args, "Result:", typeof result !== "undefined" ? result : undefined);
+                }
+            };
+        }
+    }
+}
+
+if (__CACHING_VANILLA_COMMAND_CALLS_ENABLED__) vanillaCommandsInterceptor();
+
+//@ts-ignore
+Object.keys(hookedEngineSubscriptions).forEach(hookEngineMethod);
+
+// engine.on("query:subscribe/core.input", console.debug);
+// engine.on("query:updated/core.input", console.debug);
+// engine.on("query:subscribed/933789883", console.info);
+// try {
+//     engine.on(
+//         "query:subscribe/core.input",
+//         /**
+//          * @param {number} value
+//          */
+//         function fixBrokenInput(value) {
+//             engine.trigger(`query:subscribed/${value}`, {
+//                 keyboardType: 0,
+//                 enableControllerHints: true,
+//                 currentInputType: 2,
+//                 swapXYButtons: false,
+//                 swapABButtons: false,
+//             });
+//         }
+//     );
+// } catch (e) {
+//     console.error(e);
+// }
+
+/**
+ * @type {HTMLDivElement}
+ */
+let mainMenu8CrafterUtilities: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let consoleOverlayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let consoleOverlayTextElement: HTMLDivElement;
+
+/**
+ * @type {HTMLTextAreaElement}
+ */
+let consoleOverlayInputFieldElement: HTMLTextAreaElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let screenDisplayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let elementGeneralDebugOverlayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let smallCornerDebugOverlayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let cssEditorDisplayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let screenInputBlocker: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let htmlSourceCodePreviewElement: HTMLDivElement;
+
+/**
+ * @type {HTMLParagraphElement}
+ */
+let htmlSourceCodePreviewElementP: HTMLParagraphElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let cssEditorSubtitleElement: HTMLDivElement;
+
+/**
+ * @type {HTMLStyleElement}
+ */
+let customGlobalCSSStyleElement: HTMLStyleElement;
+
+/**
+ * @type {HTMLTextAreaElement}
+ */
+let cssEditorTextBox: HTMLTextAreaElement;
+
+/**
+ * @type {HTMLParagraphElement}
+ */
+let cssEditorErrorText: HTMLParagraphElement;
+
+/**
+ * @type {HTMLButtonElement}
+ */
+let cssEditorSelectTargetButton: HTMLButtonElement;
+
+/**
+ * @type {"none" | "hoveredElementDetails"}
+ */
+let currentDebugMode: "none" | "hoveredElementDetails" = "none";
+
+/**
+ * @type {CSSStyleSheet[]}
+ */
+let cssEditor_selectableStyleSheets: CSSStyleSheet[] = [];
+
+/**
+ * @type {HTMLElement}
+ */
+let cssEditorSelectedElement: HTMLElement;
+
+/**
+ * @type {CSSStyleSheet}
+ */
+let cssEditorSelectedStyleSheet: CSSStyleSheet;
+
+/**
+ * @type {CSSRule[]}
+ */
+let cssEditorSelectedStyleSheet_rules: CSSRule[] = [];
+/**
+ * @type {CSSEditorSelectedType}
+ */
+let cssEditorSelectedType: CSSEditorSelectedType = "none";
+
+/**
+ * @type {boolean}
+ */
+let cssEditorInSelectMode: boolean = false;
+
+/**
+ * @type {HTMLElement & EventTarget}
+ */
+let currentMouseHoverTarget: HTMLElement & EventTarget;
+
+var mousePos = {
+    clientX: 0,
+    clientY: 0,
+    screenX: 0,
+    screenY: 0,
+    movementX: 0,
+    movementY: 0,
+    mTarget: null as EventTarget | null,
+    kTarget: null as EventTarget | null,
+};
+
+/**
+ * The currently held keys.
+ *
+ * This is used for the small corner debug overlay (`CTRL+I`).
+ */
+var heldKeys: string[] = [];
+
+/**
+ * @type {number[]}
+ */
+var heldKeyCodes: number[] = [];
+
+/**
+ * @type {string[]}
+ */
+var heldMouseButtons: string[] = [];
+
+/**
+ * @type {readonly ["MAIN", "AUX", "SEC", "BACK", "FRWD"]}
+ */
+const MOUSE_BUTTON_NAMES: readonly ["MAIN", "AUX", "SEC", "BACK", "FRWD"] = ["MAIN", "AUX", "SEC", "BACK", "FRWD"];
+
+/**
+ * An array of callbacks to be executed when a console message is intercepted.
+ */
+var onConsoleLogCallbacks: ConsoleLogCallback[] = "onConsoleLogCallbacks" in globalThis ? globalThis.onConsoleLogCallbacks ?? [] : [];
+
+/**
+ * Copies the current list of new facets to the clipboard.
+ *
+ * @returns {ReturnType<typeof copyTextToClipboardAsync>} A promise that resolves with the result of {@link copyTextToClipboardAsync}.
+ */
+async function copyNewFacetListToClipboard(): ReturnType<typeof copyTextToClipboardAsync> {
+    return await copyTextToClipboardAsync(notedNewFacets.join("\n"));
+}
+
+/**
+ * Joins a realm by name.
+ *
+ * @param {string} realmName The name of the realm to join.
+ * @returns {Promise<{success: boolean, message: string, error?: unknown}>} The result.
+ *
+ * @description
+ * 1. Switches to the realms tab, it it is not already open.
+ * 2. Waits for the realms list to load.
+ * 3. Finds the realm in the realms list and clicks on it.
+ * 4. Waits for the realm details to load.
+ * 5. Clicks the realm play button.
+ *
+ * @example
+ * ```javascript
+ * autoJoinRealm("Asteria").then(console.log);
+ * ```
+ */
+async function autoJoinRealm(realmName: string): Promise<{ success: boolean; message: string; error?: unknown }> {
+    try {
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='play-screen-tab-bar-realms']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join realm: ${realmName}; Failed to find realms tab button. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join realm: ${realmName}; Failed to find realms tab button. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        //@ts-ignore This is supposed to throw an error if it can't find the element.
+        document.querySelector("div[data-testid='play-screen-tab-bar-realms']").dispatchEvent(new Event("click"));
+        for (let i = 0; i < 100; i++) {
+            if (document.querySelector("div[data-testid='realm-list-item-joined-realm']") !== null) {
+                break;
+            }
+            if (i >= 99) {
+                console.error(`Failed to join realm: ${realmName}; Failed to load realms. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join realm: ${realmName}; Failed to load realms. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        for (let i = 0; i < 100; i++) {
+            for (const div of document.querySelectorAll("div[data-testid='realm-list-item-joined-realm'] > div > div > div > div > div")) {
+                if (div.textContent === realmName) {
+                    /**
+                     * @type {HTMLElement}
+                     */
+                    //@ts-ignore This is supposed to throw an error if it can't find the element.
+                    const button: HTMLElement = div.parentElement.parentElement.parentElement.parentElement.parentElement;
+                    button.dispatchEvent(new Event("click"));
+                    for (let i = 0; i < 100; i++) {
+                        if (document.querySelector("div[data-testid='play-realm-button']") !== null) {
+                            break;
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join realm: ${realmName}; Failed to find the realm play button. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join realm: ${realmName}; Failed to find the realm play button. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    let playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
+                    let playRealmButtonSection = playRealmButton?.parentElement?.parentElement?.parentElement ?? null;
+                    let playRealmButtonSectionRealmNameSpan = playRealmButtonSection?.querySelector("> div > span.vanilla-neutral80-text");
+                    for (let i = 0; i < 100; i++) {
+                        playRealmButton ??= document.querySelector("div[data-testid='play-realm-button']");
+                        playRealmButtonSection ??= playRealmButton?.parentElement?.parentElement?.parentElement ?? null;
+                        playRealmButtonSectionRealmNameSpan ??= playRealmButtonSection?.querySelector("> div > span.vanilla-neutral80-text");
+                        if (playRealmButton && playRealmButtonSectionRealmNameSpan?.textContent === realmName) {
+                            await new Promise((resolve) => setTimeout(resolve, 100));
+                            playRealmButton.dispatchEvent(new Event("click"));
+                            console.log(`Joined realm: ${realmName}`);
+                            return {
+                                success: true,
+                                message: `Joined realm: ${realmName}`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    console.error(`Failed to join realm: ${realmName}; Failed to load realm details. Timed out.`);
+                    return {
+                        success: false,
+                        message: `Failed to join realm: ${realmName}; Failed to load realm details. Timed out.`,
+                    };
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        console.error(`Failed to join realm: ${realmName}; Failed to find realm in realm list. Timed out.`);
+        return {
+            success: false,
+            message: `Failed to join realm: ${realmName}; Failed to find realm in realm list. Timed out.`,
+        };
+    } catch (e) {
+        console.error(e);
+        return {
+            success: false,
+            message: e instanceof Error ? e.message : String(e),
+            error: e,
+        };
+    }
+}
+
+/**
+ * Joins a server by name.
+ *
+ * @param {string} serverName The name of the server to join.
+ * @returns {Promise<{success: boolean, message: string, error?: unknown}>} The result.
+ *
+ * @description
+ * 1. Switches to the servers tab, it it is not already open.
+ * 2. Waits for the servers list to load.
+ * 3. Finds the realm in the servers list and clicks on it.
+ * 4. Waits for the server details to load.
+ * 5. Clicks the server play button.
+ */
+async function autoJoinServer(serverName: string): Promise<{ success: boolean; message: string; error?: unknown }> {
+    try {
+        for (let i = 0; i < 101; i++) {
+            if (document.querySelector("div[data-testid='play-screen-tab-bar-servers']") !== null) {
+                break;
+            }
+            if (i >= 100) {
+                console.error(`Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        //@ts-ignore This is supposed to throw an error if it can't find the element.
+        document.querySelector("div[data-testid='play-screen-tab-bar-servers']").dispatchEvent(new Event("click"));
+        for (let i = 0; i < 101; i++) {
+            const addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1];
+            if (addServerButtonClass !== null) {
+                const addServerButton = Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find(
+                    (div) => div.textContent === "Add server"
+                )?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement;
+                const addServerButtonContainer = addServerButton?.parentElement;
+                const serversList = addServerButtonContainer?.parentElement ?? null;
+                if (addServerButton && serversList !== null) {
+                    if (
+                        (serversList.querySelector(`> div.${addServerButton.classList.item(0)} div.vanilla-neutralAlpha60-text > div`) ??
+                            Array.from(serversList.querySelectorAll(`> div.${addServerButton.classList.item(0)} div.vanilla-neutralAlpha60-text`)).find(
+                                (div) => !div.querySelector("div")
+                            )) !== null
+                    ) {
+                        break;
+                    }
+                }
+            }
+            if (i >= 100) {
+                console.error(`Failed to join server: ${serverName}; Failed to load servers. Timed out.`);
+                return {
+                    success: false,
+                    message: `Failed to join server: ${serverName}; Failed to load servers. Timed out.`,
+                };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        let addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1] ?? null;
+        let addServerButton =
+            Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")?.parentElement
+                ?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
+        let addServerButtonContainer = addServerButton?.parentElement ?? null;
+        let serversList = addServerButtonContainer?.parentElement ?? null;
+        for (let i = 0; i < 100; i++) {
+            addServerButtonClass ??= document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1] ?? null;
+            addServerButton ??=
+                Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")?.parentElement
+                    ?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
+            addServerButtonContainer ??= addServerButton?.parentElement ?? null;
+            serversList ??= addServerButtonContainer?.parentElement ?? null;
+            if (!addServerButton || !serversList) {
+                if (i >= 99) {
+                    console.error(
+                        `Failed to join server: ${serverName}; Failed to find ${!addServerButton ? "add server button" : "servers list"}. Timed out.`
+                    );
+                    return {
+                        success: false,
+                        message: `Failed to join server: ${serverName}; Failed to find ${!addServerButton ? "add server button" : "servers list"}. Timed out.`,
+                    };
+                }
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                continue;
+            }
+            for (const div of [
+                ...Array.from(serversList.querySelectorAll(`> div.${addServerButton.classList.item(0)} * div.vanilla-neutralAlpha60-text > div`)),
+                ...Array.from(serversList.querySelectorAll(`> div.${addServerButton.classList.item(0)} * div.vanilla-neutralAlpha60-text`)).filter(
+                    (div) => !div.querySelector("div")
+                ),
+            ]) {
+                if (div.textContent === serverName) {
+                    //@ts-ignore
+                    const button = div.parentElement?.parentElement?.parentElement?.parentElement?.classList.contains(addServerButton.classList.item(0))
+                        ? div.parentElement.parentElement.parentElement.parentElement
+                        : div.parentElement?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
+                    if (!button) continue;
+                    button.dispatchEvent(new Event("click"));
+                    for (let i = 0; i < 100; i++) {
+                        if (document.querySelector("div[data-testid='server-play-button']") !== null) {
+                            break;
+                        }
+                        if (i >= 99) {
+                            console.error(`Failed to join server: ${serverName}; Failed to find the server play button. Timed out.`);
+                            return {
+                                success: false,
+                                message: `Failed to join server: ${serverName}; Failed to find the server play button. Timed out.`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    const playServerButton = document.querySelector("div[data-testid='server-play-button']");
+                    const playServerButtonSection = playServerButton?.parentElement?.parentElement?.parentElement;
+                    if (!playServerButtonSection) continue;
+                    let playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                    for (let i = 0; i < 100; i++) {
+                        playServerButtonSectionServerNameSpan ??= playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+                        if (playServerButtonSectionServerNameSpan && playServerButtonSectionServerNameSpan.textContent === serverName) {
+                            playServerButton.dispatchEvent(new Event("click"));
+                            console.log(`Joined server: ${serverName}`);
+                            return {
+                                success: true,
+                                message: `Joined server: ${serverName}`,
+                            };
+                        }
+                        await new Promise((resolve) => setTimeout(resolve, 100));
+                    }
+                    console.error(`Failed to join server: ${serverName}; Failed to load server details. Timed out.`);
+                    return {
+                        success: false,
+                        message: `Failed to join server: ${serverName}; Failed to load server details. Timed out.`,
+                    };
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        console.error(`Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`);
+        return {
+            success: false,
+            message: `Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`,
+        };
+    } catch (e) {
+        console.error(e);
+        return {
+            success: false,
+            message: e instanceof Error ? e.message : String(e),
+            error: e,
+        };
+    }
+}
+
+/**
+ * Joins a world by name.
+ *
+ * @param {string} worldName The name of the world to join.
+ * @returns {Promise<{success: boolean, message: string, error?: any}>} The result.
+ *
+ * @description
+ * 1. Switches to the worlds tab, it it is not already open.
+ * 2. Waits for the worlds list to load.
+ * 3. Finds the realm in the worlds list and clicks on it.
+ * 4. Waits for the world details to load.
+ * 5. Clicks the world play button.
+ */
+async function autoJoinWorld(worldName: string): Promise<{ success: boolean; message: string; error?: any }> {
+    try {
+        let playScreenTabBarAll = null;
+        for (let i = 0; i < 100; i++) {
+            if ((playScreenTabBarAll = document.querySelector("div[data-testid='play-screen-tab-bar-all']")) !== null) {
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        if ((playScreenTabBarAll ??= document.querySelector("div[data-testid='play-screen-tab-bar-all']")) === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`,
+            };
+        }
+        playScreenTabBarAll.dispatchEvent(new Event("click"));
+        let multiplayerWorldListItemPrimaryAction0 = null;
+        for (let i = 0; i < 100; i++) {
+            if ((multiplayerWorldListItemPrimaryAction0 = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) !== null) {
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        if ((multiplayerWorldListItemPrimaryAction0 ??= document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to load worlds. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to load worlds. Timed out.`,
+            };
+        }
+        let worldsList = multiplayerWorldListItemPrimaryAction0.parentElement?.parentElement ?? null;
+        for (let i = 0; i < 100; i++) {
+            if ((worldsList ??= multiplayerWorldListItemPrimaryAction0.parentElement?.parentElement ?? null) !== null) {
+                for (const div of Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
+                    /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid") ?? "")
+                )) {
+                    if (div.querySelector("div.vanilla-neutral-text")?.textContent === worldName) {
+                        // await new Promise((resolve) => setTimeout(resolve, 100));
+                        div.dispatchEvent(new Event("click"));
+                        console.log(`Joined world: ${worldName}`);
+                        return {
+                            success: true,
+                            message: `Joined world: ${worldName}`,
+                        };
+                    }
+                }
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        if (worldsList === null) {
+            console.error(`Failed to join world: ${worldName}; Failed to find world list. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find world list. Timed out.`,
+            };
+        } else {
+            console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
+            return {
+                success: false,
+                message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
+            };
+        }
+    } catch (e) {
+        console.error(e);
+        return {
+            success: false,
+            message: e instanceof Error ? e.message : String(e),
+            error: e,
+        };
+    }
+}
+
+async function enableAutoJoinForOpenServer() {
+    if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-realms']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='play-realm-button']") !== null
+    ) {
+        const playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
+        if (!playRealmButton) throw new Error("Impossible state reached, could not find play realm button even though it was already found.");
+        const playRealmButtonSection = playRealmButton.parentElement?.parentElement?.parentElement ?? null;
+        if (!playRealmButtonSection) throw new ReferenceError("Could not find play realm button section.");
+        const playRealmButtonSectionRealmNameSpan = playRealmButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        if (!playRealmButtonSectionRealmNameSpan) throw new ReferenceError("Could not find play realm button section realm name span.");
+        if (!playRealmButtonSectionRealmNameSpan.textContent) throw new ReferenceError("The play realm button section realm name span was empty.");
+        window.localStorage.setItem("autoJoinName", playRealmButtonSectionRealmNameSpan.textContent);
+        window.localStorage.setItem("autoJoinType", "realm");
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = playRealmButtonSectionRealmNameSpan.textContent;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "Realm";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
+        promptForConfirmation(`Successfully enabled auto rejoin for the following realm: ${playRealmButtonSectionRealmNameSpan.textContent}`, "OK", "");
+    } else if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-servers']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='server-play-button']") !== null
+    ) {
+        const playServerButton = document.querySelector("div[data-testid='server-play-button']");
+        if (!playServerButton) throw new Error("Impossible state reached, could not find play server button even though it was already found.");
+        const playServerButtonSection = playServerButton.parentElement?.parentElement?.parentElement ?? null;
+        if (!playServerButtonSection) throw new ReferenceError("Could not find play server button section.");
+        const playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
+        if (!playServerButtonSectionServerNameSpan) throw new ReferenceError("Could not find play server button section server name span.");
+        if (!playServerButtonSectionServerNameSpan.textContent) throw new ReferenceError("The play server button section server name span was empty.");
+        window.localStorage.setItem("autoJoinName", playServerButtonSectionServerNameSpan.textContent);
+        window.localStorage.setItem("autoJoinType", "server");
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = playServerButtonSectionServerNameSpan.textContent;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "Server";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
+        promptForConfirmation(`Successfully enabled auto rejoin for the following server: ${playServerButtonSectionServerNameSpan.textContent}`, "OK", "");
+    } else if (
+        document.querySelector("div[data-testid='play-screen-tab-bar-all']")?.querySelector("div.vanilla-neutral-icon") !== null &&
+        document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null
+    ) {
+        const worldsListItemButton = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']");
+        if (!worldsListItemButton) throw new Error("Impossible state reached, could not find worlds list item button even though it was already found.");
+        const worldsList = worldsListItemButton.parentElement?.parentElement;
+        if (!worldsList) throw new ReferenceError("Could not find worlds list.");
+        const worlds = Array.from(worldsList.querySelectorAll(`> div > div`)).filter((div) =>
+            /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid") ?? "")
+        );
+        const r = await buttonSelectionMenu({
+            body: "Select a world to enable auto rejoin for.",
+            buttons: worlds.map((world) => [world.querySelector("div.vanilla-neutral-text")?.textContent ?? "MISSING NAME!"]),
+            style: "1column",
+        });
+        if (r.canceled || r.selection === undefined) return;
+        const world = worlds[r.selection]!;
+        const worldName = world.querySelector("div.vanilla-neutral-text")?.textContent;
+        if (!worldName) throw new ReferenceError("Could not find world name.");
+        window.localStorage.setItem("autoJoinName", worldName);
+        window.localStorage.setItem("autoJoinType", "world");
+        const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+        if (disableAutoRejoinButton) {
+            disableAutoRejoinButton.removeAttribute("disabled");
+            disableAutoRejoinButton.classList.remove("disabled");
+        } else {
+            console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+        }
+        const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+        if (autoRejoinNameSpan) {
+            autoRejoinNameSpan.textContent = worldName;
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin name span."));
+        }
+        const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+        if (autoRejoinTypeSpan) {
+            autoRejoinTypeSpan.textContent = "World";
+        } else {
+            console.warn(new ReferenceError("Could not find auto rejoin type span."));
+        }
+        promptForConfirmation(`Successfully enabled auto rejoin for the following world: ${worldName}`, "OK", "");
+    } else {
+        promptForConfirmation(
+            "Failed to enable auto rejoin, no realm or server play button was found.\nPlease either go to the worlds tab, select a realm, or select a server. Then try again.\nNote: If the currently selected realm is not active, then it will not be detected as selected.",
+            "OK",
+            ""
+        );
+    }
+}
+
+/**
+ * Prompts the user with a confirmation dialog.
+ *
+ * @param {string} message The message to prompt the user with.
+ * @param {string} [button1="Confirm"] The text of the first button. Defaults to "Confirm".
+ * @param {string} [button2="Cancel"] The text of the second button. Defaults to "Cancel".
+ * @param {string} [button3] The text of the third button. Defaults to undefined. If undefined, there will be no third button.
+ * @param {(container: HTMLDivElement, resolve: (result: 0|1|2) => void, reject: (error: any) => void) => void} [additionalModificationsCallback=()=>{}] A callback function that will be called after the dialog is created.
+ * @returns {Promise<0|1|2>} A promise that resovles with `1` if the user clicked the first button and `0` if the user clicked the second button.
+ * @throws {any} If the additionalModificationsCallback throws an error.
+ */
+async function promptForConfirmation(
+    message: string,
+    button1: string = "Confirm",
+    button2: string = "Cancel",
+    button3?: string | undefined,
+    additionalModificationsCallback: (container: HTMLDivElement, resolve: (result: 0 | 1 | 2) => void, reject: (error: any) => void) => void = async () => {}
+): Promise<0 | 1 | 2> {
+    return new Promise(async (resolve, reject) => {
+        const container = document.createElement("div");
+        ("background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; backdrop-filter: blur(5px); border: 5px solid #87CEEb;");
+        container.style.position = "fixed";
+        container.style.top = "12.5vh";
+        container.style.left = "12.5vw";
+        container.style.width = "75vw";
+        container.style.height = "75vh";
+        container.style.zIndex = "20000000";
+        container.style.backgroundColor = "#00000080";
+        container.style.color = "#FFFFFFFF";
+        container.style.backdropFilter = "blur(5px)";
+        container.style.border = "5px solid #87CEEb";
+        const messageElement = document.createElement("pre");
+        messageElement.textContent = message;
+        messageElement.style.position = "absolute";
+        messageElement.style.top = "0";
+        messageElement.style.left = "0";
+        messageElement.style.width = "100%";
+        messageElement.style.height = "90%";
+        messageElement.style.overflow = "auto";
+        messageElement.style.padding = "10px";
+        messageElement.style.fontSize = `2em`;
+        messageElement.style.fontFamily = "Minecraft Seven v4";
+        messageElement.style.whiteSpace = "pre-wrap";
+        messageElement.style.overflowWrap = "anywhere";
+        container.appendChild(messageElement);
+        const button1Element = document.createElement("button");
+        button1Element.textContent = button1;
+        button1Element.style.position = "absolute";
+        button1Element.style.bottom = button3 ? "25%" : "0";
+        button1Element.style.left = "0";
+        button1Element.style.width = button2 ? "50%" : "100%";
+        button1Element.style.height = "25%";
+        button1Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+        button1Element.style.fontFamily = "Minecraft Seven v4";
+        button1Element.classList.add("btn");
+        button1Element.classList.add("btn-primary");
+        button1Element.addEventListener("click", () => {
+            container.setAttribute("data-closed", "true");
+            container.remove();
+            resolve(1);
+        });
+        container.appendChild(button1Element);
+        if (button2) {
+            const button2Element = document.createElement("button");
+            button2Element.textContent = button2;
+            button2Element.style.position = "absolute";
+            button2Element.style.bottom = button3 ? "25%" : "0";
+            button2Element.style.right = "0";
+            button2Element.style.width = "50%";
+            button2Element.style.height = "25%";
+            button2Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+            button2Element.style.fontFamily = "Minecraft Seven v4";
+            button2Element.classList.add("btn");
+            button2Element.classList.add("btn-danger");
+            button2Element.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                container.remove();
+                resolve(0);
+            });
+            container.appendChild(button2Element);
+        }
+        if (button3) {
+            const button3Element = document.createElement("button");
+            button3Element.textContent = button3;
+            button3Element.style.position = "absolute";
+            button3Element.style.bottom = "0";
+            button3Element.style.right = "0";
+            button3Element.style.width = "100%";
+            button3Element.style.height = "25%";
+            button3Element.style.fontSize = `${window.outerHeight * 0.09375}px`;
+            button3Element.style.fontFamily = "Minecraft Seven v4";
+            button3Element.classList.add("btn");
+            button3Element.classList.add("btn-danger");
+            button3Element.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                container.remove();
+                resolve(2);
+            });
+            container.appendChild(button3Element);
+        }
+        additionalModificationsCallback(container, resolve, reject);
+        document.body.appendChild(container);
+    });
+}
+
+/**
+ * Creates a button selection menu.
+ *
+ * @param {object} options The options for the button selection menu.
+ * @param {string} [options.body] The body of the button selection menu.
+ * @param {[text: string, icon?: string][]} options.buttons The buttons of the button selection menu.
+ * @param {"1column" | "2columns"} [options.style="2columns"] The style of the button selection menu. "1column" means there is only one column. "2columns" means there are two columns.Defaults to "2columns".
+ * @returns {Promise<{canceled: boolean, selection?: number}>} A promise that resolves with the index of the button that was clicked.
+ */
+async function buttonSelectionMenu(options: {
+    body?: string;
+    buttons: [text: string, icon?: string][];
+    style?: "1column" | "2columns";
+}): Promise<{ canceled: boolean; selection?: number }> {
+    return new Promise(async (resolve, reject) => {
+        const outerContainer = document.createElement("div");
+        outerContainer.style.position = "fixed";
+        outerContainer.style.top = "12.5vh";
+        outerContainer.style.left = "12.5vw";
+        outerContainer.style.width = "75vw";
+        outerContainer.style.height = "75vh";
+        outerContainer.style.zIndex = "20000000";
+        outerContainer.style.backgroundColor = "#00000080";
+        outerContainer.style.color = "#FFFFFFFF";
+        outerContainer.style.backdropFilter = "blur(5px)";
+        outerContainer.style.border = "5px solid #87CEEb";
+        const container = document.createElement("div");
+        // container.style.position = "fixed";
+        // container.style.top = "12.5vh";
+        // container.style.left = "12.5vw";
+        container.style.width = "100%";
+        container.style.height = "100%";
+        container.style.overflow = "auto";
+        container.classList.add("addScrollbar");
+        addScrollbarToHTMLElement(container);
+        if (options.body) {
+            const messageElement = document.createElement("pre");
+            messageElement.textContent = options.body;
+            // messageElement.style.position = "absolute";
+            // messageElement.style.top = "0";
+            // messageElement.style.left = "0";
+            messageElement.style.width = "100%";
+            messageElement.style.height = "auto";
+            messageElement.style.overflow = "auto";
+            messageElement.style.padding = "10px";
+            messageElement.style.fontSize = `2em`;
+            messageElement.style.fontFamily = "Minecraft Seven v4";
+            messageElement.style.whiteSpace = "pre-wrap";
+            messageElement.style.overflowWrap = "anywhere";
+            container.appendChild(messageElement);
+        }
+        const closeButtonElement = document.createElement("button");
+        closeButtonElement.type = "button";
+        closeButtonElement.style.position = "absolute";
+        closeButtonElement.style.top = "0";
+        closeButtonElement.style.right = "0";
+        closeButtonElement.style.fontFamily = "Minecraft Seven v2";
+        closeButtonElement.style.fontSize = "50px";
+        closeButtonElement.style.aspectRatio = "1/1";
+        closeButtonElement.style.color = "#000000";
+        closeButtonElement.style.width = "50px";
+        closeButtonElement.style.height = "50px";
+        closeButtonElement.style.zIndex = "1";
+        const closeButtonSpanElement = document.createElement("span");
+        closeButtonSpanElement.style.marginTop = "-5px";
+        closeButtonSpanElement.style.fontFamily = "Minecraft Seven v2";
+        closeButtonSpanElement.textContent = "x";
+        closeButtonElement.appendChild(closeButtonSpanElement);
+        closeButtonElement.addEventListener("click", () => {
+            container.setAttribute("data-closed", "true");
+            outerContainer.remove();
+            resolve({ canceled: true });
+        });
+        outerContainer.appendChild(closeButtonElement);
+        const buttonsContainer = document.createElement("div");
+        buttonsContainer.style.width = "100%";
+        buttonsContainer.style.height = "100%";
+        switch (options.style ?? "2columns") {
+            case "1column":
+                buttonsContainer.style.height = options.buttons.length * window.outerHeight * 0.1875 + "px";
+                break;
+            case "2columns":
+                buttonsContainer.style.height = Math.ceil(options.buttons.length / 2) * window.outerHeight * 0.1875 + "px";
+                break;
+        }
+        options.buttons.forEach((button, index) => {
+            const buttonElement = document.createElement("button");
+            buttonElement.textContent = button[0];
+            buttonElement.style.position = "absolute";
+            switch (options.style ?? "2columns") {
+                case "1column":
+                    buttonElement.style.top = index * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.left = "0";
+                    buttonElement.style.width = "100%";
+                    break;
+                case "2columns":
+                    buttonElement.style.top = Math.floor(index / 2) * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.left = index % 2 === 0 ? "0" : "50%";
+                    buttonElement.style.width = "50%";
+                    break;
+            }
+            buttonElement.style.height = `${window.outerHeight * 0.1875}px`;
+            buttonElement.style.fontSize = `${window.outerHeight * 0.0234375}px`;
+            buttonElement.style.fontFamily = "Minecraft Seven v4";
+            buttonElement.classList.add("btn");
+            buttonElement.classList.add("btn-primary");
+            buttonElement.addEventListener("click", () => {
+                container.setAttribute("data-closed", "true");
+                outerContainer.remove();
+                resolve({ canceled: false, selection: index });
+            });
+            buttonElement.style.whiteSpace = "pre-wrap";
+            buttonElement.style.overflowWrap = "anywhere";
+            buttonElement.style.lineHeight = `${window.outerHeight * 0.0234375}px`;
+
+            buttonsContainer.appendChild(buttonElement);
+        });
+        container.appendChild(buttonsContainer);
+        outerContainer.appendChild(container);
+        document.body.appendChild(outerContainer);
+    });
+}
+
+if (localStorage.getItem("autoJoinName")) {
+    setTimeout(() => {
+        try {
+            const disableAutoRejoinButton = document.getElementById("8CrafterUtilitiesMenu_button_disableAutoRejoin");
+            if (disableAutoRejoinButton) {
+                disableAutoRejoinButton.removeAttribute("disabled");
+                disableAutoRejoinButton.classList.remove("disabled");
+            } else {
+                console.warn(new ReferenceError("Could not find disable auto rejoin button."));
+            }
+            const autoRejoinNameSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinName");
+            if (autoRejoinNameSpan) {
+                autoRejoinNameSpan.textContent = localStorage.getItem("autoJoinName");
+            } else {
+                console.warn(new ReferenceError("Could not find auto rejoin name span."));
+            }
+            const autoRejoinTypeSpan = document.getElementById("8CrafterUtilitiesMenu_span_autoJoinType");
+            if (autoRejoinTypeSpan) {
+                autoRejoinTypeSpan.textContent = localStorage.getItem("autoJoinType");
+            } else {
+                console.warn(new ReferenceError("Could not find auto rejoin type span."));
+            }
+        } catch {}
+    }, 1);
+    switch (localStorage.getItem("autoJoinType")) {
+        case "realm":
+            promptForConfirmation(
+                `Join realm: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    for (let i = 10; i > 0; i--) {
+                        if (container.getAttribute("data-closed") === "true") return;
+                        //@ts-ignore
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        //@ts-ignore
+                        console.log(container.querySelector("pre").textContent); // DEBUG
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                    }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(1);
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        //@ts-ignore
+                        autoJoinRealm(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case "server":
+            promptForConfirmation(
+                `Join server: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    for (let i = 10; i > 0; i--) {
+                        if (container.getAttribute("data-closed") === "true") return;
+                        //@ts-ignore
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        //@ts-ignore
+                        console.log(container.querySelector("pre").textContent); // DEBUG
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                    }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(1);
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        //@ts-ignore
+                        autoJoinServer(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case "world":
+            promptForConfirmation(
+                `Join world: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
+                "Join",
+                "Cancel",
+                "Turn Off Auto Rejoin",
+                async function addCountdown(container, resolve, reject) {
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    for (let i = 10; i > 0; i--) {
+                        if (container.getAttribute("data-closed") === "true") return;
+                        //@ts-ignore
+                        container.querySelector("pre").textContent = container
+                            .querySelector("pre")
+                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                        //@ts-ignore
+                        console.log(container.querySelector("pre").textContent); // DEBUG
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+                    }
+                    container.setAttribute("data-closed", "true");
+                    container.remove();
+                    resolve(1);
+                }
+            ).then(async (result) => {
+                switch (result) {
+                    case 0:
+                        break;
+                    case 1:
+                        //@ts-ignore
+                        autoJoinWorld(localStorage.getItem("autoJoinName"));
+                        break;
+                    case 2:
+                        localStorage.removeItem("autoJoinName");
+                        localStorage.removeItem("autoJoinType");
+                        break;
+                }
+            });
+            break;
+        case null:
+            promptForConfirmation(`The server type for auto rejoin is missing, as a result auto join will not work.`, "OK", "");
+            break;
+        default:
+            promptForConfirmation(
+                `The server type for auto rejoin is invalid, as a result auto join will not work. It is ${JSON.stringify(
+                    localStorage.getItem("autoJoinType")
+                )}. It should be one of the following: "realm", "server", "world".`,
+                "OK",
+                ""
+            );
+            break;
+    }
+}
+
+/**
+ * Validates the CSS or JSON in the CSS Editor text box.
+ *
+ * @returns {boolean} true if valid, false if invalid
+ *
+ * @deprecated Unused.
+ */
+function validateCssEditorTextBoxValue(): boolean {
+    if (cssEditorSelectedType === "element") {
+        try {
+            const newCSS = JSON.parse(cssEditorTextBox.value);
+            cssEditorErrorText.textContent = "";
+            cssEditorSelectedElement.style = newCSS;
+            return true;
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+            return false;
+        }
+    } else if (cssEditorSelectedType === "root") {
+        try {
+            const newCSS = JSON.parse(cssEditorTextBox.value);
+            cssEditorErrorText.textContent = "";
+            //@ts-ignore
+            document.getElementById("root").style = newCSS;
+            return true;
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+            return false;
+        }
+    } else if (cssEditorSelectedType === "globalStyleElement") {
+        try {
+            const newCSS = JSON.parse(cssEditorTextBox.value);
+            cssEditorErrorText.textContent = "";
+            customGlobalCSSStyleElement.style = newCSS;
+            return true;
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+            return false;
+        }
+    } else if (cssEditorSelectedType === "styleSheet") {
+        // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'");
+        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'";
+        return false;
+    } else {
+        // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'");
+        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'";
+        return false;
+    }
+}
+
+/**
+ * Puts the CSS Editor in style sheet selection mode.
+ *
+ * @deprecated The style sheet rules are undefined for some reason.
+ */
+function cssEditor_selectDocumentStyleSheet_activate() {
+    //@ts-ignore
+    document.getElementById("cssEditor_mainDiv").style.display = "none";
+    cssEditor_selectableStyleSheets = [];
+    let styleSheetList = document.styleSheets;
+    for (let i = 0; i < styleSheetList.length; i++) {
+        cssEditor_selectableStyleSheets.push(styleSheetList[i]!);
+    }
+    //@ts-ignore
+    document.getElementById("cssEditor_documentStyleSelectorDiv").innerHTML = cssEditor_selectableStyleSheets
+        .map((s, i) => `<button type="button" onclick="cssEditor_selectDocumentStyleSheet_selected(${i})">${i}</button>`)
+        .join("");
+    //@ts-ignore
+    document.getElementById("cssEditor_documentStyleSelectorDiv").style.display = "block";
+}
+
+/**
+ * Used when a style sheet is selected.
+ *
+ * @param {number} index
+ *
+ * @deprecated The style sheet rules are undefined for some reason.
+ */
+async function cssEditor_selectDocumentStyleSheet_selected(index: number) {
+    //@ts-ignore
+    document.getElementById("cssEditor_documentStyleSelectorDiv").style.display = "none";
+    cssEditorSelectedType = "styleSheet";
+    cssEditorSelectedStyleSheet = cssEditor_selectableStyleSheets[index]!;
+    cssEditorSelectedStyleSheet_rules = [];
+    try {
+        const ownerNode = cssEditorSelectedStyleSheet.ownerNode;
+        // if(ownerNode){
+        //     if(ownerNode.href){
+        //         const srcData = (await fetch(ownerNode.href))
+        //     }
+        // }
+        // cssEditorSelectedStyleSheet = document.styleSheets.item(0)
+        // const cssRulesList = cssEditorSelectedStyleSheet.cssRules;
+        // const a = Object.getOwnPropertyNames(Array.from(cssEditorSelectedStyleSheet.cssRules));
+        // cssEditorSelectedStyleSheet_rules.push(...a.slice(0, 100));
+        // for (let i = 0; i < a.length; i++) {
+        //     cssEditorSelectedStyleSheet_rules.push(
+        //         Object.hasOwn(Array.from(cssEditorSelectedStyleSheet.cssRules), a[i]),
+        //         typeof Array.from(cssEditorSelectedStyleSheet.cssRules)[a[i]]
+        //     );
+        // }
+        cssEditorSelectedStyleSheet_rules.push(
+            //@ts-ignore
+            cssEditorSelectedStyleSheet.ownerNode?.shadowRoot,
+            //@ts-ignore
+            cssEditorSelectedStyleSheet.ownerNode?.slot,
+            //@ts-ignore
+            cssEditorSelectedStyleSheet.ownerNode?.tagName,
+            //@ts-ignore
+            cssEditorSelectedStyleSheet.ownerNode?.href,
+            //@ts-ignore
+            Object.getOwnPropertyNames(cssEditorSelectedStyleSheet) /* , ownerNode.href ? (f(ownerNode.href)) : "NO HREF!" */
+        );
+        cssEditorTextBox.value = cssEditorSelectedStyleSheet_rules.map((v) => v ?? "MISSING!").join("\n");
+    } catch (e) {
+        //@ts-ignore
+        cssEditorTextBox.value = e + e?.stack;
+    }
+    setCSSEditorMode("styleSheet");
+    //@ts-ignore
+    document.getElementById("cssEditor_mainDiv").style.display = "block";
+}
+
+/**
+ * Saves the CSS Editor changes.
+ */
+async function cssEditor_saveChanges() {
+    if (cssEditorSelectedType === "element") {
+        try {
+            const newCSS = cssEditorTextBox.value;
+            cssEditorErrorText.textContent = "";
+            cssEditorSelectedElement.setAttribute("style", newCSS);
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+        }
+    } else if (cssEditorSelectedType === "root") {
+        try {
+            const newCSS = cssEditorTextBox.value;
+            cssEditorErrorText.textContent = "";
+            //@ts-ignore
+            document.getElementById("root").setAttribute("style", newCSS);
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+        }
+    } else if (cssEditorSelectedType === "globalStyleElement") {
+        try {
+            const newCSS = cssEditorTextBox.value;
+            cssEditorErrorText.textContent = "";
+            // const elem = document.getElementById("customGlobalCSSStyle");
+            // document.getElementById("customGlobalCSSStyle").remove();
+            customGlobalCSSStyleElement;
+            customGlobalCSSStyleElement.innerHTML = newCSS;
+            //initialize parser object
+            // var parser = new cssjs();
+            //parse css string
+            // var parsed = parser.parseCSS(newCSS);
+
+            // console.log(parsed);
+            // cssEditorTextBox.value = JSON.stringify(parsed);
+
+            // elem.id = Date.now().toString();
+            // document.head.appendChild(elem);
+            customGlobalCSSStyleElement.dispatchEvent(new Event("change"));
+            for (const styleSheet of document.styleSheets) {
+                if (styleSheet.ownerNode === customGlobalCSSStyleElement) {
+                    for (let i = 0; i < styleSheet.cssRules.length; i++) {
+                        styleSheet.deleteRule(i);
+                    }
+                    styleSheet.insertRule(newCSS, 0);
+                    break;
+                }
+            }
+        } catch (e) {
+            //@ts-ignore
+            cssEditorErrorText.textContent = e + " " + e?.stack;
+        }
+    } else if (cssEditorSelectedType === "styleSheet") {
+        // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'");
+        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'";
+    } else {
+        // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'");
+        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'";
+    }
+}
+
+/**
+ * Sets the CSS Editor mode.
+ *
+ * @param {CSSEditorSelectedType} mode The mode to set the CSS Editor to.
+ *
+ * @throws {Error} Throws an error if the mode is not valid.
+ */
+function setCSSEditorMode(mode: CSSEditorSelectedType) {
+    cssEditorSelectedType = mode;
+    cssEditorErrorText.textContent = "";
+    switch (mode) {
+        case "none":
+            //@ts-ignore
+            document.getElementById("cssEditor_subtitle").textContent = "Nothing selected!";
+            cssEditorTextBox.style.backgroundColor = "#808080FF";
+            cssEditorTextBox.style.pointerEvents = "none";
+            //@ts-ignore
+            document.getElementById("cssEditorSaveChangesButton").disabled = true;
+            break;
+        case "element":
+            //@ts-ignore
+            document.getElementById("cssEditor_subtitle").textContent = "Element Style (CSS): " + UTILS.cssPath(cssEditorSelectedElement).split(" > ").pop();
+            cssEditorTextBox.style.backgroundColor = "";
+            cssEditorTextBox.style.pointerEvents = "";
+            //@ts-ignore
+            document.getElementById("cssEditorSaveChangesButton").disabled = false;
+            break;
+        case "root":
+            //@ts-ignore
+            document.getElementById("cssEditor_subtitle").textContent = "Root Element Style (CSS): " + cssEditorSelectedElement.accessKey;
+            cssEditorTextBox.style.backgroundColor = "";
+            cssEditorTextBox.style.pointerEvents = "";
+            //@ts-ignore
+            document.getElementById("cssEditorSaveChangesButton").disabled = false;
+            break;
+        case "globalStyleElement":
+            //@ts-ignore
+            document.getElementById("cssEditor_subtitle").textContent = "Global CSS (CSS)";
+            cssEditorTextBox.style.backgroundColor = "";
+            cssEditorTextBox.style.pointerEvents = "";
+            //@ts-ignore
+            document.getElementById("cssEditorSaveChangesButton").disabled = false;
+            break;
+        case "styleSheet":
+            //@ts-ignore
+            document.getElementById("cssEditor_subtitle").textContent = "Style Sheet Rules (JSON): " + cssEditorSelectedStyleSheet.title;
+            cssEditorTextBox.style.backgroundColor = "";
+            cssEditorTextBox.style.pointerEvents = "";
+            //@ts-ignore
+            document.getElementById("cssEditorSaveChangesButton").disabled = true;
+            break;
+        default:
+            throw new Error("setCSSEditorMode is not implemented for mode === '" + mode + "'");
+    }
+}
+
+function cssEditor_rootElementStylesMode() {
+    setCSSEditorMode("root");
+    cssEditorTextBox.value = document.getElementById("root")?.getAttribute("style") ?? "";
+}
+
+function cssEditor_globalStyleElementStylesMode() {
+    setCSSEditorMode("globalStyleElement");
+    cssEditorTextBox.value = customGlobalCSSStyleElement.textContent ?? "";
+}
+
+/**
+ * Sets the tab of the 8Crafter Utilities Main Menu.
+ * @param {string} tab
+ */
+function setMainMenu8CrafterUtilitiesTab(tab: string) {
+    //@ts-ignore
+    for (const child of document.getElementById("8CrafterUtilitiesMenu_rightSide").children) {
+        if (!(child instanceof HTMLElement)) continue;
+        if (child.classList.contains("customScrollbarParent")) continue;
+        if (child.id === "8CrafterUtilitiesMenu_leftSidebar") continue;
+        child.style.display = child.id === "8CrafterUtilitiesMenu_" + tab ? "block" : "none";
+    }
+    //@ts-ignore
+    for (const child of document.getElementById("8CrafterUtilitiesMenu_leftSidebar").children) {
+        if (child.classList.contains("customScrollbarParent")) continue;
+        if (child.id === "8CrafterUtilitiesMenu_tabButton_" + tab) {
+            child.classList.add("selected");
+        } else {
+            child.classList.remove("selected");
+        }
+    }
+}
+
+function toggleSmallCornerDebugOverlay() {
+    if (smallCornerDebugOverlayElement.style.display === "none") {
+        smallCornerDebugOverlayElement.style.display = "block";
+    } else {
+        smallCornerDebugOverlayElement.style.display = "none";
+    }
+}
+
+function toggleGeneralDebugOverlayElement() {
+    if (elementGeneralDebugOverlayElement.style.display === "none") {
+        elementGeneralDebugOverlayElement.style.display = "block";
+        const boundingBox = currentMouseHoverTarget.getBoundingClientRect();
+        elementGeneralDebugOverlayElement.textContent = `Element: ${UTILS.cssPath(currentMouseHoverTarget)}
+Bounding Box: ${JSON.stringify({
+            x: boundingBox.x,
+            y: boundingBox.y,
+            width: boundingBox.width,
+            height: boundingBox.height,
+            top: boundingBox.top,
+            right: boundingBox.right,
+            bottom: boundingBox.bottom,
+            left: boundingBox.left,
+        })}
+Children: ${currentMouseHoverTarget.children.length}
+Attributes:
+${
+    currentMouseHoverTarget.getAttributeNames().length > 0
+        ? currentMouseHoverTarget
+              .getAttributeNames()
+              .map((name) => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
+              .join("\n")
+        : "None"
+}`;
+    } else {
+        elementGeneralDebugOverlayElement.style.display = "none";
+    }
+}
+
+function toggleHTMLSourceCodePreviewElement() {
+    if (htmlSourceCodePreviewElement.style.display === "block") {
+        htmlSourceCodePreviewElement.style.display = "none";
+    } else {
+        htmlSourceCodePreviewElementP.textContent = "";
+        htmlSourceCodePreviewElementP.textContent = document.documentElement.outerHTML;
+        htmlSourceCodePreviewElement.style.display = "block";
+    }
+}
+
+function toggleConsoleOverlay() {
+    if (consoleOverlayElement.style.display === "block") {
+        consoleOverlayElement.style.display = "none";
+    } else {
+        consoleOverlayElement.style.display = "block";
+    }
+}
+
+/**
+ * Represents an entry in the console execution history.
+ */
+class ConsoleExecutionHistoryEntry {
+    /**
+     * The code that was executed.
+     *
+     * @public
+     *
+     * @type {string}
+     */
+    code: string;
+    /**
+     * The time when the code was executed.
+     *
+     * @public
+     *
+     * @type {number}
+     */
+    time: number;
+    /**
+     * Creates a new ConsoleExecutionHistoryEntry instance.
+     *
+     * @constructor
+     * @param {string} code The code that was executed.
+     * @param {number} [time=Date.now()] The time when the code was executed. Defaults to the current time.
+     * @returns The ConsoleExecutionHistoryEntry instance.
+     *
+     * @public
+     */
+    constructor(code: string, time: number = Date.now()) {
+        this.code = code;
+        this.time = time;
+    }
+    /**
+     * Returns the JSON representation of the ConsoleExecutionHistoryEntry instance.
+     *
+     * @returns The JSON representation of the ConsoleExecutionHistoryEntry instance.
+     *
+     * @public
+     */
+    toJSON() {
+        return {
+            code: this.code,
+            time: this.time,
+        };
+    }
+    /**
+     * Creates a new ConsoleExecutionHistoryEntry instance from a JSON object.
+     *
+     * @param {{code: string; time: number}} json The JSON object to create the ConsoleExecutionHistoryEntry instance from.
+     * @returns The ConsoleExecutionHistoryEntry instance.
+     *
+     * @public
+     * @static
+     */
+    static fromJSON(json: { code: string; time: number }) {
+        return new ConsoleExecutionHistoryEntry(json.code, json.time);
+    }
+}
+
+/**
+ * Stores the history of executed console commands.
+ *
+ * @hideconstructor
+ */
+class ConsoleExecutionHistory {
+    /**
+     * The maximum number of entries to store in the history.
+     *
+     * @public
+     * @static
+     *
+     * @type {number}
+     *
+     * @default 100
+     */
+    static maxEntries: number = 100;
+    /**
+     * The maximum length of an entry in the history.
+     *
+     * @public
+     * @static
+     *
+     * @type {number}
+     *
+     * @default 1000
+     */
+    static maxEntryLength: number = 1000;
+    /**
+     * The entries in the history, oldest first.
+     *
+     * @readonly
+     *
+     * @public
+     * @static
+     *
+     * @type {ConsoleExecutionHistoryEntry[]}
+     */
+    static entries: ConsoleExecutionHistoryEntry[] = [];
+    /**
+     * @constructor
+     *
+     * @throws {TypeError} Throws an error if the constructor is called.
+     *
+     * @private
+     */
+    constructor() {
+        throw new TypeError("Failed to construct 'ConsoleExecutionHistory': Illegal constructor");
+    }
+    /**
+     * Gets the nth newest entry in the history.
+     *
+     * @param {number} n The index of the entry to retrieve.
+     * @returns {ConsoleExecutionHistoryEntry | undefined} The nth newest entry in the history.
+     *
+     * @public
+     * @static
+     */
+    static getNthNewestEntry(n: number): ConsoleExecutionHistoryEntry | undefined {
+        return ConsoleExecutionHistory.entries.at(-n - 1);
+    }
+    /**
+     * Adds a new entry to the history.
+     *
+     * @param {string} code The code that was executed.
+     * @param {number} [time=Date.now()] The time when the code was executed. Defaults to the current time.
+     * @returns {ConsoleExecutionHistoryEntry} The new entry that was added to the history.
+     *
+     * @public
+     * @static
+     */
+    static addHistoryItem(code: string, time: number = Date.now()): ConsoleExecutionHistoryEntry {
+        const entry = new ConsoleExecutionHistoryEntry(code, time);
+        if (ConsoleExecutionHistory.entries.at(-1)?.code === entry.code) ConsoleExecutionHistory.entries.pop();
+        ConsoleExecutionHistory.entries.push(entry);
+        if (ConsoleExecutionHistory.entries.length > ConsoleExecutionHistory.maxEntries) {
+            ConsoleExecutionHistory.entries.shift();
+        }
+        ConsoleExecutionHistory.saveToLocalStorage();
+        return entry;
+    }
+    /**
+     * Clears the history.
+     *
+     * @public
+     * @static
+     */
+    static clearHistory() {
+        ConsoleExecutionHistory.entries.length = 0;
+        ConsoleExecutionHistory.saveToLocalStorage();
+        currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+        savedConsoleInputFieldContents = "";
+    }
+    /**
+     * Saves the history to local storage.
+     *
+     * @public
+     * @static
+     */
+    static saveToLocalStorage() {
+        localStorage.setItem("consoleHistory", JSONB.stringify(ConsoleExecutionHistory.entries));
+    }
+    /**
+     * Loads the history from local storage.
+     *
+     * @public
+     * @static
+     */
+    static loadFromLocalStorage() {
+        const data = localStorage.getItem("consoleHistory");
+        if (data) {
+            ConsoleExecutionHistory.entries.splice(0, ConsoleExecutionHistory.entries.length, ...JSONB.parse(data).map(ConsoleExecutionHistoryEntry.fromJSON));
+        }
+    }
+}
+
+ConsoleExecutionHistory.loadFromLocalStorage();
+
+/**
+ * Reads the keys of the {@link localStorage}.
+ *
+ * There is a bug with the Ore UI environment where localStorage.key() returns null for all indexes other than 0, so this works by removing keys one at a time
+ * to read them and then restoring them.
+ *
+ * @returns {string[]} The keys of the {@link localStorage}.
+ */
+function readLocalStorageKeys(): string[] {
+    /**
+     * @type {string[]}
+     */
+    const keys: string[] = [];
+    /**
+     * @type {[key: string, value: string][]}
+     */
+    const valueBackups: [key: string, value: string][] = [];
+    const length = localStorage.length;
+    for (let i = 0; i < length; i++) {
+        const key = localStorage.key(0);
+        if (key === null) continue;
+        const value = localStorage.getItem(key);
+        if (value !== null) {
+            keys.push(key);
+            valueBackups.push([key, value]);
+            localStorage.removeItem(key);
+        }
+    }
+    valueBackups.reverse().forEach(([key, value]) => localStorage.setItem(key, value));
+    return keys;
+}
+
+/* function consoleOverlayExecute() {
+    const input = consoleOverlayInputFieldElement.value;
+    const elem = document.createElement("pre");
+    if(consoleOverlayTextElement.children.length > 0 && !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length > 0){
+        elem.style.borderTop = "1px solid #888888";
+    };
+    elem.textContent = `> ${input}`;
+    consoleOverlayTextElement.appendChild(elem);
+    const resultElem = document.createElement("pre");
+    try {
+        const result = eval(input);
+        if(!consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length > 0){
+            resultElem.style.borderTop = "1px solid #888888";
+        };
+        resultElem.style.borderTop = "#";
+        resultElem.textContent = `${(() => {
+            switch (typeof v) {
+                case "symbol":
+                case "function":
+                    return result.toString();
+                default:
+                    return JSONB.stringify(result);
+            }
+        })()}`;
+        consoleOverlayTextElement.appendChild(resultElem);
+        consoleOverlayInputFieldElement.value = "";
+    } catch (e) {
+        resultElem.style.backgroundColor = "#FF000055";
+        resultElem.textContent = `${e + " " + e?.stack}`;
+        consoleOverlayTextElement.appendChild(resultElem);
+    }
+} */
+/**
+ * The index of the currently selected console execution history item.
+ *
+ * @type {number}
+ *
+ * @default -1
+ */
+var currentlySelctedConsoleExecutionHistoryItemIndex: number = -1;
+
+/**
+ * Executes the console input field contents.
+ */
+function consoleOverlayExecute() {
+    // Reset the currently selected console execution history item index
+    currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+    /**
+     * The input to be executed.
+     *
+     * @type {string}
+     */
+    const input: string = consoleOverlayInputFieldElement.value;
+    if (input.length <= ConsoleExecutionHistory.maxEntryLength) {
+        ConsoleExecutionHistory.addHistoryItem(input, Date.now());
+    }
+    /**
+     * The command element.
+     *
+     * @type {HTMLDivElement}
+     */
+    const commandElem: HTMLDivElement = document.createElement("div");
+    commandElem.style.whiteSpace = "pre-wrap";
+    commandElem.style.overflowWrap = "anywhere";
+    if (
+        consoleOverlayTextElement.children.length > 0 &&
+        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+        !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
+    ) {
+        commandElem.style.borderTop = "1px solid #888888";
+    }
+    commandElem.textContent = `> ${input}`;
+    consoleOverlayTextElement.appendChild(commandElem);
+
+    /**
+     * The result element that will display the result of the executed command.
+     *
+     * @type {HTMLDivElement}
+     */
+    const resultElem: HTMLDivElement = document.createElement("div");
+    resultElem.style.whiteSpace = "pre-wrap";
+    resultElem.style.overflowWrap = "anywhere";
+    try {
+        /**
+         * The result of the executed command.
+         *
+         * @type {any}
+         */
+        const result: any = eval(input);
+        if ((typeof result === "object" && result !== null) || typeof result === "function") {
+            resultElem.appendChild(
+                createExpandableObjectView(result, true, undefined, {
+                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                })
+            );
+        } else if (typeof result === "symbol") {
+            resultElem.textContent = result.toString();
+            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
+        } else {
+            resultElem.textContent = JSONB.stringify(result);
+            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+        consoleOverlayInputFieldElement.value = "";
+    } catch (e) {
+        resultElem.style.backgroundColor = "#FF000055";
+        if (e instanceof Error) {
+            resultElem.appendChild(
+                createExpandableObjectView(e, true, false, {
+                    summaryValueOverride: e.stack,
+                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                })
+            );
+        } else {
+            if ((typeof e === "object" && e !== null) || typeof e === "function") {
+                resultElem.appendChild(
+                    createExpandableObjectView(e, true, undefined, {
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                    })
+                );
+            } else if (typeof e === "symbol") {
+                resultElem.textContent = e.toString();
+            } else {
+                resultElem.textContent = JSONB.stringify(e);
+            }
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+    }
+}
+
+/**
+ * The contents of the console input field before it was replaced with a history item.
+ *
+ * @type {string}
+ *
+ * @default ""
+ */
+var savedConsoleInputFieldContents: string = "";
+
+/**
+ * Sets the contents of the console input field to the contents of the nth most recent history item.
+ *
+ * @param {number} index The index of the history item to set the input field to. It will be bound to be withing the range of the history items, or `-1`. If `-1`, the input field will be restored to what it was before replacing the input field with a history item.
+ */
+function setConsoleInputFieldContentsToHistoryItem(index: number) {
+    index = Math.max(-1, index);
+    if (index === -1) {
+        if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
+            // If the index is -1 and no history item is currently selected, do nothing.
+            return;
+        }
+        // If the index is -1, restore the input field to what it was before replacing it with a history item.
+        consoleOverlayInputFieldElement.value = savedConsoleInputFieldContents;
+        // Erase the saved contents to reduce memory usage.
+        savedConsoleInputFieldContents = "";
+        return;
+    }
+    if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
+        // Save the current input field contents before replacing it with a history item
+        savedConsoleInputFieldContents = consoleOverlayInputFieldElement.value;
+    }
+    index = Math.max(0, Math.min(index, ConsoleExecutionHistory.entries.length - 1));
+    currentlySelctedConsoleExecutionHistoryItemIndex = index;
+    consoleOverlayInputFieldElement.value = ConsoleExecutionHistory.getNthNewestEntry(index)?.code ?? "";
+}
+
+/**
+ * Shows a context menu.
+ *
+ * @param {ContextMenuCreationOptions} menu The menu to show.
+ * @returns {void}
+ */
+function showContextMenu(menu: ContextMenuCreationOptions): void {
+    window.dispatchEvent(new CustomEvent("ouic-context-menu-open"));
+    const menuElement = document.createElement("div");
+    menuElement.classList.add("context-menu");
+    menuElement.style.position = "fixed";
+    menuElement.style.top = `${menu.y}px`;
+    menuElement.style.left = `${menu.x}px`;
+    let width = menu.width ?? Math.min(window.innerWidth - menu.x, 300);
+    let height = menu.height ?? Math.min(window.innerHeight - menu.y, 300);
+    if (width > window.innerWidth - menu.x) {
+        if (menu.x - width < 0) {
+            if (window.innerWidth - menu.x > window.innerWidth - width) {
+                width = window.innerWidth - menu.x;
+            } else {
+                width = window.innerWidth - width;
+                // These two CSS property assignments may need to be swapped to be in the if statement instead of the else statement, it has not been tested yet.
+                menuElement.style.left = "";
+                menuElement.style.right = `${window.innerWidth - menu.x}px`;
+            }
+        } else {
+            menuElement.style.left = "";
+            menuElement.style.right = `${window.innerWidth - menu.x}px`;
+        }
+    }
+    if (height > window.innerHeight - menu.y) {
+        if (menu.y - height < 0) {
+            if (window.innerHeight - menu.y > window.innerHeight - height) {
+                height = window.innerHeight - menu.y;
+            } else {
+                height = window.innerHeight - height;
+                // These two CSS property assignments may need to be swapped to be in the if statement instead of the else statement, it has not been tested yet.
+                menuElement.style.top = "";
+                menuElement.style.bottom = `${window.innerHeight - menu.y}px`;
+            }
+        } else {
+            menuElement.style.top = "";
+            menuElement.style.bottom = `${window.innerHeight - menu.y}px`;
+        }
+    }
+    menuElement.style.maxWidth = `${width}px`;
+    menuElement.style.maxHeight = `${height}px`;
+    menuElement.style.zIndex = "20000000";
+    menuElement.style.overflow = "hidden";
+    menuElement.style.backgroundColor = "#00000080";
+    /**
+     * @type {(e: MouseEvent) => void}
+     */
+    const onClickHandler: (e: MouseEvent) => void = (event): void => {
+        if (event.target instanceof Node && !menuElement.contains(event.target) && menuElement !== event.target) {
+            closeMenu();
+        }
+    };
+    window.addEventListener("ouic-context-menu-open", closeMenu);
+    function closeMenu() {
+        menuElement.remove();
+        window.removeEventListener("click", onClickHandler);
+        window.removeEventListener("ouic-context-menu-open", closeMenu);
+    }
+    /**
+     * Creates a view for a context menu submenu.
+     *
+     * @param {Extract<ContextMenuItemCreationOptions, { type: "submenu" }>} submenu The submenu to create a view for.
+     * @param {number} depth The depth of the submenu.
+     * @returns {HTMLElement} The view for the submenu.
+     */
+    function createContextMenuView(submenu: Extract<ContextMenuItemCreationOptions, { type: "submenu" }>, depth: number): HTMLElement {
+        const submenuElement = document.createElement("div");
+        submenuElement.classList.add("context-menu-submenu");
+        submenuElement.style.position = "fixed";
+        submenuElement.style.top = menuElement.style.top;
+        submenuElement.style.bottom = menuElement.style.bottom;
+        submenuElement.style.left = menuElement.style.left;
+        submenuElement.style.right = menuElement.style.right;
+        submenuElement.style.width = menuElement.style.width;
+        submenuElement.style.height = menuElement.style.height;
+        submenuElement.style.zIndex = `${20000000 + depth}`;
+        submenuElement.style.backgroundColor = "#00000080";
+        submenuElement.setAttribute("title", "");
+        submenuElement.style.display = "none";
+        const backElement = document.createElement("div");
+        backElement.textContent = "< Back";
+        backElement.classList.add("context-menu-submenu-back");
+        backElement.classList.add("context-menu-item");
+        backElement.addEventListener("click", () => {
+            submenuElement.style.display = "none";
+        });
+        submenuElement.appendChild(backElement);
+        submenu.submenu.forEach((item) => {
+            submenuElement.appendChild(createContextMenuItem(item, depth));
+        });
+        return submenuElement;
+    }
+    /**
+     * Creates a view for a context menu item.
+     *
+     * @param {ContextMenuItemCreationOptions} item The item to create a view for.
+     * @param {number} depth The depth of the item.
+     * @returns {HTMLElement} The view for the item.
+     */
+    function createContextMenuItem(item: ContextMenuItemCreationOptions, depth: number = 0): HTMLElement {
+        switch (item.type) {
+            case "action":
+            case undefined: {
+                const itemElement = document.createElement("div");
+                itemElement.textContent = item.label;
+                if (item.title) itemElement.title = item.title;
+                itemElement.classList.add("context-menu-item-action");
+                itemElement.classList.add("context-menu-item");
+                if (item.disabled) itemElement.setAttribute("disabled", "");
+                itemElement.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    item.action();
+                    closeMenu();
+                });
+                return itemElement;
+            }
+            case "separator": {
+                const itemElement = document.createElement("hr");
+                itemElement.classList.add("context-menu-item-separator");
+                itemElement.classList.add("context-menu-item");
+                return itemElement;
+            }
+            case "submenu": {
+                const itemElement = document.createElement("div");
+                itemElement.classList.add("context-menu-item-submenu");
+                itemElement.classList.add("context-menu-item");
+                itemElement.textContent = item.label;
+                if (item.title) itemElement.title = item.title;
+                if (item.disabled) itemElement.setAttribute("disabled", "");
+                const submenuElement = itemElement.appendChild(createContextMenuView(item, depth + 1));
+                itemElement.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    submenuElement.style.display = "";
+                });
+                return itemElement;
+            }
+        }
+    }
+    menu.items.forEach((item) => {
+        menuElement.appendChild(createContextMenuItem(item));
+    });
+    document.body.appendChild(menuElement);
+    window.addEventListener("click", onClickHandler);
+}
+
+function quoteStringDynamic(str: string) {
+    const jsonifiedStr: string = JSON.stringify(str);
+    return str.includes("'")
+        ? str.includes('"')
+            ? str.includes("`")
+                ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+            : jsonifiedStr
+        : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`;
+}
+
+/**
+ * Adds a context menu to a primitive value element at the top level of the console.
+ *
+ * @template {HTMLElement} T
+ * @param {string | number | boolean | bigint | symbol | null | undefined} primitiveValue The primitive value to add a context menu to.
+ * @param {T} primitiveValueElement The element to add a context menu to.
+ * @param {{ copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined }} [options] Additional options for the context menu.
+ * @returns {T} The element with a context menu added.
+ */
+function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
+    primitiveValue: string | number | boolean | bigint | symbol | null | undefined,
+    primitiveValueElement: T,
+    options?: { copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined }
+): T {
+    if (typeof primitiveValue === "function") throw new TypeError("Functions are not primitive values.");
+    if (typeof primitiveValue === "object" && primitiveValue !== null) throw new TypeError("Non-null objects are not primitive values.");
+    /**
+     * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+     */
+    const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+        width: 400,
+        height: 600,
+        items: [],
+    };
+    switch (typeof primitiveValue) {
+        case "bigint":
+            contextMenu.items.push({
+                label: "Copy bigint",
+                action() {
+                    copyTextToClipboardAsync(`${primitiveValue}n`);
+                },
+            });
+            break;
+        case "boolean":
+        case "number":
+        case "object": // null
+        case "undefined":
+            contextMenu.items.push({
+                label: `Copy ${typeof primitiveValue}`,
+                action() {
+                    copyTextToClipboardAsync(`${primitiveValue}`);
+                },
+            });
+            break;
+        case "string":
+            contextMenu.items.push(
+                {
+                    label: "Copy string contents",
+                    action() {
+                        copyTextToClipboardAsync(primitiveValue);
+                    },
+                },
+                {
+                    label: "Copy string as JavaScript literal",
+                    action() {
+                        copyTextToClipboardAsync(quoteStringDynamic(primitiveValue));
+                    },
+                },
+                {
+                    label: "Copy string as JSON literal",
+                    action() {
+                        copyTextToClipboardAsync(JSON.stringify(primitiveValue, null, 4));
+                    },
+                }
+            );
+    }
+    if (contextMenu.items.length > 0) {
+        contextMenu.items.push({
+            /**
+             * @type {"separator"}
+             */
+            type: "separator",
+        });
+    }
+    contextMenu.items.push({
+        label: "Store as global variable",
+        action() {
+            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+            window[`temp${__console_last_temp_variable_id__}`] = primitiveValue;
+            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+        },
+    });
+    if (options?.copyConsoleMessageStackCallback) {
+        contextMenu.items.push(
+            { type: "separator" },
+            {
+                label: "Copy console message stack",
+                action: options.copyConsoleMessageStackCallback,
+                disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+            }
+        );
+    }
+    /**
+     * @type {number | null}
+     */
+    let clickStartTime: number | null = null;
+    primitiveValueElement.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+        clickStartTime = Date.now();
+    });
+    primitiveValueElement.addEventListener("mouseleave", () => {
+        clickStartTime = null;
+    });
+    primitiveValueElement.addEventListener("click", (event) => {
+        if (event.button !== 0) return;
+        if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        }
+        clickStartTime = null;
+    });
+    primitiveValueElement.addEventListener("mouseup", (event) => {
+        if (event.button !== 2) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+    });
+    return primitiveValueElement;
+}
+
+/**
+ * The last used ID for a temporary variable from the console.
+ *
+ * @type {bigint}
+ *
+ * @default 0n
+ */
+var __console_last_temp_variable_id__: bigint = 0n;
+
+/**
+ * The last used ID for a console expansion arrow.
+ *
+ * @type {bigint}
+ *
+ * @default 0n
+ */
+var consoleExpansionArrowID: bigint = 0n;
+
+/**
+ * Creates a view for an expandable object for use in the console.
+ *
+ * @param {Record<PropertyKey, any>} obj The object to create a view for.
+ * @param {boolean} [isRoot=false] Whether the object is the root object. Defaults to `false`.
+ * @param {boolean} [forceObjectMode=false] Whether to force the value into object mode. Defaults to `false`.
+ * @param {{ summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; displayKey?: string | undefined; objectKeysSource?: Record<PropertyKey, any> | undefined; copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined; showReadonly?: boolean | undefined }} [options] The options for creating the view.
+ * @returns {HTMLDivElement} The view for the object.
+ */
+function createExpandableObjectView(
+    obj: Record<PropertyKey, any>,
+    isRoot: boolean = false,
+    forceObjectMode: boolean = false,
+    options?: {
+        summaryValueOverride?: string | undefined;
+        summaryValueOverride_toStringTag?: string | undefined;
+        displayKey?: string | undefined;
+        objectKeysSource?: Record<PropertyKey, any> | undefined;
+        copyConsoleMessageStackCallback?: (() => void) | undefined;
+        copyConsoleMessageStackButtonEnabled?: boolean | undefined;
+        showReadonly?: boolean | undefined;
+    }
+): HTMLDivElement {
+    const arrowID = (consoleExpansionArrowID++).toString(36);
+    const container = document.createElement("div"); /* 
+    const arrow = document.createElement("img");
+    arrow.style = "float: left; display: inline;";
+    arrow.src = "assets/arrowForwardWhite-9acff.png";
+    container.appendChild(arrow); */
+    let isCoherentArrayProxy = false;
+    try {
+        isCoherentArrayProxy =
+            typeof obj === "object" && obj?.constructor?.name === "CoherentArrayProxy" /*  && obj?.constructor?.constructor?.name === "CoherentArrayProxy" */;
+    } catch {}
+    const summary = document.createElement("div");
+    summary.classList.add("console-value-summary");
+    summary.textContent = JSONBConsole.stringify(
+        //@ts-ignore
+        isCoherentArrayProxy ? Array.from(obj) : obj,
+        (key, value) => {
+            try {
+                if (
+                    typeof value === "object" &&
+                    obj?.constructor?.name === "CoherentArrayProxy" &&
+                    obj?.constructor?.constructor?.name === "CoherentArrayProxy"
+                ) {
+                    return Array.from(value);
+                }
+            } catch {}
+            return value;
+        },
+        4,
+        {
+            bigint: true,
+            undefined: true,
+            Infinity: true,
+            NegativeInfinity: true,
+            NaN: true,
+            get: true,
+            set: true,
+            function: true,
+            class: false,
+            includeProtoValues: false,
+        },
+        5,
+        2
+    );
+    if (options?.summaryValueOverride) {
+        summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
+            isRoot ? 0 : -22
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+            options.displayKey ? `${options.displayKey}: ` : ""
+        }${
+            options.summaryValueOverride_toStringTag
+                ? `<i style="display: inline; font-style: italic;">${options.summaryValueOverride_toStringTag
+                      .replaceAll("<", "&lt;")
+                      .replaceAll(">", "&gt;")}</i> `
+                : ""
+        }${options.summaryValueOverride
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`)}</span>`;
+    } else if (obj?.[Symbol.toStringTag]) {
+        summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
+            isRoot ? 0 : -22
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+            options?.displayKey ? `${options.displayKey}: ` : ""
+        }<i style="display: inline; font-style: italic;">${String(obj[Symbol.toStringTag]).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
+    } else if (obj?.constructor?.name && obj.constructor !== Array && obj.constructor !== Object) {
+        summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
+            isRoot ? 0 : -22
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+            options?.displayKey ? `${options.displayKey}: ` : ""
+        }<i style="display: inline; font-style: italic;">${String(obj.constructor.name).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
+    } else {
+        summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
+            isRoot ? 0 : -22
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+            options?.displayKey ? `${options.displayKey}: ` : ""
+        }${
+            summary.textContent
+                ?.replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
+        }</span>`;
+    }
+    const evaluatedUponFirstExpandingInfo = document.createElement("div");
+    evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+    evaluatedUponFirstExpandingInfoIcon.style =
+        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+        evaluatedUponFirstExpandingInfoText.style.display = "inline";
+    });
+    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+        evaluatedUponFirstExpandingInfoText.style.display = "none";
+    });
+    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+    evaluatedUponFirstExpandingInfoText.style =
+        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+    evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+    //@ts-ignore
+    summary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
+    summary.style.cursor = "pointer";
+    summary.style.display = "block";
+    if (isRoot) {
+        summary.style.paddingLeft = "22px";
+        /**
+         * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+         */
+        const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+            width: 400,
+            height: 600,
+            items: [
+                {
+                    label: "Copy property path",
+                    action() {
+                        console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                    },
+                    disabled: true,
+                },
+                {
+                    label: "Copy object",
+                    action() {
+                        console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                    },
+                    disabled: true,
+                },
+                {
+                    label: "Copy object as JSON literal",
+                    action() {
+                        copyTextToClipboardAsync(JSON.stringify(obj, null, 4));
+                    },
+                },
+                {
+                    label: "Copy object as JSONB literal",
+                    action() {
+                        copyTextToClipboardAsync(
+                            JSONB.stringify(obj, null, 4, {
+                                bigint: true,
+                                undefined: true,
+                                Infinity: true,
+                                NegativeInfinity: true,
+                                NaN: true,
+                                get: false,
+                                set: false,
+                                function: true,
+                                class: false, // IDEA: Add a button to copy with getters and setters.
+                            })
+                        );
+                    },
+                },
+                {
+                    label: "Copy object as JSON literal (+non-enumerable)",
+                    action() {
+                        copyTextToClipboardAsync(
+                            JSON.stringify(
+                                Object.fromEntries(
+                                    [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)])].map((key) => [
+                                        typeof key === "symbol" ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__` : key,
+                                        obj[key],
+                                    ])
+                                ),
+                                null,
+                                4
+                            )
+                        );
+                    },
+                },
+                {
+                    label: "Copy object as JSONB literal (+non-enumerable)",
+                    action() {
+                        copyTextToClipboardAsync(
+                            JSONB.stringify(
+                                Object.fromEntries(
+                                    [...new Set([...Object.keys(obj), ...Object.getOwnPropertyNames(obj), ...Object.getOwnPropertySymbols(obj)])].map((key) => [
+                                        typeof key === "symbol" ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__` : key,
+                                        obj[key],
+                                    ])
+                                ),
+                                null,
+                                4,
+                                {
+                                    bigint: true,
+                                    undefined: true,
+                                    Infinity: true,
+                                    NegativeInfinity: true,
+                                    NaN: true,
+                                    get: false,
+                                    set: false,
+                                    function: true,
+                                    class: false, // IDEA: Add a button to copy with getters and setters.
+                                }
+                            )
+                        );
+                    },
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Store as global variable",
+                    action() {
+                        while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                        window[`temp${__console_last_temp_variable_id__}`] = obj;
+                        displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                    },
+                },
+            ],
+        };
+        if (options?.copyConsoleMessageStackCallback) {
+            contextMenu.items.push(
+                { type: "separator" },
+                {
+                    label: "Copy console message stack",
+                    action: options.copyConsoleMessageStackCallback,
+                    disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                }
+            );
+        }
+        /**
+         * @type {number | null}
+         */
+        let clickStartTime: number | null = null;
+        summary.addEventListener("mousedown", (event) => {
+            if (event.button !== 0) return;
+            clickStartTime = Date.now();
+        });
+        summary.addEventListener("mouseleave", () => {
+            clickStartTime = null;
+        });
+        summary.addEventListener("click", (event) => {
+            if (event.button !== 0) return;
+            if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            }
+            clickStartTime = null;
+        });
+        summary.addEventListener("mouseup", (event) => {
+            if (event.button !== 2) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        });
+    }
+    container.appendChild(summary);
+
+    summary.addEventListener("click", (event) => {
+        setTimeout(() => {
+            if (event.defaultPrevented) return;
+            if (container.childNodes.length === 1) {
+                try {
+                    //@ts-ignore
+                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
+                } catch (e) {
+                    console.error(e);
+                }
+                //@ts-ignore
+                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                const details = document.createElement("div");
+                details.classList.add("console-value-details");
+                /**
+                 * @type {(string | number | symbol | { displayName: string; key: string } | { displayName: string; objectKeysSource: Record<PropertyKey, any>; summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; propertyName?: string | undefined })[]}
+                 */
+                const keys: (
+                    | string
+                    | number
+                    | symbol
+                    | { displayName: string; key: string }
+                    | {
+                          displayName: string;
+                          objectKeysSource: Record<PropertyKey, any>;
+                          summaryValueOverride?: string | undefined;
+                          summaryValueOverride_toStringTag?: string | undefined;
+                          propertyName?: string | undefined;
+                      }
+                )[] = [
+                    ...new Set([
+                        //@ts-ignore
+                        ...Object.keys(options?.objectKeysSource ?? (isCoherentArrayProxy ? Array.from(obj) : obj)),
+                        // Proto values should actually only be included in the `[[Prototype]]` key.
+                        // ...(() => {
+                        //     try {
+                        //         return Object.getOwnPropertyNames(obj.__proto__).filter((key) => {
+                        //             try {
+                        //                 // Make sure the property won't throw an error when accessed.
+                        //                 obj[key];
+                        //                 return key in obj;
+                        //             } catch (e) {
+                        //                 return false;
+                        //             }
+                        //         });
+                        //     } catch (e) {
+                        //         return [];
+                        //     }
+                        // })(),
+                        ...Object.getOwnPropertyNames(options?.objectKeysSource ?? obj),
+                        ...Object.getOwnPropertySymbols(options?.objectKeysSource ?? obj),
+                    ]),
+                ];
+                if ((options?.objectKeysSource ?? obj)?.__proto__)
+                    keys.push({
+                        displayName: "[[Prototype]]",
+                        objectKeysSource: (options?.objectKeysSource ?? obj).__proto__,
+                        summaryValueOverride:
+                            (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj) ? "Object" : "circular reference",
+                        propertyName: "__proto__",
+                    });
+                for (const keyRaw of keys) {
+                    /**
+                     * @type {PropertyKey | Extract<typeof keys[number], { objectKeysSource: Record<PropertyKey, any> }>}
+                     */
+                    //@ts-ignore
+                    const key: PropertyKey | Extract<(typeof keys)[number], { objectKeysSource: Record<PropertyKey, any> }> = [
+                        "number",
+                        "string",
+                        "symbol",
+                    ].includes(typeof keyRaw)
+                        ? keyRaw
+                        : "objectKeysSource" in <object>keyRaw
+                        ? (keyRaw as Extract<typeof keyRaw, { objectKeysSource: any }>)
+                        : (keyRaw as Exclude<Extract<typeof keyRaw, object>, { objectKeysSource: any }>).key;
+                    /**
+                     * @type {string}
+                     */
+                    const displayName: string = ["number", "string", "symbol"].includes(typeof keyRaw)
+                        ? keyRaw.toString()
+                        : (keyRaw as Extract<typeof keyRaw, object>).displayName;
+                    const item = document.createElement("div");
+                    item.style.marginLeft = "44px";
+                    try {
+                        if (typeof key === "object") {
+                            const expandableObjectView = createExpandableObjectView(obj, false, false, {
+                                objectKeysSource: key.objectKeysSource,
+                                summaryValueOverride: key.summaryValueOverride,
+                                summaryValueOverride_toStringTag: key.summaryValueOverride_toStringTag,
+                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                showReadonly: options?.showReadonly,
+                            });
+                            expandableObjectView!.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            item.appendChild(expandableObjectView);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        Object.keys(key.objectKeysSource).map((key) => [
+                                                            key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        Object.keys(key.objectKeysSource).map((key) => [
+                                                            key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(key.objectKeysSource),
+                                                                ...Object.getOwnPropertyNames(key.objectKeysSource),
+                                                                ...Object.getOwnPropertySymbols(key.objectKeysSource),
+                                                            ]),
+                                                        ].map((key) => [
+                                                            typeof key === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                                : key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(key.objectKeysSource),
+                                                                ...Object.getOwnPropertyNames(key.objectKeysSource),
+                                                                ...Object.getOwnPropertySymbols(key.objectKeysSource),
+                                                            ]),
+                                                        ].map((key) => [
+                                                            typeof key === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                                : key,
+                                                            (() => {
+                                                                try {
+                                                                    return obj[key];
+                                                                } catch {}
+                                                            })(),
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = key.objectKeysSource;
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime: number | null = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        } else if (forceObjectMode || (typeof obj[key] === "object" && obj[key] !== null) /*  || typeof obj[key] === "function" */) {
+                            const expandableObjectView = createExpandableObjectView(obj[key], undefined, undefined, {
+                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                showReadonly: options?.showReadonly,
+                            });
+                            expandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    expandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
+                                        "afterbegin",
+                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                    );
+                                }
+                            }
+                            item.appendChild(expandableObjectView);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal",
+                                        action() {
+                                            copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(obj[key], null, 4, {
+                                                    bigint: true,
+                                                    undefined: true,
+                                                    Infinity: true,
+                                                    NegativeInfinity: true,
+                                                    NaN: true,
+                                                    get: false,
+                                                    set: false,
+                                                    function: true,
+                                                    class: false, // IDEA: Add a button to copy with getters and setters.
+                                                })
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSON literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSON.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(obj[key]),
+                                                                ...Object.getOwnPropertyNames(obj[key]),
+                                                                ...Object.getOwnPropertySymbols(obj[key]),
+                                                            ]),
+                                                        ].map((objKey) => [
+                                                            typeof objKey === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                                : objKey,
+                                                            obj[key][objKey],
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        label: "Copy object as JSONB literal (+non-enumerable)",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(
+                                                    Object.fromEntries(
+                                                        [
+                                                            ...new Set([
+                                                                ...Object.keys(obj[key]),
+                                                                ...Object.getOwnPropertyNames(obj[key]),
+                                                                ...Object.getOwnPropertySymbols(obj[key]),
+                                                            ]),
+                                                        ].map((objKey) => [
+                                                            typeof objKey === "symbol"
+                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                                : objKey,
+                                                            obj[key][objKey],
+                                                        ])
+                                                    ),
+                                                    null,
+                                                    4,
+                                                    {
+                                                        bigint: true,
+                                                        undefined: true,
+                                                        Infinity: true,
+                                                        NegativeInfinity: true,
+                                                        NaN: true,
+                                                        get: false,
+                                                        set: false,
+                                                        function: true,
+                                                        class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    }
+                                                )
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime: number | null = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        } else if (typeof obj[key] === "function") {
+                            const arrowID = (consoleExpansionArrowID++).toString(36);
+                            const funcSummary = document.createElement("span");
+                            let preSummaryLabelHTMLContent = "";
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    preSummaryLabelHTMLContent = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`;
+                                }
+                            }
+                            funcSummary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}">${
+                                preSummaryLabelHTMLContent ?? ""
+                            }<span style="display: inline; white-space: pre-wrap;">${displayName}: ${JSONBConsole.stringify(
+                                obj[key],
+                                (key, value) => {
+                                    try {
+                                        if (
+                                            typeof value === "object" &&
+                                            obj?.constructor?.name === "CoherentArrayProxy" &&
+                                            obj?.constructor?.constructor?.name === "CoherentArrayProxy"
+                                        ) {
+                                            return Array.from(value);
+                                        }
+                                    } catch {}
+                                    return value;
+                                },
+                                4,
+                                {
+                                    bigint: true,
+                                    undefined: true,
+                                    Infinity: true,
+                                    NegativeInfinity: true,
+                                    NaN: true,
+                                    get: true,
+                                    set: true,
+                                    function: true,
+                                    class: false,
+                                    includeProtoValues: false,
+                                },
+                                5,
+                                1
+                            )
+                                .replaceAll("<", "&lt;")
+                                .replaceAll(">", "&gt;")
+                                .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
+                            funcSummary.style.cursor = "pointer";
+                            const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                            evaluatedUponFirstExpandingInfo.style =
+                                "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                            evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                            const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                            evaluatedUponFirstExpandingInfoIcon.style =
+                                "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                            evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                                evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                            });
+                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                                evaluatedUponFirstExpandingInfoText.style.display = "none";
+                            });
+                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                            const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                            evaluatedUponFirstExpandingInfoText.style =
+                                "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                            evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                            //@ts-ignore
+                            funcSummary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
+                            item.appendChild(funcSummary);
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    {
+                                        label: "Copy stringified function",
+                                        action() {
+                                            copyTextToClipboardAsync(obj[key].toString());
+                                        },
+                                    },
+                                    {
+                                        label: "Copy function as JSONB literal",
+                                        action() {
+                                            copyTextToClipboardAsync(
+                                                JSONB.stringify(obj[key], null, 4, {
+                                                    bigint: true,
+                                                    undefined: true,
+                                                    Infinity: true,
+                                                    NegativeInfinity: true,
+                                                    NaN: true,
+                                                    get: false,
+                                                    set: false,
+                                                    function: true,
+                                                    class: false, // IDEA: Add a button to copy with getters and setters.
+                                                })
+                                            );
+                                        },
+                                    },
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime: number | null = null;
+                            funcSummary.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            funcSummary.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            funcSummary.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            funcSummary.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+
+                            funcSummary.addEventListener("click", () => {
+                                if (event.defaultPrevented) return;
+                                if (funcSummary.nextSibling) {
+                                    //@ts-expect-error
+                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
+                                    //@ts-expect-error
+                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                                    funcSummary.nextSibling.remove();
+                                } else {
+                                    //@ts-expect-error
+                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
+                                    //@ts-expect-error
+                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                                    const funcDetails = document.createElement("div");
+                                    const funcName = document.createElement("div");
+                                    funcName.textContent = `name: ${obj[key].name}`;
+                                    funcName.style.marginLeft = "44px";
+                                    funcName.style.whiteSpace = "pre-wrap";
+                                    funcName.style.display = "inline";
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                                            funcName.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    funcDetails.appendChild(funcName);
+                                    const funcLength = document.createElement("div");
+                                    funcLength.textContent = `length: ${obj[key].length}`;
+                                    funcLength.style.marginLeft = "44px";
+                                    funcName.style.whiteSpace = "pre-wrap";
+                                    // funcName.style.display = "inline"; // DEBUG
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                                            funcLength.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    funcDetails.appendChild(funcLength);
+                                    const arrowIDB = (consoleExpansionArrowID++).toString(36);
+                                    const funcToStringContainer = document.createElement("div");
+                                    const funcToString = document.createElement("span");
+                                    funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">toString: ƒ toString()</span>`;
+                                    funcToString.style.cursor = "pointer";
+                                    funcToString.style.marginLeft = "44px";
+                                    if (options?.showReadonly) {
+                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                                            funcToString.insertAdjacentHTML(
+                                                "afterbegin",
+                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                            );
+                                        }
+                                    }
+                                    const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                                    evaluatedUponFirstExpandingInfo.style =
+                                        "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                                    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                                    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                                    evaluatedUponFirstExpandingInfoIcon.style =
+                                        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                                    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                                        evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                                    });
+                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                                        evaluatedUponFirstExpandingInfoText.style.display = "none";
+                                    });
+                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                                    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                                    evaluatedUponFirstExpandingInfoText.style =
+                                        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                                    evaluatedUponFirstExpandingInfoText.textContent =
+                                        "This value was evaluated upon first expanding. It may have changed since then.";
+                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                                    funcToString.appendChild(evaluatedUponFirstExpandingInfo);
+                                    funcToStringContainer.appendChild(funcToString);
+                                    funcDetails.appendChild(funcToStringContainer);
+                                    Object.getOwnPropertySymbols(obj[key]).forEach((symbol) => {
+                                        try {
+                                            const symbolDetails = document.createElement("div");
+                                            symbolDetails.textContent = `${symbol.toString()}: ${JSONB.stringify(obj[key][symbol], undefined, undefined, {
+                                                bigint: true,
+                                                undefined: true,
+                                                Infinity: true,
+                                                NegativeInfinity: true,
+                                                NaN: true,
+                                                get: true,
+                                                set: true,
+                                                function: true,
+                                                class: false,
+                                            })}`;
+                                            symbolDetails.style.marginLeft = "44px";
+                                            if (options?.showReadonly) {
+                                                if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                                                    symbolDetails.insertAdjacentHTML(
+                                                        "afterbegin",
+                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                                    );
+                                                }
+                                            }
+                                            funcDetails.appendChild(symbolDetails);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    });
+
+                                    if (obj[key].__proto__) {
+                                        try {
+                                            const prototypeExpandableObjectView = createExpandableObjectView(obj[key], false, true, {
+                                                displayKey: "[[Prototype]]",
+                                                objectKeysSource: obj[key].__proto__,
+                                                summaryValueOverride:
+                                                    (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj)
+                                                        ? "Object"
+                                                        : "circular reference",
+                                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                                showReadonly: options?.showReadonly,
+                                            });
+                                            // prototypeExpandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `[[Prototype]]: `);
+                                            prototypeExpandableObjectView.style.marginLeft = "44px";
+                                            if (options?.showReadonly) {
+                                                if (Object.getOwnPropertyDescriptor(obj[key], "__proto__")?.writable === false) {
+                                                    funcName.insertAdjacentHTML(
+                                                        "afterbegin",
+                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                                    );
+                                                }
+                                            }
+                                            funcDetails.appendChild(prototypeExpandableObjectView);
+                                        } catch (e) {
+                                            console.error(e);
+                                        }
+                                    } else {
+                                        console.warn(`No prototype found for ${displayName}`);
+                                    }
+
+                                    funcToString.addEventListener("click", () => {
+                                        if (funcToString.nextSibling) {
+                                            //@ts-expect-error
+                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(0deg)";
+                                            //@ts-expect-error
+                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                                            funcToString.nextSibling.remove();
+                                        } else {
+                                            //@ts-expect-error
+                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(90deg)";
+                                            //@ts-expect-error
+                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                                            const funcSource = document.createElement("pre");
+                                            funcSource.classList.add("funcSource");
+                                            funcSource.textContent = obj[key].toString();
+                                            funcSource.style.marginLeft = "88px";
+                                            funcToStringContainer.appendChild(funcSource);
+                                        }
+                                    });
+
+                                    item.appendChild(funcDetails);
+                                }
+                            });
+                        } else {
+                            item.textContent = `${displayName}: ${JSONB.stringify(obj[key], undefined, undefined, {
+                                bigint: true,
+                                undefined: true,
+                                Infinity: true,
+                                NegativeInfinity: true,
+                                NaN: true,
+                                get: true,
+                                set: true,
+                                function: true,
+                                class: false,
+                            })}`;
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    item.insertAdjacentHTML("afterbegin", `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`);
+                                }
+                            }
+                            /**
+                             * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+                             */
+                            const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+                                width: 400,
+                                height: 600,
+                                items: [
+                                    {
+                                        label: "Copy property path",
+                                        action() {
+                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        },
+                                        disabled: true,
+                                    },
+                                    ...(typeof obj[key] === "bigint"
+                                        ? [
+                                              {
+                                                  label: "Copy bigint",
+                                                  action() {
+                                                      copyTextToClipboardAsync(`${obj[key]}n`);
+                                                  },
+                                              },
+                                          ]
+                                        : [
+                                              "boolean",
+                                              "number",
+                                              "object", // null
+                                              "undefined",
+                                          ].includes(typeof obj[key])
+                                        ? [
+                                              {
+                                                  label: `Copy ${typeof obj[key]}`,
+                                                  action() {
+                                                      copyTextToClipboardAsync(`${obj[key]}`);
+                                                  },
+                                              },
+                                          ]
+                                        : typeof obj[key] === "string"
+                                        ? [
+                                              {
+                                                  label: "Copy string contents",
+                                                  action() {
+                                                      copyTextToClipboardAsync(obj[key]);
+                                                  },
+                                              },
+                                              {
+                                                  label: "Copy string as JavaScript literal",
+                                                  action() {
+                                                      /**
+                                                       * @type {string}
+                                                       */
+                                                      const str: string = obj[key];
+                                                      /**
+                                                       * @type {string}
+                                                       */
+                                                      const jsonifiedStr: string = JSON.stringify(str);
+                                                      copyTextToClipboardAsync(
+                                                          str.includes("'")
+                                                              ? str.includes('"')
+                                                                  ? str.includes("`")
+                                                                      ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                                      : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+                                                                  : jsonifiedStr
+                                                              : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                      );
+                                                  },
+                                              },
+                                              {
+                                                  label: "Copy string as JSON literal",
+                                                  action() {
+                                                      copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
+                                                  },
+                                              },
+                                          ]
+                                        : []),
+                                    {
+                                        type: "separator",
+                                    },
+                                    {
+                                        label: "Store as global variable",
+                                        action() {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                            displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                        },
+                                    },
+                                ],
+                            };
+                            if (options?.copyConsoleMessageStackCallback) {
+                                contextMenu.items.push(
+                                    { type: "separator" },
+                                    {
+                                        label: "Copy console message stack",
+                                        action: options.copyConsoleMessageStackCallback,
+                                        disabled: !(options.copyConsoleMessageStackButtonEnabled ?? true),
+                                    }
+                                );
+                            }
+                            /**
+                             * @type {number | null}
+                             */
+                            let clickStartTime: number | null = null;
+                            item.addEventListener("mousedown", (event) => {
+                                if (event.button !== 0) return;
+                                clickStartTime = Date.now();
+                            });
+                            item.addEventListener("mouseleave", () => {
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("click", (event) => {
+                                if (event.button !== 0) return;
+                                if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                                    event.preventDefault();
+                                    event.stopImmediatePropagation();
+                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                }
+                                clickStartTime = null;
+                            });
+                            item.addEventListener("mouseup", (event) => {
+                                if (event.button !== 2) return;
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            });
+                        }
+                        details.appendChild(item);
+                    } catch (e) {
+                        //@ts-ignore
+                        const exceptionExpandableObjectView = createExpandableObjectView(e, false, false, {
+                            summaryValueOverride: `(Exception)`,
+                            //@ts-ignore
+                            summaryValueOverride_toStringTag: e?.name ?? e?.[Symbol.toStringTag],
+                            displayKey: displayName,
+                            copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                            copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                            showReadonly: options?.showReadonly,
+                        });
+                        if (options?.showReadonly) {
+                            if (
+                                (typeof key === "object"
+                                    ? key.propertyName !== undefined
+                                        ? Object.getOwnPropertyDescriptor(obj, key.propertyName)
+                                        : undefined
+                                    : Object.getOwnPropertyDescriptor(obj, key)
+                                )?.writable === false
+                            ) {
+                                exceptionExpandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
+                                    "afterbegin",
+                                    `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                                );
+                            }
+                        }
+                        item.appendChild(exceptionExpandableObjectView);
+                        details.appendChild(item);
+                    }
+                }
+                container.appendChild(details);
+            } else {
+                try {
+                    //@ts-ignore
+                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
+                } catch (e) {
+                    console.error(e);
+                }
+                //@ts-ignore
+                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                container.removeChild(container.childNodes[1]!);
+            }
+        }, 1);
+    });
+
+    return container;
+}
+
+/**
+ *
+ * @param {`temp${bigint}`} variableName
+ */
+function displayStoredConsoleTempVariable(variableName: `temp${bigint}`) {
+    /**
+     * The command element.
+     *
+     * @type {HTMLDivElement}
+     */
+    const commandElem: HTMLDivElement = document.createElement("div");
+    commandElem.style.whiteSpace = "pre-wrap";
+    commandElem.style.overflowWrap = "anywhere";
+    if (
+        consoleOverlayTextElement.children.length > 0 &&
+        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+        !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
+    ) {
+        commandElem.style.borderTop = "1px solid #888888";
+    }
+    commandElem.textContent = `> ${variableName}`;
+    consoleOverlayTextElement.appendChild(commandElem);
+
+    /**
+     * The result element that will display the result of the executed command.
+     *
+     * @type {HTMLDivElement}
+     */
+    const resultElem: HTMLDivElement = document.createElement("div");
+    resultElem.style.whiteSpace = "pre-wrap";
+    resultElem.style.overflowWrap = "anywhere";
+    try {
+        /**
+         * The result of the executed command.
+         *
+         * @type {any}
+         */
+        const result: any = window[variableName];
+        if ((typeof result === "object" && result !== null) || typeof result === "function") {
+            resultElem.appendChild(createExpandableObjectView(result, true));
+        } else if (typeof result === "symbol") {
+            resultElem.textContent = result.toString();
+        } else {
+            resultElem.textContent = JSONB.stringify(result);
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+        consoleOverlayInputFieldElement.value = "";
+    } catch (e) {
+        resultElem.style.backgroundColor = "#FF000055";
+        if (e instanceof Error) {
+            resultElem.appendChild(
+                createExpandableObjectView(e, true, false, {
+                    summaryValueOverride: e.stack,
+                })
+            );
+        } else {
+            if ((typeof e === "object" && e !== null) || typeof e === "function") {
+                resultElem.appendChild(createExpandableObjectView(e, true));
+            } else if (typeof e === "symbol") {
+                resultElem.textContent = e.toString();
+            } else {
+                resultElem.textContent = JSONB.stringify(e);
+            }
+        }
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+        ) {
+            resultElem.style.borderTop = "1px solid #888888";
+        }
+        consoleOverlayTextElement.appendChild(resultElem);
+    }
+}
+
+// This is not good enough yet.
+/* 
+const facetList = [...new Set([...Object.keys(accessedFacets), ...Object.keys(facetSpyData.sharedFacets)])];
+
+Promise.all(facetList.map((v) => forceLoadFacet(v).catch(() => {}))).then(() =>
+    copyTextToClipboardAsync(
+        JSONB.stringify({ ...Object.fromEntries(facetList.map((v) => [v, Symbol.for("__MISSING__")])), ...getAccessibleFacetSpyFacets() }, (k, v) => {
+            if (typeof v === "object") {
+                return v === null
+                    ? null
+                    : v.constructor?.name === "CoherentArrayProxy"
+                    ? { $PartialArrayType: Array.from(v) }
+                    : v instanceof Array
+                    ? v
+                    : Object.fromEntries(
+                          [
+                              ...new Set([
+                                  ...Object.keys(v),
+                                  ...(() => {
+                                      try {
+                                          return Object.getOwnPropertyNames(v.__proto__).filter((key) => {
+                                              try {
+                                                  // Make sure the property won't throw an error when accessed.
+                                                  v[key];
+                                                  return key in v;
+                                              } catch {
+                                                  return false;
+                                              }
+                                          });
+                                      } catch (e) {
+                                          return [];
+                                      }
+                                  })(),
+                                  ...Object.getOwnPropertyNames(v),
+                                  ...Object.getOwnPropertySymbols(v),
+                              ]),
+                          ].map((key) => {
+                              try {
+                                  return [key, v[key]];
+                              } catch (e) {
+                                  return { ERROR: e };
+                              }
+                          })
+                      );
+            }
+            if (typeof v === "function") {
+                return v.toString();
+            }
+            if (v === Symbol.for("__MISSING__")) return "__MISSING__";
+            return typeof v;
+        })
+    )
+); */
+
+/**
+ * The queue of messages to display in the console overlay once it is loaded.
+ *
+ * @type {ConsoleEverythingEntry[]}
+ */
+var consoleOverlayOnLoadMessageQueue: ConsoleEverythingEntry[] = [];
+
+/**
+ * The callback called by the hook on the {@link console} methods.
+ *
+ * @param {ConsoleEverythingEntry} data The data of the message.
+ *
+ * @idea Make a system where it uses the click location to determine what text was right-clicked or long-pressed on to determine which context menu to show.
+ */
+function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
+    if (!consoleOverlayTextElement) {
+        consoleOverlayOnLoadMessageQueue.push(data);
+        return;
+    }
+    // To prevent error spam from trying to load all of the vanilla facets.
+    if (Array.isArray(data.value) && data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
+        return;
+    }
+    function copyConsoleMessageStackCallback() {
+        if (data.stack !== undefined) copyTextToClipboardAsync(data.stack);
+        else console.error("The stack of the console message could not be copied to the clipboard as it is not available.");
+    }
+    const elem = document.createElement("pre");
+    // elem.style.display = "flex";
+    // elem.style.flexDirection = "row";
+    // elem.style.width = "auto";
+    // elem.style.whiteSpace = "pre-wrap";
+    switch (data.type) {
+        case "exception":
+            elem.style.backgroundColor = "#ff004055";
+            break;
+        case "promiseRejection":
+            elem.style.backgroundColor = "#ff009555";
+            break;
+        case "error":
+            elem.style.backgroundColor = "#FF000055";
+            break;
+        case "warn":
+            elem.style.backgroundColor = "#FFA50055";
+            break;
+        case "info":
+            elem.style.backgroundColor = "#00FF8855";
+            break;
+        case "debug":
+            elem.style.backgroundColor = "#5555BB55";
+            break;
+        default:
+    }
+    function appendCurrentTextContentElem(force: boolean = false): void {
+        if (!currentTextContentOuterElem) return;
+        if (!currentTextContentElem) return;
+        if (force || currentTextContentElem.textContent?.length) {
+            if (currentTextContentOuterElem.children.length) {
+                const spacer = currentTextContentOuterElem.appendChild(document.createElement("span"));
+                // spacer.style.display = "inline";
+                spacer.style.whiteSpace = "pre-wrap";
+                spacer.textContent = " ";
+            }
+            currentTextContentOuterElem.appendChild(currentTextContentElem);
+        }
+        currentTextContentElem = null;
+    }
+    function appendCurrentTextContentOuterElem(): void {
+        if (!currentTextContentOuterElem) return;
+        appendCurrentTextContentElem();
+        if (currentTextContentOuterElem.children.length) {
+            elem.appendChild(currentTextContentOuterElem);
+        }
+        currentTextContentOuterElem = null;
+    }
+    function createNewTextContentOuterElemIfNecessary(): void {
+        if (currentTextContentOuterElem) return;
+        currentTextContentOuterElem = document.createElement("p");
+        // currentTextContentOuterElem.style.cssText = elem.style.cssText;
+        // currentTextContentOuterElem.style.display = "inline";
+        currentTextContentOuterElem.style.maxWidth = "100%";
+        currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+        currentTextContentOuterElem.style.overflowWrap = "break-word";
+        currentTextContentOuterElem.style.margin = "0";
+        currentTextContentOuterElem.setAttribute("cohinline", "");
+    }
+    function createNewTextContentElemIfNecessary(): void {
+        createNewTextContentOuterElemIfNecessary();
+        if (currentTextContentElem) return;
+        currentTextContentElem = document.createElement("span");
+        // currentTextContentElem.style.display = "inline";
+        currentTextContentElem.style.whiteSpace = "pre-wrap";
+        currentTextContentElem.style.overflowWrap = "break-word";
+    }
+    /**
+     * @type {HTMLParagraphElement | null}
+     */
+    let currentTextContentOuterElem: HTMLParagraphElement | null = document.createElement("p");
+    currentTextContentOuterElem.style.maxWidth = "100%";
+    currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+    currentTextContentOuterElem.style.overflowWrap = "break-word";
+    currentTextContentOuterElem.style.margin = "0";
+    currentTextContentOuterElem.setAttribute("cohinline", "");
+    /**
+     * @type {HTMLSpanElement | null}
+     */
+    let currentTextContentElem: HTMLSpanElement | null = document.createElement("span");
+    // currentTextContentElem.style.display = "inline";
+    currentTextContentElem.style.whiteSpace = "pre-wrap";
+    currentTextContentElem.style.overflowWrap = "break-word";
+    currentTextContentElem.textContent = `[${data.timeStamp}] [${
+        data.type === "exception"
+            ? `unhandled exception] [${data.value.filename}:${data.value.lineno}:${data.value.colno}`
+            : data.type === "promiseRejection"
+            ? "unhandled promise rejection"
+            : data.type
+    }]`;
+    appendCurrentTextContentElem();
+    if (data.type === "exception") {
+        appendCurrentTextContentOuterElem();
+        const value = data.value;
+        elem.appendChild(
+            createExpandableObjectView(value, true, false, {
+                summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+                copyConsoleMessageStackCallback,
+                copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+            })
+        );
+    } else if (data.type === "promiseRejection") {
+        appendCurrentTextContentOuterElem();
+        const value = data.value;
+        elem.appendChild(
+            createExpandableObjectView(value, true, false, {
+                summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason?.message ?? String(value.reason),
+                copyConsoleMessageStackCallback,
+                copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+            })
+        );
+    } else {
+        for (const v of data.value) {
+            if (v instanceof Error) {
+                appendCurrentTextContentOuterElem();
+                elem.appendChild(
+                    createExpandableObjectView(v, true, false, {
+                        summaryValueOverride: v.stack,
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                    })
+                );
+            } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
+                appendCurrentTextContentOuterElem();
+                elem.appendChild(
+                    createExpandableObjectView(v, true, undefined, {
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                    })
+                );
+            } else if (v === null) {
+                createNewTextContentElemIfNecessary();
+                currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + "null";
+                addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
+                    copyConsoleMessageStackCallback,
+                    copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                });
+                appendCurrentTextContentElem();
+            } else {
+                createNewTextContentElemIfNecessary();
+                switch (typeof v) {
+                    case "symbol":
+                        currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + v.toString();
+                        break;
+                    case "bigint":
+                        currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + JSONB.stringify(v);
+                        break;
+                    case "string":
+                        currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}${
+                            typeof data.value[0] === "string" ? v : quoteStringDynamic(v)
+                        }`;
+                        break;
+                    case "boolean":
+                    case "number":
+                    case "undefined":
+                    default:
+                        currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}${v}`;
+                }
+                addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
+                    copyConsoleMessageStackCallback,
+                    copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                });
+                appendCurrentTextContentElem(typeof v === "string" && typeof data.value[0] === "string" && !v);
+            }
+        }
+    }
+    if (
+        consoleOverlayTextElement.children.length > 0 &&
+        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+        (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (elem.style.backgroundColor ?? "")
+    ) {
+        elem.style.borderTop = "1px solid #888888";
+    }
+    appendCurrentTextContentOuterElem();
+    /**
+     * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+     */
+    const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+        width: 400,
+        height: 600,
+        items: [
+            {
+                label: "Copy message stack",
+                action: copyConsoleMessageStackCallback,
+                disabled: data.stack === undefined,
+            },
+            {
+                type: "separator",
+            },
+            {
+                label: "Clear console",
+                action() {
+                    consoleOverlayTextElement.replaceChildren();
+                },
+            },
+            {
+                label: "Clear console history",
+                action() {
+                    ConsoleExecutionHistory.clearHistory();
+                },
+            },
+            {
+                type: "separator",
+            },
+            {
+                label: "Copy console",
+                action() {
+                    if (consoleOverlayTextElement.textContent)
+                        copyTextToClipboardAsync(
+                            Array.from(consoleOverlayTextElement.children)
+                                .map((child) => child.textContent)
+                                .filter((v) => v !== null)
+                                .join("\n")
+                        );
+                    else console.warn("Could not copy console to clipboard because the console is empty.");
+                },
+                get disabled(): boolean {
+                    return !consoleOverlayTextElement.textContent;
+                },
+            },
+        ],
+    };
+    /**
+     * @type {number | null}
+     */
+    let clickStartTime: number | null = null;
+    elem.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+        clickStartTime = Date.now();
+    });
+    elem.addEventListener("mouseleave", () => {
+        clickStartTime = null;
+    });
+    elem.addEventListener("click", (event) => {
+        if (event.button !== 0) return;
+        if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        }
+        clickStartTime = null;
+    });
+    elem.addEventListener("mouseup", (event) => {
+        if (event.button !== 2) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+    });
+    consoleOverlayTextElement.appendChild(elem);
+}
+
+// function consoleOverlayConsoleLogCallback(data) {
+//     if (!consoleOverlayTextElement) {
+//         consoleOverlayOnLoadMessageQueue.push(data);
+//         return;
+//     }
+//     // To prevent error spam from trying to load all of the vanilla facets.
+//     if (Array.isArray(data.value) && data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
+//         return;
+//     }
+//     const elem = document.createElement("pre");
+//     // elem.style.display = "flex";
+//     // elem.style.flexDirection = "row";
+//     // elem.style.width = "auto";
+//     // elem.style.whiteSpace = "pre-wrap";
+//     switch (data.type) {
+//         case "exception":
+//             elem.style.backgroundColor = "#ff004055";
+//         case "promiseRejection":
+//             elem.style.backgroundColor = "#ff009555";
+//         case "error":
+//             elem.style.backgroundColor = "#FF000055";
+//             break;
+//         case "warn":
+//             elem.style.backgroundColor = "#FFA50055";
+//             break;
+//         case "info":
+//             elem.style.backgroundColor = "#00FF8855";
+//             break;
+//         case "debug":
+//             elem.style.backgroundColor = "#5555BB55";
+//             break;
+//         default:
+//     }
+//     /**
+//      * @type {HTMLPreElement | null}
+//      */
+//     let currentTextContentOuterElem = document.createElement("pre");
+//     currentTextContentOuterElem.style.display = "inline";
+//     currentTextContentOuterElem.style.width = "100%";
+//     currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+//     /**
+//      * @type {HTMLSpanElement | null}
+//      */
+//     let currentTextContentElem = document.createElement("span");
+//     currentTextContentElem.style.display = "inline";
+//     currentTextContentElem.style.width = "auto";
+//     currentTextContentElem.style.whiteSpace = "pre-wrap";
+//     currentTextContentElem.textContent = `[${data.timeStamp}] [${
+//         data.type === "exception"
+//             ? `unhandled exception] [${data.value.filename}:${data.value.lineno}:${data.value.colno}`
+//             : data.type === "promiseRejection"
+//             ? "unhandled promise rejection"
+//             : data.type
+//     }]`;
+//     function appendCurrentTextContentElem() {
+//         if (!currentTextContentOuterElem) return;
+//         if (!currentTextContentElem) return;
+//         if (currentTextContentElem.textContent?.length) {
+//             if (currentTextContentOuterElem.children.length) {
+//                 const spacer = currentTextContentOuterElem.appendChild(document.createElement("span"));
+//                 spacer.style.display = "inline";
+//                 spacer.style.whiteSpace = "pre-wrap";
+//                 spacer.textContent = " ";
+//             }
+//             currentTextContentOuterElem.appendChild(currentTextContentElem);
+//         }
+//         currentTextContentElem = null;
+//     }
+//     function appendCurrentTextContentOuterElem() {
+//         if (!currentTextContentOuterElem) return;
+//         appendCurrentTextContentElem();
+//         if (currentTextContentOuterElem.children.length) {
+//             elem.appendChild(currentTextContentOuterElem);
+//         }
+//         currentTextContentOuterElem = null;
+//     }
+//     function createNewTextContentOuterElemIfNecessary() {
+//         if (currentTextContentOuterElem) return;
+//         currentTextContentOuterElem = document.createElement("pre");
+//         // currentTextContentOuterElem.style.cssText = elem.style.cssText;
+//         currentTextContentOuterElem.style.display = "inline";
+//         currentTextContentOuterElem.style.overflowX = "auto";
+//         currentTextContentOuterElem.style.maxWidth = "100%";
+//         currentTextContentOuterElem.style.whiteSpace = "pre-wrap";
+//         currentTextContentOuterElem.style.overflowWrap = "break-word";
+//     }
+//     function createNewTextContentElemIfNecessary() {
+//         createNewTextContentOuterElemIfNecessary();
+//         if (currentTextContentElem) return;
+//         currentTextContentElem = document.createElement("span");
+//         currentTextContentElem.style.display = "inline";
+//         currentTextContentElem.style.whiteSpace = "pre-wrap";
+//         currentTextContentElem.style.overflowWrap = "break-word";
+//     }
+//     if (data.type === "exception") {
+//         const value = data.value;
+//         currentTextContentOuterElem.appendChild(
+//             createExpandableObjectView(value, true, false, {
+//                 summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+//             })
+//         );
+//     } else if (data.type === "promiseRejection") {
+//         const value = data.value;
+//         currentTextContentOuterElem.appendChild(
+//             createExpandableObjectView(value, true, false, {
+//                 summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason.message ?? String(value.reason),
+//             })
+//         );
+//     } else {
+//         for (const v of data.value) {
+//             if (v instanceof Error) {
+//                 appendCurrentTextContentElem();
+//                 currentTextContentOuterElem.appendChild(
+//                     createExpandableObjectView(v, true, false, {
+//                         summaryValueOverride: v.stack,
+//                     })
+//                 );
+//             } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
+//                 appendCurrentTextContentOuterElem();
+//                 elem.appendChild(createExpandableObjectView(v, true));
+//             } else if (v === null) {
+//                 appendCurrentTextContentElem();
+//                 createNewTextContentElemIfNecessary();
+//                 currentTextContentElem.textContent = "null";
+//                 addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem);
+//                 appendCurrentTextContentElem();
+//             } else {
+//                 appendCurrentTextContentElem();
+//                 createNewTextContentElemIfNecessary();
+//                 switch (typeof v) {
+//                     case "symbol":
+//                         currentTextContentElem.textContent = v.toString();
+//                         break;
+//                     case "bigint":
+//                         currentTextContentElem.textContent = JSONB.stringify(v);
+//                         break;
+//                     case "boolean":
+//                     case "number":
+//                     case "string":
+//                     case "undefined":
+//                     default:
+//                         currentTextContentElem.textContent = `${v}`;
+//                 }
+//                 addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem);
+//                 appendCurrentTextContentElem();
+//             }
+//         }
+//     }
+//     if (
+//         consoleOverlayTextElement.children.length > 0 &&
+//         consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+//         (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (elem.style.backgroundColor ?? "")
+//     ) {
+//         elem.style.borderTop = "1px solid #888888";
+//     }
+//     appendCurrentTextContentOuterElem();
+//     consoleOverlayTextElement.appendChild(elem);
+// }
+
+// This is so that any messages logged before the console overlay was loaded will be displayed.
+(async function loadConsoleOverlayOnLoadMessageQueue() {
+    while (true) {
+        do {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            //@ts-ignore This should not have an error.
+        } while (!consoleOverlayTextElement);
+        if (consoleOverlayOnLoadMessageQueue.length === 0) continue;
+        for (const data of consoleOverlayOnLoadMessageQueue) {
+            consoleOverlayOnLoadMessageQueue.splice(consoleOverlayOnLoadMessageQueue.indexOf(data), 1);
+            consoleOverlayConsoleLogCallback(data);
+        }
+    }
+})();
+
+/**
+ * @param {Parameters<typeof onConsoleLogCallbacks[0]>[0]} data
+ */
+/* function consoleOverlayConsoleLogCallback(data) {
+    const elem = document.createElement("span");
+    switch (data.type) {
+        case "error":
+            elem.style.backgroundColor = "#FF000055";
+            break;
+        case "warn":
+            elem.style.backgroundColor = "#FFA50055";
+            break;
+        case "debug":
+            elem.style.backgroundColor = "#5555BB55";
+            break;
+        default:
+            if(consoleOverlayTextElement.children.length > 0 && !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length > 0){
+                elem.style.borderTop = "1px solid #888888";
+            };
+    }
+    elem.textContent = `[${data.timeStamp}] [${data.type}] ${data.value.map((v) => {
+        switch (typeof v) {
+            case "bigint":
+            case "object":
+                return JSONB.stringify(v);
+            case "function":
+                return v.toString();
+            default:
+                return v;
+        }
+    })}`;
+    consoleOverlayTextElement.appendChild(elem);
+} */
+
+onConsoleLogCallbacks.push(consoleOverlayConsoleLogCallback);
+
+let nonTextKeyCodes = [
+    8, 9, 13, 16, 17, 18, 20, 27, 32, 33, 34, 35, 37, 38, 39, 40, 45, 46, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 112, 113, 114, 115, 116, 117, 118, 119,
+    120, 121, 122, 123, 195, 196, 197, 198, 199, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210,
+];
+
+let types_KeyboardKey = {
+    8: "BACKSPACE",
+    9: "TAB",
+    13: "ENTER",
+    16: "SHIFT",
+    17: "CTRL",
+    18: "ALT",
+    20: "CAPS_LOCK",
+    27: "ESCAPE",
+    32: "SPACE",
+    33: "PG_UP",
+    34: "PG_DOWN",
+    35: "END",
+    37: "LEFT",
+    38: "UP",
+    39: "RIGHT",
+    40: "DOWN",
+    45: "INSERT",
+    46: "DELETE",
+    48: "KEY_0",
+    49: "KEY_1",
+    50: "KEY_2",
+    51: "KEY_3",
+    52: "KEY_4",
+    53: "KEY_5",
+    54: "KEY_6",
+    55: "KEY_7",
+    56: "KEY_8",
+    57: "KEY_9",
+    59: "SEMICOLON",
+    61: "EQUALS",
+    65: "KEY_A",
+    66: "KEY_B",
+    67: "KEY_C",
+    68: "KEY_D",
+    69: "KEY_E",
+    70: "KEY_F",
+    71: "KEY_G",
+    72: "KEY_H",
+    73: "KEY_I",
+    74: "KEY_J",
+    75: "KEY_K",
+    76: "KEY_L",
+    77: "KEY_M",
+    78: "KEY_N",
+    79: "KEY_O",
+    80: "KEY_P",
+    81: "KEY_Q",
+    82: "KEY_R",
+    83: "KEY_S",
+    84: "KEY_T",
+    85: "KEY_U",
+    86: "KEY_V",
+    87: "KEY_W",
+    88: "KEY_X",
+    89: "KEY_Y",
+    90: "KEY_Z",
+    96: "NUMPAD_0",
+    97: "NUMPAD_1",
+    98: "NUMPAD_2",
+    99: "NUMPAD_3",
+    100: "NUMPAD_4",
+    101: "NUMPAD_5",
+    102: "NUMPAD_6",
+    103: "NUMPAD_7",
+    104: "NUMPAD_8",
+    105: "NUMPAD_9",
+    109: "MINUS",
+    112: "F1",
+    113: "F2",
+    114: "F3",
+    115: "F4",
+    116: "F5",
+    117: "F6",
+    118: "F7",
+    119: "F8",
+    120: "F9",
+    121: "F10",
+    122: "F11",
+    123: "F12",
+    188: "COMMA",
+    190: "PERIOD",
+    191: "SLASH",
+    192: "GRAVE",
+    195: "MOUSE_MOVEMENT",
+    196: "MOUSE_BUTTON_LEFT",
+    197: "MOUSE_BUTTON_MIDDLE",
+    198: "MOUSE_BUTTON_RIGHT",
+    199: "MOUSE_WHEEL",
+    201: "PSEUDO_KEY_1",
+    202: "PSEUDO_KEY_2",
+    203: "PSEUDO_KEY_3",
+    204: "PSEUDO_KEY_4",
+    205: "PSEUDO_KEY_5",
+    206: "PSEUDO_KEY_6",
+    207: "PSEUDO_KEY_7",
+    208: "PSEUDO_KEY_8",
+    209: "PSEUDO_KEY_9",
+    210: "PSEUDO_KEY_10",
+    219: "BRACKET_OPEN",
+    220: "BACKSLASH",
+    221: "BRACKET_CLOSE",
+    222: "APOSTROPHE",
+    BACKSPACE: 8,
+    TAB: 9,
+    ENTER: 13,
+    SHIFT: 16,
+    CTRL: 17,
+    ALT: 18,
+    PAUSE: 19,
+    CAPS_LOCK: 20,
+    ESCAPE: 27,
+    SPACE: 32,
+    PG_UP: 33,
+    PG_DOWN: 34,
+    END: 35,
+    HOME: 36,
+    LEFT: 37,
+    UP: 38,
+    RIGHT: 39,
+    DOWN: 40,
+    INSERT: 45,
+    DELETE: 46,
+    KEY_0: 48,
+    KEY_1: 49,
+    KEY_2: 50,
+    KEY_3: 51,
+    KEY_4: 52,
+    KEY_5: 53,
+    KEY_6: 54,
+    KEY_7: 55,
+    KEY_8: 56,
+    KEY_9: 57,
+    // SEMICOLON: 59, // Not the actual semicolon key.
+    // EQUALS: 61, // Not the actual equal sign key.
+    KEY_A: 65,
+    KEY_B: 66,
+    KEY_C: 67,
+    KEY_D: 68,
+    KEY_E: 69,
+    KEY_F: 70,
+    KEY_G: 71,
+    KEY_H: 72,
+    KEY_I: 73,
+    KEY_J: 74,
+    KEY_K: 75,
+    KEY_L: 76,
+    KEY_M: 77,
+    KEY_N: 78,
+    KEY_O: 79,
+    KEY_P: 80,
+    KEY_Q: 81,
+    KEY_R: 82,
+    KEY_S: 83,
+    KEY_T: 84,
+    KEY_U: 85,
+    KEY_V: 86,
+    KEY_W: 87,
+    KEY_X: 88,
+    KEY_Y: 89,
+    KEY_Z: 90,
+    META_LFET: 91,
+    CONTEXT_MENU: 93,
+    NUMPAD_0: 96,
+    NUMPAD_1: 97,
+    NUMPAD_2: 98,
+    NUMPAD_3: 99,
+    NUMPAD_4: 100,
+    NUMPAD_5: 101,
+    NUMPAD_6: 102,
+    NUMPAD_7: 103,
+    NUMPAD_8: 104,
+    NUMPAD_9: 105,
+    NUMPAD_MULTIPLY: 106,
+    NUMPAD_PLUS: 107,
+    // NUMPAD_ENTER: 108, // Not supported, it just maps to regular ENTER.
+    NUMPAD_MINUS: 109,
+    NUMPAD_PERIOD: 110,
+    NUMPAD_DIVIDE: 111,
+    F1: 112,
+    F2: 113,
+    F3: 114,
+    F4: 115,
+    F5: 116,
+    F6: 117,
+    F7: 118,
+    F8: 119,
+    F9: 120,
+    F10: 121,
+    F11: 122,
+    F12: 123,
+    F13: 124,
+    F14: 125,
+    F15: 126,
+    F16: 127,
+    F17: 128,
+    F18: 129,
+    F19: 130,
+    F20: 131,
+    F21: 132,
+    F22: 133,
+    F23: 134,
+    F24: 135,
+    NUM_LOCK: 144,
+    SCROLL_LOCK: 145,
+    SEMICOLON: 186,
+    EQUALS: 187,
+    COMMA: 188,
+    MINUS: 189,
+    PERIOD: 190,
+    SLASH: 191,
+    GRAVE: 192,
+    MOUSE_MOVEMENT: 195,
+    MOUSE_BUTTON_LEFT: 196,
+    MOUSE_BUTTON_MIDDLE: 197,
+    MOUSE_BUTTON_RIGHT: 198,
+    MOUSE_WHEEL: 199,
+    PSEUDO_KEY_1: 201,
+    PSEUDO_KEY_2: 202,
+    PSEUDO_KEY_3: 203,
+    PSEUDO_KEY_4: 204,
+    PSEUDO_KEY_5: 205,
+    PSEUDO_KEY_6: 206,
+    PSEUDO_KEY_7: 207,
+    PSEUDO_KEY_8: 208,
+    PSEUDO_KEY_9: 209,
+    PSEUDO_KEY_10: 210,
+    BRACKET_OPEN: 219,
+    BACKSLASH: 220,
+    BRACKET_CLOSE: 221,
+    APOSTROPHE: 222,
+    INTL_BACKSLASH: 226,
+    KANA_MODE: 246,
+    CR_SEL: 247,
+    EX_SEL: 248,
+    ERASE_EOF: 249,
+};
+
+// const container = consoleOverlayTextElement;
+// const textBox = createCustomTextBox(container);
+// consoleOverlayInputFieldElement.style.display = "contents";
+// consoleOverlayElement.appendChild(textBox);
+
+/**
+ * Creates a custom text box element.
+ *
+ * @param {HTMLElement} container - The container element to create the custom text box in.
+ * @returns {HTMLDivElement | undefined} The created custom text box element, or `undefined` if the element could not be created.
+ *
+ * @todo This is a work in progress.
+ */
+function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined {
+    try {
+        const textBoxSelection = {
+            selectionStart: 0,
+            selectionEnd: 0,
+        };
+        const textBox = document.createElement("div");
+        textBox.contentEditable = "true";
+        textBox.style.width = "100%";
+        textBox.style.height = "200px";
+        textBox.style.overflowY = "auto";
+        textBox.style.wordWrap = "break-word";
+        textBox.style.padding = "10px";
+        textBox.style.border = "1px solid #ccc";
+        textBox.style.cursor = "text"; // Add cursor
+        textBox.tabIndex = 0; // Make focusable
+        textBox.classList.add("customTextBox");
+        const textBoxValueDisplay = document.createElement("div");
+        textBoxValueDisplay.style.width = "100%";
+        textBoxValueDisplay.style.height = "100%";
+        textBoxValueDisplay.classList.add("customTextBox_valueDisplay");
+        textBox.appendChild(textBoxValueDisplay);
+        const textBoxTextarea = document.createElement("textarea");
+        textBoxTextarea.style.opacity = "0";
+        textBoxTextarea.classList.add("customTextBox_textareaElement");
+
+        // Add event listeners for copy, cut, and paste
+        textBox.addEventListener("copy", (e) => {
+            const selectedText = window.getSelection()?.toString() ?? null;
+            if (selectedText === null) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
+            e.clipboardData.setData("text", selectedText);
+            e.preventDefault();
+        });
+
+        textBox.addEventListener("cut", (e) => {
+            const selectedText = window.getSelection()?.toString() ?? null;
+            if (selectedText === null) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
+            e.clipboardData.setData("text", selectedText);
+            if (textBoxValueDisplay.textContent === null) {
+                console.warn(new ReferenceError("Text box value display has null text content."));
+                return;
+            }
+            textBoxValueDisplay.textContent = textBoxValueDisplay.textContent.replace(selectedText, "");
+            e.preventDefault();
+        });
+
+        textBox.addEventListener("paste", (e) => {
+            if (!e.clipboardData) {
+                console.warn(new ReferenceError("Could not find clipboard data."));
+                return;
+            }
+            const pastedText = e.clipboardData.getData("text");
+            const selection = window.getSelection();
+            if (!selection) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            selection.deleteFromDocument();
+            textBoxValueDisplay.textContent += pastedText;
+            e.preventDefault();
+        });
+
+        textBoxValueDisplay.addEventListener("mouseup", () => {
+            const selection = window.getSelection();
+            if (!selection) {
+                console.warn(new ReferenceError("Could not find current text selection."));
+                return;
+            }
+            textBoxSelection.selectionStart = selection.anchorOffset;
+            textBoxSelection.selectionEnd = selection.focusOffset;
+        });
+
+        // Add event listener for keyboard input
+        textBoxTextarea.addEventListener("keydown", (e) => {
+            let preventDefault = true;
+            if (e.keyCode === types_KeyboardKey.ENTER) {
+                textBoxTextarea.value += "\n";
+                textBoxValueDisplay.textContent = textBoxTextarea.value;
+            }
+            const text = textBoxTextarea.value;
+            let newText = text;
+            if (!nonTextKeyCodes.includes(e.keyCode)) {
+                newText =
+                    text.substring(0, Math.min(textBoxSelection.selectionStart, textBoxSelection.selectionEnd)) +
+                    e.key +
+                    text.substring(Math.max(textBoxSelection.selectionStart, textBoxSelection.selectionEnd));
+            } else {
+                switch (e.keyCode) {
+                    case types_KeyboardKey.BACKSPACE:
+                        if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
+                            newText = text.substring(0, textBoxSelection.selectionStart - 1) + text.substring(textBoxSelection.selectionEnd);
+                        } else {
+                            newText = text.substring(0, textBoxSelection.selectionStart) + text.substring(textBoxSelection.selectionEnd);
+                        }
+                        break;
+                    case types_KeyboardKey.DELETE:
+                        if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
+                            newText = text.substring(0, textBoxSelection.selectionStart) + text.substring(textBoxSelection.selectionEnd + 1);
+                        } else {
+                            newText = text.substring(0, textBoxSelection.selectionStart) + text.substring(textBoxSelection.selectionEnd);
+                        }
+                        break;
+                    case types_KeyboardKey.ENTER:
+                        newText = text.substring(0, textBoxSelection.selectionStart) + "\n" + text.substring(textBoxSelection.selectionEnd);
+                        break;
+                    case types_KeyboardKey.LEFT:
+                        if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
+                            if (e.shiftKey) {
+                                textBoxSelection.selectionStart -= 1;
+                            } else {
+                                textBoxSelection.selectionStart -= 1;
+                                textBoxSelection.selectionEnd -= 1;
+                            }
+                        } else if (e.shiftKey) {
+                            textBoxSelection.selectionEnd -= 1;
+                        } else {
+                            textBoxSelection.selectionEnd = textBoxSelection.selectionStart;
+                        }
+                        break;
+                    case types_KeyboardKey.RIGHT:
+                        if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
+                            textBoxSelection.selectionStart += 1;
+                            textBoxSelection.selectionEnd += 1;
+                        } else if (e.shiftKey) {
+                            textBoxSelection.selectionEnd += 1;
+                        } else {
+                            textBoxSelection.selectionEnd = textBoxSelection.selectionStart;
+                        }
+                        break;
+                    case types_KeyboardKey.HOME:
+                        textBoxSelection.selectionStart = 0;
+                        textBoxSelection.selectionEnd = 0;
+                        break;
+                    case types_KeyboardKey.END:
+                        textBoxSelection.selectionStart = text.length;
+                        textBoxSelection.selectionEnd = text.length;
+                        break;
+                    default:
+                        preventDefault = false;
+                }
+            }
+            textBoxTextarea.value = newText;
+            textBoxValueDisplay.textContent = textBoxTextarea.value;
+            if (preventDefault) {
+                e.preventDefault();
+            }
+        });
+        textBoxValueDisplay.textContent = "test1234";
+
+        // Add event listener for click to focus
+        textBox.addEventListener("click", () => {
+            textBoxTextarea.focus();
+        });
+
+        textBoxTextarea.addEventListener("input", () => {
+            textBoxValueDisplay.textContent = textBoxTextarea.value;
+        });
+
+        textBox.appendChild(textBoxTextarea);
+
+        container.appendChild(textBox);
+
+        return textBox;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+/**
+ * Add a scrollbar to an HTML element.
+ *
+ * @param {Element} element The HTML element to add a scrollbar to.
+ * @returns {boolean} True if the scrollbar was added successfully, false otherwise.
+ */
+function addScrollbarToHTMLElement(element: Element): boolean {
+    if (!(element instanceof HTMLElement)) return false;
+    // Add a scrollbar to the div element
+    // element.style.overflowY = "auto";
+
+    element.style.paddingRight = "10px";
+    // Create a scrollbar element
+    var scrollbarParent = document.createElement("div");
+    scrollbarParent.style.position = "absolute";
+    scrollbarParent.style.top = "0px";
+    scrollbarParent.style.right = "0px";
+    scrollbarParent.style.width = "10px";
+    scrollbarParent.style.height = "100%";
+    scrollbarParent.style.margin = "0";
+    scrollbarParent.style.padding = "0";
+    scrollbarParent.style.background = "rgba(100, 100, 100, 1)";
+    scrollbarParent.style.zIndex = "100000000000";
+    scrollbarParent.classList.add("customScrollbarParent");
+    var scrollbar = document.createElement("div");
+    scrollbar.style.position = "absolute";
+    scrollbar.style.top = "0px";
+    scrollbar.style.right = "0px";
+    scrollbar.style.width = "10px";
+    scrollbar.style.height = "100%";
+    scrollbar.style.background = "rgba(255, 255, 255, 1)";
+    scrollbar.style.borderRadius = "5px";
+    scrollbar.style.zIndex = "100000000000";
+    scrollbar.classList.add("customScrollbar");
+
+    // Add the scrollbar to the div element
+    scrollbarParent.appendChild(scrollbar);
+    element.appendChild(scrollbarParent);
+
+    var mouseDownOnScrollbar = false;
+    var mousePosOffset = 0;
+    var totalHeight = 0;
+    var visibleHeight = 0;
+    var scrollPosition = 0;
+    var scrollbarHeight = 0;
+    var scrollbarTop = 0;
+
+    // Add event listeners to the scrollbar
+    scrollbarParent.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
+        mouseDownOnScrollbar = true;
+        mousePosOffset = event.clientY - scrollbarParentClientRect.top - scrollbarTop;
+        var mouseY = Math.min(
+            scrollbarParentClientRect.top + scrollbarParentClientRect.height,
+            Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
+        );
+        totalHeight = element.scrollHeight;
+        if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
+        scrollPosition = Math.min(
+            Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
+            totalHeight - visibleHeight
+        );
+        element.scrollTop = scrollPosition;
+        scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+        scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+        scrollbar.style.height = scrollbarHeight + "px";
+        scrollbar.style.top = scrollbarTop + "px";
+        scrollbarParent.style.top = element.scrollTop + "px";
+    });
+
+    document.addEventListener("mouseup", function (event) {
+        if (mouseDownOnScrollbar) {
+            event.preventDefault();
+            mouseDownOnScrollbar = false;
+        }
+    });
+
+    document.addEventListener("mousemove", function (event) {
+        if (mouseDownOnScrollbar) {
+            event.preventDefault();
+            var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
+            var mouseY = Math.min(
+                scrollbarParentClientRect.top + scrollbarParentClientRect.height,
+                Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
+            );
+            totalHeight = element.scrollHeight;
+            if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
+            scrollPosition = Math.min(
+                Math.max(0, ((mouseY - scrollbarParentClientRect.top) / (scrollbarParentClientRect.height - scrollbarHeight)) * (totalHeight - visibleHeight)),
+                totalHeight - visibleHeight
+            );
+            element.scrollTop = scrollPosition;
+            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+            scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+            scrollbar.style.height = scrollbarHeight + "px";
+            scrollbar.style.top = scrollbarTop + "px";
+            scrollbarParent.style.top = element.scrollTop + "px";
+        }
+    });
+
+    // Update the scrollbar position when the div is scrolled
+    element.addEventListener("scroll", function () {
+        var scrollPosition = element.scrollTop;
+        totalHeight = element.scrollHeight;
+        if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
+        scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+        scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+        scrollbar.style.height = scrollbarHeight + "px";
+        scrollbar.style.top = scrollbarTop + "px";
+        scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
+        scrollbarParent.style.height = visibleHeight + "px";
+    });
+    const mutationObserver = new MutationObserver(() => {
+        setTimeout(() => {
+            totalHeight = element.scrollHeight;
+            if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
+            scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
+            scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
+            scrollbar.style.height = scrollbarHeight + "px";
+            scrollbar.style.top = scrollbarTop + "px";
+            scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
+            scrollbarParent.style.height = visibleHeight + "px";
+        }, 10);
+    });
+    mutationObserver.observe(element, {
+        childList: true,
+        attributes: true,
+        subtree: true,
+    });
+    return true;
+}
+
+var litePlayScreenActive: boolean = false;
+
+/**
+ * Maps game mode IDs to their names.
+ */
+const GameModeIDMap = {
+    [-1]: "Unknown",
+    [0]: "Survival",
+    [1]: "Creative",
+    [2]: "Adventure",
+    [3]: "GM3",
+    [4]: "GM4",
+    [5]: "Default",
+    [6]: "Spectator",
+    [7]: "GM7",
+    [8]: "GM8",
+    [9]: "GM9",
+};
+
+/**
+ * Enables the lite play screen.
+ */
+async function enableLitePlayScreen(noReload = false) {
+    if (litePlayScreenActive) {
+        return;
+    }
+    globalThis.litePlayScreenActive = true;
+    /**
+     * The router facet.
+     *
+     * @type {FacetTypeMap["core.router"] | undefined}
+     */
+    const router: FacetTypeMap["core.router"] | undefined = globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+    if (!router) {
+        throw new ReferenceError("core.router facet not found");
+    }
+    /**
+     * The original router location.
+     */
+    const originalRouterLocation = { ...router.history.location };
+    if (
+        !originalRouterLocation.pathname.startsWith("/ouic/play") /*  ||
+        !originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .some((param) => param.split("=")[0] === "isLitePlayScreen" && param.split("=")[1] === "true") */
+    ) {
+        if (noReload) {
+            const titleBarElement = Array.from(document.querySelectorAll("div#root > div > div > div > div.vanilla-neutral20-background"))[0];
+            if (titleBarElement) {
+                titleBarElement.setAttribute("data-old-title-bar", "true");
+            }
+        }
+        // Array.from(document.getElementById("root").children).forEach((element) => (element.innerHTML = ""));
+        router.history.replace(
+            `/ouic/play?isLitePlayScreen=true${
+                originalRouterLocation.pathname.startsWith("/play/")
+                    ? "&tab=" +
+                      ({ all: "worlds", realms: "realms", servers: "servers" }[originalRouterLocation.pathname.slice(6)] ??
+                          originalRouterLocation.pathname.slice(6))
+                    : ""
+            }`
+        );
+        if (noReload) {
+            Array.from(document.querySelectorAll("div#root > div > div")).forEach((v) => v.remove());
+        }
+        if (!noReload) {
+            if (router.history.location.pathname.startsWith("/ouic/play")) {
+                location.reload();
+                return;
+            } else {
+                console.error("Failed to enable lite play screen, the router path was not changed when attempting to change it.");
+                return;
+            }
+        }
+    }
+    let i = 0;
+    while (
+        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        )
+    ) {
+        if (i === 100) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        i++;
+    }
+    for (let i = 0; i < 1000; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        if (
+            Array.from(document.querySelectorAll("div#root > div > div > div > div.vanilla-neutral20-background")).find(
+                (element) => !element.hasAttribute("data-old-title-bar")
+            )
+        ) {
+            break;
+        }
+        continue;
+    }
+    const elements = Array.from(document.querySelectorAll("div#root > div > div > div > div"));
+    /**
+     * The title bar element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const titleBarElement: HTMLDivElement | null =
+        elements.find(
+            /** @returns {element is HTMLDivElement} */ (element): element is HTMLDivElement =>
+                element.classList.contains("vanilla-neutral20-background") &&
+                !element.hasAttribute("data-landmark-id") &&
+                !element.hasAttribute("data-old-title-bar") &&
+                element instanceof HTMLDivElement
+        ) ?? null;
+    //@ts-ignore
+    titleBarElement.setAttribute("data-in-use", "true");
+    //@ts-ignore
+    titleBarElement.querySelector("div.vanilla-neutral20-text").textContent = "Play";
+    /**
+     * The content container element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    //@ts-ignore
+    const contentContainerElement: HTMLDivElement | null =
+        elements.find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        ) ?? null;
+    //@ts-ignore
+    contentContainerElement.setAttribute("data-in-use", "true");
+    //@ts-ignore
+    contentContainerElement.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: scroll"><div id="litePlayScreen_tabList" style="display: flex; flex-direction: row; width: 90%; margin: 0 5%">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButton" data-tab-id="worlds">Worlds (${
+        (getAccessibleFacetSpyFacets()["vanilla.localWorldList"] ?? (await forceLoadFacet("vanilla.localWorldList")))?.localWorlds?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButton" data-tab-id="realms">Realms (${
+        (getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"] ?? (await forceLoadFacet("vanilla.realmsListFacet")))?.realms?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButton" data-tab-id="friends">Friends (${(function getFriendsTabWorldsCount(
+        friends,
+        lan
+    ) {
+        return friends !== undefined || lan !== undefined ? (friends ?? 0) + (lan ?? 0) : "...";
+    })(
+        (getAccessibleFacetSpyFacets()["vanilla.friendworldlist"] ?? (await forceLoadFacet("vanilla.friendworldlist")))?.friendWorlds?.length,
+        (getAccessibleFacetSpyFacets()["vanilla.lanWorldList"] ?? (await forceLoadFacet("vanilla.lanWorldList")))?.lanWorlds.length
+    )})</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButton" data-tab-id="servers">Servers (${
+        (getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ?? (await forceLoadFacet("vanilla.externalServerWorldList")))?.externalServerWorlds
+            ?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButton" data-tab-id="featured">Featured (${
+        (getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList")))?.thirdPartyWorlds?.length ??
+        "..."
+    })</button>
+</div><div id="litePlayScreen_tabContent" style="display: flex; flex-direction: column; width: 90%; margin: 0 5%; overflow-y: scroll; justify-content: flex-start; flex-grow: 1"></div></div>`;
+    const tabContent = document.getElementById("litePlayScreen_tabContent");
+    const tabList = document.getElementById("litePlayScreen_tabList");
+    //@ts-ignore
+    const tabListButtons = tabList.querySelectorAll("button");
+    /**
+     * The currently selected page.
+     *
+     * @type {number}
+     */
+    let currentPage: number = Number(
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "page")
+            ?.split("=")[1] ?? 0
+    );
+    /**
+     * The currently selected tab.
+     *
+     * @type {typeof tabIDs[number]}
+     */
+    //@ts-ignore
+    let currentTab: (typeof tabIDs)[number] =
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "tab")
+            ?.split("=")[1] ?? "worlds";
+    let silentClick = false;
+    /**
+     * The tab IDs.
+     *
+     * @type {["worlds", "realms", "friends", "servers", "featured"]}
+     */
+    const tabIDs: ["worlds", "realms", "friends", "servers", "featured"] = ["worlds", "realms", "friends", "servers", "featured"];
+    /**
+     * Changes the page and tab.
+     *
+     * @param {number} page The page to change to.
+     * @param {typeof tabIDs[number]} tab The tab to change to.
+     * @param {boolean} [clickTab=true] Whether to click the tab button.
+     */
+    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab: boolean = true) {
+        currentPage = page;
+        currentTab = tab;
+        if (!router) throw new ReferenceError("The router facet has become unavailable.");
+        getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
+            `/ouic/play/${tab}?${[
+                ...router.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0]!)),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        );
+        silentClick = true;
+        if (clickTab) {
+            tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
+        }
+    }
+    for (let i = 0; i < tabListButtons.length; i++) {
+        tabListButtons[i]!.addEventListener("click", async () => {
+            if (tabListButtons[i]!.getAttribute("data-tab-id") !== currentTab) {
+                if (!silentClick) {
+                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                }
+                currentPage = 0;
+                for (let j = 0; j < tabListButtons.length; j++) {
+                    tabListButtons[j]!.classList.remove("selected");
+                }
+                tabListButtons[i]!.classList.add("selected");
+                changePage(0, tabIDs[i]!, false);
+            } else if (!tabListButtons[i]!.classList.contains("selected")) {
+                tabListButtons[i]!.classList.add("selected");
+            }
+            silentClick = false;
+            if (!tabContent) throw new ReferenceError("The tab content element could not be found.");
+            Array.from(tabContent.children).forEach((element) => element.remove());
+            /**
+             * The ID of the tab button.
+             *
+             * @type {typeof tabIDs[number]}
+             */
+            const tabButtonID: (typeof tabIDs)[number] = <any>tabListButtons[i]!.getAttribute("data-tab-id") ?? "worlds";
+            switch (tabButtonID) {
+                case "worlds": {
+                    currentTab = "worlds";
+                    const worldListIterable = (getAccessibleFacetSpyFacets()["vanilla.localWorldList"] ?? (await forceLoadFacet("vanilla.localWorldList")))
+                        ?.localWorlds;
+                    /**
+                     * The worlds tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    //@ts-ignore
+                    const worldsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_worldsTabButton");
+                    if (worldsTabButton) {
+                        worldsTabButton.textContent = `Worlds (${worldListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((worldListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_worldsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_worldsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_worldsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_createNewWorld">Create New World</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_worldsTabButtonBar_importWorld">Import World</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const worldListContainer = document.createElement("div");
+                    worldListContainer.id = "litePlayScreen_worldsTabWorldList_worldListContainer";
+                    worldListContainer.style.flexGrow = "1";
+                    worldListContainer.style.display = "block";
+                    // worldListContainer.style.display = "contents";
+                    worldListContainer.style.width = "100%";
+                    // worldListContainer.style.height = "100%";
+                    if (!worldListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        worldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const worldList = Array.from(worldListIterable).sort((worldA, worldB) => worldB.lastSaved - worldA.lastSaved);
+                        for (let i = currentPage * 5; i < Math.min(worldList.length, (currentPage + 1) * 5); i++) {
+                            const world = worldList[i]!;
+                            const worldButtonContainer = document.createElement("div");
+                            worldButtonContainer.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButtonContainer_${world.id}`;
+                            worldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const worldButton = document.createElement("button");
+                            worldButton.type = "button";
+                            worldButton.classList.add("btn", "nsel");
+                            worldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            worldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_${world.id}`;
+                            const worldButton_worldName = document.createElement("span");
+                            worldButton_worldName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block;";
+                            worldButton_worldName.textContent = world.name;
+                            worldButton.appendChild(worldButton_worldName);
+                            const worldButton_worldDetails = document.createElement("span");
+                            worldButton_worldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            worldButton_worldDetails.textContent = `Size: ${world.fileSize} | Version: ${world.gameVersion.major}.${world.gameVersion.minor}.${
+                                world.gameVersion.patch
+                            }.${world.gameVersion.revision}${world.gameVersion.isBeta ? "-beta" : ""}${
+                                world.isMultiplayerEnabled ? " | Multiplayer" : " | Singleplayer"
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[world.gameMode]
+                            }${world.isHardcore ? " | Hardcore" : ""}${world.isExperimental ? " | Experimental" : ""}${
+                                world.playerHasDied ? " | Player Has Died" : ""
+                            }`;
+                            worldButton.appendChild(worldButton_worldDetails);
+                            worldButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const worldStartup = getAccessibleFacetSpyFacets()["vanilla.worldStartup"] ?? (await forceLoadFacet("vanilla.worldStartup"));
+                                if (worldStartup) {
+                                    worldStartup.startLocalWorld(world.id);
+                                }
+                            });
+                            const editWorldButton = document.createElement("button");
+                            editWorldButton.type = "button";
+                            editWorldButton.classList.add("btn", "nsel");
+                            editWorldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editWorldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_editWorldButton_${world.id}`;
+                            const worldID = world.id;
+                            editWorldButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/edit-world/${worldID}`);
+                                }
+                            });
+                            const editWorldButton_icon = document.createElement("img");
+                            editWorldButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editWorldButton_icon.style = "width: 2vw; height: 2vw;";
+                            editWorldButton.appendChild(editWorldButton_icon);
+                            const editWorldButton_label = document.createElement("span");
+                            editWorldButton_label.style = "position: absolute; bottom: 1rem";
+                            editWorldButton_label.textContent = "Edit";
+                            editWorldButton.appendChild(editWorldButton_label);
+                            worldButtonContainer.appendChild(worldButton);
+                            worldButtonContainer.appendChild(editWorldButton);
+                            worldListContainer.appendChild(worldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(worldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_worldsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
+                    rightButtons.children[0]!.addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/start-from-template`);
+                        }
+                    });
+                    rightButtons.children[1]!.addEventListener("click", async () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const worldTransfer = getAccessibleFacetSpyFacets()["vanilla.worldTransfer"] ?? (await forceLoadFacet("vanilla.worldTransfer"));
+                        if (worldTransfer) {
+                            worldTransfer.importWorld.run();
+                        }
+                    });
+                    break;
+                }
+                case "realms": {
+                    currentTab = "realms";
+                    const realmListIterable = (getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"] ?? (await forceLoadFacet("vanilla.realmsListFacet")))
+                        ?.realms;
+                    /**
+                     * The realms tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    //@ts-ignore
+                    const realmsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_realmsTabButton");
+                    if (realmsTabButton) {
+                        realmsTabButton.textContent = `Realms (${realmListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((realmListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_realmsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_realmsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_realmsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_realmsTabButtonBar_joinRealm">Join Realm</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const realmListContainer = document.createElement("div");
+                    realmListContainer.id = "litePlayScreen_realmsTabRealmList_realmListContainer";
+                    realmListContainer.style.flexGrow = "1";
+                    realmListContainer.style.display = "block";
+                    // realmListContainer.style.display = "contents";
+                    realmListContainer.style.width = "100%";
+                    // realmListContainer.style.height = "100%";
+                    if (!realmListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No realms found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        realmListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const realmListA = Array.from(realmListIterable).sort(
+                            (realmA, realmB) => (realmB.world.lastSaved ?? -1) - (realmA.world.lastSaved ?? -1)
+                        );
+                        const realmListB = [
+                            ...realmListA.filter((realm) => !realm.world.closed && !realm.world.expired),
+                            ...realmListA.filter((realm) => realm.world.closed || realm.world.expired),
+                        ];
+                        const realmList = [...realmListB.filter((realm) => realm.isOwner), ...realmListB.filter((realm) => !realm.isOwner)];
+                        for (let i = currentPage * 5; i < Math.min(realmList.length, (currentPage + 1) * 5); i++) {
+                            const realm = realmList[i]!;
+                            const realmButtonContainer = document.createElement("div");
+                            realmButtonContainer.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButtonContainer_${realm.world.id}`;
+                            realmButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const realmButton = document.createElement("button");
+                            realmButton.type = "button";
+                            realmButton.classList.add("btn", "nsel");
+                            realmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            realmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_${realm.world.id}`;
+                            const realmButton_realmName = document.createElement("span");
+                            realmButton_realmName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            realmButton_realmName.textContent = realm.world.realmName;
+                            realmButton.appendChild(realmButton_realmName);
+                            const realmButton_realmDetails = document.createElement("span");
+                            realmButton_realmDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            realmButton_realmDetails.textContent = `Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${
+                                realm.world.full ? " (Full)" : ""
+                            }${
+                                realm.world.expired
+                                    ? " | Expired"
+                                    : realm.world.closed
+                                    ? " | Closed"
+                                    : realm.isOwner
+                                    ? ` | Days Left: ${realm.world.daysLeft}`
+                                    : ""
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[realm.world.gameMode]
+                            }${realm.world.isHardcore ? " | Hardcore" : ""}${!realm.world.isInitialized ? " | Not Initialized" : ""}${
+                                realm.world.slotName ? ` | Slot: ${realm.world.slotName}` : ""
+                            } | Description: ${realm.world.description}`;
+                            realmButton.appendChild(realmButton_realmDetails);
+                            const realmID = realm.world.id;
+                            realmButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner =
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinRealmWorld(String(realmID), 0);
+                                }
+                            });
+                            realmButtonContainer.appendChild(realmButton);
+                            const realmOptionsButton = document.createElement("button");
+                            realmOptionsButton.type = "button";
+                            realmOptionsButton.classList.add("btn", "nsel");
+                            realmOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            realmOptionsButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                            realmOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const realmOptionsOverlayElement = document.createElement("div");
+                                realmOptionsOverlayElement.id = "realmOptionsOverlayElement";
+                                realmOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                realmOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="realmOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-realm-options-overlay-field="realmName"></h1>
+        <p data-realm-options-overlay-field="slotName" style="display: ${realm.world.slotName ? "block" : "none"}"></p>
+        <p>Status: ${realm.world.expired ? "Expired" : realm.world.closed ? "Closed" : "Open"}</p>
+        <p>Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${realm.world.full ? " (Full)" : ""}</p>
+        <p>Unread Story Count: ${realm.unreadStoryCount}</p>
+        <p data-realm-options-overlay-field="description" style="display: ${realm.world.description ? "block" : "none"}"></p>
+        <p style="display: ${realm.world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p style="display: ${!realm.world.isInitialized ? "block" : "none"}">Realm is not initialized.</p>
+        <p data-realm-options-overlay-field="lastSaved"></p>
+        <p>Realm ID: ${realm.world.id}</p>
+        <p>Owner XUID: ${realm.world.ownerXuid}</p>
+        <p>Game Mode: ${
+            //@ts-ignore
+            GameModeIDMap[realm.world.gameMode]
+        }</p>
+    </div>
+    <div id="realmOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_joinRealmButton">Join Realm</button>
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="realmOptionsOverlayElement_realmsStoriesButton">Realm Stories</button>
+    </div>
+</div>`;
+                                //@ts-ignore
+                                realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='realmName']").textContent = realm.world.realmName;
+                                //@ts-ignore
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='slotName']"
+                                ).textContent = `Slot Name: ${realm.world.slotName}`;
+                                //@ts-ignore
+                                realmOptionsOverlayElement.querySelector(
+                                    "[data-realm-options-overlay-field='description']"
+                                ).textContent = `Description: ${realm.world.description}`;
+                                if (realm.world.lastSaved !== null) {
+                                    //@ts-ignore
+                                    realmOptionsOverlayElement.querySelector(
+                                        "[data-realm-options-overlay-field='lastSaved']"
+                                    ).textContent = `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
+                                } else {
+                                    //@ts-ignore
+                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").remove();
+                                }
+                                //@ts-ignore
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton").addEventListener("click", async () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const networkWorldJoiner =
+                                        getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                    if (networkWorldJoiner) {
+                                        networkWorldJoiner.joinRealmWorld(realmID.toString(), 0);
+                                    }
+                                });
+                                //@ts-ignore
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton").addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realms-story-entry-route/feed/${realmID}`);
+                                    }
+                                });
+                                document.body.appendChild(realmOptionsOverlayElement);
+                            });
+                            const editRealmButton_icon = document.createElement("img");
+                            editRealmButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                            realmOptionsButton.appendChild(editRealmButton_icon);
+                            const editRealmButton_label = document.createElement("span");
+                            editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                            editRealmButton_label.textContent = "More";
+                            realmOptionsButton.appendChild(editRealmButton_label);
+                            realmButtonContainer.appendChild(realmOptionsButton);
+                            if (realm.isOwner) {
+                                const editRealmButton = document.createElement("button");
+                                editRealmButton.type = "button";
+                                editRealmButton.classList.add("btn", "nsel");
+                                editRealmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                                editRealmButton.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButton_editRealmButton_${realm.world.id}`;
+                                const realmID = realm.world.id;
+                                editRealmButton.addEventListener("click", () => {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const router = getAccessibleFacetSpyFacets()["core.router"];
+                                    if (router) {
+                                        router.history.push(`/realm-settings/${realmID}`);
+                                    }
+                                });
+                                const editRealmButton_icon = document.createElement("img");
+                                editRealmButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                                editRealmButton_icon.style = "width: 2vw; height: 2vw;";
+                                editRealmButton.appendChild(editRealmButton_icon);
+                                const editRealmButton_label = document.createElement("span");
+                                editRealmButton_label.style = "position: absolute; bottom: 1rem";
+                                editRealmButton_label.textContent = "Edit";
+                                editRealmButton.appendChild(editRealmButton_label);
+                                realmButtonContainer.appendChild(editRealmButton);
+                            }
+                            realmListContainer.appendChild(realmButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(realmListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_realmsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
+                    rightButtons.children[0]!.addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/join-realms-server`);
+                        }
+                    });
+                    break;
+                }
+                case "friends": {
+                    currentTab = "friends";
+                    /**
+                     * @type {(ReturnType<NonNullable<FacetTypeMap["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>[number] | ReturnType<NonNullable<FacetTypeMap["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>[number])[]}
+                     */
+                    const friendWorldList: (
+                        | ReturnType<NonNullable<FacetTypeMap["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>[number]
+                        | ReturnType<NonNullable<FacetTypeMap["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>[number]
+                    )[] = [
+                        ...(getAccessibleFacetSpyFacets()["vanilla.friendworldlist"] ?? (await forceLoadFacet("vanilla.friendworldlist"))).friendWorlds.slice(
+                            0
+                        ),
+                        ...(getAccessibleFacetSpyFacets()["vanilla.lanWorldList"] ?? (await forceLoadFacet("vanilla.lanWorldList"))).lanWorlds.slice(0),
+                    ];
+                    /**
+                     * The friends tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    //@ts-ignore
+                    const friendsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_friendsTabButton");
+                    if (friendsTabButton) {
+                        friendsTabButton.textContent = `Friends (${friendWorldList?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((friendWorldList?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_friendsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_friendsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_friendsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_friendsList">Friends List</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const friendWorldListContainer = document.createElement("div");
+                    friendWorldListContainer.id = "litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer";
+                    friendWorldListContainer.style.flexGrow = "1";
+                    friendWorldListContainer.style.display = "block";
+                    // friendWorldListContainer.style.display = "contents";
+                    friendWorldListContainer.style.width = "100%";
+                    // friendWorldListContainer.style.height = "100%";
+                    if (!friendWorldList || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No friend or LAN worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        for (let i = currentPage * 5; i < Math.min(friendWorldList.length, (currentPage + 1) * 5); i++) {
+                            const world = friendWorldList[i]!;
+                            const friendWorldButtonContainer = document.createElement("div");
+                            friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
+                            friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const friendWorldButton = document.createElement("button");
+                            friendWorldButton.type = "button";
+                            friendWorldButton.classList.add("btn", "nsel");
+                            friendWorldButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            friendWorldButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_${world.id}`;
+                            const friendWorldButton_friendWorldName = document.createElement("span");
+                            friendWorldButton_friendWorldName.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            friendWorldButton_friendWorldName.textContent = world.name;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldName);
+                            const friendWorldButton_friendWorldDetails = document.createElement("span");
+                            friendWorldButton_friendWorldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
+                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : " | LAN"
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[world.gameMode]
+                            }${world.isHardcore ? " | Hardcore" : ""}${"ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""}${
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
+                                    ? ` | Address: ${world.address}:${world.port}`
+                                    : ""
+                            }`;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
+                            const friendWorldID = world.id;
+                            friendWorldButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner =
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                if (networkWorldJoiner) {
+                                    "friendOfFriendWorld" in world
+                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                }
+                            });
+                            friendWorldButtonContainer.appendChild(friendWorldButton);
+                            const friendWorldOptionsButton = document.createElement("button");
+                            friendWorldOptionsButton.type = "button";
+                            friendWorldOptionsButton.classList.add("btn", "nsel");
+                            friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            friendWorldOptionsButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_editFriendWorldButton_${world.id}`;
+                            friendWorldOptionsButton.addEventListener("click", () => {
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const friendWorldOptionsOverlayElement = document.createElement("div");
+                                    friendWorldOptionsOverlayElement.id = "friendWorldOptionsOverlayElement";
+                                    friendWorldOptionsOverlayElement.setAttribute("data-friend-world-id", friendWorldID);
+                                    friendWorldOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    friendWorldOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="friendWorldOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-friend-world-options-overlay-field="friendWorldName"></h1>
+        <p data-friend-world-options-overlay-field="ownerName"></p>
+        <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${("ownerId" in world && world.ownerId) || "N/A"}</p>
+        <p>${"friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? "Friend of Friend" : "Friend") : "LAN"}</p>
+        <p>Players: ${world.playerCount}/${world.capacity}</p>
+        <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${
+                                        ("ping" in world && world.ping) || "N/A"
+                                    }</p>
+        <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p data-friend-world-options-overlay-field="address" style="display: ${
+            "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
+        }"></p>
+        <p>World ID: ${world.id}</p>
+        <p>Game Mode: ${
+            //@ts-ignore
+            GameModeIDMap[world.gameMode]
+        }</p>
+    </div>
+    <div id="friendWorldOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
+    </div>
+</div>`;
+                                    //@ts-ignore
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='friendWorldName']").textContent =
+                                        world.name;
+                                    //@ts-ignore
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='ownerName']").textContent =
+                                        world.ownerName;
+                                    //@ts-ignore
+                                    friendWorldOptionsOverlayElement
+                                        .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
+                                        .addEventListener("click", async () => {
+                                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                            const networkWorldJoiner =
+                                                getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ??
+                                                (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                            if (networkWorldJoiner) {
+                                                "friendOfFriendWorld" in world
+                                                    ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                                    : networkWorldJoiner.joinLanServer(friendWorldID);
+                                            }
+                                        });
+                                    document.body.appendChild(friendWorldOptionsOverlayElement);
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            });
+                            const friendWorldOptionsButton_icon = document.createElement("img");
+                            friendWorldOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            friendWorldOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_icon);
+                            const friendWorldOptionsButton_label = document.createElement("span");
+                            friendWorldOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            friendWorldOptionsButton_label.textContent = "More";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_label);
+                            friendWorldButtonContainer.appendChild(friendWorldOptionsButton);
+                            friendWorldListContainer.appendChild(friendWorldButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(friendWorldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
+                    rightButtons.children[0]!.addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            // router.history.push(`/ouic/friends/friends?page=0&tab=friends`);
+                            router.history.push(`/friends-drawer`);
+                        }
+                    });
+                    break;
+                }
+                case "servers": {
+                    currentTab = "servers";
+                    const serverListIterable = (
+                        getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ?? (await forceLoadFacet("vanilla.externalServerWorldList"))
+                    )?.externalServerWorlds.filter((server) => server.name !== "LitePlayScreenEnabled" && !server.name.startsWith("INTERNALSETTINGS:"));
+                    /**
+                     * The servers tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    //@ts-ignore
+                    const serversTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_serversTabButton");
+                    if (serversTabButton) {
+                        serversTabButton.textContent = `Servers (${serverListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_serversTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_serversTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_serversTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_serversTabButtonBar_addServer">Add Server</button>
+</div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_serversTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No external servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        serverListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => Number(serverA.id) - Number(serverB.id));
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i]!;
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner =
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID));
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", async () => {
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const serverOptionsOverlayElement = document.createElement("div");
+                                    serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                    serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                    serverOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping}</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
+        <p>Server ID: ${server.id}</p>
+        <img src="${server.image}" />
+        <img data-server-options-overlay-field="image" />
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+    </div>
+</div>`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector(
+                                        "[data-server-options-overlay-field='description']"
+                                    ).textContent = `Description: ${server.description}`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement
+                                        .querySelector("#serverOptionsOverlayElement_joinServerButton")
+                                        .addEventListener("click", async () => {
+                                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                            const networkWorldJoiner =
+                                                getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ??
+                                                (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                            if (networkWorldJoiner) {
+                                                networkWorldJoiner.joinExternalServer(serverID.toString());
+                                            }
+                                        });
+                                    document.body.appendChild(serverOptionsOverlayElement);
+                                    (
+                                        getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"] ?? (await forceLoadFacet("vanilla.networkWorldDetails"))
+                                    )?.loadNetworkWorldDetails(serverID, 1);
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_serversTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    const rightButtons = document.getElementById("litePlayScreen_serversTabButtonBar_rightButtons");
+                    if (!rightButtons) throw new ReferenceError("Could not find right buttons.");
+                    rightButtons.children[0]!.addEventListener("click", () => {
+                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        if (router) {
+                            router.history.push(`/play/servers/add`);
+                        }
+                    });
+                    break;
+                }
+                case "featured": {
+                    currentTab = "featured";
+                    const serverListIterable = (
+                        getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList"))
+                    )?.thirdPartyWorlds;
+                    /**
+                     * The featured tab button.
+                     *
+                     * @type {HTMLButtonElement | null}
+                     */
+                    //@ts-ignore
+                    const featuredTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_featuredTabButton");
+                    if (featuredTabButton) {
+                        featuredTabButton.textContent = `Featured (${serverListIterable?.length ?? 0})`;
+                    }
+                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_featuredTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_featuredTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_featuredTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end"></div>`;
+                    tabContent.appendChild(buttonBar);
+                    const serverListContainer = document.createElement("div");
+                    serverListContainer.id = "litePlayScreen_featuredTabServerList_serverListContainer";
+                    serverListContainer.style.flexGrow = "1";
+                    serverListContainer.style.display = "block";
+                    // serverListContainer.style.display = "contents";
+                    serverListContainer.style.width = "100%";
+                    // serverListContainer.style.height = "100%";
+                    if (!serverListIterable || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No featured servers found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        serverListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => Number(serverA.id) - Number(serverB.id));
+                        for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
+                            const server = serverList[i]!;
+                            const serverButtonContainer = document.createElement("div");
+                            serverButtonContainer.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
+                            serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const serverButton = document.createElement("button");
+                            serverButton.type = "button";
+                            serverButton.classList.add("btn", "nsel");
+                            serverButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            serverButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`;
+                            const serverButton_serverName = document.createElement("span");
+                            serverButton_serverName.style = "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            serverButton_serverName.textContent = server.name;
+                            serverButton.appendChild(serverButton_serverName);
+                            const serverButton_serverDetails = document.createElement("span");
+                            serverButton_serverDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            serverButton_serverDetails.classList.add("fc77bf1310dc483c1eba");
+                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                                server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                            } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                            serverButton.appendChild(serverButton_serverDetails);
+                            const serverID = server.id;
+                            serverButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner =
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                if (networkWorldJoiner) {
+                                    networkWorldJoiner.joinExternalServer(String(serverID));
+                                }
+                            });
+                            serverButtonContainer.appendChild(serverButton);
+                            const serverOptionsButton = document.createElement("button");
+                            serverOptionsButton.type = "button";
+                            serverOptionsButton.classList.add("btn", "nsel");
+                            serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            serverOptionsButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            serverOptionsButton.addEventListener("click", async () => {
+                                try {
+                                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                    const serverOptionsOverlayElement = document.createElement("div");
+                                    serverOptionsOverlayElement.id = "serverOptionsOverlayElement";
+                                    serverOptionsOverlayElement.setAttribute("data-server-id", serverID);
+                                    serverOptionsOverlayElement.style =
+                                        "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                    serverOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-server-options-overlay-field="serverName"></h1>
+        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
+        <p>Players: ${server.playerCount}/${server.capacity}</p>
+        <p data-server-options-overlay-field="description"></p>
+        <p>Server ID: ${server.id}</p>
+        <img data-server-options-overlay-field="image" />
+    </div>
+    <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
+    </div>
+</div>`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector(
+                                        "[data-server-options-overlay-field='description']"
+                                    ).textContent = `Description: ${server.description}`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement
+                                        .querySelector("#serverOptionsOverlayElement_joinServerButton")
+                                        .addEventListener("click", async () => {
+                                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                            const networkWorldJoiner =
+                                                getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ??
+                                                (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                            if (networkWorldJoiner) {
+                                                networkWorldJoiner.joinExternalServer(serverID.toString());
+                                            }
+                                        });
+                                    document.body.appendChild(serverOptionsOverlayElement);
+                                    (
+                                        getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"] ?? (await forceLoadFacet("vanilla.networkWorldDetails"))
+                                    )?.loadNetworkWorldDetails(serverID, 0);
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            });
+                            const serverOptionsButton_icon = document.createElement("img");
+                            serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            serverOptionsButton.appendChild(serverOptionsButton_icon);
+                            const serverOptionsButton_label = document.createElement("span");
+                            serverOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            serverOptionsButton_label.textContent = "More";
+                            serverOptionsButton.appendChild(serverOptionsButton_label);
+                            serverButtonContainer.appendChild(serverOptionsButton);
+                            const editServerButton = document.createElement("button");
+                            editServerButton.type = "button";
+                            editServerButton.classList.add("btn", "nsel");
+                            editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            editServerButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            editServerButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                if (router) {
+                                    router.history.push(`/play/servers/${serverID}/external/edit`);
+                                }
+                            });
+                            const editServerButton_icon = document.createElement("img");
+                            editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
+                            editServerButton_icon.style = "width: 2vw; height: 2vw;";
+                            editServerButton.appendChild(editServerButton_icon);
+                            const editServerButton_label = document.createElement("span");
+                            editServerButton_label.style = "position: absolute; bottom: 1rem";
+                            editServerButton_label.textContent = "Edit";
+                            editServerButton.appendChild(editServerButton_label);
+                            serverButtonContainer.appendChild(editServerButton);
+                            serverListContainer.appendChild(serverButtonContainer);
+                        }
+                    }
+                    tabContent.appendChild(serverListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_featuredTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    break;
+                }
+            }
+        });
+    }
+    silentClick = true;
+    tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
+    if (window.observingExternalServerWorldListForLitePlayScreenServersTab !== true) {
+        window.observingExternalServerWorldListForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.externalServerWorldList"].observe((externalServerWorldList) => {
+            /**
+             * The servers tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            //@ts-ignore
+            const serversTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_serversTabButton");
+            if (serversTabButton) {
+                serversTabButton.textContent = `Servers (${
+                    externalServerWorldList.externalServerWorlds.filter(
+                        (server) => server.name !== "LitePlayScreenEnabled" && !server.name.startsWith("INTERNALSETTINGS:")
+                    ).length
+                })`;
+            }
+            if (currentTab !== "servers") {
+                return;
+            } /* 
+            if (document.getElementById("serverOptionsOverlayElement")) {
+            } */
+            for (const server of Array.from(externalServerWorldList.externalServerWorlds)) {
+                /**
+                 * The server button container.
+                 *
+                 * @type {HTMLDivElement | null}
+                 */
+                //@ts-ignore
+                const serverButtonContainer: HTMLDivElement | null = document.getElementById(
+                    `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`
+                );
+                if (serverButtonContainer) {
+                    //@ts-ignore
+                    serverButtonContainer.querySelector(
+                        `#litePlayScreen_serversTabServerList_serverListContainer_serverButton_${server.id}`
+                    ).children[1]!.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                        server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                    } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
+                }
+            }
+        });
+    }
+    if (window.observingThirdPartyWorldListForLitePlayScreenServersTab !== true) {
+        window.observingThirdPartyWorldListForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.thirdPartyWorldList"].observe((thirdPartyWorldList) => {
+            /**
+             * The featured tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            //@ts-ignore
+            const featuredTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_featuredTabButton");
+            if (featuredTabButton) {
+                featuredTabButton.textContent = `Featured (${thirdPartyWorldList.thirdPartyWorlds.length})`;
+            }
+            if (currentTab !== "featured") {
+                return;
+            } /* 
+            if (document.getElementById("serverOptionsOverlayElement")) {
+            } */
+            for (const server of Array.from(thirdPartyWorldList.thirdPartyWorlds)) {
+                /**
+                 * The server button container.
+                 *
+                 * @type {HTMLDivElement | null}
+                 */
+                //@ts-ignore
+                const serverButtonContainer: HTMLDivElement | null = document.getElementById(
+                    `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`
+                );
+                if (serverButtonContainer) {
+                    //@ts-ignore
+                    serverButtonContainer.querySelector(
+                        `#litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`
+                    ).children[1]!.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                        server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                    } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                }
+            }
+        });
+    }
+    if (window.observingFriendWorldListForLitePlayScreenFriendsTab !== true) {
+        window.observingFriendWorldListForLitePlayScreenFriendsTab = true;
+        facetSpyData.sharedFacets["vanilla.friendworldlist"].observe((friendworldList) => {
+            if (currentTab !== "friends") {
+                return;
+            }
+            /**
+             * The friends tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            //@ts-ignore
+            const friendsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_friendsTabButton");
+            silentClick = true;
+            //@ts-ignore
+            friendsTabButton.dispatchEvent(new Event("click"));
+        });
+    }
+    if (window.observingLANWorldListForLitePlayScreenLanTab !== true) {
+        window.observingLANWorldListForLitePlayScreenLanTab = true;
+        facetSpyData.sharedFacets["vanilla.lanWorldList"].observe((lanWorldList) => {
+            if (currentTab !== "friends") {
+                return;
+            }
+            /**
+             * The friends tab button.
+             *
+             * @type {HTMLButtonElement | null}
+             */
+            //@ts-ignore
+            const friendsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_friendsTabButton");
+            silentClick = true;
+            //@ts-ignore
+            friendsTabButton.dispatchEvent(new Event("click"));
+        });
+    }
+    if (window.observingNetworkWorldDetailsForLitePlayScreenServersTab !== true) {
+        window.observingNetworkWorldDetailsForLitePlayScreenServersTab = true;
+        facetSpyData.sharedFacets["vanilla.networkWorldDetails"].observe((networkWorldDetails) => {
+            if (currentTab !== "servers" && currentTab !== "featured") {
+                return;
+            }
+            /**
+             * The server options overlay element.
+             *
+             * @type {HTMLDivElement | null}
+             */
+            //@ts-ignore
+            const serverOptionsOverlayElement: HTMLDivElement | null = document.getElementById("serverOptionsOverlayElement");
+            if (serverOptionsOverlayElement) {
+                const imageElement = serverOptionsOverlayElement.querySelector('[data-server-options-overlay-field="image"]');
+                if (imageElement instanceof HTMLImageElement) {
+                    imageElement.src = networkWorldDetails.networkDetails.imagePath;
+                }
+            }
+        });
+    }
+} /* 
+const a = facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].get();
+a.playScreenWorldLayoutMode = 0;
+facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].set(a); */
+
+async function disableLitePlayScreen() {
+    globalThis.litePlayScreenActive = false;
+}
+
+async function litePlayScreen_friendsMenu() {
+    let i = 0;
+    while (
+        !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
+            (element) =>
+                !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")
+        )
+    ) {
+        if (i === 100) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        i++;
+    }
+    /**
+     * The router facet.
+     *
+     * @type {FacetTypeMap["core.router"] | undefined}
+     */
+    const router: FacetTypeMap["core.router"] | undefined = globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+    if (!router) {
+        throw new ReferenceError("core.router facet not found");
+    }
+    /**
+     * The original router location.
+     */
+    const originalRouterLocation = { ...router.history.location };
+    const elements = Array.from(document.querySelectorAll("div#root > div > div > div > div"));
+    /**
+     * The title bar element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const titleBarElement: HTMLDivElement | null =
+        elements.find(
+            /** @returns {element is HTMLDivElement} */ (element): element is HTMLDivElement =>
+                element.classList.contains("vanilla-neutral20-background") && !element.hasAttribute("data-in-use") && element instanceof HTMLDivElement
+        ) ?? null;
+    //@ts-ignore
+    titleBarElement.setAttribute("data-in-use", "true");
+    //@ts-ignore
+    titleBarElement.querySelector("div.vanilla-neutral20-text").textContent = "Friends";
+    /**
+     * The content container element.
+     *
+     * @type {HTMLDivElement | null}
+     */
+    const contentContainerElement: HTMLDivElement | null =
+        elements.find(
+            /** @returns {element is HTMLDivElement} */ (element): element is HTMLDivElement =>
+                !element.classList.contains("vanilla-neutral20-background") &&
+                element.hasAttribute("data-landmark-id") &&
+                !element.hasAttribute("data-in-use") &&
+                element instanceof HTMLDivElement
+        ) ?? null;
+    //@ts-ignore
+    contentContainerElement.setAttribute("data-in-use", "true");
+    //@ts-ignore
+    contentContainerElement.innerHTML = `<div style="height: 100%; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: scroll"><div id="litePlayScreen_tabList" style="display: flex; flex-direction: row; width: 90%; margin: 0 5%">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_friendsTabButton" data-tab-id="friends">Friends (${
+        (getAccessibleFacetSpyFacets()["vanilla.friendsListFacet"] ?? (await forceLoadFacet("vanilla.friendsListFacet")))?.xblFriends?.length ?? "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_recentsTabButton" data-tab-id="recents">Recent (${
+        (getAccessibleFacetSpyFacets()["vanilla.recentlyPlayedWithList"] ?? (await forceLoadFacet("vanilla.recentlyPlayedWithList")))?.playerList?.length ??
+        "..."
+    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsMenu_recommendedTabButton" data-tab-id="recommended">Recommended (${
+        (getAccessibleFacetSpyFacets()["vanilla.recommendedFriendsList"] ?? (await forceLoadFacet("vanilla.recommendedFriendsList")))?.playerList?.length ??
+        "..."
+    })</button>
+</div><div id="litePlayScreen_tabContent" style="display: flex; flex-direction: column; width: 90%; margin: 0 5%; overflow-y: scroll; justify-content: flex-start; flex-grow: 1"></div></div>`;
+    const tabContent = document.getElementById("litePlayScreen_tabContent");
+    const tabList = document.getElementById("litePlayScreen_tabList");
+    //@ts-ignore
+    const tabListButtons = tabList.querySelectorAll("button");
+    /**
+     * The currently selected page.
+     *
+     * @type {number}
+     */
+    let currentPage: number = Number(
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "page")
+            ?.split("=")[1] ?? 0
+    );
+    /**
+     * The currently selected tab.
+     *
+     * @type {typeof tabIDs[number]}
+     */
+    //@ts-ignore
+    let currentTab: (typeof tabIDs)[number] =
+        originalRouterLocation.search
+            .replace("?", "")
+            .split("&")
+            .find((param) => param.split("=")[0] === "tab")
+            ?.split("=")[1] ?? "worlds";
+    let silentClick = false;
+    /**
+     * The tab IDs.
+     *
+     * @type {["friends", "recents", "recommended"]}
+     */
+    const tabIDs: ["friends", "recents", "recommended"] = ["friends" /* , "platformFriends" */, "recents", "recommended"];
+    /**
+     * Changes the page and tab.
+     *
+     * @param {number} page The page to change to.
+     * @param {typeof tabIDs[number]} tab The tab to change to.
+     * @param {boolean} [clickTab=true] Whether to click the tab button.
+     */
+    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab: boolean = true) {
+        currentPage = page;
+        currentTab = tab;
+        getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
+            `/ouic/friends/${tab}?${[
+                ...router!.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0]!)),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        ); /* 
+        console.log(
+            `/ouic/play/${tab}?${[
+                ...router.history.location.search
+                    .replace("?", "")
+                    .split("&")
+                    .filter((param) => !["page", "tab"].includes(param.split("=")[0])),
+                `page=${page}`,
+                `tab=${tab}`,
+            ].join("&")}`
+        ); */
+        silentClick = true;
+        if (clickTab) {
+            tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
+        }
+    }
+    for (let i: number = 0; i < tabListButtons.length; i++) {
+        tabListButtons[i]!.addEventListener("click", async (): Promise<void> => {
+            if (tabListButtons[i]!.getAttribute("data-tab-id") !== currentTab) {
+                if (!silentClick) {
+                    getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                }
+                currentPage = 0;
+                for (let j: number = 0; j < tabListButtons.length; j++) {
+                    tabListButtons[j]!.classList.remove("selected");
+                }
+                tabListButtons[i]!.classList.add("selected");
+                changePage(0, tabIDs[i]!, false);
+            } else if (!tabListButtons[i]!.classList.contains("selected")) {
+                tabListButtons[i]!.classList.add("selected");
+            }
+            silentClick = false;
+            Array.from(tabContent!.children).forEach((element: Element): void => element.remove());
+            /**
+             * The ID of the tab button.
+             *
+             * @type {typeof tabIDs[number]}
+             */
+            const tabButtonID: (typeof tabIDs)[number] = <any>tabListButtons[i]!.getAttribute("data-tab-id") ?? "worlds";
+            switch (tabButtonID) {
+                case "friends": {
+                    currentTab = "friends";
+                    /**
+                     * @type {(ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>[number] | ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>[number])[]}
+                     */
+                    const friendWorldList: (
+                        | ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.friendworldlist"]>["friendWorlds"]["slice"]>[number]
+                        | ReturnType<NonNullable<ReturnType<typeof getAccessibleFacetSpyFacets>["vanilla.lanWorldList"]>["lanWorlds"]["slice"]>[number]
+                    )[] = [
+                        ...(getAccessibleFacetSpyFacets()["vanilla.friendworldlist"] ?? (await forceLoadFacet("vanilla.friendworldlist"))).friendWorlds.slice(
+                            0
+                        ),
+                        ...(getAccessibleFacetSpyFacets()["vanilla.lanWorldList"] ?? (await forceLoadFacet("vanilla.lanWorldList"))).lanWorlds.slice(0),
+                    ];
+                    const pageCount = Math.ceil((friendWorldList?.length ?? 0) / 5);
+                    const buttonBar = document.createElement("div");
+                    buttonBar.id = "litePlayScreen_friendsTabButtonBar";
+                    buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
+                    buttonBar.innerHTML = `<div id="litePlayScreen_friendsTabButtonBar_leftButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-start">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_previousPage">Prev.</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-right: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_nextPage">Next</button>
+    <p style="font-size: 2vw; line-height: 2.8571428572vw; padding: 0.2rem 0; margin: 6px 0; font-family: Minecraft Seven v2">Page ${
+        pageCount === 0 ? 0 : currentPage + 1
+    } of ${pageCount}</p>
+</div>
+<div id="litePlayScreen_friendsTabButtonBar_rightButtons" style="display: flex; flex-direction: row; width: 50%; justify-content: flex-end">
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; margin-left: 1em; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButtonBar_joinFriend">Join Friend</button>
+</div>`;
+                    //@ts-ignore
+                    tabContent.appendChild(buttonBar);
+                    const friendWorldListContainer = document.createElement("div");
+                    friendWorldListContainer.id = "litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer";
+                    friendWorldListContainer.style.flexGrow = "1";
+                    friendWorldListContainer.style.display = "block";
+                    // friendWorldListContainer.style.display = "contents";
+                    friendWorldListContainer.style.width = "100%";
+                    // friendWorldListContainer.style.height = "100%";
+                    if (!friendWorldList || pageCount === 0) {
+                        const emptyListInfo = document.createElement("p");
+                        emptyListInfo.textContent = "No friend or LAN worlds found.";
+                        emptyListInfo.style.fontSize = "2vw";
+                        emptyListInfo.style.lineHeight = "2.8571428572vw";
+                        emptyListInfo.style.padding = "0.2rem 0";
+                        emptyListInfo.style.margin = "6px 0";
+                        emptyListInfo.style.fontFamily = "Minecraft Seven v2";
+                        friendWorldListContainer.appendChild(emptyListInfo);
+                    } else {
+                        if (currentPage < 0 || currentPage >= pageCount) {
+                            changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
+                            return;
+                        }
+                        for (let i = currentPage * 5; i < Math.min(friendWorldList.length, (currentPage + 1) * 5); i++) {
+                            const world = friendWorldList[i]!;
+                            const friendWorldButtonContainer = document.createElement("div");
+                            friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
+                            friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
+                            const friendWorldButton = document.createElement("button");
+                            friendWorldButton.type = "button";
+                            friendWorldButton.classList.add("btn", "nsel");
+                            friendWorldButton.style =
+                                "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
+                            friendWorldButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_${world.id}`;
+                            const friendWorldButton_friendWorldName = document.createElement("span");
+                            friendWorldButton_friendWorldName.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 90%; display: block;";
+                            friendWorldButton_friendWorldName.textContent = world.name;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldName);
+                            const friendWorldButton_friendWorldDetails = document.createElement("span");
+                            friendWorldButton_friendWorldDetails.style =
+                                "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
+                            friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
+                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : ""
+                            } | ${
+                                //@ts-ignore
+                                GameModeIDMap[world.gameMode]
+                            }${world.isHardcore ? " | Hardcore" : ""}${"ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""}${
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
+                                    ? ` | Address: ${world.address}:${world.port}`
+                                    : ""
+                            }`;
+                            friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
+                            const friendWorldID = world.id;
+                            friendWorldButton.addEventListener("click", async () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const networkWorldJoiner =
+                                    getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                if (networkWorldJoiner) {
+                                    "friendOfFriendWorld" in world
+                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                }
+                            });
+                            friendWorldButtonContainer.appendChild(friendWorldButton);
+                            const friendWorldOptionsButton = document.createElement("button");
+                            friendWorldOptionsButton.type = "button";
+                            friendWorldOptionsButton.classList.add("btn", "nsel");
+                            friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
+                            friendWorldOptionsButton.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButton_editFriendWorldButton_${world.id}`;
+                            friendWorldOptionsButton.addEventListener("click", () => {
+                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                const friendWorldOptionsOverlayElement = document.createElement("div");
+                                friendWorldOptionsOverlayElement.id = "friendWorldOptionsOverlayElement";
+                                friendWorldOptionsOverlayElement.setAttribute("data-friend-id", friendWorldID);
+                                friendWorldOptionsOverlayElement.style =
+                                    "backdrop-filter: blur(5px); background-color: #00000080; color: #FFFFFFFF; position: fixed; top: 2.5vh; left: 2.5vw; width: 95vw; height: 95vh; z-index: 100; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Minecraft Seven v2;";
+                                friendWorldOptionsOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="this.parentElement.remove();"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
+    <div id="friendWorldOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
+        <h1 data-friend-world-options-overlay-field="friendWorldName"></h1>
+        <p data-friend-world-options-overlay-field="ownerName"></p>
+        <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${"ownerId" in world && world.ownerId}</p>
+        <p style="display: ${"friendOfFriendWorld" in world ? "block" : "none"}">${
+                                    "friendOfFriendWorld" in world && world.friendOfFriendWorld ? "Friend of Friend" : "Friend"
+                                }</p>
+        <p>Players: ${world.playerCount}/${"maxPlayers" in world && world.maxPlayers ? world.maxPlayers : world.capacity}</p>
+        <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${
+                                    "ping" in world && world.ping
+                                }</p>
+        <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
+        <p data-friend-world-options-overlay-field="address" style="display: ${
+            "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
+        }"></p>
+        <p>World ID: ${world.id}</p>
+        <p>Game Mode: ${
+            //@ts-ignore
+            GameModeIDMap[world.gameMode]
+        }</p>
+    </div>
+    <div id="friendWorldOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
+        <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
+    </div>
+</div>`;
+                                //@ts-ignore
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='friendWorldName']").textContent =
+                                    world.name;
+                                //@ts-ignore
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='ownerName']").textContent = world.ownerName;
+                                //@ts-ignore
+                                friendWorldOptionsOverlayElement
+                                    .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
+                                    .addEventListener("click", async () => {
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const networkWorldJoiner =
+                                            getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
+                                        if (networkWorldJoiner) {
+                                            "friendOfFriendWorld" in world
+                                                ? networkWorldJoiner.joinFriendServer(friendWorldID)
+                                                : networkWorldJoiner.joinLanServer(friendWorldID);
+                                        }
+                                    });
+                                document.body.appendChild(friendWorldOptionsOverlayElement);
+                            });
+                            const friendWorldOptionsButton_icon = document.createElement("img");
+                            friendWorldOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
+                            friendWorldOptionsButton_icon.style = "width: 2vw; height: 2vw;";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_icon);
+                            const friendWorldOptionsButton_label = document.createElement("span");
+                            friendWorldOptionsButton_label.style = "position: absolute; bottom: 1rem";
+                            friendWorldOptionsButton_label.textContent = "More";
+                            friendWorldOptionsButton.appendChild(friendWorldOptionsButton_label);
+                            friendWorldButtonContainer.appendChild(friendWorldOptionsButton);
+                            friendWorldListContainer.appendChild(friendWorldButtonContainer);
+                        }
+                    }
+                    //@ts-ignore
+                    tabContent.appendChild(friendWorldListContainer);
+                    const leftButtons = document.getElementById("litePlayScreen_friendsTabButtonBar_leftButtons");
+                    if (!leftButtons) throw new ReferenceError("Could not find left buttons.");
+                    if (currentPage >= pageCount - 1) {
+                        leftButtons.children[1]!.classList.add("disabled");
+                    }
+                    if (currentPage <= 0) {
+                        leftButtons.children[0]!.classList.add("disabled");
+                    }
+                    leftButtons.children[0]!.addEventListener("click", () => {
+                        if (currentPage > 0) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.max(currentPage - 1, 0), currentTab);
+                    });
+                    leftButtons.children[1]!.addEventListener("click", () => {
+                        if (currentPage < pageCount - 1) {
+                            getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                        }
+                        changePage(Math.min(currentPage + 1, pageCount - 1), currentTab);
+                    });
+                    break;
+                }
+            }
+        });
+    }
+    silentClick = true;
+    tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
+}
+
+/**
+ * Sets whether the lite play screen is enabled.
+ *
+ * @param {boolean} value Whether to set the lite play screen to enabled or disabled.
+ * @param {boolean} [noReload=false] Whether to not reload the page every time it is opened to unload the old contents.
+ *
+ * @throws {ReferenceError} If the external server world list is not available.
+ */
+function setLitePlayScreenEnabled(value: boolean, noReload: boolean = false) {
+    if (value) {
+        localStorage.setItem("enableLitePlayScreen", "true");
+        if (noReload) {
+            localStorage.setItem("enableLitePlayScreenNoReload", "true");
+        } else {
+            localStorage.removeItem("enableLitePlayScreenNoReload");
+        }
+    } else {
+        localStorage.removeItem("enableLitePlayScreen");
+    }
+    const externalServerWorldList = getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"];
+    if (!externalServerWorldList) {
+        throw new ReferenceError("External server world list is not available.");
+    }
+    const existingExternalServerStorage = externalServerWorldList.externalServerWorlds.filter(
+        (world) => world.name === "LitePlayScreenEnabled" || world.name === "LitePlayScreenEnabledNoReload"
+    );
+    if (existingExternalServerStorage.length > 0) {
+        if (!value) {
+            existingExternalServerStorage.forEach((server) => externalServerWorldList.removeExternalServerWorld(Number(server.id)));
+        }
+    }
+    if (value) {
+        if (noReload) {
+            externalServerWorldList.addExternalServerWorld("LitePlayScreenEnabledNoReload", "0.0.0.1", 1);
+        } else {
+            externalServerWorldList.addExternalServerWorld("LitePlayScreenEnabled", "0.0.0.1", 1);
+        }
+    }
+}
+
+// Enables the lite play screen.
+(async function startEnablingLitePlayScreen() {
+    for (let i = 0; i < 1000; i++) {
+        try {
+            /**
+             * The router facet.
+             *
+             * @type {FacetTypeMap["core.router"] | undefined}
+             */
+            const router: FacetTypeMap["core.router"] | undefined = globalThis.facetSpyData && globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+            if (!router) {
+                // If the router facet is not available, wait for a short time and try again.
+                await new Promise((resolve) => setTimeout(resolve, 10));
+                continue;
+            }
+            /**
+             * Loads a custom screen from 8Crafter's Ore UI Customizer.
+             *
+             * @param {string} pathname The path to load.
+             * @returns {Promise<void>} A promise that resolves when the screen is loaded.
+             */
+            async function loadOUICScreen(pathname: string): Promise<void> {
+                pathname = pathname?.replace(/^\/ouic\//, "");
+                switch (true) {
+                    case pathname.startsWith("play"):
+                        await enableLitePlayScreen();
+                        break;
+                    case pathname.startsWith("friends"):
+                        await litePlayScreen_friendsMenu();
+                        break;
+                }
+            }
+            if (/^\/ouic\//.test(router.history.location.pathname)) {
+                await loadOUICScreen(router.history.location.pathname);
+            }
+            let loadedRouterPositions = router.history.list
+                .slice(0)
+                .map(
+                    /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
+                        !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+                );
+            const routerObserveCallback = async (/** @type {FacetTypeMap["core.router"]} */ router: FacetTypeMap["core.router"]) => {
+                if (router.history.list.length < loadedRouterPositions.length) {
+                    loadedRouterPositions.splice(router.history.list.length - 1, loadedRouterPositions.length - router.history.list.length);
+                } else if (router.history.list.length > loadedRouterPositions.length) {
+                    loadedRouterPositions.push(
+                        ...router.history.list
+                            .slice(loadedRouterPositions.length)
+                            .map(
+                                /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
+                                    !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+                            )
+                    );
+                } else if (
+                    router.history.list[router.history.list.length - 1]!.pathname !== loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname &&
+                    router.history.list[router.history.list.length - 1]!.pathname.startsWith("/ouic/") &&
+                    router.history.list[router.history.list.length - 1]!.pathname.match(/^\/ouic\/[^/]+/)?.[0] !==
+                        loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname.match(/^\/ouic\/[^/]+/)?.[0]
+                ) {
+                    loadedRouterPositions[loadedRouterPositions.length - 1] = undefined;
+                }
+                if (/^\/ouic\//.test(router.history.location.pathname) && loadedRouterPositions[loadedRouterPositions.length - 1] === undefined) {
+                    await loadOUICScreen(router.history.location.pathname);
+                }
+            };
+            facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
+            let localForceLoadedFacets = [];
+            try {
+                let forceLoadedExternalServerWorldListFacet = false;
+                var externalServerWorldList =
+                    getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ??
+                    ((forceLoadedExternalServerWorldListFacet = true), await forceLoadFacet("vanilla.externalServerWorldList"));
+                if (forceLoadedExternalServerWorldListFacet) localForceLoadedFacets.push("vanilla.externalServerWorldList");
+            } catch (e) {
+                if (e === "activate-facet-not-found") {
+                    try {
+                        let forceLoadedInGameFacet = false;
+                        const inGameFacet =
+                            getAccessibleFacetSpyFacets()["vanilla.inGame"] ?? ((forceLoadedInGameFacet = true), await forceLoadFacet("vanilla.inGame"));
+                        if (forceLoadedInGameFacet) localForceLoadedFacets.push("vanilla.inGame");
+                        if (inGameFacet.isInGame) {
+                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                            return;
+                        }
+                        console.error(new ReferenceError('Unable to get "vanilla.externalServerWorldList" facet.'));
+                        // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                        return;
+                    } catch (e) {
+                        if (e === "activate-facet-not-found") {
+                            console.warn(new ReferenceError('Unable to get "vanilla.inGame" facet.'));
+                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                            return;
+                        }
+                        throw e;
+                    }
+                }
+                throw e;
+            }
+            const externalServerWorlds = externalServerWorldList.externalServerWorlds;
+            if (
+                localStorage.getItem("enableLitePlayScreen") !== null ||
+                externalServerWorldList.externalServerWorlds.some(
+                    (server) => server.name === "LitePlayScreenEnabled" || server.name === "LitePlayScreenEnabledNoReload"
+                )
+            ) {
+                try {
+                    //@ts-expect-error
+                    document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = "Disable Lite Play Screen";
+                } catch (e) {
+                    console.error(e);
+                }
+                if (router.history.location.pathname.startsWith("/play/") /*  || /^\/ouic\/play/.test(router.history.location.pathname) */) {
+                    const originalRouterLocation = { ...router.history.location };
+                    // router.history.replace(`/play/all` + router.history.location.search + router.history.location.hash);
+                    // If the router facet is available, enable the lite play screen.
+                    try {
+                        externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload");
+                    } catch (e) {
+                        console.error(e);
+                    }
+                    await enableLitePlayScreen(externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload"));
+                }
+            }
+            return;
+        } catch (e) {
+            console.error(e instanceof Error ? e : new Error(String(e), { cause: e }));
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            continue;
+        }
+    }
+    console.error("Failed to enable lite play screen, timed out.");
+})();
+
+/**
+ * Copies text to the clipboard.
+ *
+ * @param {string} text The text to copy to the clipboard.
+ * @returns {Promise<boolean>} A promise that resolves to `true` if the text was copied to the clipboard, `false` otherwise.
+ *
+ * @throws {ReferenceError} If the router facet is not available.
+ *
+ * @deprecated Use {@link copyTextToClipboard} or {@link copyTextToClipboardAsync} instead.
+ */
+async function copyTextToClipboard_old(text: string): Promise<boolean> {
+    try {
+        const clipboardFacet = getAccessibleFacetSpyFacets()["vanilla.clipboard"];
+        // If the current route has direct access to the clipboard facet, we can copy the text to the clipboard directly.
+        if (clipboardFacet?.copyToClipboard) {
+            // Copy the text to the clipboard.
+            clipboardFacet.copyToClipboard(text);
+            return true;
+        }
+    } catch {}
+    const routerFacet = getAccessibleFacetSpyFacets()["core.router"];
+    if (!routerFacet) throw new ReferenceError("Router facet not available.");
+    // If the current route is in the index file, we can open the add friend page in the current context, otherwise it will open in a different context.
+    routerFacet.history.push("/add-friend");
+    // Store the text to copy in localStorage so it can be accessed if the copy function is run from a file other than the index JS file.
+    localStorage.setItem("textToCopy", text);
+    for (let i = 0; i < 1000; i++) {
+        // If the text was copied to the clipboard by another context because the copy function was run from a file other than the index JS file, return the status of the copy operation.
+        if (localStorage.getItem("clipboardCopyStatus") !== null) {
+            /**
+             * The status of the copy operation.
+             *
+             * @type {"success" | "failed"}
+             */
+            // @ts-ignore
+            const status: "success" | "failed" = localStorage.getItem("clipboardCopyStatus");
+            // This removes the status from the localStorage so it doesn't interfere with future copy operations.
+            localStorage.removeItem("clipboardCopyStatus");
+            // Check if there was an error during the copy operation.
+            if (localStorage.getItem("clipboardCopyError") !== null) {
+                // Log the error to the console.
+                console.error("Failed to copy text to clipboard:", localStorage.getItem("clipboardCopyError"));
+                // This removes the error from the localStorage so it doesn't interfere with future copy operations.
+                localStorage.removeItem("clipboardCopyError");
+            }
+            // Return whether or not the copy operation was successful.
+            return status === "success";
+        }
+        /**
+         * The clipboard facet.
+         *
+         * @type {{copyToClipboard(text: string): void, [k: PropertyKey]: any} | undefined}
+         */
+        const clipboardFacet: { copyToClipboard(text: string): void; [k: PropertyKey]: any } | undefined =
+            globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
+        if (!clipboardFacet) {
+            // If the clipboard facet is not available, wait for a short time and try again.
+            await new Promise((resolve) => setTimeout(resolve, 10));
+            continue;
+        }
+        // If the clipboard facet is available, copy the text to the clipboard.
+        clipboardFacet.copyToClipboard(text);
+
+        // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+        localStorage.removeItem("textToCopy");
+        // Close the add friend page and return to the previous page.
+        routerFacet.history.goBack();
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Copies text to the clipboard.
+ *
+ * This will fail if the clipboard facet is no loaded. If you want to force load the clipboard facet, use the {@link copyTextToClipboardAsync} function.
+ *
+ * @param {string} text The text to copy to the clipboard.
+ * @returns {boolean} `true` if the text was copied to the clipboard, `false` otherwise.
+ */
+function copyTextToClipboard(text: string): boolean {
+    const clipboardFacet = getAccessibleFacetSpyFacets()["vanilla.clipboard"];
+    if (clipboardFacet?.copyToClipboard) {
+        clipboardFacet.copyToClipboard(text);
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Copies text to the clipboard, and if necessary tries to force load the clipboard facet if it is not loaded.
+ *
+ * @param {string} text The text to copy to the clipboard.
+ * @param {number} [timeout=100] The timeout in milliseconds to wait for the facet to load. If set to `0` or `Infinity`, it will never time out. Defaults to `100ms`.
+ * @param {boolean} [allowErrorLogging=true] Whether to log errors that occur while force loading the facet to the console. Defaults to `true`.
+ * @returns {Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: any]>} A promise that resolves with a tuple with the first]\item being whether the text was copied to the clipboard, and the second item being whether it was force loaded or already loaded if it was successful or the error that occured if it wasn't, and a third item being the original error if the failure happened while force loading the facet.
+ */
+async function copyTextToClipboardAsync(
+    text: string,
+    timeout: number = 100,
+    allowErrorLogging: boolean = true
+): Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: any]> {
+    if (copyTextToClipboard(text)) return [true, "alreadyLoaded"];
+    try {
+        var clipboardFacet = await forceLoadFacet("vanilla.clipboard", 100);
+    } catch (e) {
+        const error = new Error("Failed to force load the clipboard facet.");
+        if (allowErrorLogging) console.error(error);
+        return [false, error, e];
+    }
+    if (!clipboardFacet.isClipboardCopySupported) return [false, new Error("Clipboard copy is not supported.")];
+    if (!clipboardFacet.copyToClipboard) return [false, new Error("Clipboard facet is not loaded.")];
+    clipboardFacet.copyToClipboard(text);
+    return [true, "forceLoaded"];
+}
+
+// For if the copy function is run from a file other than the index JS file.
+{
+    const textToCopy = localStorage.getItem("textToCopy");
+    if (textToCopy !== null) {
+        // Set a flag to indicate that the copy function is running.
+        window.copying = true;
+        (async function copyTextToClipboard() {
+            try {
+                for (let i = 0; i < 1000; i++) {
+                    /**
+                     * The router facet.
+                     */
+                    var routerFacet = getAccessibleFacetSpyFacets()["core.router"];
+                    if (!routerFacet) {
+                        // If the router facet is not available, wait for a short time and try again.
+                        await new Promise((resolve) => setTimeout(resolve, 10));
+                        continue;
+                    }
+                    /**
+                     * The clipboard facet.
+                     */
+                    const clipboardFacet = globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
+                    if (!clipboardFacet) {
+                        // If the clipboard facet is not available, wait for a short time and try again.
+                        await new Promise((resolve) => setTimeout(resolve, 10));
+                        continue;
+                    }
+                    // If the clipboard facet is available, copy the text to the clipboard.
+                    clipboardFacet.copyToClipboard(textToCopy);
+
+                    // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+                    localStorage.removeItem("textToCopy");
+                    // Set the status of the copy operation to success.
+                    localStorage.setItem("clipboardCopyStatus", "success");
+                    // Close the add friend page and return to the previous page and context.
+                    routerFacet.history.goBack();
+                    return true;
+                }
+            } catch (e) {
+                // If the copy operation failed, store the error in the localStorage so it can be accessed in the context and route that triggered the copy operation.
+                localStorage.setItem("clipboardCopyError", e instanceof Error ? e.stack ?? String(e) : String(e));
+                // If the copy operation failed, store the error in a global variable for debugging purposes.
+                window.__DEBUG_copyTextToClipboard_old_GLOBALS_copyError__ = e;
+                // Log the error to the console.
+                console.error("Failed to copy text to clipboard:", e);
+            }
+            // If the copy operation failed, remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+            localStorage.removeItem("textToCopy");
+            // Set the status of the copy operation to failed.
+            localStorage.setItem("clipboardCopyStatus", "failed");
+
+            // Close the add friend page and return to the previous page and context.
+            //@ts-ignore
+            getAccessibleFacetSpyFacets()["core.router"].history.goBack();
+            return false;
+        })();
+    }
+}
+
+var framesSinceLastSecond = 0;
+var currentFPS = 0;
+
+setInterval(function updateFPS() {
+    currentFPS = framesSinceLastSecond;
+    framesSinceLastSecond = 0;
+}, 1000);
+
+requestAnimationFrame(function trackFrameForFPSCount() {
+    framesSinceLastSecond++;
+    requestAnimationFrame(trackFrameForFPSCount);
+});
+
+(() => {
+    //#region Event Listeners
+    window.onkeyup = function (/** @type {KeyboardEvent} */ e: KeyboardEvent) {
+        if (e.keyCode === types_KeyboardKey.KEY_P && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            // cssEditorInSelectMode = false;
+            // if (cssEditorDisplayElement.style.display === "block") {
+            //     cssEditorDisplayElement.style.display = "none";
+            // } else {
+            //     cssEditorDisplayElement.style.display = "block";
+            // }
+        } else if (e.keyCode === types_KeyboardKey.KEY_O && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            // screenDisplayElement.style.display = "block";
+            // if (currentDebugMode === "none") {
+            //     currentDebugMode = "hoveredElementDetails";
+            // } else {
+            //     screenDisplayElement.style.display = "none";
+            //     currentDebugMode = "none";
+            // }
+        } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+        } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+        } else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+        } else if (e.keyCode === types_KeyboardKey.KEY_C && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+        } else if (e.keyCode === types_KeyboardKey.KEY_U && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            // screenDisplayElement.style.display = "block";
+            // if (currentDebugMode === "none") {
+            //     currentDebugMode = "hoveredElementDetails";
+            // } else {
+            //     screenDisplayElement.style.display = "none";
+            //     currentDebugMode = "none";
+            // }
+        } else if (e.keyCode === types_KeyboardKey.KEY_S && cssEditorInSelectMode && e.target !== cssEditorSelectTargetButton) {
+            e.preventDefault();
+            // cssEditorInSelectMode = false;
+            // /**
+            //  * @type {HTMLElement & EventTarget}
+            //  */
+            // const srcElement = currentMouseHoverTarget;
+            // cssEditorSelectedType = "element";
+            // cssEditorSelectedElement = srcElement;
+            // cssEditorTextBox.value = JSON.stringify(srcElement.attributes.style, undefined, 4);
+            // cssEditorDisplayElement.style.display = "block";
+        } else if (e.keyCode === types_KeyboardKey.F8 && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+        }
+    };
+    window.onkeydown = function (/** @type {KeyboardEvent} */ e: KeyboardEvent) {
+        if (e.keyCode === types_KeyboardKey.KEY_P && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            cssEditorInSelectMode = false;
+            if (cssEditorDisplayElement.style.display === "block") {
+                cssEditorDisplayElement.style.display = "none";
+            } else {
+                cssEditorDisplayElement.style.display = "block";
+            }
+        } else if (e.keyCode === types_KeyboardKey.KEY_O && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            if (currentDebugMode === "none") {
+                screenDisplayElement.style.display = "block";
+                currentDebugMode = "hoveredElementDetails";
+            } else {
+                screenDisplayElement.style.display = "none";
+                currentDebugMode = "none";
+            }
+        } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            toggleSmallCornerDebugOverlay();
+        } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            toggleGeneralDebugOverlayElement();
+        } else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            if (mainMenu8CrafterUtilities.style.display === "none") {
+                mainMenu8CrafterUtilities.style.display = "block";
+            } else {
+                mainMenu8CrafterUtilities.style.display = "none";
+            }
+        } else if (e.keyCode === types_KeyboardKey.KEY_C && e.ctrlKey && e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            toggleConsoleOverlay();
+        } else if (e.keyCode === types_KeyboardKey.KEY_S && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
+            toggleHTMLSourceCodePreviewElement();
+        } else if (e.keyCode === types_KeyboardKey.KEY_S && cssEditorInSelectMode && currentMouseHoverTarget !== cssEditorSelectTargetButton) {
+            e.preventDefault();
+            cssEditorInSelectMode = false;
+            /**
+             * @type {HTMLElement & EventTarget}
+             */
+            const srcElement: HTMLElement & EventTarget = currentMouseHoverTarget;
+            cssEditorSelectedType = "element";
+            cssEditorSelectedElement = srcElement;
+            cssEditorTextBox.value = srcElement.getAttribute("style") ?? "";
+            setCSSEditorMode("element");
+            cssEditorDisplayElement.style.display = "block";
+        } else if (e.keyCode === types_KeyboardKey.F8 && e.ctrlKey && !e.altKey && !e.shiftKey) {
+            location.reload();
+        }
+    };
+    window.onmousedown = function (/** @type {MouseEvent} */ e: MouseEvent) {
+        if (cssEditorInSelectMode && e.target !== cssEditorSelectTargetButton) {
+            e.preventDefault();
+            // cssEditorInSelectMode = false;
+            /**
+             * @type {HTMLElement & EventTarget}
+             */
+            const srcElement: HTMLElement & EventTarget = currentMouseHoverTarget;
+            cssEditorSelectedType = "element";
+            cssEditorSelectedElement = srcElement;
+            cssEditorTextBox.value = srcElement.getAttribute("style") ?? "";
+            setCSSEditorMode("element");
+            cssEditorDisplayElement.style.display = "block";
+            screenInputBlocker.style.display = "block";
+
+            // document.getElementById("root").style.pointerEvents = "none";
+            // document.getElementById("root").style.filter = "brightness(5)";
+        }
+    };
+    window.onmouseup = function (/** @type {MouseEvent} */ e: MouseEvent) {
+        if (cssEditorInSelectMode && e.target !== cssEditorSelectTargetButton) {
+            e.preventDefault();
+            cssEditorInSelectMode = false;
+            screenInputBlocker.style.display = "none";
+            // /**
+            //  * @type {HTMLElement & EventTarget}
+            //  */
+            // const srcElement = currentMouseHoverTarget;
+            // cssEditorSelectedType = "element";
+            // cssEditorSelectedElement = srcElement;
+            // cssEditorTextBox.value = JSON.stringify(srcElement.attributes.style, undefined, 4);
+            // cssEditorDisplayElement.style.display = "block";
+            // e.target = undefined;
+        }
+    };
+    window.onmousemove = function (/** @type {MouseEvent} */ e: MouseEvent) {
+        /**
+         * @type {HTMLElement & EventTarget}
+         */
+        //@ts-ignore
+        const srcElement: HTMLElement & EventTarget = e.target;
+        currentMouseHoverTarget = srcElement;
+        // screenDisplayElement.textContent = "aaaa";
+        if (currentDebugMode === "hoveredElementDetails") {
+            screenDisplayElement.textContent = srcElement.outerHTML.slice(0, 9000);
+        }
+        if (elementGeneralDebugOverlayElement.style.display === "block") {
+            const boundingBox = srcElement.getBoundingClientRect();
+            elementGeneralDebugOverlayElement.textContent = `Element: ${UTILS.cssPath(srcElement)}
+Bounding Box: ${JSON.stringify({
+                x: boundingBox.x,
+                y: boundingBox.y,
+                width: boundingBox.width,
+                height: boundingBox.height,
+                top: boundingBox.top,
+                right: boundingBox.right,
+                bottom: boundingBox.bottom,
+                left: boundingBox.left,
+            })}
+Children: ${srcElement.children.length}
+Attributes:
+${
+    currentMouseHoverTarget.getAttributeNames().length > 0
+        ? currentMouseHoverTarget
+              .getAttributeNames()
+              .map((name) => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
+              .join("\n")
+        : "None"
+}`;
+        }
+    };
+
+    /**
+     *
+     * @param {MouseEvent | KeyboardEvent} event
+     */
+    function updateSmallCornerDebugOverlayElement(event: MouseEvent | KeyboardEvent) {
+        if (event instanceof MouseEvent) {
+            mousePos.clientX = event.clientX;
+            mousePos.clientY = event.clientY;
+            mousePos.screenX = event.screenX;
+            mousePos.screenY = event.screenY;
+            mousePos.movementX = event.movementX;
+            mousePos.movementY = event.movementY;
+            mousePos.mTarget = event.target;
+            if (event.type === "mousedown") {
+                heldMouseButtons = [...heldKeys.filter((key) => key !== MOUSE_BUTTON_NAMES[event.button]), MOUSE_BUTTON_NAMES[event.button]!];
+            } else if (event.type === "mouseup") {
+                heldMouseButtons = heldKeys.filter((key) => key !== MOUSE_BUTTON_NAMES[event.button]);
+            }
+        } else if (event instanceof KeyboardEvent) {
+            if (event.type === "keydown") {
+                heldKeys = [...heldKeys.filter((key) => key !== event.code), event.code];
+                heldKeyCodes = [...heldKeyCodes.filter((key) => key !== event.keyCode), event.keyCode];
+            } else if (event.type === "keyup") {
+                heldKeys = heldKeys.filter((key) => key !== event.code);
+                heldKeyCodes = heldKeyCodes.filter((key) => key !== event.keyCode);
+            }
+            mousePos.kTarget = event.target;
+        }
+        smallCornerDebugOverlayElement.textContent = `Client: x: ${mousePos.clientX} y: ${mousePos.clientY}
+Screen: x: ${mousePos.screenX} y: ${mousePos.screenY}
+Movement: x: ${mousePos.movementX} y: ${mousePos.movementY}
+M Target Offset: ${
+            mousePos.mTarget instanceof Element
+                ? `x: ${Math.round((mousePos.clientX - mousePos.mTarget.getBoundingClientRect().x) * 100) / 100} y: ${
+                      Math.round((mousePos.clientY - mousePos.mTarget.getBoundingClientRect().y) * 100) / 100
+                  }`
+                : "null"
+        }
+K Target Offset: ${
+            mousePos.kTarget instanceof Element
+                ? `x: ${Math.round((mousePos.clientX - mousePos.kTarget.getBoundingClientRect().x) * 100) / 100} y: ${
+                      Math.round((mousePos.clientY - mousePos.kTarget.getBoundingClientRect().y) * 100) / 100
+                  }`
+                : "null"
+        }
+Held Keys: ${heldKeys}
+Held Key Codes: ${heldKeyCodes}
+Mouse Buttons: ${heldMouseButtons}
+Modifiers: ${[
+            [event.ctrlKey, "CTRL"],
+            [event.altKey, "ALT"],
+            [event.shiftKey, "SHIFT"],
+            [event.metaKey, "META"],
+        ]
+            .filter((key) => key[0])
+            .map((key) => key[1])}`;
+    }
+    addEventListener("mousemove", updateSmallCornerDebugOverlayElement);
+    addEventListener("mousedown", updateSmallCornerDebugOverlayElement);
+    addEventListener("mouseup", updateSmallCornerDebugOverlayElement);
+    addEventListener("keydown", updateSmallCornerDebugOverlayElement);
+    addEventListener("keyup", updateSmallCornerDebugOverlayElement);
+    //#endregion
+
+    //#region HTML Injection
+    document.getElementsByTagName("html")[0]!.classList.add("dark_theme");
+
+    // Hovered element HTML content overlay, accessed with CTRL+O.
+    /**
+     * @type {HTMLElement}
+     */
+    screenDisplayElement = document.createElement("div");
+    screenDisplayElement.id = "screenDisplayElement";
+    screenDisplayElement.style.cssText =
+        "pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: 100vw; height: 50vh; position: fixed; top: 0; left: 0; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere";
+    screenDisplayElement.textContent = "Nothing selected!";
+    document.body.appendChild(screenDisplayElement);
+
+    // General element debug info overlay, accessed with CTRL+ALT+I.
+    elementGeneralDebugOverlayElement = document.createElement("div");
+    elementGeneralDebugOverlayElement.id = "elementGeneralDebugOverlayElement";
+    elementGeneralDebugOverlayElement.setAttribute(
+        "style",
+        "pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: 100vw; height: 25vh; position: fixed; top: 0; left: 0; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere;"
+    );
+    document.body.appendChild(elementGeneralDebugOverlayElement);
+
+    // Small corner debug info overlay, accessed with CTRL+I.
+    smallCornerDebugOverlayElement = document.createElement("div");
+    smallCornerDebugOverlayElement.id = "smallCornerDebugOverlayElement";
+    smallCornerDebugOverlayElement.setAttribute(
+        "style",
+        "pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: auto; height: auto; position: fixed; top: 0; right: 0; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere;"
+    );
+    smallCornerDebugOverlayElement.textContent = "Nothing selected!";
+    document.body.appendChild(smallCornerDebugOverlayElement);
+
+    // CSS Editor, accessed with CTRL+P.
+    cssEditorDisplayElement = document.createElement("div");
+    cssEditorDisplayElement.id = "cssEditorBoxRootA";
+    cssEditorDisplayElement.style.cssText =
+        "background-color: #00000080; color: #FFFFFFFF; width: 500px; height: 500px; max-width: 100%; max-height: 100%; position: fixed; top: 0; left: 0; z-index: 10000000; display: none;";
+    cssEditorDisplayElement.setAttribute("draggable", "true");
+    cssEditorDisplayElement.innerHTML = `<div id="cssEditor_mainDiv" style="display: block;">
+    <h3 id="cssEditor_title" style="margin: 0; text-align: center;">CSS Editor</h3>
+    <h6 id="cssEditor_subtitle" style="margin: 0;">Nothing selected!</h6>
+    <textarea style="pointer-events: auto; user-select: text; width: auto; height: 300px; background-color: #808080FF; pointer-events: none;" id="cssEditorTextBoxA"></textarea>
+    <button type="button" id="cssEditorSelectTargetButton" onclick="cssEditorDisplayElement.style.display = 'none'; cssEditorInSelectMode = true; event.preventDefault();">Select Target</button>
+    <!-- <button type="button" id="cssEditorSelectStyleSheetTargetButton" onclick="cssEditor_selectDocumentStyleSheet_activate(); event.preventDefault();">Select Style Sheet Target</button> -->
+    <button type="button" id="cssEditorEditRootCSSButton" onclick="cssEditor_rootElementStylesMode(); event.preventDefault();">Edit Root CSS</button>
+    <button type="button" id="cssEditorEditGlobalStyleSheetButton" onclick="cssEditor_globalStyleElementStylesMode(); event.preventDefault();">Edit Global Style Sheet</button>
+    <button type="button" id="cssEditorSaveChangesButton" onclick="cssEditor_saveChanges(); event.preventDefault();" disabled>Save Changes</button>
+    <p id="cssEditorErrorText" style="color: red"></p>
+</div>
+<!-- <div id="cssEditor_documentStyleSelectorDiv" style="display: none;">
+</div> -->`;
+    window.document.body.appendChild(cssEditorDisplayElement);
+    //@ts-ignore
+    cssEditorTextBox = cssEditorDisplayElement.querySelector("#cssEditorTextBoxA");
+    //@ts-ignore
+    cssEditorErrorText = cssEditorDisplayElement.querySelector("#cssEditorErrorText");
+    //@ts-ignore
+    cssEditorSelectTargetButton = cssEditorDisplayElement.querySelector("#cssEditorSelectTargetButton");
+    // cssEditorTextBox.onkeypress = function (/** @type {KeyboardEvent} */ e) {
+    //     e.stopPropagation();
+    // };
+
+    // Console overlay, accessed with CTRL+ALT+C.
+    consoleOverlayElement = document.createElement("div");
+    consoleOverlayElement.id = "consoleOverlayElement";
+    consoleOverlayElement.setAttribute(
+        "style",
+        "background-color: #00000080; color: #FFFFFFFF; width: 95vw; height: 95vh; position: fixed; top: 2.5vh; left: 2.5vw; z-index: 10000000; display: none; white-space: pre-wrap; overflow-wrap: anywhere;/*  font-family: unset; */"
+    );
+    consoleOverlayElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px; z-index: 1;" onclick="consoleOverlayElement.style.display = 'none';"><span style="margin-top: -5px; font-family: Minecraft Seven v2;">x</span></button>
+<div style="display: flex; flex-direction: row; height: 100%; width: 100%;"><div style="width: 100%; height: 75%; overflow-y: scroll; overflow-x: hidden; position: absolute; top: 0; left: 0;">
+    <div style="width: 100%; height: 100%; overflow-y: scroll; overflow-x: hidden; position: absolute; top: 0; left: 0;" class="addScrollbar">
+        <div id="consoleOverlayTextElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;"></div>
+    </div>
+    </div>
+    <div style="width: 100%; height: 25%; position: absolute; bottom: 0; left: 0;">
+        <textarea id="consoleOverlayInputFieldElement" style="user-select: text; width: 100%; height: 100%; pointer-events: auto;"></textarea>
+        <div style="
+            position: absolute;
+            top: 5px;
+            flex-direction: column;
+            display: flex;
+            justify-content: space-between;
+            bottom: 5px;
+            right: 5px;
+        ">
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="setConsoleInputFieldContentsToHistoryItem(currentlySelctedConsoleExecutionHistoryItemIndex + 1);">Previous</button>
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="setConsoleInputFieldContentsToHistoryItem(currentlySelctedConsoleExecutionHistoryItemIndex - 1);">Next</button>
+            <button type="button" class="btn" style="font-size: 0.5in; line-height: 0.7142857143in; font-family: Minecraft Seven v2; display: table-cell" onclick="consoleOverlayExecute();">Execute</button>
+        </div>
+    </div>
+</div>`;
+    document.body.appendChild(consoleOverlayElement);
+    //@ts-ignore
+    consoleOverlayTextElement = document.getElementById("consoleOverlayTextElement");
+    //@ts-ignore
+    consoleOverlayInputFieldElement = document.getElementById("consoleOverlayInputFieldElement");
+
+    {
+        /**
+         * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
+         */
+        const contextMenu: Omit<ContextMenuCreationOptions, "x" | "y"> = {
+            width: 400,
+            height: 600,
+            items: [
+                {
+                    label: "Clear console",
+                    action() {
+                        consoleOverlayTextElement.replaceChildren();
+                    },
+                },
+                {
+                    label: "Clear console history",
+                    action() {
+                        ConsoleExecutionHistory.clearHistory();
+                    },
+                },
+                {
+                    type: "separator",
+                },
+                {
+                    label: "Copy console",
+                    action() {
+                        if (consoleOverlayTextElement.textContent)
+                            copyTextToClipboardAsync(
+                                Array.from(consoleOverlayTextElement.children)
+                                    .map((child) => child.textContent)
+                                    .filter((v) => v !== null)
+                                    .join("\n")
+                            );
+                        else console.warn("Could not copy console to clipboard because the console is empty.");
+                    },
+                    get disabled(): boolean {
+                        return !consoleOverlayTextElement.textContent;
+                    },
+                },
+            ],
+        };
+        /**
+         * @type {number | null}
+         */
+        let clickStartTime: number | null = null;
+        consoleOverlayTextElement.addEventListener("mousedown", (event) => {
+            if (event.button !== 0) return;
+            clickStartTime = Date.now();
+        });
+        consoleOverlayTextElement.addEventListener("mouseleave", () => {
+            clickStartTime = null;
+        });
+        consoleOverlayTextElement.addEventListener("click", (event) => {
+            if (event.button !== 0) return;
+            if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            }
+            clickStartTime = null;
+        });
+        consoleOverlayTextElement.addEventListener("mouseup", (event) => {
+            if (event.button !== 2) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+        });
+    }
+
+    // setInterval(()=>console.log(consoleOverlayInputFieldElement.value), 1000)
+
+    // 8Crafter Utilities Main Menu, accessed with CTRL+M.
+    const mainMenu8CrafterUtilitiesTempContainer = document.createElement("div");
+    mainMenu8CrafterUtilitiesTempContainer.innerHTML = `<div id="mainMenu8CrafterUtilities" style="background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; backdrop-filter: blur(5px); border: 5px solid #87CEEb;" draggable="true">
+    <div id="8CrafterUtilitiesMenu_leftSidebar" style="display: block; height: 100%; width: 30%; border-right: 5px solid #87CEEb; position: absolute; top: 0; left: 0;">
+        <button type="button" class="btn nsel selected" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_general" onclick="setMainMenu8CrafterUtilitiesTab('general'); event.preventDefault();">General</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_about" onclick="setMainMenu8CrafterUtilitiesTab('about'); event.preventDefault();">About</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_autoJoin" onclick="setMainMenu8CrafterUtilitiesTab('autoJoin'); event.preventDefault();">Auto Rejoin</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_router" onclick="setMainMenu8CrafterUtilitiesTab('router'); event.preventDefault();">Router</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_performance" onclick="setMainMenu8CrafterUtilitiesTab('performance'); event.preventDefault();">Performance</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_dev" onclick="setMainMenu8CrafterUtilitiesTab('dev'); event.preventDefault();">Dev</button>
+        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_debug" onclick="setMainMenu8CrafterUtilitiesTab('debug'); event.preventDefault();">Debug</button>
+        <!-- <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_facets" onclick="setMainMenu8CrafterUtilitiesTab('facets'); event.preventDefault();">Facets</button> -->
+    </div>
+    <div id="8CrafterUtilitiesMenu_rightSide" style="display: block; height: 100%; width: 70%; border-right: 5px solid #87CEEb; position: absolute; top: 0; right: 0; padding: 1rem; padding-right: 10px; overflow-y: scroll;" class="addScrollbar">
+        <div id="8CrafterUtilitiesMenu_general" style="display: block;">
+            <center>
+                <h1>8Crafter Utilities</h1>
+            </center>
+            <p>
+                <span style="white-space: pre-wrap;"><b>Version:</b> ${
+                    typeof oreUICustomizerVersion !== "undefined"
+                        ? "v" + oreUICustomizerVersion
+                        : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
+                }</span>
+            </p>
+            <p>
+                <span style="white-space: pre-wrap;"><b>Config:</b> ${
+                    typeof oreUICustomizerConfig !== "undefined"
+                        ? JSON.stringify(oreUICustomizerConfig, undefined, 4)
+                        : '<em style="color: red;"><strong>&lt;MISSING CONFIG!&gt;</strong></em>'
+                }</span>
+            </p>
+        </div>
+        <div id="8CrafterUtilitiesMenu_UIs" style="display: none;">
+            <center>
+                <h1>UIs</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_viewHTMLSource" onclick="toggleHTMLSourceCodePreviewElement(); event.preventDefault();">View HTML Source</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_CSSEditor" onclick="cssEditorDisplayElement.style.display = cssEditorDisplayElement.style.display === 'none' ? 'block' : 'none'; event.preventDefault();">CSS Editor</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_smallCornerDebugOverlayElement" onclick="toggleSmallCornerDebugOverlay(); event.preventDefault();">Small Corner Debug Overlay</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_elementGeneralDebugOverlayElement" onclick="toggleGeneralDebugOverlayElement(); event.preventDefault();">Element General Debug Overlay</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_consoleOverlay" onclick="toggleConsoleOverlay(); event.preventDefault();">Console</button>
+        </div>
+        <div id="8CrafterUtilitiesMenu_about" style="display: none;">
+            <center>
+                <h1>About</h1>
+            </center>
+            <p>
+                8Crafter's Ore UI Customizer ${
+                    typeof oreUICustomizerVersion !== "undefined"
+                        ? "v" + oreUICustomizerVersion
+                        : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
+                }
+            </p>
+            <p>
+                <span style="display: inline;">Source: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://www.8crafter.com/utilities/ore-ui-customizer');})()">https://www.8crafter.com/utilities/ore-ui-customizer</span></span>
+            </p>
+            <h3>Support</h3>
+            <p>
+                <span style="display: inline;">Discord: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://discord.8crafter.com');})()">https://discord.8crafter.com</span></span>
+            </p>
+            <p>
+                <span style="display: inline;">GitHub: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://github.com/8Crafter-Studios/8Crafter.github.io');})()">https://github.com/8Crafter-Studios/8Crafter.github.io</span></span>
+            </p>
+            <p>
+                <span style="display: inline;">Email: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('mailto:8crafteryt@gmail.com');})()">8crafteryt@gmail.com</span></span>
+            </p>
+            <h3>Keyboard Shortcuts</h3>
+            <ul>
+                <li>
+                    <code>CTRL + P</code> - Toggle CSS Editor visibility.
+                </li>
+                <li>
+                    <code>CTRL + O</code> - Toggle Target Element HTML Source Code Preview visibility.
+                </li>
+                <li>
+                    <code>CTRL + I</code> - Toggle Small Corner Debug Overlay visibility.
+                </li>
+                <li>
+                    <code>CTRL + ALT + I</code> - Toggle Element General Debug Overlay visibility.
+                </li>
+                <li>
+                    <code>CTRL + ALT + M</code> - Toggle 8Crafter Utilities Menu visibility.
+                </li>
+                <li>
+                    <code>CTRL + ALT + C</code> - Toggle Console visibility.
+                </li>
+                <li>
+                    <code>CTRL + S</code> - Toggle HTML Source Code Preview visibility.
+                </li>
+                <li>
+                    <code>CTRL + F8</code> - Reload Ore UI.
+                </li>
+            </ul>
+        </div>
+        <div id="8CrafterUtilitiesMenu_autoJoin" style="display: none;">
+            <center>
+                <h1>Auto Rejoin</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
+            <button type="button" class="btn nsel disabled" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById('8CrafterUtilitiesMenu_span_autoJoinName').textContent = 'None'; document.getElementById('8CrafterUtilitiesMenu_span_autoJoinType').textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
+            <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
+            <p style="margin-top: 0; margin-bottom: 0;">
+Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
+            </p>
+            <p style="margin-top: 0;">
+Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
+            </p>
+        </div>
+        <div id="8CrafterUtilitiesMenu_router" style="display: none;">
+            <center>
+                <h1>Router</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goBack" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goBack(); event.preventDefault();">Go Back</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goForward" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goForward(); event.preventDefault();">Go Forward</button>
+            <hr />
+            <label for="8CrafterUtilitiesMenu_input_router_path">Route</label>
+            <input type="text" style="font-size: 0.5in; line-height: 0.7142857143in; width: 100%;" id="8CrafterUtilitiesMenu_input_router_path" placeholder="/example/route?p1=v1&amp;p2=v2#anchor" />
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_replaceRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.replace(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Replace</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_pushRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.push(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Push</button>
+            <hr />
+            <center>
+                <h2>Current Router Stack</h2>
+            </center>
+            <div id="8CrafterUtilitiesMenu_div_router_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
+        </div>
+        <div id="8CrafterUtilitiesMenu_performance" style="display: none;">
+            <center>
+                <h1>Performance</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload').disabled = false; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${
+                localStorage.getItem("enableLitePlayScreen") === "true" ? "Disable" : "Enable"
+            } Lite Play Screen</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload" onclick="if (!this.disabled) {this.disabled = true; setLitePlayScreenEnabled(true, true); enableLitePlayScreen(true); document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreen').textContent = 'Disable Lite Play Screen';}; event.preventDefault();"${
+                localStorage.getItem("enableLitePlayScreenNoReload") === "true" ? "" : " disabled"
+            }>Enable Lite Play Screen (No Reload)</button>
+        </div>
+        <div id="8CrafterUtilitiesMenu_dev" style="display: none;">
+            <center>
+                <h1>Dev</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyNewFacetListToClipboard" onclick="copyNewFacetListToClipboard(); event.preventDefault();">Copy New Facet List</button>
+        </div>
+        <div id="8CrafterUtilitiesMenu_debug" style="display: none;">
+            <center>
+                <h1>Debug</h1>
+            </center>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_clearLocalStorage" onclick="localStorage.clear(); event.preventDefault();">Clear localStorage</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyLocalStorageToClipboard" onclick="copyTextToClipboardAsync(JSON.stringify(Object.fromEntries(readLocalStorageKeys().map(v=>[v, localStorage.getItem(v)])), null, 4)); event.preventDefault();">Copy localStorage</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_reload" onclick="location.reload(); event.preventDefault();">Reload</button>
+        </div>
+        <!-- <div id="8CrafterUtilitiesMenu_facets" style="display: none;">
+            <center>
+                <h1>Facets</h1>
+            </center>
+            <div id="8CrafterUtilitiesMenu_div_facets_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
+        </div> -->
+    </div>
+</div>`; // IDEA: Add a facets list, with backround colors indicating the status of each facet (ex. green for loaded, yellow for unloaded, red for non-existent).
+    //@ts-ignore
+    mainMenu8CrafterUtilities = document.body.appendChild(mainMenu8CrafterUtilitiesTempContainer.children[0]);
+    /**
+     * @param {FacetTypeMap["core.router"]} router
+     */
+    function routerObserveCallback(router: FacetTypeMap["core.router"]) {
+        try {
+            const routerStack = document.getElementById("8CrafterUtilitiesMenu_div_router_stack");
+            if (routerStack) {
+                while (routerStack.children.length > 0) {
+                    routerStack.children[0]!.remove();
+                }
+                for (let i = 0; i < router.history.list.length; i++) {
+                    const route = router.history.list[i]!;
+                    const div = document.createElement("div");
+                    div.onclick = (event) => {
+                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                        router?.history.go(i - (router.history.list.length - 1));
+                        event.preventDefault();
+                    };
+                    div.textContent = route.pathname + (route.search ? `?${route.search}` : "") + (route.hash ? `#${route.hash}` : "");
+                    div.style.cursor = "pointer";
+                    routerStack.appendChild(div);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+    (async function waitToInitRouterFacetObserverForRouterTabOf8CrafterUtilitiesMenu() {
+        while (
+            typeof facetSpyData === "undefined" ||
+            !facetSpyData?.sharedFacets?.["core.router"] ||
+            typeof facetSpyData.sharedFacets["core.router"] !== "object"
+        ) {
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        }
+        while (true) {
+            const routerFacetContext = facetSpyData.sharedFacets["core.router"];
+            if (routerFacetContext) {
+                routerFacetContext.observe(routerObserveCallback);
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1));
+        }
+    })();
+    // facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
+    // facetSpyData.sharedFacets["vanilla.connectionErrorInfoFacet"].observe(console.log);
+    // forceLoadFacet("vanilla.connectionErrorInfoFacet");
+    // forceUnloadFacet("vanilla.connectionErrorInfoFacet");
+    screenInputBlocker = document.createElement("div");
+    screenInputBlocker.innerHTML = `<div id="screenInputBlocker" style="background-color: #00000080; color: #FFFFFFFF; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 9999999; display: none;"></div>`;
+    document.body.appendChild(screenInputBlocker);
+    htmlSourceCodePreviewElement = document.createElement("div");
+    htmlSourceCodePreviewElement.id = "htmlSourceCodePreviewElement";
+    htmlSourceCodePreviewElement.setAttribute(
+        "style",
+        `background-color: #000000C0; color: #FFFFFFFF; width: 95vw; height: 95vh; position: fixed; top: 2.5vh; left: 2.5vw; z-index: 10000001; display: none; overflow: scroll; scrollbar-width: thin;`
+    );
+    htmlSourceCodePreviewElement.classList.add("addScrollbar");
+    htmlSourceCodePreviewElement.innerHTML = `<button type="button" style="position: absolute; top: 0; right: 0; font-family: Minecraft Seven v2; font-size: 50px; aspect-ratio: 1/1; color: #000000; width: 50px; height: 50px;" onclick="htmlSourceCodePreviewElement.style.display = 'none';"><span style="margin-top: -5px">x</span></button><p style="width: 100%;"></p>`;
+    document.body.appendChild(htmlSourceCodePreviewElement);
+    //@ts-ignore
+    htmlSourceCodePreviewElementP = htmlSourceCodePreviewElement.querySelector("p");
+
+    customGlobalCSSStyleElement = document.createElement("style");
+    customGlobalCSSStyleElement.id = "customGlobalCSSStyle";
+    document.head.appendChild(customGlobalCSSStyleElement);
+
+    cssEditorTextBox.addEventListener("mouseup", () => {
+        const caretPosition = cssEditorTextBox.selectionStart;
+        screenDisplayElement.textContent = "Caret position: " + caretPosition;
+    });
+    // cssEditorTextBox.addEventListener("focusin", () => {
+    //     document.getElementById("root").style.display = "none";
+    //     for (const styleSheet of document.styleSheets) {
+    //         if (styleSheet.ownerNode === customGlobalCSSStyleElement) {
+    //             styleSheet.insertRule(`#root * { pointer-events: none !important; }`, 0);
+    //             break;
+    //         }
+    //     }
+    //     // document.getElementById("root").style.pointerEvents = "none";
+    //     // document.getElementById("root").inert = true;
+    //     // document.getElementById("root").setAttribute("disabled", "");
+    // });
+    // cssEditorTextBox.addEventListener("focusout", (e) => {
+    //     document.getElementById("root").style.display = "";
+    //     for (const styleSheet of document.styleSheets) {
+    //         if (styleSheet.ownerNode === customGlobalCSSStyleElement) {
+    //             styleSheet.deleteRule(0);
+    //             break;
+    //         }
+    //     }
+    //     e.preventDefault();
+    //     e.stopImmediatePropagation();
+    //     // document.getElementById("root").style.pointerEvents = "";
+    //     // document.getElementById("root").inert = false;
+    //     // document.getElementById("root").removeAttribute("disabled");
+    // });
+
+    // window.onkeyup = function(/** @type {KeyboardEvent} */ e) {
+    //     if(e.key.toLowerCase() === "o" && screenDisplayElement.style.display === "block"){
+    //         screenDisplayElement.style.display = "none";
+    //         if(currentDebugMode === "hoveredElementDetails"){
+    //             currentDebugMode = "none";
+    //         }
+    //     }
+    // }
+    //#endregion
+    document.querySelectorAll(".addScrollbar").forEach(addScrollbarToHTMLElement);
+})();

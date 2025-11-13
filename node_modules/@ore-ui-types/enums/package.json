@@ -1,0 +1,44 @@
+{
+    "name": "@ore-ui-types/enums",
+    "version": "1.0.0",
+    "description": "Enums for Minecraft Bedrock Edition's Ore UI scripting environment.",
+    "keywords": [
+        "Ore UI",
+        "OreUI",
+        "Minecraft",
+        "MCBE",
+        "Types",
+        "Enums",
+        "MC"
+    ],
+    "homepage": "https://github.com/8Crafter-Studios/Ore-UI-Types.Enums#readme",
+    "bugs": {
+        "email": "8crafteryt@gmail.com",
+        "url": "https://github.com/8Crafter-Studios/Ore-UI-Types.Enums/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/8Crafter-Studios/Ore-UI-Types.Enums.git"
+    },
+    "license": "MIT",
+    "author": {
+        "email": "8crafteryt@gmail.com",
+        "name": "8Crafter",
+        "url": "https://www.8crafter.com"
+    },
+    "type": "module",
+    "main": "index.ts",
+    "exports": {
+        ".": {
+            "types": "./index.ts",
+            "default": "./index.js"
+        },
+        "./ts": {
+            "types": "./index.ts",
+            "default": "./index.ts"
+        }
+    },
+    "scripts": {
+        "prepublishOnly": "tsc"
+    }
+}

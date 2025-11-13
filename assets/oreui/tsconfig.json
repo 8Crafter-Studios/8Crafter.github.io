@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "es2022",
+        "moduleResolution": "node10",
+        "baseUrl": "./",
+        "rootDir": "./",
+        "declaration": true,
+        "sourceMap": true,
+        "declarationMap": false,
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "verbatimModuleSyntax": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowArbitraryExtensions": true,
+        "disableReferencedProjectLoad": true,
+        "types": []
+    },
+    "include": ["./"],
+    "exclude": ["node_modules/@types/node"]
+}

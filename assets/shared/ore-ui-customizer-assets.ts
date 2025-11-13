@@ -1362,6 +1362,7 @@ export async function importPluginFromDataURI(dataURI: string, type: "js" | "mco
             }
             let script: string = await loadScriptImports(await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getText()); */
             let data: { plugin: PluginEntryScriptPlugin } = await import(
+                /* @vite-ignore */
                 await (
                     zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
                 ).getData64URI("application/javascript")
@@ -1369,7 +1370,7 @@ export async function importPluginFromDataURI(dataURI: string, type: "js" | "mco
             return { ...manifest, ...manifest.header, ...data.plugin } as Plugin;
         }
         case "js": {
-            const data: { plugin: Plugin } = await import(dataURI);
+            const data: { plugin: Plugin } = await import(/* @vite-ignore */ dataURI);
             return data.plugin;
         }
         default: {
@@ -1406,7 +1407,9 @@ export async function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "j
             if (!zipFs.getChildByName(entry))
                 throw new ReferenceError(`Plugin is missing required entry file specified by "entry" field in "manifest.json": "${entry}".`);
             try {
-                var data: { plugin: PluginEntryScriptPlugin } = await import(await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getData64URI());
+                var data: { plugin: PluginEntryScriptPlugin } = await import(
+                    /* @vite-ignore */ await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getData64URI()
+                );
             } catch (e: any) {
                 throw new EvalError(`Plugin entry file "${entry}" throw an error when imported: ${e.name}: ${e.message}`, { cause: e });
             }
@@ -1419,7 +1422,7 @@ export async function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "j
         }
         case "js": {
             const dataURI: string = URL.createObjectURL(plugin);
-            const data: { plugin: Plugin } = await import(dataURI);
+            const data: { plugin: Plugin } = await import(/* @vite-ignore */ dataURI);
             if (data?.plugin) {
                 validatePluginObject(data.plugin);
             } else {
@@ -2081,7 +2084,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  * - 1.21.90.21 preview (index-aaad2.js)
                  */
                 new RegExp(
-                    `([a-zA-Z0-9_$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:([a-zA-Z0-9_$]{1}),isSeedChangeLocked:([a-zA-Z0-9_$]{1}),showSeedTemplates:o\\}\\)=>\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=([a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=(?:[a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(([a-zA-Z0-9_$]{2})\\),)?(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),(?:[a-zA-Z0-9_$]{1})\\.queueSnackbar\\((?:[a-zA-Z0-9_$]{1})\\("\\.copyToClipboard"\\)\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?(?:[a-zA-Z0-9_$]{1}):\\(\\)=>(?:[a-zA-Z0-9_$]{1})\\.push\\("/create-new-world/seed-templates"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?"":(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\((?:[a-zA-Z0-9_$]{1})\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>t\\|\\|(?:[a-zA-Z0-9_$]{1})(?:&&(?:[a-zA-Z0-9_$]{1}))?&&!(?:[a-zA-Z0-9_$]{1})&&e\\.generatorType!=([a-zA-Z0-9_$]{2})\\.Overworld\\),\\[(?:[a-zA-Z0-9_$]{1})(?:,(?:[a-zA-Z0-9_$]{1}))?\\],\\[e,(?:[a-zA-Z0-9_$]{1}),t\\]\\);return o\\?${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{data:(?:[a-zA-Z0-9_$]{1})\\},\\(e=>(?:[a-zA-Z0-9_$]{1})&&!e\\?${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2})\\.WithButton,\\{buttonInputLegend:(?:[a-zA-Z0-9_$]{1}),buttonText:(?:[a-zA-Z0-9_$]{1}),buttonOnClick:(?:[a-zA-Z0-9_$]{1}),textDisabled:(?:[a-zA-Z0-9_$]{1}),disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1}),buttonNarrationHint:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:32,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
+                    `([a-zA-Z0-9_$]{2})=\\(\\{advancedData:e,isEditorWorld:t,onSeedValueChange:([a-zA-Z0-9_$]{1}),isSeedChangeLocked:([a-zA-Z0-9_$]{1}),showSeedTemplates:o\\}\\)=>\\{const\\{t:(?:[a-zA-Z0-9_$]{1})\\}=([a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.advanced"\\),\\{t:(?:[a-zA-Z0-9_$]{1})\\}=(?:[a-zA-Z0-9_$]{2})\\("CreateNewWorld\\.all"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.contextHolder}\\.useContext\\)\\(([a-zA-Z0-9_$]{2})\\)!==([a-zA-Z0-9_$]{2})\\.CREATE,(?:(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(([a-zA-Z0-9_$]{2})\\),)?(?:[a-zA-Z0-9_$]{1})=([a-zA-Z0-9_$]{2})\\(\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useSharedFacet\\)\\(([a-zA-Z0-9_$]{2})\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.worldSeed\\),\\[\\],\\[e\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(e=>e\\.isClipboardCopySupported\\),\\[\\],\\[(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetCallback\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>\\(\\)=>\\{t\\.copyToClipboard\\(e\\),(?:[a-zA-Z0-9_$]{1})\\.queueSnackbar\\((?:[a-zA-Z0-9_$]{1})\\("\\.copyToClipboard"\\)\\)\\}\\),\\[(?:[a-zA-Z0-9_$]{1})\\],\\[(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1}),(?:[a-zA-Z0-9_$]{1})\\]\\),(?:[a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?(?:[a-zA-Z0-9_$]{1}):\\(\\)=>(?:[a-zA-Z0-9_$]{1})\\.push\\("/create-new-world/seed-templates"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\?"":(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),([a-zA-Z0-9_$]{1})=(?:[a-zA-Z0-9_$]{1})\\((?:[a-zA-Z0-9_$]{1})\\?"\\.worldSeedCopyButton":"\\.worldSeedButton"\\),(?:[a-zA-Z0-9_$]{1})=\\(0,${extractedSymbolNames.facetHolder}\\.useFacetMap\\)\\(\\(\\(e,t,(?:[a-zA-Z0-9_$]{1})\\)=>t\\|\\|(?:[a-zA-Z0-9_$]{1})(?:&&(?:[a-zA-Z0-9_$]{1}))?&&!(?:[a-zA-Z0-9_$]{1})&&e\\.generatorType!=([a-zA-Z0-9_$]{2})\\.Overworld\\),\\[(?:[a-zA-Z0-9_$]{1})(?:,(?:[a-zA-Z0-9_$]{1}))?\\],\\[e,(?:[a-zA-Z0-9_$]{1}),t\\]\\);return o\\?${extractedSymbolNames.contextHolder}\\.createElement\\((${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}|[a-zA-Z0-9_]\\.Unwrap),\\{data:(?:[a-zA-Z0-9_$]{1})\\},\\(e=>(?:[a-zA-Z0-9_$]{1})&&!e\\?${extractedSymbolNames.contextHolder}\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:[0-9]+,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-text-field"\\}\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2})\\.WithButton,\\{buttonInputLegend:(?:[a-zA-Z0-9_$]{1}),buttonText:(?:[a-zA-Z0-9_$]{1}),buttonOnClick:(?:[a-zA-Z0-9_$]{1}),textDisabled:(?:[a-zA-Z0-9_$]{1}),disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:[0-9]+,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1}),buttonNarrationHint:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationTemplatesButtonNarrationHint"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\),"data-testid":"world-seed-with-button"\\}\\)\\)\\)\\):${extractedSymbolNames.contextHolder}\\.createElement\\((?:${extractedSymbolNames.facetHolder}\\.DeferredMount|[a-zA-Z0-9_$]{2}),null,${extractedSymbolNames.contextHolder}\\.createElement\\((?:[a-zA-Z0-9_$]{2}|[a-zA-Z0-9_]\\.Unwrap),\\{disabled:(?:[a-zA-Z0-9_$]{1}),label:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedLabel"\\),description:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedDescription"\\),maxLength:[0-9]+,value:(?:[a-zA-Z0-9_$]{1}),onChange:(?:[a-zA-Z0-9_$]{1}),placeholder:(?:[a-zA-Z0-9_$]{1})\\("\\.worldSeedPlaceholder"\\),disabledNarrationSuffix:(?:[a-zA-Z0-9_$]{1})\\("\\.narrationSuffixTemplateLocked"\\)\\}\\)\\)\\},`
                 ),
             ],
         },
@@ -2222,7 +2225,7 @@ export function getReplacerRegexes(extractedSymbolNames: ReturnType<typeof getEx
                  */
                 {
                     regex: new RegExp(
-                        `return ([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{data:([a-zA-Z0-9_$]{1})\\},\\(([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\?([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onChange:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),disabled:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1})\\}\\):([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),value:([a-zA-Z0-9_$]{1}),onChange:([a-zA-Z0-9_$]{1}),disabled:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),onExpandNarrationHint:([a-zA-Z0-9_$]{1})\\},([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.title"\\),customSelectionDescription:([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{selectedPreset:([a-zA-Z0-9_$]{1}),selectedPresetID:([a-zA-Z0-9_$]{1})\\}\\),options:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),onItemSelect:([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\(([a-zA-Z0-9_$]{2})\\[([a-zA-Z0-9_$]{1})\\]\\),disabled:([a-zA-Z0-9_$]{1}),wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:([a-zA-Z0-9_$]{1})\\}\\)\\)\\)\\)\\}`
+                        `return ([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}|l\\.Unwrap),\\{data:([a-zA-Z0-9_$]{1})\\},\\(([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\?([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onChange:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),disabled:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1})\\}\\):([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),value:([a-zA-Z0-9_$]{1}),onChange:([a-zA-Z0-9_$]{1}),disabled:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),onExpandNarrationHint:([a-zA-Z0-9_$]{1})\\},([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.title"\\),customSelectionDescription:([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{selectedPreset:([a-zA-Z0-9_$]{1}),selectedPresetID:([a-zA-Z0-9_$]{1})\\}\\),options:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),onItemSelect:([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\(([a-zA-Z0-9_$]{2})\\[([a-zA-Z0-9_$]{1})\\]\\),disabled:([a-zA-Z0-9_$]{1}),wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:([a-zA-Z0-9_$]{1})\\}\\)\\)\\)\\)\\}`
                     ),
                     replacement: `return $1.createElement($2,{data:$3},($4=>false /* $5 */ ?$6.createElement($7,{onChange:$8,value:$9,title:$10(".useFlatWorldTitle"),description:$11(".useFlatWorldDescription"),disabled:$12,offNarrationText:$13,onNarrationText:$14,narrationSuffix:$15}):$16.createElement($17,{title:$18(".useFlatWorldTitle"),description:$19(".useFlatWorldDescription"),value:$20,onChange:$21,disabled:$22,narrationSuffix:$23,offNarrationText:$24,onNarrationText:$25,onExpandNarrationHint:$26},$27.createElement($28,{title:$29(".title"),customSelectionDescription:$30.createElement($31,{selectedPreset:$32,selectedPresetID:$33}),options:$34,value:$35,onItemSelect:$36=>$37($38[$39]),disabled:$40,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$41}))))}`,
                 },
@@ -2668,12 +2671,22 @@ export const builtInPlugins = [
                     if (!bindingVaiableTarget) {
                         throw new Error("Unable to find binding variable target.");
                     }
+                    if (!/\.createElement\(([a-zA-Z0-9_]{2}),[\s\n]*?\{[\s\n]*?pingStatus:[\s\n]*?([a-zA-Z0-9_])[\s\n]*?\}\)/.test(currentFileContent)) {
+                        throw new Error("Unable to find ping status text facet map.");
+                    }
                     currentFileContent = currentFileContent.replace(
                         /\.createElement\(([a-zA-Z0-9_]{2}),[\s\n]*?\{[\s\n]*?pingStatus:[\s\n]*?([a-zA-Z0-9_])[\s\n]*?\}\)/g,
                         `.createElement($1, { pingStatus: $2, ping: (0, ${bindingVaiableTarget[0]}.useFacetMap)((e) => e.networkDetails.ping === "-1" ? "Loading..." : e.networkDetails.ping, [], [${bindingVaiableTarget[1]}]) })`
                     );
+                    if (
+                        !/function ([a-zA-Z0-9_]{2})\(\{pingStatus:([a-zA-Z0-9_])\}\)\{const ([a-zA-Z0-9_])=([a-zA-Z0-9_]{2})\((?:[a-zA-Z0-9_])\);return ([a-zA-Z0-9_])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}|[a-zA-Z0-9_]\.Unwrap),\{data:(?:[a-zA-Z0-9_]),children:([a-zA-Z0-9_]{2})\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{size:1\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_])\)\)\}/.test(
+                            currentFileContent
+                        )
+                    ) {
+                        throw new Error("Unable to find ping status text element.");
+                    }
                     currentFileContent = currentFileContent.replace(
-                        /function ([a-zA-Z0-9_]{2})\(\{pingStatus:([a-zA-Z0-9_])\}\){const ([a-zA-Z0-9_])=([a-zA-Z0-9_]{2})\((?:[a-zA-Z0-9_])\);return ([a-zA-Z0-9_])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{data:(?:[a-zA-Z0-9_]),children:([a-zA-Z0-9_]{2})\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{size:1\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_])\)\)\}/,
+                        /function ([a-zA-Z0-9_]{2})\(\{pingStatus:([a-zA-Z0-9_])\}\)\{const ([a-zA-Z0-9_])=([a-zA-Z0-9_]{2})\((?:[a-zA-Z0-9_])\);return ([a-zA-Z0-9_])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}|[a-zA-Z0-9_]\.Unwrap),\{data:(?:[a-zA-Z0-9_]),children:([a-zA-Z0-9_]{2})\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{size:1\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_])\)\)\}/,
                         `function $1({pingStatus:$2,ping}){const $3=$4($2);return $5.createElement("div",{className:"$6"},$5.createElement($7,{data:$2,children:$8}),$5.createElement($9,{size:1}),$5.createElement($10,{type:"body",variant:"dimmer"},ping))}`
                     );
                     return currentFileContent;
@@ -2697,7 +2710,7 @@ export const builtInPlugins = [
                 action: async (currentFileContent: string, file: zip.ZipFileEntry<any, any>): Promise<string> => {
                     if (!/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!)) return currentFileContent;
                     if (
-                        !/function ([a-zA-Z0-9_]{2})\(\{playerCount:([a-zA-Z0-9_]),maximumCapacity:([a-zA-Z0-9_])\}\)\{const ([a-zA-Z0-9_])=\(0,([a-zA-Z0-9_])\.useFacetMap\)\(\(\((?:[a-zA-Z0-9_]),(?:[a-zA-Z0-9_])\)=>0!==(?:[a-zA-Z0-9_])&&(?:[a-zA-Z0-9_])===(?:[a-zA-Z0-9_])\),\[\],\[(?:[a-zA-Z0-9_]),(?:[a-zA-Z0-9_])\]\),\{(?:[a-zA-Z0-9_]):(?:[a-zA-Z0-9_])\}=([a-zA-Z0-9_]{2})\("PlayScreen\.serverCapacity"\);return ([a-zA-Z0-9_])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),null\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{size:1\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_])\)/.test(
+                        !/function ([a-zA-Z0-9_]{2})\(\{playerCount:([a-zA-Z0-9_]),maximumCapacity:([a-zA-Z0-9_])\}\)\{const ([a-zA-Z0-9_])=\(0,([a-zA-Z0-9_])\.useFacetMap\)\(\(\((?:[a-zA-Z0-9_]),(?:[a-zA-Z0-9_])\)=>0!==(?:[a-zA-Z0-9_])&&(?:[a-zA-Z0-9_])===(?:[a-zA-Z0-9_])\),\[\],\[(?:[a-zA-Z0-9_]),(?:[a-zA-Z0-9_])\]\),\{(?:[a-zA-Z0-9_]):([a-zA-Z0-9_])\}=([a-zA-Z0-9_]{2})\("PlayScreen\.serverCapacity"\);return ([a-zA-Z0-9_])\.createElement\("div",\{className:"([^"]+?)"\},(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),null\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{size:1\}\),(?:[a-zA-Z0-9_])\.createElement\(([a-zA-Z0-9_]{2}),\{type:"body",variant:"dimmer"\},(?:[a-zA-Z0-9_])\)/.test(
                             currentFileContent
                         )
                     ) {
@@ -2747,7 +2760,7 @@ export const builtInPlugins = [
                             /([a-zA-Z0-9_])\.createElement\((?:[a-zA-Z0-9_]),\{visible:(?:[a-zA-Z0-9_]),alwaysMounted:(?:[a-zA-Z0-9_]),/
                         )![1]!}.createElement(facetSpy,null)`
                     );
-                    const isEditorMode: boolean = /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!);
+                    const isEditorMode: boolean = /editor-[0-9a-f]{5,20}\.js$/.test(file.data?.filename!);
                     /**
                      * The facet spy function that will be injected into the file.
                      */
@@ -2924,6 +2937,12 @@ export const builtInPlugins = [
                 "dev.realmsCommitCommandsFacet",
                 "dev.realmsCommitQueriesFacet",
                 "vanilla.newPlayerChoices",
+
+                // Found in 1.21.130.26 Preview (but may have existed before that).
+                "vanilla.realmsRolesAndPermissionsQueries",
+                "vanilla.realmsRolesAndPermissionsCommands",
+                "vanilla.realmsPlayerListQueries",
+                "vanilla.realmsPlayerListCommands",
 
                 // Editor mode only facets (crashes the game when not in editor mode).
                 ${isEditorMode ? "" : "// "}"vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview when not in editor mode.

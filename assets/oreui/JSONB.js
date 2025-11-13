@@ -1,3 +1,5 @@
+/* eslint-disable no-fallthrough, no-misleading-character-class */
+/* global globalThis */
 /**
  * @type {typeof import("./JSONB").JSONB}
  */
@@ -9,8 +11,8 @@ const JSONBConsole = {};
 (function () {
     "use strict";
     var rx_one = /^[\],:{}\s]*$/;
-    var rx_two = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g;
-    var rx_three = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
+    var rx_two = /\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})/g;
+    var rx_three = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?/g;
     var rx_four = /(?:^|:|,)(?:\s*\[)+/g;
     var rx_escapable = /[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
     var rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
@@ -74,6 +76,7 @@ const JSONBConsole = {};
         if (options.get) {
             if (Object.hasOwn(holder, "__lookupGetter__") ? !!holder?.__lookupGetter__(key) : false) {
                 if (options.set) {
+                    // eslint-disable-next-line no-extra-boolean-cast
                     if (!!holder.__lookupSetter__(key)) {
                         value = { get: holder.__lookupGetter__(key), set: holder.__lookupSetter__(key) };
                     } else {
@@ -335,8 +338,8 @@ globalThis.JSONB = JSONB;
 (function () {
     "use strict";
     var rx_one = /^[\],:{}\s]*$/;
-    var rx_two = /\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g;
-    var rx_three = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g;
+    var rx_two = /\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})/g;
+    var rx_three = /"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?/g;
     var rx_four = /(?:^|:|,)(?:\s*\[)+/g;
     var rx_escapable = /[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
     var rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
@@ -394,6 +397,7 @@ globalThis.JSONB = JSONB;
                     : false
             ) {
                 if (options.set) {
+                    // eslint-disable-next-line no-extra-boolean-cast
                     if (!!holder.__lookupSetter__(key)) {
                         value = { get: holder.__lookupGetter__(key), set: holder.__lookupSetter__(key) };
                     } else {
@@ -457,7 +461,7 @@ globalThis.JSONB = JSONB;
             case "function":
                 if (options.function ?? true) {
                     if (currentLength + value.toString().length > maxLength) {
-                        return "ƒ " + value.name + value.toString().match(/\([^\)]*?\)/)?.[0] ?? "()";
+                        return "ƒ " + value.name + value.toString().match(/\([^)]*?\)/)?.[0] ?? "()";
                     }
                     return value.toString();
                 }
