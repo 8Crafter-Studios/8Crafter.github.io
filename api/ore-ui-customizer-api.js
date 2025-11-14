@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.10.0";
+export const format_version = "1.11.0";
 /**
  * Checks if a string is a URI or a path.
  *
@@ -25,12 +25,43 @@ function checkIsURIOrPath(URIOrPath) {
  * @returns The resolved settings.
  */
 export function resolveOreUICustomizerSettings(settings = {}) {
-    return {
+    const resolvedSettings = {
         ...defaultOreUICustomizerSettings,
         ...settings,
         colorReplacements: { ...defaultOreUICustomizerSettings.colorReplacements, ...settings.colorReplacements },
         enabledBuiltInPlugins: { ...defaultOreUICustomizerSettings.enabledBuiltInPlugins, ...settings.enabledBuiltInPlugins },
     };
+    resolvedSettings.plugins?.forEach((plugin) => {
+        if (!plugin.dependencies)
+            return;
+        plugin.dependencies.forEach((dependency) => {
+            if (!("uuid" in dependency))
+                return;
+            const requiredBuildInPlugin = builtInPlugins.find((plugin) => plugin.uuid === dependency.uuid);
+            if (!requiredBuildInPlugin)
+                return;
+            if (resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id])
+                return;
+            resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id] = true;
+            console.warn(`Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${plugin.namespace}:${plugin.id})`);
+        });
+    });
+    resolvedSettings.preloadedPlugins?.forEach((plugin) => {
+        if (!plugin.dependencies)
+            return;
+        plugin.dependencies.forEach((dependency) => {
+            if (!("uuid" in dependency))
+                return;
+            const requiredBuildInPlugin = builtInPlugins.find((plugin) => plugin.uuid === dependency.uuid);
+            if (!requiredBuildInPlugin)
+                return;
+            if (resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id])
+                return;
+            resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id] = true;
+            console.warn(`Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${plugin.namespace}:${plugin.id})`);
+        });
+    });
+    return resolvedSettings;
 }
 /**
  * Applies mods to a zip file.
@@ -108,12 +139,20 @@ export async function applyMods(file, options = {}) {
      * The settings used to apply the mods.
      */
     const settings = resolveOreUICustomizerSettings(options.settings);
+    const oreUICustomizerEnvGlobalVariableName = `__customizer_env_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+    globalThis[oreUICustomizerEnvGlobalVariableName] = {
+        settings,
+        type: options.type ?? (globalThis.electron ? "App" : "CLI"),
+        version: format_version,
+    };
     /**
      * The list of plugins to apply.
      */
     const plugins = [...builtInPlugins, ...(settings.preloadedPlugins ?? [])];
     for (const encodedPlugin of settings.plugins ?? []) {
-        plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, encodedPlugin.fileType));
+        plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, {
+            oreUICustomizerEnvGlobalVariableName,
+        }, encodedPlugin.fileType));
     }
     for (const plugin of plugins) {
         if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
@@ -175,10 +214,10 @@ export async function applyMods(file, options = {}) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })}\n${distData}`;
                     }
                     else if (entry.data?.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} */\n${distData}`;
+                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("*/", "*\\/")} */\n${distData}`;
                     }
                     else if (entry.data?.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} -->\n${distData}`;
+                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("-->", "--\\>")} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
                     log(`Entry ${entry.name} has been successfully modified.`);
@@ -1565,6 +1604,14 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`);
     log(`Edited ${editedCount} entries.`);
     log(`Renamed ${renamedCount} entries.`);
     log(`Total entries: ${zipFs.entries.length}.`);
+    for (const plugin of plugins) {
+        if (!globalPluginEnvIDs.has(plugin))
+            continue;
+        const envID = globalPluginEnvIDs.get(plugin);
+        globalPluginEnvIDs.delete(plugin);
+        globalPluginEnvs.delete(envID);
+    }
+    delete globalThis[oreUICustomizerEnvGlobalVariableName];
     return {
         zip: await zipFs.exportBlob(),
         config: settings,

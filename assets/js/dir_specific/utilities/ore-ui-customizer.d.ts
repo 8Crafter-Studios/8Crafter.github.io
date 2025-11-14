@@ -107,7 +107,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.10.0";
+    const format_version = "1.11.0";
     /**
      * @type {File | undefined}
      */
@@ -302,7 +302,7 @@ export declare namespace OreUICustomizer {
      * @returns {Promise<boolean>} A promise resolving to `true` if the zip file is valid and `false` otherwise.
      */
     function validateZipFile(): Promise<boolean>;
-    function getSettings(): OreUICustomizerSettings;
+    function getSettings(hideDependencyWarnings?: boolean): OreUICustomizerSettings;
     function setSettings(settings: {
         [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]> : key extends "enabledBuiltInPlugins" ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]> : OreUICustomizerSettings[key];
     }): void;

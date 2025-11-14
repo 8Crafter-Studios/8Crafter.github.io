@@ -332,7 +332,7 @@ export declare namespace zip {
         /**
          * @param data The processed chunk of data.
          */
-        (data: CompatibleUint8Array): void;
+        (data: Uint8Array): void;
     }
 
     /**
@@ -363,13 +363,13 @@ export declare namespace zip {
          *
          * @param data The chunk of data to append.
          */
-        push(data: CompatibleUint8Array): void;
+        push(data: Uint8Array): void;
         /**
          * The function called when a chunk of data has been compressed/decompressed.
          *
          * @param data The chunk of compressed/decompressed data.
          */
-        ondata(data?: CompatibleUint8Array): void;
+        ondata(data?: Uint8Array): void;
     }
 
     /**
@@ -397,7 +397,7 @@ export declare namespace zip {
          * @param data The chunk of decompressed data to append.
          * @returns A chunk of compressed data.
          */
-        append(data: CompatibleUint8Array): CompatibleUint8Array;
+        append(data: Uint8Array): Uint8Array;
     }
 
     /**
@@ -409,7 +409,7 @@ export declare namespace zip {
          *
          * @returns A chunk of compressed data.
          */
-        flush(): CompatibleUint8Array;
+        flush(): Uint8Array;
     }
 
     /**
@@ -476,8 +476,8 @@ export declare namespace zip {
      *     this.size = this.binaryString.length;
      *   }
      *
-     *   readCompatibleUint8Array(offset, length) {
-     *     const result = new CompatibleUint8Array(length);
+     *   readUint8Array(offset, length) {
+     *     const result = new Uint8Array(length);
      *     for (let indexCharacter = 0; indexCharacter < length; indexCharacter++) {
      *       result[indexCharacter] = this.binaryString.charCodeAt(indexCharacter + offset) & 0xFF;
      *     }
@@ -512,24 +512,8 @@ export declare namespace zip {
          * @param length The length of the data to read in bytes.
          * @returns A promise resolving to a chunk of data.
          */
-        readCompatibleUint8Array(index: number, length: number): Promise<CompatibleUint8Array>;
+        readUint8Array(index: number, length: number): Promise<Uint8Array>;
     }
-
-    /**
-     * PLACEHOLDER
-     *
-     * @todo Find the original type/class/interface.
-     */
-    export type CompatibleUint8Array =
-        | Uint8Array
-        | Uint8ClampedArray
-        | Uint16Array
-        | Uint32Array
-        | Int8Array
-        | Int16Array
-        | Int32Array
-        | Float32Array
-        | Float64Array;
 
     /**
      * Represents a {@link Reader} instance used to read data provided as a `string`.
@@ -547,9 +531,9 @@ export declare namespace zip {
     export class Data64URIReader extends Reader<string> {}
 
     /**
-     * Represents a {@link Reader} instance used to read data provided as a `CompatibleUint8Array` instance.
+     * Represents a {@link Reader} instance used to read data provided as a `Uint8Array` instance.
      */
-    export class CompatibleUint8ArrayReader extends Reader<CompatibleUint8Array> {}
+    export class Uint8ArrayReader extends Reader<Uint8Array> {}
 
     /**
      * Represents a {@link Reader} instance used to read data provided as an array of {@link ReadableReader} instances (e.g. split zip files).
@@ -669,7 +653,7 @@ export declare namespace zip {
      *     this.binaryString = "";
      *   }
      *
-     *   writeCompatibleUint8Array(array) {
+     *   writeUint8Array(array) {
      *     for (let indexCharacter = 0; indexCharacter < array.length; indexCharacter++) {
      *       this.binaryString += String.fromCharCode(array[indexCharacter]);
      *     }
@@ -699,7 +683,7 @@ export declare namespace zip {
          *
          * @virtual
          */
-        writeCompatibleUint8Array(array: CompatibleUint8Array): Promise<void>;
+        writeUint8Array(array: Uint8Array): Promise<void>;
         /**
          * Retrieves all the written data
          *
@@ -787,9 +771,9 @@ export declare namespace zip {
     }
 
     /**
-     * Represents a {@link Writer}  instance used to retrieve the written data as a `CompatibleUint8Array` instance.
+     * Represents a {@link Writer}  instance used to retrieve the written data as a `Uint8Array` instance.
      */
-    export class CompatibleUint8ArrayWriter extends Writer<CompatibleUint8Array> {}
+    export class Uint8ArrayWriter extends Writer<Uint8Array> {}
 
     /**
      * Represents an instance used to create an unzipped stream.
@@ -823,7 +807,7 @@ export declare namespace zip {
         /**
          * The readable stream.
          */
-        readable: ReadableStream<Omit<Entry, "getData"> & { readable?: ReadableStream<CompatibleUint8Array> }>;
+        readable: ReadableStream<Omit<Entry, "getData"> & { readable?: ReadableStream<Uint8Array> }>;
 
         /**
          * The writable stream.
@@ -877,15 +861,15 @@ export declare namespace zip {
         /**
          * The global comment of the zip file.
          */
-        comment: CompatibleUint8Array;
+        comment: Uint8Array;
         /**
          * The data prepended before the zip file.
          */
-        prependedData?: CompatibleUint8Array;
+        prependedData?: Uint8Array;
         /**
          * The data appended after the zip file.
          */
-        appendedData?: CompatibleUint8Array;
+        appendedData?: Uint8Array;
         /**
          * Returns all the entries in the zip file
          *
@@ -948,7 +932,7 @@ export declare namespace zip {
          * @param encoding The encoding of the text.
          * @returns The decoded text value or `undefined` if the raw text value should be decoded by zip.js.
          */
-        decodeText?(value: CompatibleUint8Array, encoding: string): string | undefined;
+        decodeText?(value: Uint8Array, encoding: string): string | undefined;
     }
 
     /**
@@ -978,7 +962,7 @@ export declare namespace zip {
         /**
          * The password used to encrypt the content of the entry (raw).
          */
-        rawPassword?: CompatibleUint8Array;
+        rawPassword?: Uint8Array;
         /**
          * The `AbortSignal` instance used to cancel the decompression.
          */
@@ -1012,7 +996,7 @@ export declare namespace zip {
         /**
          * The filename of the entry (raw).
          */
-        rawFilename: CompatibleUint8Array;
+        rawFilename: Uint8Array;
         /**
          * `true` if the filename is encoded in UTF-8.
          */
@@ -1072,7 +1056,7 @@ export declare namespace zip {
         /**
          * The comment of the entry (raw).
          */
-        rawComment: CompatibleUint8Array;
+        rawComment: Uint8Array;
         /**
          * `true` if the comment is encoded in UTF-8.
          */
@@ -1084,11 +1068,11 @@ export declare namespace zip {
         /**
          * The extra field.
          */
-        extraField?: Map<number, { type: number; data: CompatibleUint8Array }>;
+        extraField?: Map<number, { type: number; data: Uint8Array }>;
         /**
          * The extra field (raw).
          */
-        rawExtraField: CompatibleUint8Array;
+        rawExtraField: Uint8Array;
         /**
          * `true` if the entry is using Zip64.
          */
@@ -1210,7 +1194,7 @@ export declare namespace zip {
         /**
          * The readable stream.
          */
-        readable: ReadableStream<CompatibleUint8Array>;
+        readable: ReadableStream<Uint8Array>;
 
         /**
          * The ZipWriter property.
@@ -1240,7 +1224,7 @@ export declare namespace zip {
          * @param options The options.
          * @returns The content of the zip file.
          */
-        close(comment?: CompatibleUint8Array, options?: ZipWriterCloseOptions): Promise<unknown>;
+        close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<unknown>;
     }
 
     /**
@@ -1298,7 +1282,7 @@ export declare namespace zip {
          * @param options The options.
          * @returns The content of the zip file.
          */
-        close(comment?: CompatibleUint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
+        close(comment?: Uint8Array, options?: ZipWriterCloseOptions): Promise<Type>;
     }
 
     /**
@@ -1324,7 +1308,7 @@ export declare namespace zip {
         /**
          * The extra field of the entry.
          */
-        extraField?: Map<number, CompatibleUint8Array>;
+        extraField?: Map<number, Uint8Array>;
         /**
          * The uncompressed size of the entry. This option is ignored if the {@link ZipWriterConstructorOptions#passThrough} option is not set to `true`.
          */
@@ -1403,7 +1387,7 @@ export declare namespace zip {
         /**
          * The password used to encrypt the content of the entry (raw).
          */
-        rawPassword?: CompatibleUint8Array;
+        rawPassword?: Uint8Array;
         /**
          * The encryption strength (AES):
          * - 1: 128-bit encryption key
@@ -1539,7 +1523,7 @@ export declare namespace zip {
          * @param text The text to encode.
          * @returns The encoded text or `undefined` if the text should be encoded by zip.js.
          */
-        encodeText?(text: string): CompatibleUint8Array | undefined;
+        encodeText?(text: string): Uint8Array | undefined;
     }
 
     /**
@@ -1690,12 +1674,12 @@ export declare namespace zip {
          */
         getData64URI(mimeType?: string, options?: EntryGetDataOptions): Promise<string>;
         /**
-         * Retrieves the content of the entry as a `CompatibleUint8Array` instance
+         * Retrieves the content of the entry as a `Uint8Array` instance
          *
          * @param options The options.
-         * @returns A promise resolving to a `CompatibleUint8Array` instance.
+         * @returns A promise resolving to a `Uint8Array` instance.
          */
-        getCompatibleUint8Array(options?: EntryGetDataOptions): Promise<CompatibleUint8Array>;
+        getUint8Array(options?: EntryGetDataOptions): Promise<Uint8Array>;
         /**
          * Retrieves the content of the entry via a `WritableStream` instance
          *
@@ -1734,11 +1718,11 @@ export declare namespace zip {
          */
         replaceData64URI(dataURI: string): void;
         /**
-         * Replaces the content of the entry with a `CompatibleUint8Array` instance
+         * Replaces the content of the entry with a `Uint8Array` instance
          *
-         * @param array The `CompatibleUint8Array` instance.
+         * @param array The `Uint8Array` instance.
          */
-        replaceCompatibleUint8Array(array: CompatibleUint8Array): void;
+        replaceUint8Array(array: Uint8Array): void;
         /**
          * Replaces the content of the entry with a `ReadableStream` instance
          *
@@ -1798,18 +1782,14 @@ export declare namespace zip {
          */
         addData64URI(name: string, dataURI: string, options?: ZipWriterAddDataOptions): ZipFileEntry<string, string>;
         /**
-         * Adds an entry with content provided as a `CompatibleUint8Array` instance
+         * Adds an entry with content provided as a `Uint8Array` instance
          *
          * @param name The relative filename of the entry.
-         * @param array The `CompatibleUint8Array` instance.
+         * @param array The `Uint8Array` instance.
          * @param options The options.
          * @returns A {@link ZipFileEntry} instance.
          */
-        addCompatibleUint8Array(
-            name: string,
-            array: CompatibleUint8Array,
-            options?: ZipWriterAddDataOptions
-        ): ZipFileEntry<CompatibleUint8Array, CompatibleUint8Array>;
+        addUint8Array(name: string, array: Uint8Array, options?: ZipWriterAddDataOptions): ZipFileEntry<Uint8Array, Uint8Array>;
         /**
          * Adds an entry with content fetched from a URL
          *
@@ -1867,12 +1847,12 @@ export declare namespace zip {
          */
         importData64URI(dataURI: string, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>;
         /**
-         * Extracts a zip file provided as a `CompatibleUint8Array` instance into the entry
+         * Extracts a zip file provided as a `Uint8Array` instance into the entry
          *
-         * @param array The `CompatibleUint8Array` instance.
+         * @param array The `Uint8Array` instance.
          * @param options  The options.
          */
-        importCompatibleUint8Array(array: CompatibleUint8Array, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>;
+        importUint8Array(array: Uint8Array, options?: ZipReaderConstructorOptions): Promise<[ZipEntry]>;
         /**
          * Extracts a zip file fetched from a URL into the entry
          *
@@ -1912,18 +1892,18 @@ export declare namespace zip {
          */
         exportData64URI(options?: ZipDirectoryEntryExportOptions): Promise<string>;
         /**
-         * Returns a `CompatibleUint8Array` instance containing a zip file of the entry and its descendants
+         * Returns a `Uint8Array` instance containing a zip file of the entry and its descendants
          *
          * @param options  The options.
-         * @returns A promise resolving to the `CompatibleUint8Array` instance.
+         * @returns A promise resolving to the `Uint8Array` instance.
          */
-        exportCompatibleUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<CompatibleUint8Array>;
+        exportUint8Array(options?: ZipDirectoryEntryExportOptions): Promise<Uint8Array>;
         /**
          * Creates a zip file via a `WritableStream` instance containing the entry and its descendants
          *
          * @param writable The `WritableStream` instance.
          * @param options  The options.
-         * @returns A promise resolving to the `CompatibleUint8Array` instance.
+         * @returns A promise resolving to the `Uint8Array` instance.
          */
         exportWritable(writable?: WritableStream, options?: ZipDirectoryEntryExportOptions): Promise<WritableStream>;
         /**

@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "1.10.0";
+export declare const format_version = "1.11.0";
 /**
  * The result of the {@link applyMods} function.
  */
@@ -82,6 +82,12 @@ export interface ApplyModsOptions {
      * @default undefined
      */
     nodeFS?: typeof import("fs");
+    /**
+     * The type of the Ore UI Customizer.
+     *
+     * @default "CLI"
+     */
+    type?: OreUICustomizerType;
 }
 /**
  * Resolves the settings for the {@link applyMods} function, adding in the default values in place of the missing settigns.

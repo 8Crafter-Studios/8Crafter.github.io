@@ -1,6 +1,7 @@
 import semver from "./semver.js";
 import "./zip.js";
-import type { OreUICustomizerSettings, PluginManifestJSON, Plugin, PluginEntryScriptPlugin, BuiltInPluginID } from "ore-ui-customizer-types";
+import type { OreUICustomizerSettings, PluginManifestJSON, Plugin, PluginEntryScriptPlugin, BuiltInPluginID, EncodedPluginData } from "ore-ui-customizer-types";
+import type {} from "@ore-ui-customizer-api/plugin-env/backend";
 
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
@@ -232,6 +233,9 @@ globalThis.joinPath = function joinPath(...input: string[]): string {
     return paths.join("/") || (paths.length ? "/" : ".");
 };
 
+globalThis.globalPluginEnvIDs = new Map();
+globalThis.globalPluginEnvs = new Map();
+
 declare global {
     namespace globalThis {
         /**
@@ -241,7 +245,59 @@ declare global {
          * @returns The joined path.
          */
         function joinPath(...input: string[]): string;
+        /**
+         * The global plugin to plugin env ID map.
+         */
+        var globalPluginEnvIDs: Map<import("ore-ui-customizer-types").Plugin | EncodedPluginData, string>;
+        /**
+         * The global plugin env ID to plugin env map.
+         */
+        var globalPluginEnvs: Map<string, OreUICustomizerPluginEnv>;
     }
+}
+
+/**
+ * Removes empty known type only module imports from a script
+ *
+ * @param script The script.
+ * @returns The script without empty known type only module imports
+ */
+export function removeEmptyKnownTypeOnlyModuleImportsFromScript(script: string): string {
+    const knownTypeOnlyModules: string[] = [
+        "ore-ui-types",
+        "ore-ui-customizer-types",
+        "@ore-ui-customizer-api/plugin-env",
+        "@ore-ui-customizer-api/env",
+    ];
+    const regex =
+        /(?:^(?:(?:(?<=^|\n)\s*?\/\/[^\n]*?\n|(?<=^|\n)\s*?\/\*[\s\S]*?\*\/)*?)?[\n\s]*?)\s*?import\s*?\{(?<imports>[^}]+?)\}\s*?from\s*?(?<quote>['"])(?<module>[^\n].+?)\k<quote>;?(?=\s*?(?:\n|$))/g;
+    const keptImportStatements: string[] = [];
+    while (!regex.test(script)) {
+        const match: RegExpExecArray | null = regex.exec(script);
+        if (!match) break;
+        const { imports, module } = match.groups!;
+        script = script.replace(match[0], "");
+        if (imports!.trim() === "") {
+            if (knownTypeOnlyModules.includes(module!)) {
+                continue;
+            }
+        }
+        keptImportStatements.push(match[0].replace(/^\n/, ""));
+    }
+
+    return keptImportStatements.join("\n") + script;
+}
+
+/**
+ * Normalizes a path for use with {@link zip.FS}.
+ *
+ * This is made for use with {@link zip.FS.find}.
+ *
+ * @param path The path to normalize.
+ * @returns The normalized path.
+ */
+export function normalizePathForZipFS(path: string): string {
+    return path.replace(/^\.?\/(?:\.?\.\/)*/, "");
 }
 
 /**
@@ -255,13 +311,52 @@ declare global {
  *
  * @todo Add support for relative script imports in the scripts of .mcouicplugin files, use RollupJS, also use the `rollup-plugin-typescript2` RollupJS plugin to allow for typescript.
  */
-export async function importPluginFromDataURI(dataURI: string, type: "js" | "mcouicplugin" = "js"): Promise<Plugin> {
+export async function importPluginFromDataURI(
+    dataURI: string,
+    options: {
+        oreUICustomizerEnvGlobalVariableName: string | null;
+        pluginEnvID?: string | undefined;
+    },
+    type: "js" | "mcouicplugin" = "js"
+): Promise<Plugin> {
     switch (type) {
         case "mcouicplugin": {
             const zipFs = new zip.fs.FS();
             await zipFs.importData64URI(dataURI);
             const manifest: PluginManifestJSON = JSON.parse(await (zipFs.getChildByName("manifest.json") as zip.ZipFileEntry<any, any>).getText());
-            const entry: string = manifest.entry.replaceAll(/^(\/|\.\/)+/g, "");
+            const entry: string = normalizePathForZipFS(manifest.entry);
+            if (!options.pluginEnvID || !(globalThis as any)[options.pluginEnvID]) {
+                options.pluginEnvID ??= `__plugin_env_${manifest.header.id}_${manifest.header.version}_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+            }
+            globalPluginEnvs.set(options.pluginEnvID, {
+                fetchFileContents(path: string): Promise<Uint8Array<ArrayBufferLike>> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getUint8Array();
+                },
+                fetchFileStringContents(path: string): Promise<string> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getText();
+                },
+                fetchFileAsBlob(path: string): Promise<Blob> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getBlob();
+                },
+                fetchFileAsWritableStream(path: string): Promise<WritableStream<any>> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getWritable();
+                },
+                findZipEntry(path: string): zip.ZipEntry | undefined {
+                    return zipFs.find(normalizePathForZipFS(path));
+                },
+                findZipFileEntry<ReaderType = any, WriterType = any>(path: string): zip.ZipFileEntry<ReaderType, WriterType> | undefined {
+                    const result: zip.ZipEntry | undefined = zipFs.find(normalizePathForZipFS(path));
+                    if (result instanceof zip.fs.ZipFileEntry) return result;
+                    return undefined;
+                },
+                findZipDirectoryEntry(path: string): zip.ZipDirectoryEntry | undefined {
+                    const result: zip.ZipEntry | undefined = zipFs.find(normalizePathForZipFS(path));
+                    if (result instanceof zip.fs.ZipDirectoryEntry) return result;
+                    return undefined;
+                },
+                zipFs,
+                manifest: manifest as any,
+            });
             // const moduleList: string[] = ["@ore-ui-customizer/utilities"];
             // const addRequireDefinition: string = `function require(path) { return ; };`;
             /* async function loadScriptImports(script: string, path?: string): Promise<string> {
@@ -284,19 +379,31 @@ export async function importPluginFromDataURI(dataURI: string, type: "js" | "mco
                 ) {
                     const importPath: string | undefined = match[1] || match[2];
                     if (!importPath || moduleList.includes(importPath)) continue;
-                    const importContent: string = await loadScriptImports(await (zipFs.getChildByName(importPath) as zip.ZipFileEntry<any, any>).getText(), joinPath(path, importPath));
+                    const importContent: string = await loadScriptImports(await (zipFs.find(normalizePathForZipFS(importPath)) as zip.ZipFileEntry<any, any>).getText(), joinPath(path, importPath));
                     result = result.replace(match[0], `data:text/javascript,${encodeURIComponent(importContent)}`);
                 }
                 return result;
             }
-            let script: string = await loadScriptImports(await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getText()); */
+            let script: string = await loadScriptImports(await (zipFs.find(normalizePathForZipFS(entry)) as zip.ZipFileEntry<any, any>).getText()); */
             let data: { plugin: PluginEntryScriptPlugin } = await import(
                 /* @vite-ignore */
-                await (
-                    zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
-                ).getData64URI("application/javascript")
+                `data:application/javascript,${encodeURIComponent(
+                    `${
+                        options.oreUICustomizerEnvGlobalVariableName
+                            ? `const customizerEnv = globalThis[${JSON.stringify(options.oreUICustomizerEnvGlobalVariableName)}];\n`
+                            : ""
+                    }${
+                        options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""
+                    }${removeEmptyKnownTypeOnlyModuleImportsFromScript(
+                        await (
+                            zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
+                        ).getText()
+                    )}\n// ${Math.random().toString(36).slice(2)}`
+                )}`
             );
-            return { ...manifest, ...manifest.header, ...data.plugin } as Plugin;
+            const plugin: Plugin = { ...manifest, ...manifest.header, ...data.plugin };
+            globalPluginEnvIDs.set(plugin, options.pluginEnvID);
+            return plugin;
         }
         case "js": {
             const data: { plugin: Plugin } = await import(/* @vite-ignore */ dataURI);
@@ -318,7 +425,14 @@ export async function importPluginFromDataURI(dataURI: string, type: "js" | "mco
  * @throws {TypeError} If the plugin type is not supported.
  * @throws {TypeError | SyntaxError | ReferenceError | EvalError} If the plugin is not valid.
  */
-export async function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "js"): Promise<void> {
+export async function validatePluginFile(
+    plugin: Blob,
+    options: {
+        oreUICustomizerEnvGlobalVariableName: string | null;
+        pluginEnvID?: string | undefined;
+    },
+    type: "mcouicplugin" | "js"
+): Promise<void> {
     switch (type) {
         case "mcouicplugin": {
             const zipFs: zip.FS = new zip.fs.FS();
@@ -332,15 +446,59 @@ export async function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "j
             if (!("entry" in manifest)) throw new SyntaxError(`Plugin "manifest.json" is missing required field "entry".`);
             if (typeof manifest.entry !== "string") throw new SyntaxError(`Plugin "manifest.json" field "entry" is not a string.`);
             if (!manifest.entry) throw new SyntaxError(`Plugin "manifest.json" field "entry" is empty.`);
-            const entry: string = manifest.entry.replaceAll(/^(\/|\.\/)+/g, "");
-            if (!zipFs.getChildByName(entry))
+            const entry: string = normalizePathForZipFS(manifest.entry);
+            if (!zipFs.find(entry))
                 throw new ReferenceError(`Plugin is missing required entry file specified by "entry" field in "manifest.json": "${entry}".`);
+            if (!options.pluginEnvID || !(globalThis as any)[options.pluginEnvID]) {
+                options.pluginEnvID ??= `__plugin_env_${manifest.header.id}_${manifest.header.version}_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+            }
+            globalPluginEnvs.set(options.pluginEnvID, {
+                fetchFileContents(path: string): Promise<Uint8Array<ArrayBufferLike>> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getUint8Array();
+                },
+                fetchFileStringContents(path: string): Promise<string> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getText();
+                },
+                fetchFileAsBlob(path: string): Promise<Blob> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getBlob();
+                },
+                fetchFileAsWritableStream(path: string): Promise<WritableStream<any>> {
+                    return (zipFs.find(normalizePathForZipFS(path)) as zip.ZipFileEntry<any, any>).getWritable();
+                },
+                findZipEntry(path: string): zip.ZipEntry | undefined {
+                    return zipFs.find(normalizePathForZipFS(path));
+                },
+                findZipFileEntry<ReaderType = any, WriterType = any>(path: string): zip.ZipFileEntry<ReaderType, WriterType> | undefined {
+                    const result: zip.ZipEntry | undefined = zipFs.find(normalizePathForZipFS(path));
+                    if (result instanceof zip.fs.ZipFileEntry) return result;
+                    return undefined;
+                },
+                findZipDirectoryEntry(path: string): zip.ZipDirectoryEntry | undefined {
+                    const result: zip.ZipEntry | undefined = zipFs.find(normalizePathForZipFS(path));
+                    if (result instanceof zip.fs.ZipDirectoryEntry) return result;
+                    return undefined;
+                },
+                zipFs,
+                manifest: manifest as any,
+            });
             try {
                 var data: { plugin: PluginEntryScriptPlugin } = await import(
-                    /* @vite-ignore */ await (zipFs.getChildByName(entry) as zip.ZipFileEntry<any, any>).getData64URI()
+                    /* @vite-ignore */ `data:application/javascript,${encodeURIComponent(
+                        `${
+                            options.oreUICustomizerEnvGlobalVariableName
+                                ? `const customizerEnv = globalThis[${JSON.stringify(options.oreUICustomizerEnvGlobalVariableName)}];\n`
+                                : ""
+                        }${
+                            options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""
+                        }${removeEmptyKnownTypeOnlyModuleImportsFromScript(
+                            await (
+                                zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
+                            ).getText()
+                        )}\n// ${Math.random().toString(36).slice(2)}`
+                    )}`
                 );
             } catch (e: any) {
-                throw new EvalError(`Plugin entry file "${entry}" throw an error when imported: ${e.name}: ${e.message}`, { cause: e });
+                throw new EvalError(`Plugin entry file "${entry}" threw an error when imported: ${e.name}: ${e.message}`, { cause: e });
             }
             if (data?.plugin) {
                 validatePluginObject({ ...manifest, ...manifest.header, ...data.plugin } as Plugin);

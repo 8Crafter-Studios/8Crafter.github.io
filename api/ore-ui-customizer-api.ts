@@ -7,12 +7,13 @@ import {
     importPluginFromDataURI,
 } from "../assets/shared/ore-ui-customizer-assets.js";
 import type { EncodedPluginData, OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
+import type {} from "@ore-ui-customizer-api/plugin-env/backend";
 import "./zip.js";
 
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.10.0";
+export const format_version = "1.11.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -91,6 +92,12 @@ export interface ApplyModsOptions {
      * @default undefined
      */
     nodeFS?: typeof import("fs");
+    /**
+     * The type of the Ore UI Customizer.
+     *
+     * @default "CLI"
+     */
+    type?: OreUICustomizerType;
 }
 
 /**
@@ -122,12 +129,43 @@ export function resolveOreUICustomizerSettings(
             : OreUICustomizerSettings[key];
     } = {}
 ): OreUICustomizerSettings {
-    return {
+    const resolvedSettings = {
         ...defaultOreUICustomizerSettings,
         ...settings,
         colorReplacements: { ...defaultOreUICustomizerSettings.colorReplacements, ...settings.colorReplacements },
         enabledBuiltInPlugins: { ...defaultOreUICustomizerSettings.enabledBuiltInPlugins, ...settings.enabledBuiltInPlugins },
     };
+    resolvedSettings.plugins?.forEach((plugin) => {
+        if (!plugin.dependencies) return;
+        plugin.dependencies.forEach((dependency) => {
+            if (!("uuid" in dependency)) return;
+            const requiredBuildInPlugin = builtInPlugins.find((plugin) => plugin.uuid === dependency.uuid);
+            if (!requiredBuildInPlugin) return;
+            if (resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id]) return;
+            resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id] = true;
+            console.warn(
+                `Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${
+                    plugin.namespace
+                }:${plugin.id})`
+            );
+        });
+    });
+    resolvedSettings.preloadedPlugins?.forEach((plugin) => {
+        if (!plugin.dependencies) return;
+        plugin.dependencies.forEach((dependency) => {
+            if (!("uuid" in dependency)) return;
+            const requiredBuildInPlugin = builtInPlugins.find((plugin) => plugin.uuid === dependency.uuid);
+            if (!requiredBuildInPlugin) return;
+            if (resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id]) return;
+            resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id] = true;
+            console.warn(
+                `Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${
+                    plugin.namespace
+                }:${plugin.id})`
+            );
+        });
+    });
+    return resolvedSettings;
 }
 
 /**
@@ -205,12 +243,26 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
      * The settings used to apply the mods.
      */
     const settings: OreUICustomizerSettings = resolveOreUICustomizerSettings(options.settings);
+    const oreUICustomizerEnvGlobalVariableName = `__customizer_env_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+    ((globalThis as any)[oreUICustomizerEnvGlobalVariableName] as OreUICustomizerEnv) = {
+        settings,
+        type: options.type ?? ((globalThis as any).electron ? "App" : "CLI"),
+        version: format_version,
+    };
     /**
      * The list of plugins to apply.
      */
     const plugins: Plugin[] = [...builtInPlugins, ...(settings.preloadedPlugins ?? [])];
     for (const encodedPlugin of settings.plugins ?? []) {
-        plugins.push(await importPluginFromDataURI(encodedPlugin.dataURI, encodedPlugin.fileType));
+        plugins.push(
+            await importPluginFromDataURI(
+                encodedPlugin.dataURI,
+                {
+                    oreUICustomizerEnvGlobalVariableName,
+                },
+                encodedPlugin.fileType
+            )
+        );
     }
     for (const plugin of plugins) {
         if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
@@ -228,7 +280,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
     }
     for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
         if (/^(gui\/)?dist\/hbui\/assets\/[^/]*?%40/.test(entry.data?.filename!)) {
-            let origName = entry.name;
+            let origName: string = entry.name;
             entry.rename(entry.name.split("/").pop()!.replaceAll("%40", "@"));
             log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
             modifiedCount++;
@@ -241,7 +293,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                  * @type {string}
                  */
                 const origData: string = await entry.getText();
-                let distData = origData;
+                let distData: string = origData;
                 /**
                  * @type {string[]}
                  */
@@ -268,11 +320,11 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     } else if (entry.data?.filename.endsWith(".css")) {
                         distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
-                        )} */\n${distData}`;
+                        ).replaceAll("*/", "*\\/")} */\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".html")) {
                         distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
-                        )} -->\n${distData}`;
+                        ).replaceAll("-->", "--\\>")} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
                     log(`Entry ${entry.name} has been successfully modified.`);
@@ -287,7 +339,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                  * @type {Blob}
                  */
                 const origData: Blob = await entry.getBlob();
-                let distData = origData;
+                let distData: Blob = origData;
                 /**
                  * @type {string[]}
                  */
@@ -345,7 +397,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
              */
             const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
             if (settings.hardcoreModeToggleAlwaysClickable) {
-                let successfullyReplaced = false;
+                let successfullyReplaced: boolean = false;
                 for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
                     if (regex.test(distData)) {
                         distData = distData.replace(
@@ -391,7 +443,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 }
             }
             if (settings.allowDisablingEnabledExperimentalToggles) {
-                let successfullyReplaced = false;
+                let successfullyReplaced: boolean = false;
                 for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
                     if (regex.test(distData)) {
                         distData = distData.replace(
@@ -464,8 +516,8 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
             }
             // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
             if (settings.addMoreDefaultGameModes) {
-                let successfullyReplacedA = false;
-                let successfullyReplacedB = false;
+                let successfullyReplacedA: boolean = false;
+                let successfullyReplacedB: boolean = false;
                 for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
                     if (regex.test(distData)) {
                         distData = distData.replace(
@@ -1736,6 +1788,13 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
     log(`Edited ${editedCount} entries.`);
     log(`Renamed ${renamedCount} entries.`);
     log(`Total entries: ${zipFs.entries.length}.`);
+    for (const plugin of plugins) {
+        if (!globalPluginEnvIDs.has(plugin)) continue;
+        const envID: string = globalPluginEnvIDs.get(plugin)!;
+        globalPluginEnvIDs.delete(plugin);
+        globalPluginEnvs.delete(envID);
+    }
+    delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
     return {
         zip: await zipFs.exportBlob(),
         config: settings,

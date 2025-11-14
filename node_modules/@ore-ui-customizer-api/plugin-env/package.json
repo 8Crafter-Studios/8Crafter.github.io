@@ -1,0 +1,52 @@
+{
+    "name": "@ore-ui-customizer-api/plugin-env",
+    "version": "1.0.0",
+    "description": "Environment types for plugins for 8Crafter's Ore UI Customizer.",
+    "keywords": [
+        "Ore UI",
+        "OreUI",
+        "Minecraft",
+        "minecraft",
+        "MCBE",
+        "mcbe",
+        "Types",
+        "types",
+        "MC",
+        "8Crafter",
+        "Ore UI Customizer",
+        "OUIC",
+        "ouic"
+    ],
+    "homepage": "https://github.com/8Crafter-Studios/Ore-UI-Customizer-API.Plugin-Env#readme",
+    "bugs": {
+        "email": "8crafteryt@gmail.com",
+        "url": "https://github.com/8Crafter-Studios/Ore-UI-Customizer-API.Plugin-Env/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/8Crafter-Studios/Ore-UI-Customizer-API.Plugin-Env.git"
+    },
+    "license": "MIT",
+    "author": {
+        "email": "8crafteryt@gmail.com",
+        "name": "8Crafter",
+        "url": "https://www.8crafter.com"
+    },
+    "type": "module",
+    "exports": {
+        ".": {
+            "default": "./index.d.ts",
+            "types": "./index.d.ts"
+        },
+        "./backend": {
+            "default": "./backend.d.ts",
+            "types": "./backend.d.ts"
+        }
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "ore-ui-customizer-types": "^1.0.2"
+    }
+}

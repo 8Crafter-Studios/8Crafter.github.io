@@ -1,4 +1,5 @@
 {
+    "$schema": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
     "format_version": 1,
     "header": {
         "name": "Replace \"Play\" with \"lol\"",

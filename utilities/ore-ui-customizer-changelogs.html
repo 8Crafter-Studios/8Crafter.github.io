@@ -184,6 +184,61 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.11.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>
+                                Multi-file plugins now have access to two new constants that are basically modules:
+                                <ul>
+                                    <li><code>customizerEnv</code></li>
+                                    <li><code>pluginEnv</code></li>
+                                </ul>
+                                These allow the plugin to access files from inside of itself, to allow it to load assets included in the plugin and inject them
+                                into the Ore UI files, as well as seeing details about the Ore UI Customizer (ex. if it is running in the website, app, or CLI,
+                                and the version), and being able to modify the Ore UI Customizer's settings in actions that use the
+                                <code>global_before</code> context.
+                                <br />
+                                The types for these can be found in the
+                                <a href="https://www.npmjs.com/package/@ore-ui-customizer-api/plugin-env"><code>@ore-ui-customizer-api/plugin-env</code></a> NPM
+                                package.
+                                <br />
+                                To use it in your plugin just install the package and put the following at the top of your plugin's main TypeScript file:
+                                <code>import type {} from "@ore-ui-customizer-api/plugin-env";</code>
+                                <br />
+                                Note: These constants are only available in Ore UI Customizer v1.11.0+, to maintain backwards compatibility it is recommended to
+                                check if the constants exist with <code>typeof customizerEnv !== "undefined"</code> before acessing them.
+                            </li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>
+                                Listing a built-in plugin as a dependency of a plugin now forcefully enables that built-in plugin, the version field of built-in
+                                plugin dependencies is ignored.
+                            </li>
+                            <li>
+                                Updated the URL in the comment at the top of the <code>customOverlays.css</code> file to be
+                                <a href="https://www.8crafter.com/assets/css/default.css"><code>https://www.8crafter.com/assets/css/default.css</code></a>
+                                instead of
+                                <a href="https://www.dev.8crafter.com/assets/css/default.css">
+                                    <code>https://www.dev.8crafter.com/assets/css/default.css</code>
+                                </a>.
+                            </li>
+                        </ul>
+                        <h3>Website Version</h3>
+                        <ul>
+                            <li>
+                                The <code>Import Plugin</code> button now also supports multi-file plugins with the <code>.ouicplugin</code> file extension
+                                instead of only <code>.mcouicplugin</code>.
+                            </li>
+                            <li>Multi-file plugins are now functional.</li>
+                            <li>Fixed the "v1.21.120/121 (PC)" preset.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.10.0</h2>
                     </div>
                     <div class="collapsible-group-content">

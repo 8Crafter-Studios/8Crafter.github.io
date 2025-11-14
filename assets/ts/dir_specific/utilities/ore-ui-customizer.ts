@@ -4,9 +4,11 @@ import {
     type ExtractedSymbolNames,
     getExtractedSymbolNames,
     getReplacerRegexes,
+    importPluginFromDataURI,
     validatePluginFile,
 } from "../../../shared/ore-ui-customizer-assets.js";
-import type { EncodedPluginData, OreUICustomizerConfig, OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
+import type { EncodedPluginData, OreUICustomizerConfig, OreUICustomizerSettings, Plugin, PluginManifestJSON } from "ore-ui-customizer-types";
+import type {} from "@ore-ui-customizer-api/plugin-env/backend";
 // import semver from "../../../shared/semver.js";
 
 /**
@@ -62,7 +64,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.10.0";
+    export const format_version = "1.11.0";
     /**
      * @type {File | undefined}
      */
@@ -171,9 +173,49 @@ export namespace OreUICustomizer {
                     $("#file-import-input").prop("disabled", false);
                     break;
                 }
-                case "mcouicplugin": {
+                case "mcouicplugin":
+                case "ouicplugin": {
                     try {
-                        await validatePluginFile(event.originalEvent.dataTransfer.files[0], "mcouicplugin");
+                        {
+                            const oreUICustomizerEnvGlobalVariableName = `__customizer_env_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+                            ((globalThis as any)[oreUICustomizerEnvGlobalVariableName] as OreUICustomizerEnv) = {
+                                settings: getSettings(true),
+                                type: "Website",
+                                version: format_version,
+                            };
+                            await validatePluginFile(
+                                event.originalEvent.dataTransfer.files[0],
+                                {
+                                    oreUICustomizerEnvGlobalVariableName,
+                                },
+                                "mcouicplugin"
+                            );
+                            delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
+                        }
+                        const zipFs: zip.FS = new zip.fs.FS();
+                        await zipFs.importBlob(event.originalEvent.dataTransfer.files[0]);
+                        var manifest: PluginManifestJSON = JSON.parse(await (zipFs.getChildByName("manifest.json") as zip.ZipFileEntry<any, any>).getText());
+                        encodedImportedPlugins.push({
+                            dataURI: await blobToDataURI(event.originalEvent.dataTransfer.files[0]),
+                            fileType: "js",
+                            id: manifest.header.id,
+                            uuid: manifest.header.uuid,
+                            version: manifest.header.version,
+                            description: manifest.header.description,
+                            name: manifest.header.name,
+                            format_version: manifest.header.format_version,
+                            namespace: manifest.header.namespace,
+                            min_engine_version: manifest.header.min_engine_version,
+                            checkForUpdatesDetails: manifest.checkForUpdatesDetails,
+                            dependencies: manifest.dependencies,
+                            icon_data_uri: manifest.icon_data_uri,
+                            marketplaceDetails: manifest.marketplaceDetails,
+                            metadata: manifest.metadata,
+                        });
+                        updatePluginsList();
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Successfully Imported Plugin</span><span>The plugin ${manifest.header.name} v${manifest.header.version} has been successfully imported.</span>`;
+                        document.body.prepend(popupElement);
                     } catch (e: any) {
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
                         popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
@@ -188,9 +230,15 @@ export namespace OreUICustomizer {
                     try {
                         const file: File = event.originalEvent.dataTransfer.files[0];
                         const objectURL: string = URL.createObjectURL(file);
-                        await validatePluginFile(file, "js");
+                        await validatePluginFile(
+                            file,
+                            {
+                                oreUICustomizerEnvGlobalVariableName: null,
+                            },
+                            "js"
+                        );
                         const data: { plugin: Plugin } = await import(objectURL);
-                        importedPlugins[data.plugin.id] = data.plugin;
+                        importedPlugins[`${data.plugin.id}-${data.plugin.uuid}-${data.plugin.version}`] = data.plugin;
                         const dataURI: `data:${string};base64,${string}` = await blobToDataURI(file);
                         const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === data.plugin.id);
                         encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
@@ -205,6 +253,11 @@ export namespace OreUICustomizer {
                             format_version: data.plugin.format_version,
                             namespace: data.plugin.namespace,
                             min_engine_version: data.plugin.min_engine_version,
+                            checkForUpdatesDetails: data.plugin.checkForUpdatesDetails,
+                            dependencies: data.plugin.dependencies,
+                            icon_data_uri: data.plugin.icon_data_uri,
+                            marketplaceDetails: data.plugin.marketplaceDetails,
+                            metadata: data.plugin.metadata,
                         });
                         updatePluginsList();
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
@@ -250,9 +303,49 @@ export namespace OreUICustomizer {
         $("#plugin-import-input").on("change", async function () {
             const files: FileList = $(this).prop("files");
             switch (files[0]?.name.split(".").at(-1)?.toLowerCase()) {
-                case "mcouicplugin": {
+                case "mcouicplugin":
+                case "ouicplugin": {
                     try {
-                        await validatePluginFile(files[0]!, "mcouicplugin");
+                        {
+                            const oreUICustomizerEnvGlobalVariableName = `__customizer_env_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+                            ((globalThis as any)[oreUICustomizerEnvGlobalVariableName] as OreUICustomizerEnv) = {
+                                settings: getSettings(true),
+                                type: "Website",
+                                version: format_version,
+                            };
+                            await validatePluginFile(
+                                files[0]!,
+                                {
+                                    oreUICustomizerEnvGlobalVariableName,
+                                },
+                                "mcouicplugin"
+                            );
+                            delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
+                        }
+                        const zipFs: zip.FS = new zip.fs.FS();
+                        await zipFs.importBlob(files[0]);
+                        var manifest: PluginManifestJSON = JSON.parse(await (zipFs.getChildByName("manifest.json") as zip.ZipFileEntry<any, any>).getText());
+                        encodedImportedPlugins.push({
+                            dataURI: await blobToDataURI(files[0]),
+                            fileType: "js",
+                            id: manifest.header.id,
+                            uuid: manifest.header.uuid,
+                            version: manifest.header.version,
+                            description: manifest.header.description,
+                            name: manifest.header.name,
+                            format_version: manifest.header.format_version,
+                            namespace: manifest.header.namespace,
+                            min_engine_version: manifest.header.min_engine_version,
+                            checkForUpdatesDetails: manifest.checkForUpdatesDetails,
+                            dependencies: manifest.dependencies,
+                            icon_data_uri: manifest.icon_data_uri,
+                            marketplaceDetails: manifest.marketplaceDetails,
+                            metadata: manifest.metadata,
+                        });
+                        updatePluginsList();
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Successfully Imported Plugin</span><span>The plugin ${manifest.header.name} v${manifest.header.version} has been successfully imported.</span>`;
+                        document.body.prepend(popupElement);
                     } catch (e: any) {
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
                         popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
@@ -267,9 +360,15 @@ export namespace OreUICustomizer {
                     try {
                         const file: File = files[0];
                         const objectURL: string = URL.createObjectURL(file);
-                        await validatePluginFile(file, "js");
+                        await validatePluginFile(
+                            file,
+                            {
+                                oreUICustomizerEnvGlobalVariableName: null,
+                            },
+                            "js"
+                        );
                         const data: { plugin: Plugin } = await import(objectURL);
-                        importedPlugins[data.plugin.id] = data.plugin;
+                        importedPlugins[`${data.plugin.id}-${data.plugin.uuid}-${data.plugin.version}`] = data.plugin;
                         const dataURI: `data:${string};base64,${string}` = await blobToDataURI(file);
                         const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === data.plugin.id);
                         encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
@@ -284,6 +383,11 @@ export namespace OreUICustomizer {
                             format_version: data.plugin.format_version,
                             namespace: data.plugin.namespace,
                             min_engine_version: data.plugin.min_engine_version,
+                            checkForUpdatesDetails: data.plugin.checkForUpdatesDetails,
+                            dependencies: data.plugin.dependencies,
+                            icon_data_uri: data.plugin.icon_data_uri,
+                            marketplaceDetails: data.plugin.marketplaceDetails,
+                            metadata: data.plugin.metadata,
                         });
                         updatePluginsList();
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
@@ -835,19 +939,19 @@ export namespace OreUICustomizer {
      * Updates the list of plugins.
      */
     export function updatePluginsList(): void {
-        $("#pluginCount").text(`${Object.keys(importedPlugins).length} Plugin${Object.keys(importedPlugins).length !== 1 ? "s" : ""}`);
+        $("#pluginCount").text(`${encodedImportedPlugins.length} Plugin${encodedImportedPlugins.length !== 1 ? "s" : ""}`);
         $("#plugin-list").children().remove();
         const pluginItemTemplate = $("#plugin-item-template").prop("content");
-        for (const [thisKey, plugin] of Object.entries(importedPlugins)) {
+        for (const plugin of encodedImportedPlugins) {
             const pluginItem = $(pluginItemTemplate).clone();
             $(pluginItem).find("[data-temp='pluginid']").text(`${plugin.id} (v${plugin.version})`);
             $(pluginItem).find("[data-temp='pluginname']").text(plugin.name);
             $(pluginItem).find("[data-temp]").removeAttr("data-temp");
             $(pluginItem)
                 .find("button[name=delete]")
-                .on("click", () => {
-                    delete importedPlugins[thisKey];
-                    const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.id === plugin.id);
+                .on("click", (): void => {
+                    delete importedPlugins[`${plugin.id}-${plugin.uuid}-${plugin.version}`];
+                    const encodedPluginIndex: number = encodedImportedPlugins.findIndex((p) => p.uuid === plugin.uuid);
                     encodedPluginIndex !== -1 && encodedImportedPlugins.splice(encodedPluginIndex, 1);
                     updatePluginsList();
                 });
@@ -971,9 +1075,9 @@ console.log(Object.entries(colorMap).map(v=>`                    <div class="for
 console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}: $("#colors_customizer_settings_section_${v[0]}").val(),`).join("\n"));
 */
 
-    export function getSettings(): OreUICustomizerSettings {
+    export function getSettings(hideDependencyWarnings: boolean = false): OreUICustomizerSettings {
         // Temporary placeholders
-        return {
+        const resolvedSettings = {
             /**
              * This will allow you to turn hardcore mode on and off whenever you want.
              *
@@ -1166,6 +1270,23 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "rgba(5, 0, 41, 0.5)": ($("#colors_customizer_settings_section_deepBlueOpacity50") as JQuery<HTMLInputElement>).val() ?? "rgba(5, 0, 41, 0.5)",
             },
         };
+        encodedImportedPlugins?.forEach((plugin) => {
+            if (!plugin.dependencies) return;
+            plugin.dependencies.forEach((dependency) => {
+                if (!("uuid" in dependency)) return;
+                const requiredBuildInPlugin = builtInPlugins.find((plugin) => plugin.uuid === dependency.uuid);
+                if (!requiredBuildInPlugin) return;
+                if (resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id]) return;
+                resolvedSettings.enabledBuiltInPlugins[requiredBuildInPlugin.id] = true;
+                !hideDependencyWarnings &&
+                    console.warn(
+                        `Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${
+                            plugin.namespace
+                        }:${plugin.id})`
+                    );
+            });
+        });
+        return resolvedSettings;
     }
 
     export function setSettings(settings: {
@@ -1607,10 +1728,26 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
          */
         var allFailedReplaces: { [filename: string]: string[] } = {};
         if (!zipFs) return false;
+        const oreUICustomizerEnvGlobalVariableName = `__customizer_env_${Date.now()}_${Math.floor(Math.random() * 1000000)}__`;
+        ((globalThis as any)[oreUICustomizerEnvGlobalVariableName] as OreUICustomizerEnv) = {
+            settings,
+            type: "Website",
+            version: format_version,
+        };
         /**
          * The list of plugins to apply.
          */
         const plugins: Plugin[] = [...builtInPlugins, ...Object.values(importedPlugins)];
+        for (const plugin of encodedImportedPlugins) {
+            if (importedPlugins[`${plugin.id}-${plugin.uuid}-${plugin.version}`]) continue;
+            importPluginFromDataURI(
+                plugin.dataURI,
+                {
+                    oreUICustomizerEnvGlobalVariableName,
+                },
+                plugin.fileType
+            );
+        }
         $("#current_customizer_status").text("Applying mods (Modifying files)...");
         for (const plugin of plugins) {
             if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
@@ -1671,11 +1808,11 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         } else if (entry.data?.filename.endsWith(".css")) {
                             distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                                 { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
-                            )} */\n${distData}`;
+                            ).replaceAll("*/", "*\\/")} */\n${distData}`;
                         } else if (entry.data?.filename.endsWith(".html")) {
                             distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                                 { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
-                            )} -->\n${distData}`;
+                            ).replaceAll("-->", "--\\>")} -->\n${distData}`;
                         }
                         entry.replaceText(distData);
                         console.log(`Entry ${entry.name} has been successfully modified.`);
@@ -3185,6 +3322,13 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         $("#apply_mods").prop("disabled", false);
         $("#download").prop("disabled", false);
         $("#download_in_new_tab_button").prop("disabled", false);
+        for (const plugin of plugins) {
+            if (!globalPluginEnvIDs.has(plugin)) continue;
+            const envID: string = globalPluginEnvIDs.get(plugin)!;
+            globalPluginEnvIDs.delete(plugin);
+            globalPluginEnvs.delete(envID);
+        }
+        delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
         return true;
     }
 

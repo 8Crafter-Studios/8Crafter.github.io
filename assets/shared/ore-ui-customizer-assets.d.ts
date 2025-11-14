@@ -1,5 +1,5 @@
 import "./zip.js";
-import type { OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
+import type { OreUICustomizerSettings, Plugin, EncodedPluginData } from "ore-ui-customizer-types";
 /**
  * The default settings for 8Crafter's Ore UI Customizer.
  */
@@ -20,8 +20,32 @@ declare global {
          * @returns The joined path.
          */
         function joinPath(...input: string[]): string;
+        /**
+         * The global plugin to plugin env ID map.
+         */
+        var globalPluginEnvIDs: Map<import("ore-ui-customizer-types").Plugin | EncodedPluginData, string>;
+        /**
+         * The global plugin env ID to plugin env map.
+         */
+        var globalPluginEnvs: Map<string, OreUICustomizerPluginEnv>;
     }
 }
+/**
+ * Removes empty known type only module imports from a script
+ *
+ * @param script The script.
+ * @returns The script without empty known type only module imports
+ */
+export declare function removeEmptyKnownTypeOnlyModuleImportsFromScript(script: string): string;
+/**
+ * Normalizes a path for use with {@link zip.FS}.
+ *
+ * This is made for use with {@link zip.FS.find}.
+ *
+ * @param path The path to normalize.
+ * @returns The normalized path.
+ */
+export declare function normalizePathForZipFS(path: string): string;
 /**
  * Imports a plugin from a data URI.
  *
@@ -33,7 +57,10 @@ declare global {
  *
  * @todo Add support for relative script imports in the scripts of .mcouicplugin files, use RollupJS, also use the `rollup-plugin-typescript2` RollupJS plugin to allow for typescript.
  */
-export declare function importPluginFromDataURI(dataURI: string, type?: "js" | "mcouicplugin"): Promise<Plugin>;
+export declare function importPluginFromDataURI(dataURI: string, options: {
+    oreUICustomizerEnvGlobalVariableName: string | null;
+    pluginEnvID?: string | undefined;
+}, type?: "js" | "mcouicplugin"): Promise<Plugin>;
 /**
  * Validates a plugin file.
  *
@@ -44,7 +71,10 @@ export declare function importPluginFromDataURI(dataURI: string, type?: "js" | "
  * @throws {TypeError} If the plugin type is not supported.
  * @throws {TypeError | SyntaxError | ReferenceError | EvalError} If the plugin is not valid.
  */
-export declare function validatePluginFile(plugin: Blob, type: "mcouicplugin" | "js"): Promise<void>;
+export declare function validatePluginFile(plugin: Blob, options: {
+    oreUICustomizerEnvGlobalVariableName: string | null;
+    pluginEnvID?: string | undefined;
+}, type: "mcouicplugin" | "js"): Promise<void>;
 /**
  * Validates a plugin object.
  *

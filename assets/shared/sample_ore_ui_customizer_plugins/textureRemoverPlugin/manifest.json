@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../../schemas/ouic/plugin/manifest.schema.json",
+    "$schema": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
     "format_version": 1,
     "header": {
         "name": "Texture Remover",
