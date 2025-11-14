@@ -5,9 +5,10 @@
     "main": "index.js",
     "scripts": {
         "test": "index.js",
-        "generateSitemap": "node --experimental-transform-types generateSitemap.ts",
+        "generateSitemap": "node --experimental-transform-types generateSitemap.ts && node --experimental-transform-types generateSitemap.ts",
         "$TODO_1": "Make the below install script work on `npm i <package-name>`.",
-        "install": "node postinstall.js"
+        "install": "node postinstall.js",
+        "postinstall": "node --experimental-transform-types generateSitemap.ts && node --experimental-transform-types generateSitemap.ts"
     },
     "type": "module",
     "keywords": [],

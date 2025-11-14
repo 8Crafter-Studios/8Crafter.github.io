@@ -26,5 +26,5 @@
             "flags": "i"
         }
     ],
-    "exclude": ["**/.git/**"]
+    "exclude": ["/.git/**", "/CNAME"]
 }
