@@ -1,4 +1,6 @@
 /*
+ * Converted to TypeScript by 8Crafter on 11/12/2025.
+ *
  * Copyright (C) 2015 Pavel Savshenko
  * Copyright (C) 2011 Google Inc.  All rights reserved.
  * Copyright (C) 2007, 2008 Apple Inc.  All rights reserved.
@@ -30,24 +32,27 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * A namespace with utility functions for getting the CSS path to a node.
+ */
 //@ts-ignore
 namespace UTILS {
     export class DOMNodePathStep {
-        value: string;
-        optimized: boolean;
+        public value: string;
+        public optimized: boolean;
         /**
          * @constructor
          * @param {string} value
          * @param {boolean} optimized
          */
-        constructor(value: string, optimized: boolean) {
+        public constructor(value: string, optimized: boolean) {
             this.value = value;
             this.optimized = optimized || false;
         }
         /**
-         * @return {string}
+         * @returns {string}
          */
-        toString(): string {
+        public toString(): string {
             return this.value;
         }
     }

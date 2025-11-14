@@ -1,5 +1,7 @@
 "use strict";
 /*
+ * Converted to TypeScript by 8Crafter on 11/12/2025.
+ *
  * Copyright (C) 2015 Pavel Savshenko
  * Copyright (C) 2011 Google Inc.  All rights reserved.
  * Copyright (C) 2007, 2008 Apple Inc.  All rights reserved.
@@ -30,6 +32,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/**
+ * A namespace with utility functions for getting the CSS path to a node.
+ */
 //@ts-ignore
 var UTILS;
 (function (UTILS) {
@@ -46,7 +51,7 @@ var UTILS;
             this.optimized = optimized || false;
         }
         /**
-         * @return {string}
+         * @returns {string}
          */
         toString() {
             return this.value;

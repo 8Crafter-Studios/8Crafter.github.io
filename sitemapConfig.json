@@ -1,0 +1,30 @@
+{
+    "changeFrequencies": [
+        {
+            "regex": "^/sitemap.xml$",
+            "changeFrequency": "always",
+            "flags": "i"
+        },
+        {
+            "regex": "^/api/",
+            "changeFrequency": "hourly",
+            "flags": "i"
+        },
+        {
+            "regex": "^/utilities/ore-ui-customizer(?:-changelogs)?(?:\\.html)?$",
+            "changeFrequency": "hourly",
+            "flags": "i"
+        },
+        {
+            "regex": "tsconfig\\.tsbuildinfo",
+            "changeFrequency": "hourly",
+            "flags": "i"
+        },
+        {
+            "regex": "\\.json$",
+            "changeFrequency": "hourly",
+            "flags": "i"
+        }
+    ],
+    "exclude": ["**/.git/**"]
+}

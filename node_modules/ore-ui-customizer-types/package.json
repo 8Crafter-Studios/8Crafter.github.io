@@ -1,0 +1,44 @@
+{
+    "name": "ore-ui-customizer-types",
+    "version": "1.0.0",
+    "description": "Types for 8Crafter's Ore UI Customizer.",
+    "keywords": [
+        "Ore UI",
+        "OreUI",
+        "Minecraft",
+        "minecraft",
+        "MCBE",
+        "mcbe",
+        "Types",
+        "types",
+        "MC",
+        "8Crafter",
+        "Ore UI Customizer",
+        "OUIC",
+        "ouic"
+    ],
+    "homepage": "https://github.com/8Crafter-Studios/Ore-UI-Customizer-Types#readme",
+    "bugs": {
+        "email": "8crafteryt@gmail.com",
+        "url": "https://github.com/8Crafter-Studios/Ore-UI-Customizer-Types/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/8Crafter-Studios/Ore-UI-Customizer-Types.git"
+    },
+    "license": "MIT",
+    "author": {
+        "email": "8crafteryt@gmail.com",
+        "name": "8Crafter",
+        "url": "https://www.8crafter.com"
+    },
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./index.d.ts"
+        }
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    }
+}

@@ -1,15 +1,12 @@
 import {
     blobToDataURI,
     builtInPlugins,
-    EncodedPluginData,
     type ExtractedSymbolNames,
     getExtractedSymbolNames,
     getReplacerRegexes,
-    OreUICustomizerConfig,
-    OreUICustomizerSettings,
-    Plugin,
     validatePluginFile,
 } from "../../../shared/ore-ui-customizer-assets.js";
+import type { EncodedPluginData, OreUICustomizerConfig, OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
 // import semver from "../../../shared/semver.js";
 
 /**

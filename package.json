@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "test": "index.js",
-        "generateSitemap": "node sitemap_generator.js",
+        "generateSitemap": "node --experimental-transform-types generateSitemap.ts",
         "$TODO_1": "Make the below install script work on `npm i <package-name>`.",
         "install": "node postinstall.js"
     },
@@ -17,10 +17,14 @@
         "@ore-ui-types/enums": "^1.0.0",
         "express": "^4.21.1",
         "jquery": "^3.7.1",
+        "mime-types": "^3.0.1",
+        "ore-ui-customizer-types": "^1.0.0",
         "sitemap-generator": "^8.5.1"
     },
     "devDependencies": {
         "@types/jquery": "^3.5.32",
+        "@types/mime-types": "^3.0.1",
+        "@types/node": "^24.10.1",
         "@types/semver": "^7.7.0",
         "json5": "^2.2.3",
         "ore-ui-types": "^1.0.2"

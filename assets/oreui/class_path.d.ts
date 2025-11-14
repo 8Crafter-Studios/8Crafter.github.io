@@ -1,3 +1,6 @@
+/**
+ * A namespace with utility functions for getting the CSS path to a node.
+ */
 declare namespace UTILS {
     class DOMNodePathStep {
         value: string;
@@ -9,7 +12,7 @@ declare namespace UTILS {
          */
         constructor(value: string, optimized: boolean);
         /**
-         * @return {string}
+         * @returns {string}
          */
         toString(): string;
     }

@@ -1,14 +1,12 @@
 import {
     builtInPlugins,
     defaultOreUICustomizerSettings,
-    type EncodedPluginData,
     type ExtractedSymbolNames,
     getExtractedSymbolNames,
     getReplacerRegexes,
     importPluginFromDataURI,
-    type OreUICustomizerSettings,
-    type Plugin,
 } from "../assets/shared/ore-ui-customizer-assets.js";
+import type { EncodedPluginData, OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
 import "./zip.js";
 
 /**

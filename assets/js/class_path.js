@@ -1,6 +1,6 @@
 "use strict";
-/**
- * Converted to TypeScript by 8Crafter on 6/17/2025.
+/*
+ * Converted to TypeScript by 8Crafter on 11/12/2025.
  *
  * Copyright (C) 2015 Pavel Savshenko
  * Copyright (C) 2011 Google Inc.  All rights reserved.
@@ -35,10 +35,37 @@
 /**
  * A namespace with utility functions for getting the CSS path to a node.
  */
+//@ts-ignore
 var UTILS;
 (function (UTILS) {
+    class DOMNodePathStep {
+        value;
+        optimized;
+        /**
+         * @constructor
+         * @param {string} value
+         * @param {boolean} optimized
+         */
+        constructor(value, optimized) {
+            this.value = value;
+            this.optimized = optimized || false;
+        }
+        /**
+         * @returns {string}
+         */
+        toString() {
+            return this.value;
+        }
+    }
+    UTILS.DOMNodePathStep = DOMNodePathStep;
+    /**
+     *
+     * @param {Element} node
+     * @param {boolean | undefined} [optimized]
+     * @returns
+     */
     function cssPath(node, optimized) {
-        if (node?.nodeType !== Node.ELEMENT_NODE)
+        if (node.nodeType !== Node.ELEMENT_NODE)
             return "";
         var steps = [];
         var contextNode = node;
@@ -55,22 +82,28 @@ var UTILS;
         return steps.join(" > ");
     }
     UTILS.cssPath = cssPath;
+    /**
+     *
+     * @param {Element} node
+     * @param {boolean} optimized
+     * @param {boolean} isTargetNode
+     * @returns
+     */
     function _cssPathStep(node, optimized, isTargetNode) {
         if (node.nodeType !== Node.ELEMENT_NODE)
             return null;
-        const elementNode = node;
-        var id = elementNode.getAttribute("id");
+        var id = node.getAttribute("id");
         if (optimized) {
             if (id)
                 return new UTILS.DOMNodePathStep(idSelector(id), true);
-            var nodeNameLower = elementNode.nodeName.toLowerCase();
+            var nodeNameLower = node.nodeName.toLowerCase();
             if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html")
-                return new UTILS.DOMNodePathStep(elementNode.nodeName.toLowerCase(), true);
+                return new UTILS.DOMNodePathStep(node.nodeName.toLowerCase(), true);
         }
-        var nodeName = elementNode.nodeName.toLowerCase();
+        var nodeName = node.nodeName.toLowerCase();
         if (id)
             return new UTILS.DOMNodePathStep(nodeName.toLowerCase() + idSelector(id), true);
-        var parent = elementNode.parentNode;
+        var parent = node.parentNode;
         if (!parent || parent.nodeType === Node.DOCUMENT_NODE)
             return new UTILS.DOMNodePathStep(nodeName.toLowerCase(), true);
         /**
@@ -142,14 +175,14 @@ var UTILS;
         function isCSSIdentifier(value) {
             return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
         }
-        var prefixedOwnClassNamesArray = prefixedElementClassNames(elementNode);
+        var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
         var needsClassNames = false;
         var needsNthChild = false;
         var ownIndex = -1;
         var siblings = parent.children;
         for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
             var sibling = siblings[i];
-            if (sibling === elementNode) {
+            if (sibling === node) {
                 ownIndex = i;
                 continue;
             }
@@ -171,6 +204,7 @@ var UTILS;
                 var siblingClass = siblingClassNamesArray[j];
                 if (ownClassNames.indexOf(siblingClass))
                     continue;
+                //@ts-ignore
                 delete ownClassNames[siblingClass];
                 if (!--ownClassNameCount) {
                     needsNthChild = true;
@@ -179,41 +213,17 @@ var UTILS;
             }
         }
         var result = nodeName.toLowerCase();
-        if (isTargetNode &&
-            nodeName.toLowerCase() === "input" &&
-            elementNode.getAttribute("type") &&
-            !elementNode.getAttribute("id") &&
-            !elementNode.getAttribute("class"))
-            result += '[type="' + elementNode.getAttribute("type") + '"]';
+        if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
+            result += '[type="' + node.getAttribute("type") + '"]';
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         }
         else if (needsClassNames) {
             // for (var prefixedName in prefixedOwnClassNamesArray.keySet())
             for (var prefixedName in prefixedOwnClassNamesArray)
-                result += "." + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName]?.substr(1));
+                result += "." + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName].substr(1));
         }
         return new UTILS.DOMNodePathStep(result, false);
     }
     UTILS._cssPathStep = _cssPathStep;
-    class DOMNodePathStep {
-        value;
-        optimized;
-        /**
-         * @constructor
-         * @param {string} value
-         * @param {boolean} optimized
-         */
-        constructor(value, optimized) {
-            this.value = value;
-            this.optimized = optimized || false;
-        }
-        /**
-         * @returns {string}
-         */
-        toString() {
-            return this.value;
-        }
-    }
-    UTILS.DOMNodePathStep = DOMNodePathStep;
 })(UTILS || (UTILS = {}));

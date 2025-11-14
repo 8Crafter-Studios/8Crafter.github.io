@@ -1,5 +1,5 @@
-/**
- * Converted to TypeScript by 8Crafter on 6/17/2025.
+/*
+ * Converted to TypeScript by 8Crafter on 11/12/2025.
  *
  * Copyright (C) 2015 Pavel Savshenko
  * Copyright (C) 2011 Google Inc.  All rights reserved.
@@ -35,43 +35,76 @@
 /**
  * A namespace with utility functions for getting the CSS path to a node.
  */
+//@ts-ignore
 namespace UTILS {
-    export function cssPath(node: Node, optimized?: boolean | undefined): string {
-        if (node?.nodeType !== Node.ELEMENT_NODE) return "";
+    export class DOMNodePathStep {
+        public value: string;
+        public optimized: boolean;
+        /**
+         * @constructor
+         * @param {string} value
+         * @param {boolean} optimized
+         */
+        public constructor(value: string, optimized: boolean) {
+            this.value = value;
+            this.optimized = optimized || false;
+        }
+        /**
+         * @returns {string}
+         */
+        public toString(): string {
+            return this.value;
+        }
+    }
+    /**
+     *
+     * @param {Element} node
+     * @param {boolean | undefined} [optimized]
+     * @returns
+     */
+    export function cssPath(node: Element, optimized?: boolean | undefined) {
+        if (node.nodeType !== Node.ELEMENT_NODE) return "";
         var steps = [];
-        var contextNode: Node | null = node;
+        var contextNode: Element | null = node;
         while (contextNode) {
             var step = UTILS._cssPathStep(contextNode, !!optimized, contextNode === node);
             if (!step) break; // Error - bail out early.
             steps.push(step);
             if (step.optimized) break;
-            contextNode = contextNode.parentNode;
+            contextNode = contextNode.parentNode as Element | null;
         }
         steps.reverse();
         return steps.join(" > ");
     }
-    export function _cssPathStep(node: Node | Element, optimized: boolean, isTargetNode: boolean) {
+    export type DOMNode = Element;
+    /**
+     *
+     * @param {Element} node
+     * @param {boolean} optimized
+     * @param {boolean} isTargetNode
+     * @returns
+     */
+    export function _cssPathStep(node: Element, optimized: boolean, isTargetNode: boolean) {
         if (node.nodeType !== Node.ELEMENT_NODE) return null;
-        const elementNode: Element = node as Element;
 
-        var id = elementNode.getAttribute("id");
+        var id = node.getAttribute("id");
         if (optimized) {
             if (id) return new UTILS.DOMNodePathStep(idSelector(id), true);
-            var nodeNameLower = elementNode.nodeName.toLowerCase();
+            var nodeNameLower = node.nodeName.toLowerCase();
             if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html")
-                return new UTILS.DOMNodePathStep(elementNode.nodeName.toLowerCase(), true);
+                return new UTILS.DOMNodePathStep(node.nodeName.toLowerCase(), true);
         }
-        var nodeName = elementNode.nodeName.toLowerCase();
+        var nodeName = node.nodeName.toLowerCase();
 
         if (id) return new UTILS.DOMNodePathStep(nodeName.toLowerCase() + idSelector(id), true);
-        var parent = elementNode.parentNode;
+        var parent = node.parentNode;
         if (!parent || parent.nodeType === Node.DOCUMENT_NODE) return new UTILS.DOMNodePathStep(nodeName.toLowerCase(), true);
 
         /**
          * @param {UTILS.DOMNode} node
          * @return {Array.<string>}
          */
-        function prefixedElementClassNames(node: Element): Array<string> {
+        function prefixedElementClassNames(node: UTILS.DOMNode): Array<string> {
             var classAttribute = node.getAttribute("class");
             if (!classAttribute) return [];
 
@@ -140,14 +173,14 @@ namespace UTILS {
             return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
         }
 
-        var prefixedOwnClassNamesArray = prefixedElementClassNames(elementNode);
+        var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
         var needsClassNames = false;
         var needsNthChild = false;
         var ownIndex = -1;
         var siblings = parent.children;
         for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
             var sibling = siblings[i]!;
-            if (sibling === elementNode) {
+            if (sibling === node) {
                 ownIndex = i;
                 continue;
             }
@@ -166,7 +199,8 @@ namespace UTILS {
             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
                 var siblingClass = siblingClassNamesArray[j]!;
                 if (ownClassNames.indexOf(siblingClass)) continue;
-                delete ownClassNames[siblingClass as `${number}`];
+                //@ts-ignore
+                delete ownClassNames[siblingClass];
                 if (!--ownClassNameCount) {
                     needsNthChild = true;
                     break;
@@ -175,41 +209,15 @@ namespace UTILS {
         }
 
         var result = nodeName.toLowerCase();
-        if (
-            isTargetNode &&
-            nodeName.toLowerCase() === "input" &&
-            elementNode.getAttribute("type") &&
-            !elementNode.getAttribute("id") &&
-            !elementNode.getAttribute("class")
-        )
-            result += '[type="' + elementNode.getAttribute("type") + '"]';
+        if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
+            result += '[type="' + node.getAttribute("type") + '"]';
         if (needsNthChild) {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
             // for (var prefixedName in prefixedOwnClassNamesArray.keySet())
-            for (var prefixedName in prefixedOwnClassNamesArray) result += "." + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName]?.substr(1)!);
+            for (var prefixedName in prefixedOwnClassNamesArray) result += "." + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName]!.substr(1));
         }
 
         return new UTILS.DOMNodePathStep(result, false);
-    }
-
-    export class DOMNodePathStep {
-        public value: string;
-        public optimized: boolean;
-        /**
-         * @constructor
-         * @param {string} value
-         * @param {boolean} optimized
-         */
-        public constructor(value: string, optimized: boolean) {
-            this.value = value;
-            this.optimized = optimized || false;
-        }
-        /**
-         * @returns {string}
-         */
-        toString(): string {
-            return this.value;
-        }
     }
 }

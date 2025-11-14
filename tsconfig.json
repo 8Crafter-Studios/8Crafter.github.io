@@ -20,7 +20,8 @@
         }, */
         "noUncheckedIndexedAccess": true,
         "skipLibCheck": true,
-        "noFallthroughCasesInSwitch": true
+        "noFallthroughCasesInSwitch": true,
+        "verbatimModuleSyntax": true
     },
     "exclude": [
         "./assets/js",

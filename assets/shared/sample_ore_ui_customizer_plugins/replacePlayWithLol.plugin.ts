@@ -1,4 +1,4 @@
-import type { Plugin } from "../ore-ui-customizer-assets";
+import type { Plugin } from "ore-ui-customizer-types";
 
 export const plugin: Plugin = {
     name: 'Replace "Play" with "lol"',

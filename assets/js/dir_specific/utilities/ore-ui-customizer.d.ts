@@ -1,4 +1,4 @@
-import { EncodedPluginData, OreUICustomizerSettings, Plugin } from "../../../shared/ore-ui-customizer-assets.js";
+import type { EncodedPluginData, OreUICustomizerSettings, Plugin } from "ore-ui-customizer-types";
 /**
  * The namespace for 8Crafter's Ore UI Customizer.
  */

@@ -1,4 +1,4 @@
-import { type OreUICustomizerSettings } from "../assets/shared/ore-ui-customizer-assets.js";
+import type { OreUICustomizerSettings } from "ore-ui-customizer-types";
 import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.

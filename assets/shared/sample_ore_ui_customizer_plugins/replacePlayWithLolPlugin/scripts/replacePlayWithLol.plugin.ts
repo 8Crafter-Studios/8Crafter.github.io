@@ -1,4 +1,4 @@
-import type { PluginEntryScriptPlugin } from "../../../ore-ui-customizer-assets";
+import type { PluginEntryScriptPlugin } from "ore-ui-customizer-types";
 
 export const plugin: PluginEntryScriptPlugin = {
     actions: [

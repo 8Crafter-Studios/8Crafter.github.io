@@ -1,0 +1,392 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "$id": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
+    "title": "Plugin manifest.json Schema for 8Crafter's Ore UI Customizer",
+    "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer.",
+            "type": "string",
+            "default": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json"
+        }
+    },
+    "oneOf": [
+        {
+            "required": ["format_version", "header", "entry"],
+            "properties": {
+                "format_version": {
+                    "title": "Format Version",
+                    "description": "This defines the current version of the manifest. Don't change this unless you have a good reason to.",
+                    "const": 1
+                },
+                "header": {
+                    "title": "Header",
+                    "description": "The header of the plugin manifest.",
+                    "type": "object",
+                    "required": ["name", "id", "uuid", "namespace", "version", "format_version"],
+                    "properties": {
+                        "name": {
+                            "title": "Name",
+                            "description": "The display name of the plugin.",
+                            "type": "string",
+                            "examples": ["My Custom Plugin"]
+                        },
+                        "id": {
+                            "title": "ID",
+                            "description": "The id of the plugin, used to identify the plugin when applying the plugins, also used to identify the plugin in error messages, this should be unique.\nMust consist only of alphanumeric characters, underscores, hyphens, and periods.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9_.-]+$",
+                            "examples": ["my-custom-plugin"]
+                        },
+                        "uuid": {
+                            "title": "UUID",
+                            "description": "The UUID of the plugin, used to uniquely identify the plugin.\nMust be a valid UUID v4.",
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                            "$comment": "Do not put an example for this as it may encourage some users to use it, which will result in multiple plugins having the same UUID."
+                        },
+                        "namespace": {
+                            "title": "Namespace",
+                            "description": "The namespace of the plugin, used in conjunction with the id to identify the plugin in error messages.\nMust consist only of alphanumeric characters, underscores, hyphens, and periods.\nMust not be `built-in`, as it is reserved for built-in plugins.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9_.-]+$",
+                            "not": {
+                                "const": "built-in"
+                            },
+                            "examples": ["andexpl"]
+                        },
+                        "version": {
+                            "title": "Version",
+                            "description": "The version of the plugin.\nThis must be a valid semver string, without the leading `v`.",
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                            "default": "1.0.0",
+                            "examples": [
+                                "0.0.1-alpha",
+                                "0.0.1-alpha.1",
+                                "0.0.1-alpha.1+BUILD.1",
+                                "1.0.0-alpha.1",
+                                "1.0.0-alpha.1+BUILD.1",
+                                "1.0.0-beta",
+                                "1.0.0-beta.1",
+                                "1.0.0-beta.1+BUILD.1",
+                                "1.0.0-preview.20",
+                                "1.0.0-preview.20+BUILD.1",
+                                "1.0.0-rc.1",
+                                "1.0.0-rc.1+BUILD.1",
+                                "1.0.0",
+                                "1.0.0+BUILD.1",
+                                "1.0.1-rc.5",
+                                "3.17.4-preview.20+BUILD.5"
+                            ]
+                        },
+                        "format_version": {
+                            "title": "Format Version",
+                            "description": "The version of 8Crafter's Ore UI Customizer that this plugin is made for.",
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                            "default": "1.10.0",
+                            "examples": [
+                                "1.0.0",
+                                "1.1.0",
+                                "1.1.1",
+                                "1.1.2",
+                                "1.2.0",
+                                "1.2.1",
+                                "1.3.0",
+                                "1.3.1",
+                                "1.4.0",
+                                "1.5.0",
+                                "1.6.0",
+                                "1.7.0",
+                                "1.8.0",
+                                "1.9.0",
+                                "1.10.0"
+                            ],
+                            "$comment": "The default value of this should be the latest version of the Ore UI Customizer. The examples of this should include every version of the Ore UI Customizer since full plugin support was added."
+                        },
+                        "min_engine_version": {
+                            "title": "Min Engine Version",
+                            "description": "The minimum version of 8Crafter's Ore UI Customizer that this plugin is compatible with.\nThis must be a valid semver string, without the leading `v`.\nIf not specified, no check will be done. Otherwise, if this version is higher than the version of 8Crafter's Ore UI Customizer running, the plugin will fail to import.",
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                            "examples": [
+                                "0.0.0",
+                                "0.7.3",
+                                "0.8.0",
+                                "0.8.1",
+                                "0.9.0",
+                                "0.9.1",
+                                "0.9.2",
+                                "0.10.0",
+                                "0.11.0",
+                                "0.11.1",
+                                "0.11.2",
+                                "0.12.0",
+                                "0.13.0",
+                                "0.13.1",
+                                "0.14.0",
+                                "0.15.0",
+                                "0.15.1",
+                                "0.16.0",
+                                "0.17.0",
+                                "0.17.1",
+                                "0.17.2",
+                                "0.17.3",
+                                "0.18.0",
+                                "0.19.0",
+                                "0.20.0",
+                                "0.21.0",
+                                "0.22.0",
+                                "0.23.0",
+                                "0.24.0",
+                                "0.25.0",
+                                "0.25.1",
+                                "1.0.0",
+                                "1.1.0",
+                                "1.1.1",
+                                "1.1.2",
+                                "1.2.0",
+                                "1.2.1",
+                                "1.3.0",
+                                "1.3.1",
+                                "1.4.0",
+                                "1.5.0",
+                                "1.6.0",
+                                "1.7.0",
+                                "1.8.0",
+                                "1.9.0",
+                                "1.10.0"
+                            ],
+                            "$comment": "This should not have a default value. The examples of this should include every version of the Ore UI Customizer (and 0.0.0)."
+                        }
+                    }
+                },
+                "entry": {
+                    "title": "Entry",
+                    "description": "The entry script of the plugin.\nShould be a path to a JavaScript file, relative to the location of the manifest.json file.",
+                    "type": "string",
+                    "pattern": "^(?:[^/]+\\/)*[^/]+$",
+                    "default": "scripts/index.js",
+                    "examples": ["scripts/main.js"]
+                },
+                "icon_data_uri": {
+                    "title": "Icon Data URI",
+                    "description": "The data URI of the icon of the plugin.\nIf not specified the default icon will be used.\nThe MIME type must match `image/*`.",
+                    "pattern": "^data:image\\/[^;]+;base64,[a-zA-Z0-9+/=]+$",
+                    "examples": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="]
+                },
+                "dependencies": {
+                    "title": "Dependencies",
+                    "description": "The dependencies of the plugin.\nThese dependencies can be other themes, plugins, configs, or plugin modules (similar to the `@minecraft/server` module from Minecraft Bedrock Edition's scripting API).",
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": {
+                        "title": "Dependency",
+                        "description": "A dependency of the plugin.",
+                        "type": "object",
+                        "oneOf": [
+                            {
+                                "title": "External Dependency",
+                                "description": "A theme, plugin, or config dependency.",
+                                "required": ["uuid", "version"],
+                                "properties": {
+                                    "uuid": {
+                                        "title": "UUID",
+                                        "description": "The UUID of the theme, plugin, or config dependency.\nMust be a valid UUID v4.\nMay also be the UUID of a built-in theme or plugin to force the user to have it enabled to use the theme.",
+                                        "type": "string",
+                                        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                                    },
+                                    "version": {
+                                        "title": "Version",
+                                        "description": "The version of the theme, plugin, or config dependency.\nMust be a valid semver string, without the leading `v`.",
+                                        "type": "string",
+                                        "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+                                    }
+                                }
+                            },
+                            {
+                                "title": "Built-In Module Dependency",
+                                "description": "A built-in module dependency.",
+                                "type": "object",
+                                "required": ["module_name", "version"],
+                                "properties": {
+                                    "module_name": {
+                                        "title": "Module Name",
+                                        "description": "The name of a built-in module.\nNOTE: There are currently no built-in modules so this currently cannot be used.",
+                                        "type": "string",
+                                        "$comment": "Add an enum of the module names once there is a built-in module."
+                                    },
+                                    "version": {
+                                        "title": "Version",
+                                        "description": "The version of the module dependency.\nMust be a valid semver string, without the leading `v`.",
+                                        "type": "string",
+                                        "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+                                    }
+                                },
+                                "allOf": [{ "type": "null" }],
+                                "$comment": "The above allOf statement disables this until it is removed, effectively commenting it out temporarily."
+                            }
+                        ]
+                    }
+                },
+                "metadata": {
+                    "title": "Metadata",
+                    "description": "Additonal metadata about the plugin.",
+                    "type": "object",
+                    "required": ["product_type"],
+                    "properties": {
+                        "authors": {
+                            "title": "Authors",
+                            "description": "The authors of the plugin.",
+                            "type": "array",
+                            "items": {
+                                "title": "Author",
+                                "description": "An author or of the plugin.",
+                                "type": "string"
+                            },
+                            "examples": [["8Crafter", "StormStqr"]]
+                        },
+                        "url": {
+                            "title": "URL",
+                            "description": "The URL of the website for the plugin, or just the plugin creator's website.",
+                            "type": "string",
+                            "examples": ["https://www.8crafter.com"]
+                        },
+                        "product_type": {
+                            "title": "Product Type",
+                            "description": "The product type.",
+                            "type": "string",
+                            "enum": ["plugin"]
+                        },
+                        "license": {
+                            "title": "License",
+                            "description": "The license of the plugin.",
+                            "type": "string",
+                            "examples": [
+                                "0BSD",
+                                "AFL-3.0",
+                                "AGPL-3.0",
+                                "APACHE-2.0",
+                                "ARTISTIC-2.0",
+                                "BLUEOAK-1.0.0",
+                                "BSD-2-CLAUSE-PATENT",
+                                "BSD-2-CLAUSE",
+                                "BSD-3-CLAUSE-CLEAR",
+                                "BSD-3-CLAUSE",
+                                "BSD-4-CLAUSE",
+                                "BSL-1.0",
+                                "CC-BY-4.0",
+                                "CC-BY-SA-4.0",
+                                "CC0-1.0",
+                                "CECILL-2.1",
+                                "CERN-OHL-P-2.0",
+                                "CERN-OHL-S-2.0",
+                                "CERN-OHL-W-2.0",
+                                "ECL-2.0",
+                                "EPL-1.0",
+                                "EPL-2.0",
+                                "EUPL-1.1",
+                                "EUPL-1.2",
+                                "GFDL-1.3",
+                                "GPL-2.0",
+                                "GPL-3.0",
+                                "ISC",
+                                "LGPL-2.1",
+                                "LGPL-3.0",
+                                "LPPL-1.3C",
+                                "MIT-0",
+                                "MIT",
+                                "MPL-2.0",
+                                "MS-PL",
+                                "MS-RL",
+                                "MULANPSL-2.0",
+                                "NCSA",
+                                "ODBL-1.0",
+                                "OFL-1.1",
+                                "OSL-3.0",
+                                "POSTGRESQL",
+                                "UNLICENSE",
+                                "UPL-1.0",
+                                "VIM",
+                                "WTFPL",
+                                "ZLIB"
+                            ]
+                        }
+                    },
+                    "additionalProperties": true,
+                    "default": {
+                        "product_type": "plugin"
+                    }
+                },
+                "marketplaceDetails": {
+                    "title": "Marketplace Details",
+                    "description": "The details of the plugin in the marketplace.\nThis is only used if the plugin is from the marketplace.\nThis should not be included when uploading the plugin to the marketplace, as the server will handle adding this information.\nThis is mutually exclusive with checkForUpdatesDetails.",
+                    "type": "object",
+                    "required": ["marketplaceId", "originalDownloadURL", "marketplaceURL"],
+                    "properties": {
+                        "marketplaceId": {
+                            "title": "Marketplace ID",
+                            "description": "The ID of the plugin in the marketplace.\nShould be in the format `${pluginPublisher}.${id}`.",
+                            "type": "string",
+                            "pattern": ".\\.[a-zA-Z0-9_.-]+$",
+                            "examples": ["8crafter.my-custom-plugin"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the plugin.",
+                                "enum": ["8crafter.my-custom-plugin"]
+                            }
+                        },
+                        "originalDownloadURL": {
+                            "title": "Original Download URL",
+                            "description": "The original download URL of the plugin in the marketplace.",
+                            "type": "string",
+                            "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/download/plugin/[^/]+\\.[a-zA-Z0-9_.-]+/[^/]+$",
+                            "examples": ["https://marketplace.ore-ui-customizer.8crafter.com/download/plugin/8crafter.my-custom-plugin/1.0.0"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the plugin.",
+                                "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/download/plugin/8crafter\\.my-custom-plugin/"
+                            }
+                        },
+                        "marketplaceURL": {
+                            "title": "Marketplace URL",
+                            "description": "The URL of the plugin in the marketplace.",
+                            "type": "string",
+                            "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/plugin/[^/]+\\.[^/]+$",
+                            "examples": ["https://marketplace.ore-ui-customizer.8crafter.com/plugin/8crafter.my-custom-plugin"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the plugin.",
+                                "enum": ["https://marketplace.ore-ui-customizer.8crafter.com/plugin/8crafter.my-custom-plugin"]
+                            }
+                        }
+                    }
+                },
+                "checkForUpdatesDetails": {
+                    "title": "Check for Updates Details",
+                    "description": "The details of the plugin to check for updates.\nThis is only used if the plugin is not from the marketplace.\nThis allows non-marketplace plugins to be checked for updates.\nThis is mutually exclusive with marketplaceDetails.",
+                    "type": "object",
+                    "required": ["versionInfoURL"],
+                    "properties": {
+                        "versionInfoURL": {
+                            "title": "Version Info URL",
+                            "description": "The URL to the JSON object containing the newest version of the plugin.\nThe response from this URL should match the https://www.8crafter.com/schemas/ouic/plugin/checkForUpdatesDetailsVersionInfoResponse.schema.json schema.\nWhen fetching the URL, the response should have an MIME type of `application/json` or `text/json`.",
+                            "type": "string",
+                            "examples": ["https://example.com/ore-ui-customizer-plugins/my-custom-plugin/latestVersion.json"]
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "not": {
+                        "required": ["marketplaceDetails", "checkForUpdatesDetails"],
+                        "properties": {
+                            "marketplaceDetails": true,
+                            "checkForUpdatesDetails": true
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

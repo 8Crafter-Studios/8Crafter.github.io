@@ -1,0 +1,45 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "$id": "https://www.8crafter.com/schemas/ouic/plugin/checkForUpdatesDetailsVersionInfoResponse.schema.json",
+    "title": "checkForUpdatesDetails.versionInfoURL Response Schema for 8Crafter's Ore UI Customizer",
+    "description": "The JSON schema for the response of the `checkForUpdatesDetails.versionInfoURL` endpoint of a plugin for 8Crafter's Ore UI Customizer.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The JSON schema for the response of the `checkForUpdatesDetails.versionInfoURL` endpoint of a plugin for 8Crafter's Ore UI Customizer.",
+            "type": "string",
+            "default": "https://www.8crafter.com/schemas/ouic/plugin/checkForUpdatesDetailsVersionInfoResponse.schema.json"
+        },
+        "version": {
+            "title": "Version",
+            "description": "The version of the plugin.",
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+            "default": "1.0.0",
+            "examples": [
+                "0.0.1-alpha",
+                "0.0.1-alpha.1",
+                "0.0.1-alpha.1+BUILD.1",
+                "1.0.0-alpha.1",
+                "1.0.0-alpha.1+BUILD.1",
+                "1.0.0-beta",
+                "1.0.0-beta.1",
+                "1.0.0-beta.1+BUILD.1",
+                "1.0.0-preview.20",
+                "1.0.0-preview.20+BUILD.1",
+                "1.0.0-rc.1",
+                "1.0.0-rc.1+BUILD.1",
+                "1.0.0",
+                "1.0.0+BUILD.1",
+                "1.0.1-rc.5",
+                "3.17.4-preview.20+BUILD.5"
+            ]
+        },
+        "url": {
+            "title": "URL",
+            "description": "The download URL of the plugin.",
+            "type": "string",
+            "examples": ["https://example.com/ore-ui-customizer-plugins/my-custom-plugin/1.0.1-rc.5/myCustomPlugin.ouicplugin"]
+        }
+    }
+}
