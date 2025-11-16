@@ -263,12 +263,7 @@ declare global {
  * @returns The script without empty known type only module imports
  */
 export function removeEmptyKnownTypeOnlyModuleImportsFromScript(script: string): string {
-    const knownTypeOnlyModules: string[] = [
-        "ore-ui-types",
-        "ore-ui-customizer-types",
-        "@ore-ui-customizer-api/plugin-env",
-        "@ore-ui-customizer-api/env",
-    ];
+    const knownTypeOnlyModules: string[] = ["ore-ui-types", "ore-ui-customizer-types", "@ore-ui-customizer-api/plugin-env", "@ore-ui-customizer-api/env"];
     const regex =
         /(?:^(?:(?:(?<=^|\n)\s*?\/\/[^\n]*?\n|(?<=^|\n)\s*?\/\*[\s\S]*?\*\/)*?)?[\n\s]*?)\s*?import\s*?\{(?<imports>[^}]+?)\}\s*?from\s*?(?<quote>['"])(?<module>[^\n].+?)\k<quote>;?(?=\s*?(?:\n|$))/g;
     const keptImportStatements: string[] = [];
@@ -385,6 +380,9 @@ export async function importPluginFromDataURI(
                 return result;
             }
             let script: string = await loadScriptImports(await (zipFs.find(normalizePathForZipFS(entry)) as zip.ZipFileEntry<any, any>).getText()); */
+            const entryScriptTextContents = await (
+                zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
+            ).getText();
             let data: { plugin: PluginEntryScriptPlugin } = await import(
                 /* @vite-ignore */
                 `data:application/javascript,${encodeURIComponent(
@@ -394,11 +392,7 @@ export async function importPluginFromDataURI(
                             : ""
                     }${
                         options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""
-                    }${removeEmptyKnownTypeOnlyModuleImportsFromScript(
-                        await (
-                            zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
-                        ).getText()
-                    )}\n// ${Math.random().toString(36).slice(2)}`
+                    }${removeEmptyKnownTypeOnlyModuleImportsFromScript(entryScriptTextContents)}\n// ${Math.random().toString(36).slice(2)}`
                 )}`
             );
             const plugin: Plugin = { ...manifest, ...manifest.header, ...data.plugin };
@@ -481,6 +475,9 @@ export async function validatePluginFile(
                 zipFs,
                 manifest: manifest as any,
             });
+            const entryScriptTextContents: string = await (
+                zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
+            ).getText();
             try {
                 var data: { plugin: PluginEntryScriptPlugin } = await import(
                     /* @vite-ignore */ `data:application/javascript,${encodeURIComponent(
@@ -490,11 +487,7 @@ export async function validatePluginFile(
                                 : ""
                         }${
                             options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""
-                        }${removeEmptyKnownTypeOnlyModuleImportsFromScript(
-                            await (
-                                zipFs.entries.find((currentEntry: zip.ZipEntry): boolean => currentEntry.data?.filename === entry) as zip.ZipFileEntry<any, any>
-                            ).getText()
-                        )}\n// ${Math.random().toString(36).slice(2)}`
+                        }${removeEmptyKnownTypeOnlyModuleImportsFromScript(entryScriptTextContents)}\n// ${Math.random().toString(36).slice(2)}`
                     )}`
                 );
             } catch (e: any) {

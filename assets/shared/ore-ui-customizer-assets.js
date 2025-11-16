@@ -237,12 +237,7 @@ globalThis.globalPluginEnvs = new Map();
  * @returns The script without empty known type only module imports
  */
 export function removeEmptyKnownTypeOnlyModuleImportsFromScript(script) {
-    const knownTypeOnlyModules = [
-        "ore-ui-types",
-        "ore-ui-customizer-types",
-        "@ore-ui-customizer-api/plugin-env",
-        "@ore-ui-customizer-api/env",
-    ];
+    const knownTypeOnlyModules = ["ore-ui-types", "ore-ui-customizer-types", "@ore-ui-customizer-api/plugin-env", "@ore-ui-customizer-api/env"];
     const regex = /(?:^(?:(?:(?<=^|\n)\s*?\/\/[^\n]*?\n|(?<=^|\n)\s*?\/\*[\s\S]*?\*\/)*?)?[\n\s]*?)\s*?import\s*?\{(?<imports>[^}]+?)\}\s*?from\s*?(?<quote>['"])(?<module>[^\n].+?)\k<quote>;?(?=\s*?(?:\n|$))/g;
     const keptImportStatements = [];
     while (!regex.test(script)) {
@@ -351,11 +346,12 @@ export async function importPluginFromDataURI(dataURI, options, type = "js") {
                 return result;
             }
             let script: string = await loadScriptImports(await (zipFs.find(normalizePathForZipFS(entry)) as zip.ZipFileEntry<any, any>).getText()); */
+            const entryScriptTextContents = await zipFs.entries.find((currentEntry) => currentEntry.data?.filename === entry).getText();
             let data = await import(
             /* @vite-ignore */
             `data:application/javascript,${encodeURIComponent(`${options.oreUICustomizerEnvGlobalVariableName
                 ? `const customizerEnv = globalThis[${JSON.stringify(options.oreUICustomizerEnvGlobalVariableName)}];\n`
-                : ""}${options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""}${removeEmptyKnownTypeOnlyModuleImportsFromScript(await zipFs.entries.find((currentEntry) => currentEntry.data?.filename === entry).getText())}\n// ${Math.random().toString(36).slice(2)}`)}`);
+                : ""}${options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""}${removeEmptyKnownTypeOnlyModuleImportsFromScript(entryScriptTextContents)}\n// ${Math.random().toString(36).slice(2)}`)}`);
             const plugin = { ...manifest, ...manifest.header, ...data.plugin };
             globalPluginEnvIDs.set(plugin, options.pluginEnvID);
             return plugin;
@@ -435,11 +431,12 @@ export async function validatePluginFile(plugin, options, type) {
                 zipFs,
                 manifest: manifest,
             });
+            const entryScriptTextContents = await zipFs.entries.find((currentEntry) => currentEntry.data?.filename === entry).getText();
             try {
                 var data = await import(
                 /* @vite-ignore */ `data:application/javascript,${encodeURIComponent(`${options.oreUICustomizerEnvGlobalVariableName
                     ? `const customizerEnv = globalThis[${JSON.stringify(options.oreUICustomizerEnvGlobalVariableName)}];\n`
-                    : ""}${options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""}${removeEmptyKnownTypeOnlyModuleImportsFromScript(await zipFs.entries.find((currentEntry) => currentEntry.data?.filename === entry).getText())}\n// ${Math.random().toString(36).slice(2)}`)}`);
+                    : ""}${options.pluginEnvID ? `const pluginEnv = globalThis.globalPluginEnvs?.get(${JSON.stringify(options.pluginEnvID)});\n` : ""}${removeEmptyKnownTypeOnlyModuleImportsFromScript(entryScriptTextContents)}\n// ${Math.random().toString(36).slice(2)}`)}`);
             }
             catch (e) {
                 throw new EvalError(`Plugin entry file "${entry}" threw an error when imported: ${e.name}: ${e.message}`, { cause: e });
