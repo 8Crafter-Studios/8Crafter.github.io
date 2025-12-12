@@ -1,0 +1,26 @@
+{
+    "release": {
+        "1.21.120.4": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+        "1.21.121.1": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+        "1.21.122.1": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+        "1.21.123.2": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+        "1.21.124.2": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+        "1.21.130.4": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.130_PC.zip"
+    },
+    "preview": {
+        "1.21.120.21": null,
+        "1.21.120.22": null,
+        "1.21.120.23": null,
+        "1.21.120.24": null,
+        "1.21.120.25": null,
+        "1.21.130.20": null,
+        "1.21.130.22": null,
+        "1.21.130.24": null,
+        "1.21.130.25": null,
+        "1.21.130.26": null,
+        "1.21.130.27": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.130-preview.27_PC",
+        "1.21.130.28": "https://www.8crafter.com/assets/zip/gui_mc-v1.21.130-preview.28_PC",
+        "1.26.0.24": "https://www.8crafter.com/assets/zip/gui_mc-v1.26.0-preview.24_PC",
+        "1.26.0.25": "https://www.8crafter.com/assets/zip/gui_mc-v1.26.0-preview.25_PC"
+    }
+}

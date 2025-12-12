@@ -1,0 +1,59 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "$id": "https://www.8crafter.com/schemas/website_internal/gdk-gui-folder-backups-list.schema.json",
+    "title": "api/gdk-gui-folder-backups-list.json Schema for 8Crafter's Website",
+    "description": "The JSON schema for the `api/gdk-gui-folder-backups-list.json` endpoint of 8Crafter's website.",
+
+    "definitions": {
+        "channel_version_list": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^(?:(?:[2-9]|[1-9]\\d+)\\.\\d+\\.\\d+\\.\\d+|1\\.(?:2[2-9]|[3-9]\\d|\\d{3,})\\.\\d+\\.\\d+|1\\.21\\.(?:12[1-9]|1[3-9]\\d|[2-9]\\d{2}|\\d{4,})\\.\\d+|1\\.21\\.120\\.(?:1?\\d|2[1-9]|[3-9]\\d|\\d{3,}))$": {
+                    "oneOf": [
+                        {
+                            "title": "Unavailable Backup",
+                            "description": "A version that has no available GUI folder backup.",
+                            "type": "null"
+                        },
+                        {
+                            "title": "Avilable Backup",
+                            "description": "A version that has an available GUI folder backup.\r\rThe value should be the URI of the backup.",
+                            "type": "string",
+                            "format": "uri",
+                            "examples": [
+                                "https://www.8crafter.com/assets/zip/gui_mc-v1.21.120_PC.zip",
+                                "https://www.8crafter.com/assets/zip/gui_mc-v1.21.130-preview.22_PC"
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    },
+
+    "default": {
+        "release": {},
+        "preview": {}
+    },
+
+    "type": "object",
+    "required": ["release", "preview"],
+    "properties": {
+        "$schema": {
+            "description": "The JSON schema for the `api/gdk-gui-folder-backups-list.json` endpoint of 8Crafter's website.",
+            "type": "string",
+            "default": "https://www.8crafter.com/schemas/website_internal/gdk-gui-folder-backups-list.schema.json"
+        },
+        "release": {
+            "title": "Release",
+            "description": "The GDK release versions of Minecraft.",
+            "$ref": "#/definitions/channel_version_list"
+        },
+        "preview": {
+            "title": "Preview",
+            "description": "The GDK preview versions of Minecraft.",
+            "$ref": "#/definitions/channel_version_list"
+        }
+    }
+}

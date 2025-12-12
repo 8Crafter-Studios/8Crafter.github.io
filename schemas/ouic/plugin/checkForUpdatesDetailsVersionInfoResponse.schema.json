@@ -4,6 +4,7 @@
     "title": "checkForUpdatesDetails.versionInfoURL Response Schema for 8Crafter's Ore UI Customizer",
     "description": "The JSON schema for the response of the `checkForUpdatesDetails.versionInfoURL` endpoint of a plugin for 8Crafter's Ore UI Customizer.",
     "type": "object",
+    "required": ["version", "url"],
     "properties": {
         "$schema": {
             "description": "The JSON schema for the response of the `checkForUpdatesDetails.versionInfoURL` endpoint of a plugin for 8Crafter's Ore UI Customizer.",

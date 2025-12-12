@@ -3,5 +3,11 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "prettier.printWidth": 160
     },
-    "html.customData": ["./html.html-data.json"]
+    "html.customData": ["./html.html-data.json"],
+    "json.schemas": [
+        {
+            "fileMatch": ["/api/gdk-gui-folder-backups-list.json"],
+            "url": "/schemas/website_internal/gdk-gui-folder-backups-list.schema.json"
+        }
+    ]
 }
