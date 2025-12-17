@@ -12,6 +12,10 @@
         <lastmod>2025-10-23T03:12:07.599Z</lastmod>
     </url>
     <url>
+        <loc>https://www.8crafter.com/.gitattributes</loc>
+        <lastmod>2025-12-17T18:49:29.364Z</lastmod>
+    </url>
+    <url>
         <loc>https://www.8crafter.com/.hintrc</loc>
         <lastmod>2025-06-25T18:28:31.482Z</lastmod>
     </url>
@@ -41,7 +45,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/fullsite_index.xml</loc>
-        <lastmod>2025-11-14T23:32:39.650Z</lastmod>
+        <lastmod>2025-12-17T18:56:37.176Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/generateSitemap.ts</loc>
@@ -94,7 +98,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/sitemap_index.xml</loc>
-        <lastmod>2025-11-14T23:32:39.652Z</lastmod>
+        <lastmod>2025-12-17T18:56:37.178Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/testUnknownFileExtensionWithNoBinary.sdfaksdajflk</loc>
@@ -121,7 +125,12 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/.vscode/settings.json</loc>
-        <lastmod>2025-04-08T19:15:21.080Z</lastmod>
+        <lastmod>2025-12-09T17:08:34.327Z</lastmod>
+        <changefreq>hourly</changefreq>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/api/gdk-gui-folder-backups-list.json</loc>
+        <lastmod>2025-12-12T22:33:17.772Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -146,7 +155,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/api/tsconfig.tsbuildinfo</loc>
-        <lastmod>2025-11-14T23:27:46.653Z</lastmod>
+        <lastmod>2025-11-16T20:56:35.372Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -166,7 +175,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/tsconfig.tsbuildinfo</loc>
-        <lastmod>2025-11-14T23:27:46.566Z</lastmod>
+        <lastmod>2025-11-16T20:56:35.369Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -555,11 +564,11 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/ore-ui-customizer-assets.js</loc>
-        <lastmod>2025-11-14T23:27:46.096Z</lastmod>
+        <lastmod>2025-11-16T20:56:35.359Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/ore-ui-customizer-assets.ts</loc>
-        <lastmod>2025-11-14T22:17:27.690Z</lastmod>
+        <lastmod>2025-11-15T00:14:50.324Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/ore-ui-customizer-version.json</loc>
@@ -581,7 +590,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/tsconfig.tsbuildinfo</loc>
-        <lastmod>2025-11-14T23:27:46.105Z</lastmod>
+        <lastmod>2025-11-16T20:56:35.364Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -681,6 +690,18 @@
         <lastmod>2025-10-28T19:38:08.072Z</lastmod>
     </url>
     <url>
+        <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip</loc>
+        <lastmod>2025-11-12T19:46:06.982Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip</loc>
+        <lastmod>2025-12-08T22:12:34.671Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.21.130_PC.zip</loc>
+        <lastmod>2025-12-10T02:09:49.419Z</lastmod>
+    </url>
+    <url>
         <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.21.70-71_Android.zip</loc>
         <lastmod>2025-04-08T20:58:10.130Z</lastmod>
     </url>
@@ -723,6 +744,14 @@
     <url>
         <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.21.90_PC.zip</loc>
         <lastmod>2025-06-18T01:09:31.237Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.26.0-preview.24_PC.zip</loc>
+        <lastmod>2025-12-09T01:13:17.841Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/zip/gui_mc-v1.26.0-preview.25_PC.zip</loc>
+        <lastmod>2025-12-11T20:45:41.399Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.20.5x.html</loc>
@@ -791,6 +820,11 @@
     <url>
         <loc>https://www.8crafter.com/schemas/ouic-app/routes.schema.json</loc>
         <lastmod>2025-11-13T22:45:09.781Z</lastmod>
+        <changefreq>hourly</changefreq>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/schemas/website_internal/gdk-gui-folder-backups-list.schema.json</loc>
+        <lastmod>2025-12-09T17:40:28.716Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -4276,7 +4310,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/schemas/ouic/plugin/checkForUpdatesDetailsVersionInfoResponse.schema.json</loc>
-        <lastmod>2025-11-14T01:12:26.601Z</lastmod>
+        <lastmod>2025-12-09T17:07:27.832Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>

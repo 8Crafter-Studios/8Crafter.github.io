@@ -1,0 +1,41 @@
+/assets/js/**/*.js linguist-generated
+/assets/js/**/*.d.ts linguist-generated
+/assets/oreui/**/*.js linguist-generated
+/assets/oreui/**/*.js.map linguist-generated
+/assets/oreui/**/*.d.ts linguist-generated
+/api/**/*.js linguist-generated
+/api/**/*.js.map linguist-generated
+/api/**/*.d.ts linguist-generated
+
+/assets/js/zip.d.ts -linguist-generated linguist-vendored
+/assets/js/zip-fs-full.fs -linguist-generated linguist-vendored
+/assets/js/jquery.min.js -linguist-generated linguist-vendored
+/assets/js/spectrum.d.ts -linguist-generated linguist-vendored
+/assets/js/spectrum.js -linguist-generated linguist-vendored
+/assets/js/cool-ore-ui-customizer-scripts.js -linguist-generated -linguist-detectable
+/assets/oreui/oreUICustomizer8CrafterConfig.d.ts -linguist-generated linguist-vendored
+/assets/oreui/types.d.ts -linguist-generated linguist-vendored
+
+/assets/js/jquery-ui-1.14.1.custom/** linguist-vendored
+/assets/ts/jquery-ui-1.14.1.custom/** linguist-vendored
+/assets/ts/spectrum.d.ts linguist-vendored
+/assets/ts/tinycolor2.d.ts linguist-vendored
+/assets/ts/zip.d.ts linguist-vendored
+/api/zip.js linguist-vendored
+/api/zip.d.ts linguist-vendored
+
+*.ps1      linguist-include
+*.xml      linguist-include
+*.json     linguist-include
+*.jsonc    linguist-include
+*.jsonl    linguist-include
+
+tsconfig.json -linguist-include
+package.json -linguist-include
+package-lock.json -linguist-include
+.package-lock.json -linguist-include
+
+/node_modules/** -linguist-include linguist-vendored
+/.vscode/** -linguist-include
+
+/node_modules/*.xml -linguist-vendored linguist-include
