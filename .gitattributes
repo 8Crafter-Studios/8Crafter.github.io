@@ -1,3 +1,12 @@
+*.ps1      linguist-detectable
+*.xml      linguist-detectable
+*.json     linguist-detectable
+*.jsonc    linguist-detectable
+*.jsonl    linguist-detectable
+*.gitattributes linguist-detectable -linguist-generated -linguist-vendored -lingust-documentation linguist-language=gitattributes
+
+/_config.yml linguist-detectable
+
 /assets/js/**/*.js linguist-generated
 /assets/js/**/*.d.ts linguist-generated
 /assets/oreui/**/*.js linguist-generated
@@ -6,7 +15,11 @@
 /api/**/*.js linguist-generated
 /api/**/*.js.map linguist-generated
 /api/**/*.d.ts linguist-generated
+/assets/shared/**/*.js linguist-generated
+/assets/shared/**/*.js.map linguist-generated
+/assets/shared/**/*.d.ts linguist-generated
 
+/assets/js/jquery-ui-1.14.1.custom/** -linguist-generated linguist-vendored
 /assets/js/zip.d.ts -linguist-generated linguist-vendored
 /assets/js/zip-fs-full.fs -linguist-generated linguist-vendored
 /assets/js/jquery.min.js -linguist-generated linguist-vendored
@@ -15,27 +28,36 @@
 /assets/js/cool-ore-ui-customizer-scripts.js -linguist-generated -linguist-detectable
 /assets/oreui/oreUICustomizer8CrafterConfig.d.ts -linguist-generated linguist-vendored
 /assets/oreui/types.d.ts -linguist-generated linguist-vendored
+/api/zip.d.ts -linguist-generated linguist-vendored
+/api/zip.js -linguist-generated linguist-vendored
+/assets/shared/semver.d.ts -linguist-generated linguist-vendored
+/assets/shared/semver.js -linguist-generated linguist-vendored
+/assets/shared/zip.d.ts -linguist-generated linguist-vendored
+/assets/shared/zip.js -linguist-generated linguist-vendored
 
-/assets/js/jquery-ui-1.14.1.custom/** linguist-vendored
+/assets/ore-ui-customizer-preview/** linguist-vendored
 /assets/ts/jquery-ui-1.14.1.custom/** linguist-vendored
 /assets/ts/spectrum.d.ts linguist-vendored
 /assets/ts/tinycolor2.d.ts linguist-vendored
 /assets/ts/zip.d.ts linguist-vendored
-/api/zip.js linguist-vendored
-/api/zip.d.ts linguist-vendored
+/assets/css/spectrum.css linguist-vendored
 
-*.ps1      linguist-include
-*.xml      linguist-include
-*.json     linguist-include
-*.jsonc    linguist-include
-*.jsonl    linguist-include
+tsconfig.json -linguist-detectable
+package.json -linguist-detectable
+package-lock.json -linguist-detectable
+.package-lock.json -linguist-detectable
+manifest.json -linguist-detectable
 
-tsconfig.json -linguist-include
-package.json -linguist-include
-package-lock.json -linguist-include
-.package-lock.json -linguist-include
+/assets/images/**/*.json -linguist-detectable
+/assets/images/**/*.jsonc -linguist-detectable
+/assets/images/**/*.jsonl -linguist-detectable
 
-/node_modules/** -linguist-include linguist-vendored
-/.vscode/** -linguist-include
+/node_modules/** -linguist-detectable linguist-vendored
 
-/node_modules/*.xml -linguist-vendored linguist-include
+/.vscode/** -linguist-detectable
+
+/node_modules/*.xml -linguist-vendored linguist-detectable
+
+/assets/shared/sample_ore_ui_customizer_plugins/** linguist-documentation
+
+/assets/oreui/customOverlays.js linguist-generated linguist-vendored linguist-documentation -linguist-detectable
