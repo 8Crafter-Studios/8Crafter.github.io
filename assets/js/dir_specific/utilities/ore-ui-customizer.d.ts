@@ -11,7 +11,11 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
-        "v1.21.120-121_PC": {
+        "v1.21.130-131_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.120-124_PC": {
             displayName: string;
             url: string;
         };
@@ -52,6 +56,14 @@ export declare namespace OreUICustomizer {
             url: string;
         };
         "v1.21.70-71_Android": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.130-preview.28_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.21.130-preview.27_PC": {
             displayName: string;
             url: string;
         };
@@ -107,7 +119,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.11.0";
+    const format_version = "1.11.1";
     /**
      * @type {File | undefined}
      */

@@ -29,7 +29,8 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.21.120-121_PC": { displayName: "v1.21.120/121 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
+        "v1.21.130-131_PC": { displayName: "v1.21.130/131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
+        "v1.21.120-124_PC": { displayName: "v1.21.120/121/122/123/124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
         "v1.21.113-114_PC": { displayName: "v1.21.113/114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
         "v1.21.111_PC": { displayName: "v1.21.111 (PC)", url: "/assets/zip/gui_mc-v1.21.111_PC.zip" },
         "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
@@ -40,6 +41,8 @@ export var OreUICustomizer;
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
         "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
         "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.130-preview.28_PC": { displayName: "v1.21.130.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip" },
+        "v1.21.130-preview.27_PC": { displayName: "v1.21.130.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip" },
         "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
         "v1.21.110-preview.25_PC": { displayName: "v1.21.110.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.25_PC.zip" },
         "v1.21.110-preview.24_PC": { displayName: "v1.21.110.24 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.24_PC.zip" },
@@ -56,7 +59,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.11.0";
+    OreUICustomizer.format_version = "1.11.1";
     /**
      * @type {File | undefined}
      */
@@ -2424,7 +2427,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.worldSeed,
                             maxLength: 3000,
-                            value: rawData.get().advanced.worldSeed,
+                            value: String(rawData.get().advanced.worldSeed ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.worldSeed = t), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -2435,7 +2438,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerPermissions,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer.playerPermissions,
+                            value: String(rawData.get().multiplayer.playerPermissions ?? ""),
                             onChange: playerPermissionsChange,
                             filterProfanity: !1,
                             disabled: false,
@@ -2447,7 +2450,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerAccess,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer.playerAccess,
+                            value: String(rawData.get().multiplayer.playerAccess ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.multiplayer.playerAccess = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -2458,7 +2461,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.gameMode,
                             maxLength: 3000,
-                            value: rawData.get().general.gameMode,
+                            value: String(rawData.get().general.gameMode ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.general.gameMode = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -2469,7 +2472,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.difficulty,
                             maxLength: 3000,
-                            value: rawData.get().general.difficulty,
+                            value: String(rawData.get().general.difficulty ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.general.difficulty = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -2480,7 +2483,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.generatorType,
                             maxLength: 3000,
-                            value: rawData.get().advanced.generatorType,
+                            value: String(rawData.get().advanced.generatorType ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.generatorType = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -2491,7 +2494,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.simulationDistance,
                             maxLength: 3000,
-                            value: rawData.get().advanced.simulationDistance,
+                            value: String(rawData.get().advanced.simulationDistance ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.simulationDistance = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,

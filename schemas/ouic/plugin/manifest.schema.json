@@ -86,7 +86,7 @@
                             "description": "The version of 8Crafter's Ore UI Customizer that this plugin is made for.",
                             "type": "string",
                             "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
-                            "default": "1.11.0",
+                            "default": "1.11.1",
                             "examples": [
                                 "1.0.0",
                                 "1.1.0",
@@ -103,7 +103,8 @@
                                 "1.8.0",
                                 "1.9.0",
                                 "1.10.0",
-                                "1.11.0"
+                                "1.11.0",
+                                "1.11.1"
                             ],
                             "$comment": "The default value of this should be the latest version of the Ore UI Customizer. The examples of this should include every version of the Ore UI Customizer since full plugin support was added."
                         },
@@ -159,7 +160,8 @@
                                 "1.8.0",
                                 "1.9.0",
                                 "1.10.0",
-                                "1.11.0"
+                                "1.11.0",
+                                "1.11.1"
                             ],
                             "$comment": "This should not have a default value. The examples of this should include every version of the Ore UI Customizer (and 0.0.0)."
                         }

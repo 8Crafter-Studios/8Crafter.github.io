@@ -1817,28 +1817,29 @@ export const builtInPlugins = [
                 let data = globalThis.facetSpyData ?? {
                     sharedFacets: Object.fromEntries(facetList.map((name) => [name, (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)((0, ${facetAccessHolderBindingVariableTarget}.sharedFacet)(name))])),
                 };
-                /**
-                 * Gets access to the provided facet.
-                 *
-                 * @param {string} facet The identifier of the facet to get access to.
-                 */
-                function getFacetAccess(facet) {
-                    ${facetAccessHolderBindingVariableTarget}.render(
-                        contextHolder.createElement(() => {
-                            const a = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet(facet)),
-                                b = (0, ${facetAccessHolderBindingVariableTarget}.useFacetCallback)((a) => () => {}, [], [a]);
-                            return null;
-                        }),
-                        document.createElement("div")
-                    );
-                }
-                for (const name of facetList) {
-                    try {
-                        if (data.sharedFacets[name].get()?.toString?.() === "Symbol(NoValue)") {
-                            getFacetAccess(name);
-                        }
-                    } catch {}
-                }
+                // // This is commented out to fix the increased load times it causes.
+                // /**
+                //  * Gets access to the provided facet.
+                //  *
+                //  * @param {string} facet The identifier of the facet to get access to.
+                //  */
+                // function getFacetAccess(facet) {
+                //     ${facetAccessHolderBindingVariableTarget}.render(
+                //         contextHolder.createElement(() => {
+                //             const a = (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)(${facetAccessHolderBindingVariableTarget}.sharedFacet(facet)),
+                //                 b = (0, ${facetAccessHolderBindingVariableTarget}.useFacetCallback)((a) => () => {}, [], [a]);
+                //             return null;
+                //         }),
+                //         document.createElement("div")
+                //     );
+                // }
+                // for (const name of facetList) {
+                //     try {
+                //         if (data.sharedFacets[name].get()?.toString?.() === "Symbol(NoValue)") {
+                //             getFacetAccess(name);
+                //         }
+                //     } catch {}
+                // }
 
                 globalThis.facetSpyData = data;
                 return null;
