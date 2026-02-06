@@ -7,7 +7,14 @@ import {
     importPluginFromDataURI,
     validatePluginFile,
 } from "../../../shared/ore-ui-customizer-assets.js";
-import type { EncodedPluginData, OreUICustomizerConfig, OreUICustomizerSettings, Plugin, PluginManifestJSON } from "ore-ui-customizer-types";
+import type {
+    EncodedPluginData,
+    LegacyOreUICustomizerConfigJSON,
+    OreUICustomizerConfig,
+    OreUICustomizerSettings,
+    Plugin,
+    PluginManifestJSON,
+} from "ore-ui-customizer-types";
 import type {} from "@ore-ui-customizer-api/plugin-env/backend";
 // import semver from "../../../shared/semver.js";
 
@@ -37,18 +44,18 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.21.130-131_PC": { displayName: "v1.21.130/131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
-        "v1.21.120-124_PC": { displayName: "v1.21.120/121/122/123/124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
-        "v1.21.113-114_PC": { displayName: "v1.21.113/114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
+        "v1.21.130-131_PC": { displayName: "v1.21.130-131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
+        "v1.21.120-124_PC": { displayName: "v1.21.120-124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
+        "v1.21.113-114_PC": { displayName: "v1.21.113-114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
         "v1.21.111_PC": { displayName: "v1.21.111 (PC)", url: "/assets/zip/gui_mc-v1.21.111_PC.zip" },
-        "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
-        "v1.21.100-101_Android": { displayName: "v1.21.100/101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
+        "v1.21.100-101_PC": { displayName: "v1.21.100-101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
+        "v1.21.100-101_Android": { displayName: "v1.21.100-101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
         "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
-        "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
-        "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.70-71_PC": { displayName: "v1.21.70-71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+        "v1.21.70-71_Android": { displayName: "v1.21.70-71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
         "v1.21.130-preview.28_PC": { displayName: "v1.21.130.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip" },
         "v1.21.130-preview.27_PC": { displayName: "v1.21.130.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip" },
         "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
@@ -60,14 +67,14 @@ export namespace OreUICustomizer {
         "v1.21.100-preview.23_PC": { displayName: "v1.21.100.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.100-preview.23_PC.zip" },
         "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
         "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
-        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
+        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27-28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
         "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
-        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
+        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20-22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
     };
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.11.1";
+    export const format_version = "1.11.2";
     /**
      * @type {File | undefined}
      */
@@ -167,7 +174,7 @@ export namespace OreUICustomizer {
                     currentImportedFile = zipFile;
                     $("#imported_file_name").css("color", "yellow");
                     $("#imported_file_name").text(
-                        `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+                        `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`,
                     );
                     await validateZipFile();
                     $(this).val("");
@@ -191,7 +198,7 @@ export namespace OreUICustomizer {
                                 {
                                     oreUICustomizerEnvGlobalVariableName,
                                 },
-                                "mcouicplugin"
+                                "mcouicplugin",
                             );
                             delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
                         }
@@ -238,7 +245,7 @@ export namespace OreUICustomizer {
                             {
                                 oreUICustomizerEnvGlobalVariableName: null,
                             },
-                            "js"
+                            "js",
                         );
                         const data: { plugin: Plugin } = await import(objectURL);
                         importedPlugins[`${data.plugin.id}-${data.plugin.uuid}-${data.plugin.version}`] = data.plugin;
@@ -321,7 +328,7 @@ export namespace OreUICustomizer {
                                 {
                                     oreUICustomizerEnvGlobalVariableName,
                                 },
-                                "mcouicplugin"
+                                "mcouicplugin",
                             );
                             delete (globalThis as any)[oreUICustomizerEnvGlobalVariableName];
                         }
@@ -359,6 +366,7 @@ export namespace OreUICustomizer {
                     }
                     break;
                 }
+                case "mjs":
                 case "js": {
                     try {
                         const file: File = files[0];
@@ -368,7 +376,7 @@ export namespace OreUICustomizer {
                             {
                                 oreUICustomizerEnvGlobalVariableName: null,
                             },
-                            "js"
+                            "js",
                         );
                         const data: { plugin: Plugin } = await import(objectURL);
                         importedPlugins[`${data.plugin.id}-${data.plugin.uuid}-${data.plugin.version}`] = data.plugin;
@@ -399,6 +407,49 @@ export namespace OreUICustomizer {
                     } catch (e: any) {
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
                         popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${
+                            e?.stack ?? e
+                        }</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+            }
+        });
+        $("#config-import-input").on("change", async function () {
+            const files: FileList = $(this).prop("files");
+            switch (files[0]?.name.split(".").at(-1)?.toLowerCase()) {
+                case "json":
+                case "jsonc":
+                case "mcouicconfig":
+                case "ouicconfig": {
+                    try {
+                        var config: OreUICustomizerConfig | LegacyOreUICustomizerConfigJSON = JSON.parse(await files[0].text());
+                        if (typeof config !== "object") throw new TypeError("Invalid config, not an object: " + JSON.stringify(config));
+                        if ("format_version" in config) {
+                            setSettings(config);
+                            const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                            popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The legacy config ${files[0].name} has been successfully imported.</span>`;
+                            document.body.prepend(popupElement);
+                        } else if ("oreUICustomizerVersion" in config) {
+                            if (!("oreUICustomizerConfig" in config)) throw new TypeError("Invalid config, missing oreUICustomizerConfig: " + JSON.stringify(config));
+                            if (typeof config.oreUICustomizerConfig !== "object") throw new TypeError("Invalid config, oreUICustomizerConfig is not an object: " + JSON.stringify(config));
+                            setSettings(config.oreUICustomizerConfig);
+                            if (config.metadata) {
+                                const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                                popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The config ${config.metadata.name} v${config.metadata.version} has been successfully imported.</span>`;
+                                document.body.prepend(popupElement);
+                            } else {
+                                const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                                popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The config ${files[0].name} has been successfully imported.</span>`;
+                                document.body.prepend(popupElement);
+                            }
+                        } else {
+                            throw new TypeError("Invalid config, unsupported config format, missing format_version or oreUICustomizerVersion: " + JSON.stringify(config));
+                        }
+                    } catch (e: any) {
+                        const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import config. The following error occured: ${
                             e?.stack ?? e
                         }</span>`;
                         document.body.prepend(popupElement);
@@ -462,7 +513,7 @@ export namespace OreUICustomizer {
                 } else {
                     $("#imported_file_name").css("color", "yellow");
                     $("#imported_file_name").text(
-                        `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+                        `Imported file: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`,
                     );
                     await validateZipFile();
                     $("#imported_file_name").css("color", "inherit");
@@ -486,7 +537,7 @@ export namespace OreUICustomizer {
                 currentImportedFile = new File([await response.blob()], currentPresets[currentPreset].url.split("/").pop()!);
                 $("#imported_file_name").css("color", "yellow");
                 $("#imported_file_name").text(
-                    `Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`
+                    `Imported file: PRESET: ${currentImportedFile.name} - ${formatFileSizeMetric(currentImportedFile.size)} - (Validating...)`,
                 );
                 // $("#apply_mods").prop("disabled", false);
                 await validateZipFile();
@@ -523,19 +574,14 @@ export namespace OreUICustomizer {
                 void $(element).spectrum({
                     allowEmpty: true,
                     noColorSelectedText: "Do not replace color.",
-                    preferredFormat: /^#([0-9a-fA-F]{3}){1,2}$/.test(element.value!)
-                        ? "hex"
-                        : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value!)
-                        ? "hex8"
-                        : /^hsl/.test(element.value!)
-                        ? "hsl"
-                        : /^hsv/.test(element.value!)
-                        ? "hsl"
-                        : /^rgb/.test(element.value!)
-                        ? "rgb"
-                        : /^hsb/.test(element.value!)
-                        ? "hsb"
-                        : (element.getAttribute("format") as "rgb" | undefined) ?? "rgb",
+                    preferredFormat:
+                        /^#([0-9a-fA-F]{3}){1,2}$/.test(element.value!) ? "hex"
+                        : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value!) ? "hex8"
+                        : /^hsl/.test(element.value!) ? "hsl"
+                        : /^hsv/.test(element.value!) ? "hsl"
+                        : /^rgb/.test(element.value!) ? "rgb"
+                        : /^hsb/.test(element.value!) ? "hsb"
+                        : ((element.getAttribute("format") as "rgb" | undefined) ?? "rgb"),
                     beforeShow: (color, element) => {
                         try {
                             $(".sp-picker-container select").val(color.getFormat());
@@ -550,11 +596,10 @@ export namespace OreUICustomizer {
                     showPalette: true,
                     showSelectionPalette: true,
                     localStorageKey: "ore-ui-customizer",
-                })
+                }),
         );
-        $(
-            ".sp-picker-container"
-        ).append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
+        $(".sp-picker-container")
+            .append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
         <option value="hex">HEX</option>
         <option value="hex3">HEX3</option>
         <option value="hex6">HEX6</option>
@@ -610,7 +655,7 @@ export namespace OreUICustomizer {
                         width: oreUIPreviewIframeContainer.width(),
                         height: oreUIPreviewIframeContainer.height(),
                     },
-                } as any)
+                } as any),
             );
         } catch (e) {
             console.error(e, (e as any)?.stack);
@@ -992,7 +1037,7 @@ export namespace OreUICustomizer {
                     failed = 2;
                     $("#import_files_error").css("color", "yellow");
                     $("#import_files_error").text(
-                        `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file was structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the dist folder instead of the gui folder.`
+                        `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file was structured ${currentImportedFile.name}/dist/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the dist folder instead of the gui folder.`,
                     );
                     $("#import_files_error").prop("hidden", false); /* 
                 $("#import_files_error").text(
@@ -1009,7 +1054,7 @@ export namespace OreUICustomizer {
                     failed = 2;
                     $("#import_files_error").css("color", "yellow");
                     $("#import_files_error").text(
-                        `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file was structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the hbui folder instead of the gui folder.`
+                        `Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file was structured ${currentImportedFile.name}/hbui/** instead of ${currentImportedFile.name}/gui/dist/hbui/**. You had zipped the hbui folder instead of the gui folder.`,
                     );
                     $("#import_files_error").prop("hidden", false); /* 
                 $("#import_files_error").text(
@@ -1033,7 +1078,7 @@ export namespace OreUICustomizer {
                 } else {
                     $("#import_files_error").css("color", "red");
                     $("#import_files_error").text(
-                        `Invalid zip file folder structure. Missing gui/ folder. The gui/ folder must be at the root of the zip file.`
+                        `Invalid zip file folder structure. Missing gui/ folder. The gui/ folder must be at the root of the zip file.`,
                     );
                     $("#import_files_error").prop("hidden", false);
                 }
@@ -1285,7 +1330,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     console.warn(
                         `Enabling built-in plugin "${requiredBuildInPlugin.id}" because it is required by ${JSON.stringify(plugin.name)} v${plugin.version} (${
                             plugin.namespace
-                        }:${plugin.id})`
+                        }:${plugin.id})`,
                     );
             });
         });
@@ -1293,11 +1338,9 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
     }
 
     export function setSettings(settings: {
-        [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements"
-            ? Partial<OreUICustomizerSettings["colorReplacements"]>
-            : key extends "enabledBuiltInPlugins"
-            ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]>
-            : OreUICustomizerSettings[key];
+        [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]>
+        : key extends "enabledBuiltInPlugins" ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]>
+        : OreUICustomizerSettings[key];
     }): void {
         $("#hardcore_mode_toggle_always_clickable").prop("checked", settings.hardcoreModeToggleAlwaysClickable ?? true);
         $("#allow_disabling_enabled_experimental_toggles").prop("checked", settings.allowDisablingEnabledExperimentalToggles ?? true);
@@ -1379,64 +1422,64 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         ($("#colors_customizer_settings_section_blue20") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#2e6be5"] ?? "#2e6be5");
         ($("#colors_customizer_settings_section_blue30") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#1452cc"] ?? "#1452cc");
         ($("#colors_customizer_settings_section_blackOpacity10") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.1)"] ?? "rgba(0, 0, 0, 0.1)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.1)"] ?? "rgba(0, 0, 0, 0.1)",
         );
         ($("#colors_customizer_settings_section_blackOpacity20") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.2)"] ?? "rgba(0, 0, 0, 0.2)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.2)"] ?? "rgba(0, 0, 0, 0.2)",
         );
         ($("#colors_customizer_settings_section_blackOpacity25") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.25)"] ?? "rgba(0, 0, 0, 0.25)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.25)"] ?? "rgba(0, 0, 0, 0.25)",
         );
         ($("#colors_customizer_settings_section_blackOpacity30") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.3)"] ?? "rgba(0, 0, 0, 0.3)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.3)"] ?? "rgba(0, 0, 0, 0.3)",
         );
         ($("#colors_customizer_settings_section_blackOpacity40") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.4)"] ?? "rgba(0, 0, 0, 0.4)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.4)"] ?? "rgba(0, 0, 0, 0.4)",
         );
         ($("#colors_customizer_settings_section_blackOpacity50") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.5)"] ?? "rgba(0, 0, 0, 0.5)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.5)"] ?? "rgba(0, 0, 0, 0.5)",
         );
         ($("#colors_customizer_settings_section_blackOpacity60") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.6)"] ?? "rgba(0, 0, 0, 0.6)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.6)"] ?? "rgba(0, 0, 0, 0.6)",
         );
         ($("#colors_customizer_settings_section_blackOpacity70") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.7)"] ?? "rgba(0, 0, 0, 0.7)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.7)"] ?? "rgba(0, 0, 0, 0.7)",
         );
         ($("#colors_customizer_settings_section_blackOpacity80") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.8)"] ?? "rgba(0, 0, 0, 0.8)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.8)"] ?? "rgba(0, 0, 0, 0.8)",
         );
         ($("#colors_customizer_settings_section_blackOpacity90") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 0.9)"] ?? "rgba(0, 0, 0, 0.9)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 0.9)"] ?? "rgba(0, 0, 0, 0.9)",
         );
         ($("#colors_customizer_settings_section_blackOpacity100") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(0, 0, 0, 1)"] ?? "rgba(0, 0, 0, 1)"
+            settings.colorReplacements?.["rgba(0, 0, 0, 1)"] ?? "rgba(0, 0, 0, 1)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity10") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.1)"] ?? "rgba(255, 255, 255, 0.1)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.1)"] ?? "rgba(255, 255, 255, 0.1)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity20") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.2)"] ?? "rgba(255, 255, 255, 0.2)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.2)"] ?? "rgba(255, 255, 255, 0.2)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity30") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.3)"] ?? "rgba(255, 255, 255, 0.3)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.3)"] ?? "rgba(255, 255, 255, 0.3)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity40") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.4)"] ?? "rgba(255, 255, 255, 0.4)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.4)"] ?? "rgba(255, 255, 255, 0.4)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity50") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.5)"] ?? "rgba(255, 255, 255, 0.5)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.5)"] ?? "rgba(255, 255, 255, 0.5)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity60") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.6)"] ?? "rgba(255, 255, 255, 0.6)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.6)"] ?? "rgba(255, 255, 255, 0.6)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity70") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.7)"] ?? "rgba(255, 255, 255, 0.7)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.7)"] ?? "rgba(255, 255, 255, 0.7)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity80") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.8)"] ?? "rgba(255, 255, 255, 0.8)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.8)"] ?? "rgba(255, 255, 255, 0.8)",
         );
         ($("#colors_customizer_settings_section_whiteOpacity90") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(255, 255, 255, 0.9)"] ?? "rgba(255, 255, 255, 0.9)"
+            settings.colorReplacements?.["rgba(255, 255, 255, 0.9)"] ?? "rgba(255, 255, 255, 0.9)",
         );
         ($("#colors_customizer_settings_section_pink10") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#FB95E2"] ?? "#FB95E2");
         ($("#colors_customizer_settings_section_pink20") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#FFB1EC"] ?? "#FFB1EC");
@@ -1451,7 +1494,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         ($("#colors_customizer_settings_section_deepBlue70") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#4A1CAC"] ?? "#4A1CAC");
         ($("#colors_customizer_settings_section_deepBlue100") as JQuery<HTMLInputElement>).val(settings.colorReplacements?.["#050029"] ?? "#050029");
         ($("#colors_customizer_settings_section_deepBlueOpacity50") as JQuery<HTMLInputElement>).val(
-            settings.colorReplacements?.["rgba(5, 0, 41, 0.5)"] ?? "rgba(5, 0, 41, 0.5)"
+            settings.colorReplacements?.["rgba(5, 0, 41, 0.5)"] ?? "rgba(5, 0, 41, 0.5)",
         );
     }
 
@@ -1479,7 +1522,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             setGreen?: number;
             setBlue?: number;
             setAlpha?: number;
-        }
+        },
     ) {
         const elem = $(target);
         if (filterOptions.hueShift) {
@@ -1498,8 +1541,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "set",
                 str.replace(
                     /(?<=\([0-9.]+, )[0-9.]+(?=, )/,
-                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)![0]) + filterOptions.saturationShift)))
-                )
+                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)![0]) + filterOptions.saturationShift))),
+                ),
             );
         }
         if (filterOptions.lightnessShift) {
@@ -1508,8 +1551,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "set",
                 str.replace(
                     /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
-                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.lightnessShift)))
-                )
+                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.lightnessShift))),
+                ),
             );
         }
         if (filterOptions.brightnessShift) {
@@ -1518,15 +1561,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "set",
                 str.replace(
                     /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
-                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.brightnessShift)))
-                )
+                    String(Math.min(100, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.brightnessShift))),
+                ),
             );
         }
         if (filterOptions.redShift) {
             const str = elem.spectrum("get").toRgbString();
             elem.spectrum(
                 "set",
-                str.replace(/(?<=\()[0-9.]+(?=\))/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\()[0-9.]+(?=, )/)![0]) + filterOptions.redShift))))
+                str.replace(/(?<=\()[0-9.]+(?=\))/, String(Math.min(255, Math.max(0, Number(str.match(/(?<=\()[0-9.]+(?=, )/)![0]) + filterOptions.redShift)))),
             );
         }
         if (filterOptions.greenShift) {
@@ -1535,8 +1578,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "set",
                 str.replace(
                     /(?<=\([0-9.]+, )[0-9.]+(?=, )/,
-                    String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)![0]) + filterOptions.greenShift)))
-                )
+                    String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, )[0-9.]+(?=, )/)![0]) + filterOptions.greenShift))),
+                ),
             );
         }
         if (filterOptions.blueShift) {
@@ -1545,8 +1588,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "set",
                 str.replace(
                     /(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/,
-                    String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.blueShift)))
-                )
+                    String(Math.min(255, Math.max(0, Number(str.match(/(?<=\([0-9.]+, [0-9.]+, )[0-9.]+(?=[,\)])/)![0]) + filterOptions.blueShift))),
+                ),
             );
         }
         if (filterOptions.alphaShift) {
@@ -1556,8 +1599,8 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     "set",
                     str.replace(
                         /(?<=, )[0-9.]+(?=\))/,
-                        String(Math.min(1, Math.max(0, Number(str.match(/(?<=, )[0-9.]+(?=\))/)![0]) + filterOptions.alphaShift)))
-                    )
+                        String(Math.min(1, Math.max(0, Number(str.match(/(?<=, )[0-9.]+(?=\))/)![0]) + filterOptions.alphaShift))),
+                    ),
                 );
             } else {
                 elem.spectrum("set", str.replace("rgb(", "rgba(").replace(")", String(Math.min(1, Math.max(0, Number(1 + filterOptions.alphaShift)))) + ")"));
@@ -1619,7 +1662,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             newGameplayThemeCSS: await fetch("../assets/ore-ui-customizer-preview/gameplay-theme.css").then((response) => response.text()),
             newCustomOverlaysCSS: await fetch("../assets/ore-ui-customizer-preview/customOverlays.css").then((response) => response.text()),
             oreUICustomizer8CrafterConfigJS: await fetch("../assets/ore-ui-customizer-preview/oreUICustomizer8CrafterConfig.js").then((response) =>
-                response.text()
+                response.text(),
             ),
             classPathJS: await fetch("../assets/ore-ui-customizer-preview/class_path.js").then((response) => response.text()),
             cssJS: await fetch("../assets/ore-ui-customizer-preview/css.js").then((response) => response.text()),
@@ -1649,33 +1692,33 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         // newData.newHTML = newData.newHTML.replaceAll(`./editor-7ac5c.css`, `data:text/css;base64,${btoa(newData.newEditorCSS)}`);
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/menus-theme.css`,
-            `data:text/css;base64,${btoa(newData.newMenusThemeCSS)}`
+            `data:text/css;base64,${btoa(newData.newMenusThemeCSS)}`,
         );
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/gameplay-theme.css`,
-            `data:text/css;base64,${btoa(newData.newGameplayThemeCSS)}`
+            `data:text/css;base64,${btoa(newData.newGameplayThemeCSS)}`,
         );
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/customOverlays.css`,
-            `data:text/css;base64,${btoa(newData.newCustomOverlaysCSS)}`
+            `data:text/css;base64,${btoa(newData.newCustomOverlaysCSS)}`,
         );
 
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/oreUICustomizer8CrafterConfig.js`,
-            `data:text/javascript,${encodeURIComponent(newData.oreUICustomizer8CrafterConfigJS)}`
+            `data:text/javascript,${encodeURIComponent(newData.oreUICustomizer8CrafterConfigJS)}`,
         );
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/class_path.js`,
-            `data:text/javascript,${encodeURIComponent(newData.classPathJS)}`
+            `data:text/javascript,${encodeURIComponent(newData.classPathJS)}`,
         );
         newData.newHTML = newData.newHTML.replaceAll(`/assets/ore-ui-customizer-preview/css.js`, `data:text/javascript,${encodeURIComponent(newData.cssJS)}`);
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/customOverlays.js`,
-            `data:text/javascript,${encodeURIComponent(newData.customOverlaysJS)}`
+            `data:text/javascript,${encodeURIComponent(newData.customOverlaysJS)}`,
         );
         newData.newHTML = newData.newHTML.replaceAll(
             `/assets/ore-ui-customizer-preview/index-d6df7.js`,
-            `data:text/javascript,${encodeURIComponent(newData.indexJS)}`
+            `data:text/javascript,${encodeURIComponent(newData.indexJS)}`,
         );
 
         // $("#ore-ui-preview-iframe").contents().remove();
@@ -1748,7 +1791,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 {
                     oreUICustomizerEnvGlobalVariableName,
                 },
-                plugin.fileType
+                plugin.fileType,
             );
         }
         $("#current_customizer_status").text("Applying mods (Modifying files)...");
@@ -1806,15 +1849,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     if (origData !== distData) {
                         if (entry.data?.filename.endsWith(".js")) {
                             distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                             )}\n${distData}`;
                         } else if (entry.data?.filename.endsWith(".css")) {
                             distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                             ).replaceAll("*/", "*\\/")} */\n${distData}`;
                         } else if (entry.data?.filename.endsWith(".html")) {
                             distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                                { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                             ).replaceAll("-->", "--\\>")} -->\n${distData}`;
                         }
                         entry.replaceText(distData);
@@ -1926,7 +1969,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     imgSrc: $13,
                     "data-testid": "hardcore-mode-toggle",
                 });
-            }`
+            }`,
                             );
                             successfullyReplaced = true;
                             break;
@@ -1998,7 +2041,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                           offNarrationText: $18AA,
                       })
                     : null;
-            }`
+            }`,
                             );
                             successfullyReplaced = true;
                             break;
@@ -2150,7 +2193,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         [eAA, dAA]
                     ),
                 });
-            }`
+            }`,
                             );
                             successfullyReplacedA = true;
                             break;
@@ -2173,7 +2216,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         (e[(e.GM7 = 7)] = "GM7"),
                         (e[(e.GM8 = 8)] = "GM8"),
                         (e[(e.GM9 = 9)] = "GM9");
-                })($1 || ($2 = {})),`
+                })($1 || ($2 = {})),`,
                             );
                             successfullyReplacedB = true;
                             break;
@@ -2252,7 +2295,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                 (e[(e.Void = 5)] = "Void"),
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
-                                      )`
+                                      )`,
                             );
                             successfullyReplacedA = true;
                             break;
@@ -2270,7 +2313,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         (e[(e.TheEnd = 4)] = "TheEnd"),
                         (e[(e.Void = 5)] = "Void"),
                         (e[(e.Undefined = 6)] = "Undefined");
-                })($1 || ($1 = {})),`
+                })($1 || ($1 = {})),`,
                             );
                             successfullyReplacedB = true;
                             break;
@@ -2348,7 +2391,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                         })
                               )
                           );
-                },`
+                },`,
                             );
                             successfullyReplaced = true;
                             break;
@@ -2365,7 +2408,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         if (regex.test(distData)) {
                             distData = distData.replace(
                                 regex,
-                                `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`
+                                `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`,
                             );
                             successfullyReplacedA = true;
                             break;
@@ -2818,7 +2861,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         })
                     )
                 );
-            }`
+            }`,
                             );
                             successfullyReplacedA = true;
                             break;
@@ -2854,31 +2897,31 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         <script defer="defer" src="/hbui/css.js"></script>
         <script defer="defer" src="/hbui/JSONB.js"></script>
         <script defer="defer" src="/hbui/customOverlays.js"></script>
-        `
+        `,
                     )
                     .replace(
                         /(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/,
                         `
-        <link href="/hbui/customOverlays.css" rel="stylesheet" />`
+        <link href="/hbui/customOverlays.css" rel="stylesheet" />`,
                     );
                 distData = distData
                     .replace(
                         new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`,
                         ),
-                        `false`
+                        `false`,
                     )
                     .replace(
                         new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`,
                         ),
-                        `false`
+                        `false`,
                     )
                     .replace(
                         new RegExp(
-                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`
+                            `(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`,
                         ),
-                        `false`
+                        `false`,
                     );
                 if (settings.maxTextLengthOverride !== "") {
                     const origDistData = distData;
@@ -2890,7 +2933,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             textLengthValue[0],
                             `maxLength${textLengthValue[1]}${
                                 settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */
-                            }`
+                            }`,
                         );
                     }
                     if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && distData === origDistData) {
@@ -2904,7 +2947,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
                         origData
                             .match(
-                                /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_\$]{1})\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:(?:[a-zA-Z0-9_\$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_\$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/
+                                /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_\$]{1})\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:(?:[a-zA-Z0-9_\$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_\$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/,
                             )
                             ?.slice(1, 4) ?? [];
                     disabledVariableSymbolName ??= "n";
@@ -2975,7 +3018,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                         ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement($4, { onClick: $5, screenAnalyticsId: $6 })
                                                     )
-                                                )`
+                                                )`,
                             );
                             successfullyReplaced = true;
                             break;
@@ -3002,15 +3045,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 if (origData !== distData) {
                     if (entry.data?.filename.endsWith(".js")) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
-                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                         )}\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".css")) {
                         distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
-                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                         )} */\n${distData}`;
                     } else if (entry.data?.filename.endsWith(".html")) {
                         distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
-                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
+                            { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) },
                         )} -->\n${distData}`;
                     }
                     entry.replaceText(distData);
@@ -3071,7 +3114,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             // Textboxes
             zipFs.addBlob(
                 "gui/dist/hbui/assets/edit_box_indent_hover.png",
-                await fetch("/assets/oreui/assets/edit_box_indent_hover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/edit_box_indent_hover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/edit_box_indent_hover.png");
             addedCount++;
@@ -3081,73 +3124,73 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
             // Buttons
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_dark.png",
-                await fetch("/assets/oreui/assets/button_borderless_dark.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_dark.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_dark.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_light.png",
-                await fetch("/assets/oreui/assets/button_borderless_light.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_light.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_light_blue_default.png",
-                await fetch("/assets/oreui/assets/button_borderless_light_blue_default.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_light_blue_default.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_darkhover.png",
-                await fetch("/assets/oreui/assets/button_borderless_darkhover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_darkhover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_darkhover.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_lighthover.png",
-                await fetch("/assets/oreui/assets/button_borderless_lighthover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_lighthover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_lighthover.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_light_blue_hover.png",
-                await fetch("/assets/oreui/assets/button_borderless_light_blue_hover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_light_blue_hover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_darkpressed.png",
-                await fetch("/assets/oreui/assets/button_borderless_darkpressed.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_darkpressed.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_darkpressed.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_lightpressed.png",
-                await fetch("/assets/oreui/assets/button_borderless_lightpressed.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_lightpressed.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_lightpressed.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png",
-                await fetch("/assets/oreui/assets/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_light_blue_hover_pressed.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_hover_pressed.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_darkpressednohover.png",
-                await fetch("/assets/oreui/assets/button_borderless_darkpressednohover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_darkpressednohover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_darkpressednohover.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_lightpressednohover.png",
-                await fetch("/assets/oreui/assets/button_borderless_lightpressednohover.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_lightpressednohover.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_lightpressednohover.png");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/button_borderless_light_blue_pressed.png",
-                await fetch("/assets/oreui/assets/button_borderless_light_blue_pressed.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/button_borderless_light_blue_pressed.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/button_borderless_light_blue_pressed.png");
             addedCount++;
@@ -3199,15 +3242,15 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         plugins: settings.bundleEncodedPluginDataInConfigFile ? settings.plugins : undefined,
                     } as OreUICustomizerSettings,
                     undefined,
-                    4
+                    4,
                 )};
-const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
+const oreUICustomizerVersion = ${JSON.stringify(format_version)};`,
             );
             console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.js");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts",
-                await fetch("/assets/oreui/oreUICustomizer8CrafterConfig.d.ts").then((r) => r.blob())
+                await fetch("/assets/oreui/oreUICustomizer8CrafterConfig.d.ts").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/oreUICustomizer8CrafterConfig.d.ts");
             addedCount++;
@@ -3259,7 +3302,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/chevron_new_white_right.png",
-                await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob())
+                await fetch("/assets/oreui/assets/chevron_new_white_right.png").then((r) => r.blob()),
             );
             console.log("Added gui/dist/hbui/assets/chevron_new_white_right.png");
             addedCount++;
@@ -3302,7 +3345,7 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         if (Object.keys(allFailedReplaces).length > 0) {
             console.warn(
                 "Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:",
-                allFailedReplaces
+                allFailedReplaces,
             );
             $("#import_files_error").css("color", "yellow");
             const originalWarning = $("#import_files_error").text();

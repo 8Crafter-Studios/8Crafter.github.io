@@ -29,18 +29,18 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.21.130-131_PC": { displayName: "v1.21.130/131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
-        "v1.21.120-124_PC": { displayName: "v1.21.120/121/122/123/124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
-        "v1.21.113-114_PC": { displayName: "v1.21.113/114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
+        "v1.21.130-131_PC": { displayName: "v1.21.130-131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
+        "v1.21.120-124_PC": { displayName: "v1.21.120-124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
+        "v1.21.113-114_PC": { displayName: "v1.21.113-114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
         "v1.21.111_PC": { displayName: "v1.21.111 (PC)", url: "/assets/zip/gui_mc-v1.21.111_PC.zip" },
-        "v1.21.100-101_PC": { displayName: "v1.21.100/101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
-        "v1.21.100-101_Android": { displayName: "v1.21.100/101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
+        "v1.21.100-101_PC": { displayName: "v1.21.100-101 (PC)", url: "/assets/zip/gui_mc-v1.21.100_PC.zip" },
+        "v1.21.100-101_Android": { displayName: "v1.21.100-101 (Android)", url: "/assets/zip/gui_mc-v1.21.100_Android.zip" },
         "v1.21.90_PC": { displayName: "v1.21.90 (PC)", url: "/assets/zip/gui_mc-v1.21.90_PC.zip" },
         "v1.21.90_Android": { displayName: "v1.21.90 (Android)", url: "/assets/zip/gui_mc-v1.21.90_Android.zip" },
         "v1.21.80_PC": { displayName: "v1.21.80 (PC)", url: "/assets/zip/gui_mc-v1.21.80_PC.zip" },
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
-        "v1.21.70-71_PC": { displayName: "v1.21.70/71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
-        "v1.21.70-71_Android": { displayName: "v1.21.70/71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.21.70-71_PC": { displayName: "v1.21.70-71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
+        "v1.21.70-71_Android": { displayName: "v1.21.70-71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
         "v1.21.130-preview.28_PC": { displayName: "v1.21.130.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip" },
         "v1.21.130-preview.27_PC": { displayName: "v1.21.130.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip" },
         "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
@@ -52,14 +52,14 @@ export var OreUICustomizer;
         "v1.21.100-preview.23_PC": { displayName: "v1.21.100.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.100-preview.23_PC.zip" },
         "v1.21.90-preview.21_PC": { displayName: "v1.21.90.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.21_PC.zip" },
         "v1.21.90-preview.20_PC": { displayName: "v1.21.90.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.90-preview.20_PC.zip" },
-        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27/28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
+        "v1.21.80-preview.27-28_PC": { displayName: "v1.21.80.27-28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.27-28_PC.zip" },
         "v1.21.80-preview.25_PC": { displayName: "v1.21.80.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.25_PC.zip" },
-        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20/21/22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
+        "v1.21.80-preview.20-22_PC": { displayName: "v1.21.80.20-22 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.80-preview.20-22_PC.zip" },
     };
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.11.1";
+    OreUICustomizer.format_version = "1.11.2";
     /**
      * @type {File | undefined}
      */
@@ -321,6 +321,7 @@ export var OreUICustomizer;
                     }
                     break;
                 }
+                case "mjs":
                 case "js": {
                     try {
                         const file = files[0];
@@ -358,6 +359,54 @@ export var OreUICustomizer;
                     catch (e) {
                         const popupElement = document.createElement("mc-message-form-data");
                         popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import plugin. The following error occured: ${e?.stack ?? e}</span>`;
+                        document.body.prepend(popupElement);
+                        break;
+                    }
+                    break;
+                }
+            }
+        });
+        $("#config-import-input").on("change", async function () {
+            const files = $(this).prop("files");
+            switch (files[0]?.name.split(".").at(-1)?.toLowerCase()) {
+                case "json":
+                case "jsonc":
+                case "mcouicconfig":
+                case "ouicconfig": {
+                    try {
+                        var config = JSON.parse(await files[0].text());
+                        if (typeof config !== "object")
+                            throw new TypeError("Invalid config, not an object: " + JSON.stringify(config));
+                        if ("format_version" in config) {
+                            setSettings(config);
+                            const popupElement = document.createElement("mc-message-form-data");
+                            popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The legacy config ${files[0].name} has been successfully imported.</span>`;
+                            document.body.prepend(popupElement);
+                        }
+                        else if ("oreUICustomizerVersion" in config) {
+                            if (!("oreUICustomizerConfig" in config))
+                                throw new TypeError("Invalid config, missing oreUICustomizerConfig: " + JSON.stringify(config));
+                            if (typeof config.oreUICustomizerConfig !== "object")
+                                throw new TypeError("Invalid config, oreUICustomizerConfig is not an object: " + JSON.stringify(config));
+                            setSettings(config.oreUICustomizerConfig);
+                            if (config.metadata) {
+                                const popupElement = document.createElement("mc-message-form-data");
+                                popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The config ${config.metadata.name} v${config.metadata.version} has been successfully imported.</span>`;
+                                document.body.prepend(popupElement);
+                            }
+                            else {
+                                const popupElement = document.createElement("mc-message-form-data");
+                                popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The config ${files[0].name} has been successfully imported.</span>`;
+                                document.body.prepend(popupElement);
+                            }
+                        }
+                        else {
+                            throw new TypeError("Invalid config, unsupported config format, missing format_version or oreUICustomizerVersion: " + JSON.stringify(config));
+                        }
+                    }
+                    catch (e) {
+                        const popupElement = document.createElement("mc-message-form-data");
+                        popupElement.innerHTML = `<span slot="titleText">Failed to Import Plugin</span><span>Failed to import config. The following error occured: ${e?.stack ?? e}</span>`;
                         document.body.prepend(popupElement);
                         break;
                     }
@@ -483,19 +532,13 @@ export var OreUICustomizer;
         $(".spectrum-colorpicker-color-override-option").each((i, element) => void $(element).spectrum({
             allowEmpty: true,
             noColorSelectedText: "Do not replace color.",
-            preferredFormat: /^#([0-9a-fA-F]{3}){1,2}$/.test(element.value)
-                ? "hex"
-                : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value)
-                    ? "hex8"
-                    : /^hsl/.test(element.value)
-                        ? "hsl"
-                        : /^hsv/.test(element.value)
-                            ? "hsl"
-                            : /^rgb/.test(element.value)
-                                ? "rgb"
-                                : /^hsb/.test(element.value)
-                                    ? "hsb"
-                                    : element.getAttribute("format") ?? "rgb",
+            preferredFormat: /^#([0-9a-fA-F]{3}){1,2}$/.test(element.value) ? "hex"
+                : /^#([0-9a-fA-F]{4}){1,2}$/.test(element.value) ? "hex8"
+                    : /^hsl/.test(element.value) ? "hsl"
+                        : /^hsv/.test(element.value) ? "hsl"
+                            : /^rgb/.test(element.value) ? "rgb"
+                                : /^hsb/.test(element.value) ? "hsb"
+                                    : (element.getAttribute("format") ?? "rgb"),
             beforeShow: (color, element) => {
                 try {
                     $(".sp-picker-container select").val(color.getFormat());
@@ -512,7 +555,8 @@ export var OreUICustomizer;
             showSelectionPalette: true,
             localStorageKey: "ore-ui-customizer",
         }));
-        $(".sp-picker-container").append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
+        $(".sp-picker-container")
+            .append(`<select class="spectrum-colorpicker-color-format-dropdown" onchange="$(currentColorPickerTarget).spectrum('option', 'preferredFormat', this.value); $(currentColorPickerTarget).spectrum('set', $(this).parent().find('.sp-input').val()); console.log(this.value);">
         <option value="hex">HEX</option>
         <option value="hex3">HEX3</option>
         <option value="hex6">HEX6</option>

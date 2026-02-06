@@ -80,7 +80,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.11.1" type="module"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.11.2" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -93,12 +93,12 @@
 
     <body style="background-image: var(--theme_bg_url_2); background-position: 50%; background-size: cover">
         <div style="position: fixed; height: 100%; width: 100%; top: 0; left: 0; backdrop-filter: brightness(0.4)"></div>
-        <autofill_from_file src="/components/header.component.js" params="[103, &quot;utilities/ore-ui-customizer&quot;]">
+        <autofill_from_file src="/components/header.component.js" params='[103, "utilities/ore-ui-customizer"]'>
             <!-- This is the fallback HTML for the header. -->
             <header class="header" style="position: fixed; width: 100%">
                 <noscript>
                     <div id="noscript_alert" class="alert warning">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        <span class="closebtn" onclick="this.parentElement.style.display = 'none'">&times;</span>
                         This website requires JavaScript to function, please allow JavaScript on this website.
                     </div>
                 </noscript>
@@ -164,7 +164,18 @@
             <div style="border-right: 1px solid #cccccc; border-bottom: 1px solid #cccccc; position: absolute; z-index: 1">
                 <button
                     type="button"
-                    onclick="$('#customizer_settings_left_sidebar').toggle('slide'); if($(this).attr('mode')=='1'){$(this).text('Show'); $(this).attr('mode', '0'); this.style.width = '60px'}else{$(this).text('Hide'); $(this).attr('mode', '1'); this.style.width = '70px'}"
+                    onclick="
+                        $('#customizer_settings_left_sidebar').toggle('slide');
+                        if ($(this).attr('mode') == '1') {
+                            $(this).text('Show');
+                            $(this).attr('mode', '0');
+                            this.style.width = '60px';
+                        } else {
+                            $(this).text('Hide');
+                            $(this).attr('mode', '1');
+                            this.style.width = '70px';
+                        }
+                    "
                     class="btn nsel"
                     style="float: left; width: 70px"
                     id="customer_settings_left_sidebar_toggle_button"
@@ -187,7 +198,15 @@
             <div
                 id="customizer_settings_left_sidebar"
                 class="no_margins"
-                style="width: 70px; height: -webkit-fill-available; height: -moz-available; margin-top: 32px; overflow-y: auto; float: left; border-right: 1px solid #cccccc"
+                style="
+                    width: 70px;
+                    height: -webkit-fill-available;
+                    height: -moz-available;
+                    margin-top: 32px;
+                    overflow-y: auto;
+                    float: left;
+                    border-right: 1px solid #cccccc;
+                "
             >
                 <label
                     ontouchstart=""
@@ -245,7 +264,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -265,7 +289,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -288,7 +317,17 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked')); if (checkbox.prop('checked')) { $('#allow_for_changing_flat_world_preset').removeAttr('disabled'); } else { $('#allow_for_changing_flat_world_preset').attr('disabled', ''); }}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                                if (checkbox.prop('checked')) {
+                                    $('#allow_for_changing_flat_world_preset').removeAttr('disabled');
+                                } else {
+                                    $('#allow_for_changing_flat_world_preset').attr('disabled', '');
+                                }
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -321,7 +360,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -355,7 +399,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -378,7 +427,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -405,7 +459,12 @@
                     <div
                         class="mctogglecontainer nsel"
                         ontouchstart=""
-                        onclick="{let checkbox = $(this).find('input[type=\'checkbox\']'); checkbox.prop('checked', !checkbox.prop('checked'))}"
+                        onclick="
+                            {
+                                let checkbox = $(this).find('input[type=\'checkbox\']');
+                                checkbox.prop('checked', !checkbox.prop('checked'));
+                            }
+                        "
                         style="display: inline-block"
                     >
                         <input
@@ -443,7 +502,14 @@
                                 placeholder="1000000"
                                 class="form-control"
                                 ontouchstart
-                                onchange="$(this).val($(this).val().replaceAll(/[^0-9\-]/g, '').replaceAll(/(?<!^)-/g, ''))"
+                                onchange="
+                                    $(this).val(
+                                        $(this)
+                                            .val()
+                                            .replaceAll(/[^0-9\-]/g, '')
+                                            .replaceAll(/(?<!^)-/g, ''),
+                                    )
+                                "
                             />
                         </div>
                     </div>
@@ -2117,7 +2183,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v1.11.1</h1>
+                <h1>8Crafter's Ore UI Customizer v1.11.2</h1>
                 <h4>Instructions</h4>
                 <div class="collapsible-group collapsible-group-collapsed">
                     <div class="collapsible-group-header">
@@ -2268,7 +2334,7 @@
                 >
                     Show Options
                 </button>
-                <input type="file" hidden="true" id="plugin-import-input" accept=".js, .mcouicplugin, .ouicplugin" class="d-none" />
+                <input type="file" hidden="true" id="plugin-import-input" accept=".js, .mjs, .mcouicplugin, .ouicplugin" class="d-none" />
                 <label style="color: inherit">
                     <button type="button" class="btn nsel" id="import_plugins_button" onClick="$('#plugin-import-input').click()">
                         <only_visible_on_themes light blue>
@@ -2292,6 +2358,31 @@
                         Import Plugin
                     </button>
                 </label>
+                <br />
+                <input type="file" hidden="true" id="config-import-input" accept=".json, .jsonc, .mcouicconfig, .ouicconfig" class="d-none" />
+                <label style="color: inherit">
+                    <button type="button" class="btn nsel" id="import_config_button" onClick="$('#config-import-input').click()">
+                        <only_visible_on_themes light blue>
+                            <img
+                                width="16"
+                                height="16"
+                                src="/assets/images/ui/glyphs/upload.png"
+                                style="image-rendering: pixelated; vertical-align: text-bottom; filter: invert(100%)"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        <only_visible_on_themes dark>
+                            <img
+                                width="16"
+                                height="16"
+                                src="/assets/images/ui/glyphs/upload.png"
+                                style="image-rendering: pixelated; vertical-align: text-bottom"
+                                aria-hidden="true"
+                            />
+                        </only_visible_on_themes>
+                        Import Config
+                    </button>
+                </label>
                 <button type="button" class="btn nsel" id="customizer_export_config_button" onclick="oreUICustomizer.exportConfigFile()">Export Config</button>
                 <hr />
                 <center style="width: 100%; margin-top: 30px">
@@ -2311,11 +2402,11 @@
                                     if ($(this).parent().find('.dropdowncontents').prop('hidden')) {
                                         $(this).find('.cv').prop('hidden', true);
                                         $(this).find('.cvsel').prop('hidden', false);
-                                        $(this).parent().find('.dropdowncontents').prop('hidden', false)
+                                        $(this).parent().find('.dropdowncontents').prop('hidden', false);
                                     } else {
-                                        $(this).find('.cv').prop('hidden', false); 
+                                        $(this).find('.cv').prop('hidden', false);
                                         $(this).find('.cvsel').prop('hidden', true);
-                                        $(this).parent().find('.dropdowncontents').prop('hidden', true)
+                                        $(this).parent().find('.dropdowncontents').prop('hidden', true);
                                     }
                                 "
                             >
@@ -2421,7 +2512,10 @@
                                 type="button"
                                 class="btn nsel"
                                 id="cli-version-link-button"
-                                onclick="event.preventDefault(); window.open('https:/\/npmjs.com/package/ore-ui-customizer-cli', '_blank')"
+                                onclick="
+                                    event.preventDefault();
+                                    window.open('https:/\/npmjs.com/package/ore-ui-customizer-cli', '_blank');
+                                "
                             >
                                 CLI Version
                             </button>
@@ -2563,4 +2657,3 @@
         </template>
     </body>
 </html>
-
