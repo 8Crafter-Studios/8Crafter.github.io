@@ -44,6 +44,7 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        "v1.26.0_PC": { displayName: "v1.26.0 (PC)", url: "/assets/zip/gui_mc-v1.26.0_PC.zip" },
         "v1.21.130-131_PC": { displayName: "v1.21.130-131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
         "v1.21.120-124_PC": { displayName: "v1.21.120-124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
         "v1.21.113-114_PC": { displayName: "v1.21.113-114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
@@ -74,7 +75,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.11.2";
+    export const format_version = "1.11.3";
     /**
      * @type {File | undefined}
      */

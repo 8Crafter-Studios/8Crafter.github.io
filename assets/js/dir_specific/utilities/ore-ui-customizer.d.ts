@@ -11,6 +11,10 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
+        "v1.26.0_PC": {
+            displayName: string;
+            url: string;
+        };
         "v1.21.130-131_PC": {
             displayName: string;
             url: string;
@@ -119,7 +123,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.11.2";
+    const format_version = "1.11.3";
     /**
      * @type {File | undefined}
      */
