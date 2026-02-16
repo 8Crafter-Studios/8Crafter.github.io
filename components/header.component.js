@@ -24,7 +24,7 @@ export default function getComponent(tabIndex = -1, page = "") {
                 : ""
         }
         <ul class="horizontal-nav full-sized-nav">
-            <li class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a></li>
+            <li class="NavLink_8Crafter"><a href="/" style="padding-top: 4px; padding-bottom: 4px"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a></li>
             <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index.html" rel="keep-params">Home</a></li>
             <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
             <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about.html" rel="keep-params">About</a></li>
@@ -92,11 +92,11 @@ export default function getComponent(tabIndex = -1, page = "") {
         </ul>
         <ul class="horizontal-nav compressed-nav">
             <li style="float:left; cursor:pointer;"><a onclick="$('#nav-sidebar').toggle('slide')" style="vertical-align: middle; padding: 0px; height:44px; width:44px;"><div class="menu_threebars_button" title="Menu" style="width: 30px; height: 30px;"></div></a></li>
-            <li style="height: 44px; margin-bottom: 0px;" class="NavLink_8Crafter"><a href="https://youtube.com/@8crafter" style="padding: 4px 7px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
+            <li style="height: 44px; margin-bottom: 0px;" class="NavLink_8Crafter"><a href="/" style="padding: 4px 7px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li>
         </ul>
         <div id="nav-sidebar" class="blur_behind_5px" style="display: none;">
             <ul class="vertical-nav compressed-nav" style="background-color: unset;">
-            <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="https://youtube.com/@8crafter" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
+            <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="/" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
             <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index.html" rel="keep-params">Home</a></li>
             <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
             <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about.html" rel="keep-params">About</a></li>
