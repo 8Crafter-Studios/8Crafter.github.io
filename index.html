@@ -86,7 +86,7 @@
             <header class="header" style="position: fixed; width: 100%">
                 <noscript>
                     <div id="noscript_alert" class="alert warning">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        <span class="closebtn" onclick="this.parentElement.style.display = 'none'">&times;</span>
                         This website requires JavaScript to function, please allow JavaScript on this website.
                     </div>
                 </noscript>
@@ -166,7 +166,10 @@
                         flex-direction: column-reverse;
                     "
                     id="link_button_list"
-                    onload="this.scrollTop = this.scrollHeight; $(this).scrollTop($(this)[0].scrollHeight);"
+                    onload="
+                        this.scrollTop = this.scrollHeight;
+                        $(this).scrollTop($(this)[0].scrollHeight);
+                    "
                 >
                     <button
                         ontouchstart
@@ -177,17 +180,6 @@
                         onclick="window.open('https:/\/about:blank', '_blank')"
                     >
                         <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px" title="????????" />
-                    </button>
-                    <button
-                        ontouchstart
-                        type="button"
-                        class="btn no-remove-disabled nsel"
-                        id="?2_link"
-                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
-                        onclick="window.open('https:/\/about:blank', '_blank')"
-                    >
-                        <img src="/assets/images/ui/icons/" style="height: 25px; vertical-align: text-top; margin: -5px 0px" title="????????" />
-                        ????????
                     </button>
                     <button
                         ontouchstart
@@ -243,7 +235,12 @@
                         class="btn no-remove-disabled nsel"
                         id="patreon_link"
                         style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
-                        onclick="window.open('https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink', '_blank')"
+                        onclick="
+                            window.open(
+                                'https:/\/patreon.com/8Crafter?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink',
+                                '_blank',
+                            )
+                        "
                     >
                         <img
                             src="/assets/images/ui/icons/patreon_favicon-32.png"
@@ -251,6 +248,17 @@
                             title="Patreon"
                         />
                         Patreon
+                    </button>
+                    <button
+                        ontouchstart
+                        type="button"
+                        class="btn no-remove-disabled nsel"
+                        id="modrinth_link"
+                        style="margin-top: 5px; width: 128px; text-align: left; height: 32px"
+                        onclick="window.open('https:/\/modrinth.com/user/8Crafter', '_blank')"
+                    >
+                        <img src="/assets/images/ui/icons/modrinth.svg" style="height: 25px; vertical-align: text-top; margin: -5px 0px" title="Modrinth" />
+                        Modrinth
                     </button>
                     <button
                         ontouchstart
