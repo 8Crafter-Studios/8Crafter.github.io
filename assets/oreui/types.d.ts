@@ -1,5 +1,5 @@
-import type {} from "ore-ui-types"
-import type {} from "@ore-ui-types/enums"
+import type {} from "ore-ui-types";
+import type {} from "@ore-ui-types/enums";
 
 declare global {
     namespace globalThis {
@@ -56,6 +56,7 @@ declare global {
          * type Mutated = UnionToIntersection<Original>; // string & number
          * ```
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type UnionToIntersection<U> = (U extends any ? (x: U) => void : never) extends (x: infer I) => void ? I : never;
         // type test1a = [name: number, id: `ID:${number}`, hi: "text"];
         /**
@@ -70,6 +71,7 @@ declare global {
          * type Mutated = PushFront<Original, boolean>; // [boolean, number, string]
          * ```
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type PushFront<TailT extends any[], HeadT> = ((head: HeadT, ...tail: TailT) => void) extends (...arr: infer ArrT) => void ? ArrT : never;
         /* type NoRepetition<U extends string, ResultT extends any[] = []> = {
         [k in U]: PushFront<ResultT, k> | NoRepetition<Exclude<U, k>, PushFront<ResultT, k>>;
@@ -85,6 +87,7 @@ declare global {
          * type Original = NoRepetition<"abc">; // ["a", "b", "c"]
          * ```
          */
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type NoRepetition<U extends string, ResultT extends any[] = []> =
             | ResultT
             | {
@@ -135,7 +138,10 @@ declare global {
          * type Original = Split<"abc">; // ["a", "b", "c"]
          * ```
          */
-        type Split<S extends string> = S extends "" ? [] : S extends `${infer C}${infer R}` ? [C, ...Split<R>] : never;
+        type Split<S extends string> =
+            S extends "" ? []
+            : S extends `${infer C}${infer R}` ? [C, ...Split<R>]
+            : never;
 
         /**
          * Takes the first N elements from a tuple type.
@@ -149,52 +155,55 @@ declare global {
          * type Original = TakeFirstNElements<[1, 2, 3, 4], 2>; // [1, 2]
          * ```
          */
-        type TakeFirstNElements<T extends any[], N extends number, Result extends any[] = []> = Result["length"] extends N
-            ? Result
-            : T extends [infer First, ...infer Rest]
-            ? TakeFirstNElements<Rest, N, [...Result, First]>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type TakeFirstNElements<T extends any[], N extends number, Result extends any[] = []> =
+            Result["length"] extends N ? Result
+            : T extends [infer First, ...infer Rest] ? TakeFirstNElements<Rest, N, [...Result, First]>
             : Result;
 
         /**
          * @author 8Crafter
          */
-        type TakeLastNElements<T extends any[], N extends number, Result extends any[] = []> = Result["length"] extends N
-            ? Result
-            : T extends [...infer Rest, infer Last]
-            ? TakeLastNElements<Rest, N, [Last, ...Result]>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type TakeLastNElements<T extends any[], N extends number, Result extends any[] = []> =
+            Result["length"] extends N ? Result
+            : T extends [...infer Rest, infer Last] ? TakeLastNElements<Rest, N, [Last, ...Result]>
             : Result;
 
         /**
          * @author 8Crafter
          */
-        type RemoveFirstNElements<T extends any[], N extends number, Removed extends any[] = [], Result extends any[] = []> = Removed["length"] extends N
-            ? Result
-            : T extends [infer First, ...infer Rest]
-            ? RemoveFirstNElements<Rest, N, [...Removed, First], Rest>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type RemoveFirstNElements<T extends any[], N extends number, Removed extends any[] = [], Result extends any[] = []> =
+            Removed["length"] extends N ? Result
+            : T extends [infer First, ...infer Rest] ? RemoveFirstNElements<Rest, N, [...Removed, First], Rest>
             : Result;
 
         /**
          * @author 8Crafter
          */
-        type RemoveLastNElements<T extends any[], N extends number, Removed extends any[] = [], Result extends any[] = []> = Removed["length"] extends N
-            ? Result
-            : T extends [...infer Rest, infer Last]
-            ? RemoveFirstNElements<Rest, N, [...Removed, Last], Rest>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type RemoveLastNElements<T extends any[], N extends number, Removed extends any[] = [], Result extends any[] = []> =
+            Removed["length"] extends N ? Result
+            : T extends [...infer Rest, infer Last] ? RemoveFirstNElements<Rest, N, [...Removed, Last], Rest>
             : Result;
 
         /**
          * @author 8Crafter
          */
-        type CreateTupleOfLength<T extends any, N extends number, Result extends any[] = []> = Result["length"] extends N
-            ? Result
-            : CreateTupleOfLength<T, N, [T, ...Result]>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type CreateTupleOfLength<T extends any, N extends number, Result extends any[] = []> =
+            Result["length"] extends N ? Result : CreateTupleOfLength<T, N, [T, ...Result]>;
 
         /**
          * @author 8Crafter
          */
-        type SliceTuple<T extends any[], start extends number, end extends number> = RemoveFirstNElements<T, start> extends infer R extends any[]
-            ? TakeFirstNElements<R, RemoveFirstNElements<TakeFirstNElements<T, end>, start>["length"]>
-            : never;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type SliceTuple<T extends any[], start extends number, end extends number> =
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            RemoveFirstNElements<T, start> extends infer R extends any[] ?
+                TakeFirstNElements<R, RemoveFirstNElements<TakeFirstNElements<T, end>, start>["length"]>
+            :   never;
 
         /**
          * Joins an array of strings into a single string.
@@ -206,13 +215,13 @@ declare global {
          * type Original = Join<["a", "bcc", "de"]>; // "abccde"
          * ```
          */
-        type Join<T extends string[]> = T extends []
-            ? ""
-            : T extends [infer Head, ...infer Tail]
-            ? Head extends string
-                ? `${Head}${Join<Tail extends string[] ? Tail : []>}`
-                : never
-            : never;
+        type Join<T extends string[]> =
+            T extends [] ? ""
+            : T extends [infer Head, ...infer Tail] ?
+                Head extends string ?
+                    `${Head}${Join<Tail extends string[] ? Tail : []>}`
+                :   never
+            :   never;
 
         /**
          * Cuts the first N characters from a string.
@@ -283,39 +292,78 @@ declare global {
          * type Mutated = DeepPartial<Original>; // { name?: string; age?: number }
          * ```
          */
-        export type DeepPartial<T> = T extends object
-            ? {
-                  [P in keyof T]?: DeepPartial<T[P]>;
-              }
-            : T;
+        export type DeepPartial<T> =
+            T extends object ?
+                {
+                    [P in keyof T]?: DeepPartial<T[P]>;
+                }
+            :   T;
         type KeysOfUnion<T> = T extends T ? keyof T : never;
         type ValueTypes<T> = T extends { [key: string]: infer U } ? U : never;
         type AllValues<T> = T extends { [key: string]: infer V } ? V : never;
         type KeyValuePairs<T> = {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             [K in KeysOfUnion<T>]: AllValues<Extract<T, Record<K, any>>>;
         };
         /**
          * @see https://stackoverflow.com/a/58986589
          * @author jcalz <https://stackoverflow.com/users/2887218/jcalz>
          */
-        type ExcludeFromTuple<T extends readonly any[], E> = T extends [infer F, ...infer R]
-            ? [F] extends [E]
-                ? ExcludeFromTuple<R, E>
-                : [F, ...ExcludeFromTuple<R, E>]
-            : [];
-        type IncludeFromTuple<T extends readonly any[], E> = T extends [infer F, ...infer R]
-            ? [F] extends [E]
-                ? [F, ...IncludeFromTuple<R, E>]
-                : IncludeFromTuple<R, E>
-            : [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type ExcludeFromTuple<T extends readonly any[], E> =
+            T extends [infer F, ...infer R] ?
+                [F] extends [E] ?
+                    ExcludeFromTuple<R, E>
+                :   [F, ...ExcludeFromTuple<R, E>]
+            :   [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        type IncludeFromTuple<T extends readonly any[], E> =
+            T extends [infer F, ...infer R] ?
+                [F] extends [E] ?
+                    [F, ...IncludeFromTuple<R, E>]
+                :   IncludeFromTuple<R, E>
+            :   [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         type NullableArray<T extends any[] | readonly any[]> = T | [null, ...T] | [...T, null];
+        /**
+         * A type representing any function with a call signature.
+         *
+         * @template UseNeverArgs Whether to use `never` for the type of the rest and this arguments, necessary when using `MyFunctionType extends AnyCallableFunction`, to use it just pass `1` (ex. `MyFunctionType extends AnyCallableFunction<1>`).
+         */
+        type AnyCallableFunction<UseNeverArgs extends 0 | 1 = 0> = (
+            this: UseNeverArgs extends 1 ? never : unknown,
+            ...args: UseNeverArgs extends 1 ? never : unknown[]
+        ) => unknown;
+        /**
+         * A type representing any function with a construct signature.
+         *
+         * @template UseNeverArgs Whether to use `never` for the type of the rest arguments, necessary when using `MyFunctionType extends AnyNewableFunction`, to use it just pass `1` (ex. `MyFunctionType extends AnyNewableFunction<1>`).
+         */
+        type AnyNewableFunction<UseNeverArgs extends 0 | 1 = 0> = new (...args: UseNeverArgs extends 1 ? never : unknown[]) => unknown;
+        /**
+         * A type representing any function with a construct signature and a call signature.
+         *
+         * @template UseNeverArgs Whether to use `never` for the type of the rest and this arguments, necessary when using `MyFunctionType extends AnyCallableNewableFunction`, to use it just pass `1` (ex. `MyFunctionType extends AnyCallableNewableFunction<1>`).
+         */
+        type AnyCallableNewableFunction<UseNeverArgs extends 0 | 1 = 0> = AnyCallableFunction<UseNeverArgs> & AnyNewableFunction<UseNeverArgs>;
+        /**
+         * A type representing any function with a call, a construct signature, or both.
+         *
+         * @template UseNeverArgs Whether to use `never` for the type of the rest and this arguments, necessary when using `MyFunctionType extends AnyFunction`, to use it just pass `1` (ex. `MyFunctionType extends AnyFunction<1>`).
+         */
+        type AnyFunction<UseNeverArgs extends 0 | 1 = 0> =
+            | AnyCallableFunction<UseNeverArgs>
+            | AnyNewableFunction<UseNeverArgs>
+            | AnyCallableNewableFunction<UseNeverArgs>;
+
         /**
          * A function to be put into the react renderer to collect facet accessors.
          *
          * @param {{}} [param0] Ignore this.
          * @returns {null} Returns `null`.
          */
-        // eslint-disable-next-line no-empty-pattern, @typescript-eslint/ban-types
+        /* eslint-disable-next-line */ // Stops eslint from throwing an error for the removed `@typescript-eslint/ban-types` rule, which is there for backwards compatibility.
+        // eslint-disable-next-line no-empty-pattern, @typescript-eslint/ban-types, @typescript-eslint/no-empty-object-type
         function facetSpy({}: {}): null;
         /**
          * The context holder.
@@ -429,6 +477,7 @@ declare global {
                        */
                       enableLoadingFacetsTracking?: boolean | undefined;
                   }
+                // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents -- This is for asthetic purposes.
                 | undefined
         ): Promise<
             (
@@ -436,7 +485,7 @@ declare global {
                       [key in FacetList[number]]: [facetName: key, facetData: FacetTypeMap[key], status: "success" | "alreadyLoaded", newFacetType: false];
                   }[FacetList[number]]
                 | [facetName: LooseAutocomplete<FacetList[number]>, facetData: unknown, status: "success" | "alreadyLoaded", newFacetType: true]
-                | [facetName: LooseAutocomplete<FacetList[number]>, error: any, status: "error"]
+                | [facetName: LooseAutocomplete<FacetList[number]>, error: unknown, status: "error"]
             )[]
         >;
         /**

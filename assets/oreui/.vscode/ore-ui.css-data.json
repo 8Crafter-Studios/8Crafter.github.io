@@ -1,0 +1,263 @@
+{
+    "$schema": "./vscode-css-customData.schema.json",
+    "version": 1.1,
+    "properties": [
+        {
+            "name": "coh-font-fit",
+            "description": {
+                "kind": "markdown",
+                "value": "Shorthand property for setting the custom `coh-font-fit` properties.\n\nNote that setting only the min and max sizes will result in `coh-font-fit-mode` being set to `fit`.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "syntax": "<coh-font-fit-mode> || <coh-font-fit-mode> <coh-font-fit-min-size> || <coh-font-fit-min-size> <coh-font-fit-max-size> || <coh-font-fit-mode> <coh-font-fit-min-size> <coh-font-fit-max-size>",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-fit-shorthand"
+                }
+            ]
+        },
+        {
+            "name": "coh-font-fit-mode",
+            "description": {
+                "kind": "markdown",
+                "value": "Allows fitting text within a container by automatically changing the size.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "values": [
+                {
+                    "name": "none",
+                    "description": "Default - no changes to the font size will be attempted"
+                },
+                {
+                    "name": "fit",
+                    "description": "The text font size will be changed to fit its parent - grow or shrink"
+                },
+                {
+                    "name": "shrink",
+                    "description": "The text will shrink only its size if it can’t fit in the container"
+                }
+            ],
+            "syntax": "none | fit | shrink",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-fit-mode"
+                }
+            ]
+        },
+        {
+            "name": "coh-font-fit-min-size",
+            "description": {
+                "kind": "markdown",
+                "value": "Determines the minimum font size used to fit a text within a container.\n\nHas a minimum effective value of 6px. Any less than that will be treated by the font fitting algorithm as if `coh-font-fit-min-size` was set to 6px.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "restrictions": ["length"],
+            "syntax": "<absolute-size [6px,∞]>",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-fit-min-and-max-sizes"
+                }
+            ]
+        },
+        {
+            "name": "coh-font-fit-max-size",
+            "description": {
+                "kind": "markdown",
+                "value": "Determines the maximum font size used to fit a text if `coh-font-fit-mode` is set to `fit`.\n\nHas no effect if `coh-font-fit-mode` is not set to `fit`.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "restrictions": ["length"],
+            "syntax": "<absolute-size [6px,∞]>",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-fit-min-and-max-sizes"
+                }
+            ]
+        },
+        {
+            "name": "coh-font-sdf",
+            "description": {
+                "kind": "markdown",
+                "value": "@font-face descriptor. Controls rasterization.\n\nDefaults to `on`.\n\nPlease keep in mind that stroke is only supported with SDF rendering, hence you cannot turn off SDF for stroked text.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "values": [
+                {
+                    "name": "off",
+                    "description": "Turns off SDF (signed distance fields)."
+                },
+                {
+                    "name": "on",
+                    "description": "Enables SDF (signed distance fields) (Default)"
+                },
+                {
+                    "name": "auto",
+                    "description": ""
+                }
+            ],
+            "syntax": "off | on | auto",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-rendering"
+                }
+            ]
+        },
+        {
+            "name": "coh-rendering-option",
+            "description": {
+                "kind": "markdown",
+                "value": "Controls how an element is rendered.\n\nThe `snap` tells CoHTML whether the element should be snapped to an integer coordinates. The `aa` tells the rendering library whether to generate anti-aliasing border for the element.\n\nThis property is for internal use only.\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "values": [
+                {
+                    "name": "snap-off aa-off",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will not be snapped to integer coordinates.\n\nElement will not have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "snap-off auto",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will not be snapped to integer coordinates.\n\nElement will automatically determine whether to have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "snap-off on",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will not be snapped to integer coordinates.\n\nElement will have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "auto aa-off",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will automatically determine whether to be snapped to integer coordinates.\n\nElement will not have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "auto auto",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will automatically determine whether to be snapped to integer coordinates.\n\nElement will automatically determine whether to have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "auto on",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will automatically determine whether to be snapped to integer coordinates.\n\nElement will have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "on aa-off",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will be snapped to integer coordinates.\n\nElement will not have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "on auto",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will be snapped to integer coordinates.\n\nElement will automatically determine whether to have an anti-aliasing border generated for it."
+                    }
+                },
+                {
+                    "name": "on on",
+                    "description": {
+                        "kind": "markdown",
+                        "value": "Element will be snapped to integer coordinates.\n\nElement will have an anti-aliasing border generated for it."
+                    }
+                }
+            ],
+            "syntax": "<snap-off | on | auto> <aa-off | on | auto>",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/supported_features_tables/cssproperties/#:~:text=runtime%20cursor%20changes.-,coh%2Drendering%2Doption,-N/A"
+                }
+            ]
+        },
+        {
+            "name": "coh-composition-id",
+            "description": {
+                "kind": "markdown",
+                "value": "The element is drawn on the screen through the client’s compositor.\n\nFor more details see the [documentation on the Compositor](https://docs.coherent-labs.com/cpp-gameface/integration/optional_features/compositor/)\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "syntax": "<string>",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/supported_features_tables/cssproperties/#:~:text=internal%20use%20only.-,coh%2Dcomposition%2Did,-N/A"
+                },
+                {
+                    "name": "Coherent Gameface Compositor Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/integration/optional_features/compositor/"
+                }
+            ]
+        },
+        {
+            "name": "coh-partitioned",
+            "description": {
+                "kind": "markdown",
+                "value": "The element is rendered through the UI surface partitioning flow. For more details see the [documentation on the UI Surface Partitioning](https://docs.coherent-labs.com/cpp-gameface/integration/optional_features/uisurfacepartitioning/)\n\nOnly supported in CoHTML (Ore UI)."
+            },
+            "baseline": {
+                "status": "false"
+            },
+            "values": [
+                {
+                    "name": "on",
+                    "description": "The element is rendered through the UI surface partitioning flow."
+                },
+                {
+                    "name": "off",
+                    "description": "The element is not rendered through the UI surface partitioning flow."
+                }
+            ],
+            "syntax": "on | off",
+            "relevance": 50,
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference // TODO: Insert the correct link here.",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/fonts_frontend/#font-fit-mode"
+                },
+                {
+                    "name": "Coherent Gameface UI Surface Partitioning Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/integration/optional_features/uisurfacepartitioning/"
+                }
+            ]
+        }
+    ]
+}

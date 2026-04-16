@@ -1,4 +1,4 @@
-// Copied from @ore-ui-types/enums v1.0.0
+// Copied from @ore-ui-types/enums v1.4.0
 // TODO: Switch all the constants to actual enums.
 export const JoinRealmsServerError = {
     RealmsAPIUnavailable: 0,
@@ -68,6 +68,28 @@ export const Platform = {
     NX_TV: 9,
     PS5: 10,
 };
+export const WorldPlayerInfoBindingsPlatform = {
+    GOOGLE: 1,
+    IOS: 2,
+    OSX: 3,
+    AMAZON: 4,
+    GEARVR_DEPRECATED: 5,
+    UWP_GDK_PC: 7,
+    WIN32: 8,
+    DEDICATED: 9,
+    TVOS_DEPRECATED: 10,
+    SONY: 11,
+    NX: 12,
+    XBOX: 13,
+    WINDOWSPHONE_DEPRECATED: 14,
+    LINUX: 15,
+    UNKNOWN: -1,
+};
+export const WorldPlayerInfoBindingsConnectionType = {
+    LAN: 0,
+    PLATFORM: 1,
+    XBOX_LIVE: 2,
+};
 export const Controller = {
     XBOX: 0,
     PS: 1,
@@ -134,6 +156,16 @@ export const PlayerRelation = {
 //     NumberEnumToObject<typeof PlayerRelation>,
 //     Mode
 // >;
+export const PlayerPartyPresence = {
+    NotInParty: 0,
+    InParty: 1,
+    Disconnecting: 2,
+};
+export const PlayerTitleHistory = {
+    Unknown: 0,
+    NotPlayed: 1,
+    HasPlayed: 2,
+};
 export const VanillaGameplayContainerChestType = {
     Chest: 0,
     TrappedChest: 1,
@@ -154,4 +186,56 @@ export const VanillaGameplayUIProfile = {
     Pocket: 1,
     None: 2,
 };
+export const WebBrowserFacetLinkType = {
+    NewWorldCreationFeedbackPage: 0,
+    PlayScreenFeedbackPage: 1,
+    EditWorldScreenFeedbackPage: 2,
+    DeathScreenFeedbackPage: 3,
+    RealmsSafetyPage: 4,
+    BannedHelpPage: 6,
+    ParentPermissionHelpPage: 5,
+    NintendoSwitchTechnicalSupportPage: 7,
+    BuyMinecraftStorePage: 8,
+    XboxPrivacyAndOnlineSafety: 9,
+    XboxAccountProfile: 10,
+    JoinRealmHelpPage: 11,
+    FriendsDrawerFeedbackPage: 12,
+    ServersTabFeedbackPage: 13,
+    PlayerFeedbackMain: 14,
+    PlayerFeedbackIdeas: 15,
+    ProfileFeedbackMain: 16,
+    StartFromTemplateFeedbackPage: 17,
+    RealmsTabFeedbackPage: 18,
+    TermsAndServicePage: 19,
+    PrivacyPolicyPage: 20,
+    PreproductionRealmsGuide: 21,
+    TroubleshootingMultiplayerDisabled: 22,
+    EduAboutAddOns: 23,
+    EduAboutBehaviorPacks: 24,
+    EduAboutResourcePacks: 25,
+    EduAboutCloud: 26,
+    FlatWorldFeedbackPage: 27,
+    SignInCapeTerms: 28,
+    ContactSupport: 29,
+    RealmsCommitWikiLink: 30,
+    OtherStore: 31,
+    IOSStore: 32,
+    AndroidGooglePlay: 33,
+    AndroidAmazonAppStore: 34,
+    XboxOneStore: 35,
+};
+/**
+ * Reverses a numeric enum mapping.
+ *
+ * @param object The enum mapping to reverse.
+ * @returns The reversed enum mapping.
+ *
+ * @example
+ * ```ts
+ * reverseNumericEnumMapping({ 0: "a", 1: "b", 2: "c" }); // { a: 0, b: 1, c: 2 }
+ * ```
+ */
+export function reverseNumericEnumMapping(object) {
+    return Object.fromEntries(Object.entries(object).map(([key, value]) => [value, typeof value === "string" ? Number(key) : key]));
+}
 //# sourceMappingURL=index.js.map

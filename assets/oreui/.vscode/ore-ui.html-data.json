@@ -1,0 +1,23 @@
+{
+    "$schema": "https://unpkg.com/vscode-html-languageservice@4.2.0/docs/customData.schema.json",
+    "$comment": "// TODO: Copy the schema and modify it to include the secret internal properties.",
+    "version": 1.1,
+    "globalAttributes": [
+        {
+            "name": "cohinline",
+            "description": "Makes `<p>` elements children be inline with full text wrapping support.\n\nOnly supported in CoHTML (Ore UI).",
+            "values": [
+                {
+                    "name": "",
+                    "description": "An empty string."
+                }
+            ],
+            "references": [
+                {
+                    "name": "Coherent Gameface Reference",
+                    "url": "https://docs.coherent-labs.com/cpp-gameface/content_development/inlinelayout/"
+                }
+            ]
+        }
+    ]
+}

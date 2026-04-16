@@ -1,0 +1,6 @@
+{
+    "eslint.useFlatConfig": false,
+    "eslint.onIgnoredFiles": "off",
+    "html.customData": ["./.vscode/ore-ui.html-data.json"],
+    "css.customData": ["./.vscode/ore-ui.css-data.json"]
+}

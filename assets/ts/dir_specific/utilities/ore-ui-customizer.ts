@@ -44,7 +44,10 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        "v1.26.0_PC": { displayName: "v1.26.0 (PC)", url: "/assets/zip/gui_mc-v1.26.0_PC.zip" },
+        // REVIEW: Make sure the 1.26.13 gui folder is identical to the 1.26.10 gui folder.
+        "v1.26.10-13_PC": { displayName: "v1.26.10/11/12/13 (PC)", url: "/assets/zip/gui_mc-v1.26.13_PC.zip" },
+        // REVIEW: Make sure the 1.26.3 gui folder is identical to the 1.26.0 gui folder.
+        "v1.26.0-3_PC": { displayName: "v1.26.0/1/2/3 (PC)", url: "/assets/zip/gui_mc-v1.26.0_PC.zip" },
         "v1.21.130-131_PC": { displayName: "v1.21.130-131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
         "v1.21.120-124_PC": { displayName: "v1.21.120-124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
         "v1.21.113-114_PC": { displayName: "v1.21.113-114 (PC)", url: "/assets/zip/gui_mc-v1.21.113_PC.zip" },
@@ -57,6 +60,8 @@ export namespace OreUICustomizer {
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
         "v1.21.70-71_PC": { displayName: "v1.21.70-71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
         "v1.21.70-71_Android": { displayName: "v1.21.70-71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.26.20-preview.27_PC": { displayName: "v1.26.20.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.27_PC.zip" },
+        "v1.26.20-preview.26_PC": { displayName: "v1.26.20.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.26_PC.zip" },
         "v1.21.130-preview.28_PC": { displayName: "v1.21.130.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip" },
         "v1.21.130-preview.27_PC": { displayName: "v1.21.130.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip" },
         "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
@@ -75,7 +80,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.11.3";
+    export const format_version = "1.12.0";
     /**
      * @type {File | undefined}
      */
@@ -433,8 +438,10 @@ export namespace OreUICustomizer {
                             popupElement.innerHTML = `<span slot="titleText">Successfully Imported Config</span><span>The legacy config ${files[0].name} has been successfully imported.</span>`;
                             document.body.prepend(popupElement);
                         } else if ("oreUICustomizerVersion" in config) {
-                            if (!("oreUICustomizerConfig" in config)) throw new TypeError("Invalid config, missing oreUICustomizerConfig: " + JSON.stringify(config));
-                            if (typeof config.oreUICustomizerConfig !== "object") throw new TypeError("Invalid config, oreUICustomizerConfig is not an object: " + JSON.stringify(config));
+                            if (!("oreUICustomizerConfig" in config))
+                                throw new TypeError("Invalid config, missing oreUICustomizerConfig: " + JSON.stringify(config));
+                            if (typeof config.oreUICustomizerConfig !== "object")
+                                throw new TypeError("Invalid config, oreUICustomizerConfig is not an object: " + JSON.stringify(config));
                             setSettings(config.oreUICustomizerConfig);
                             if (config.metadata) {
                                 const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
@@ -446,7 +453,9 @@ export namespace OreUICustomizer {
                                 document.body.prepend(popupElement);
                             }
                         } else {
-                            throw new TypeError("Invalid config, unsupported config format, missing format_version or oreUICustomizerVersion: " + JSON.stringify(config));
+                            throw new TypeError(
+                                "Invalid config, unsupported config format, missing format_version or oreUICustomizerVersion: " + JSON.stringify(config),
+                            );
                         }
                     } catch (e: any) {
                         const popupElement: MessageFormDataElement = document.createElement("mc-message-form-data") as MessageFormDataElement;
@@ -1928,7 +1937,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 /**
                  * The extracted symbol names.
                  */
-                let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData);
+                let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData, entry.data?.filename!);
 
                 /**
                  * Lists of regexes to use for certain modifications.
@@ -2004,7 +2013,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                 f: { formatDate },
                                 gt: (tAB, $2AA) => {
                                     var $3AA;
-                                    return null !== ($3AA = translate(tAB, $2AA)) && void 0 !== $3AA ? $3AA : tAB;
+                                    return null !== ($3AA = translate(tAB, null!=$2AA?$2AA:[])) && void 0 !== $3AA ? $3AA : tAB;
                                 },
                             }),
                             [translate, formatDate]
@@ -2465,7 +2474,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     u = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isLockedTemplate, [], [eAA]),
                     d = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.achievementsDisabled, [], [eAA]),
                     m = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)(({ spawnDimensionId: e }) => e, [], [c]),
-                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3(e, (e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
+                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3(e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
                     f = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => $4(e, (e) => e.dimension === t), [], [p, m]),
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
@@ -2948,7 +2957,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
                         origData
                             .match(
-                                /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_\$]{1}),focusGridIndex:([a-zA-Z0-9_\$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_\$]{1})\}=(?:[a-zA-Z0-9_\$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{1})\.Fragment,null,(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{disabled:(?:[a-zA-Z0-9_\$]{1}),focusGridIndex:(?:[a-zA-Z0-9_\$]{1}),inputLegend:(?:[a-zA-Z0-9_\$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_\$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_\$]{1})\.createElement\((?:[a-zA-Z0-9_\$]{2}),\{className:"([a-zA-Z0-9_\$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_\$]{2})\}/,
+                                /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/,
                             )
                             ?.slice(1, 4) ?? [];
                     disabledVariableSymbolName ??= "n";
@@ -3292,6 +3301,9 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`,
             zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetch("/assets/oreui/JSONB.js").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.js");
             addedCount++;
+            zipFs.addBlob("gui/dist/hbui/JSONB.js.map", await fetch("/assets/oreui/JSONB.js.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/JSONB.js.map");
+            addedCount++;
             zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetch("/assets/oreui/JSONB.d.ts").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/JSONB.d.ts");
             addedCount++;
@@ -3300,6 +3312,9 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`,
             addedCount++;
             zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums", await fetch("/assets/oreui/@ore-ui-types/enums").then((r) => r.blob()));
             console.log("Added gui/dist/hbui/@ore-ui-types/enums");
+            addedCount++;
+            zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums.map", await fetch("/assets/oreui/@ore-ui-types/enums.map").then((r) => r.blob()));
+            console.log("Added gui/dist/hbui/@ore-ui-types/enums.map");
             addedCount++;
             zipFs.addBlob(
                 "gui/dist/hbui/assets/chevron_new_white_right.png",

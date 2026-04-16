@@ -8,16 +8,24 @@
         "declaration": true,
         "sourceMap": true,
         "declarationMap": false,
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "lib": [],
+        "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "verbatimModuleSyntax": true,
         "noFallthroughCasesInSwitch": true,
+        "exactOptionalPropertyTypes": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "noImplicitOverride": true,
+        "noImplicitReturns": true,
+        // "noUnusedParameters": true, // Handled by TypeScript ESLint.
+        // "noUnusedLocals": true, // Handled by TypeScript ESLint.
         "allowArbitraryExtensions": true,
         "disableReferencedProjectLoad": true,
-        "types": []
+        "types": ["@ore-ui-types/libs"],
+        "alwaysStrict": false
     },
     "include": ["./"],
     "exclude": ["node_modules/@types/node"]

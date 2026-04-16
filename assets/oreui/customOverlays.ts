@@ -1,29 +1,239 @@
-/**
- * @import {} from "./JSONB.d.ts"
- * @import {} from "./types.d.ts"
- * @import {} from "./customOverlays.d.ts"
- * @import {} from "./oreUICustomizer8CrafterConfig.d.ts"
- * @import {} from "./class_path.js"
- */
-/* eslint-disable no-async-promise-executor, prefer-rest-params */
+/// <reference path="./JSONB.ts" preserve="true" />
+/// <reference path="./types.d.ts" preserve="true" />
+/// <reference path="./oreUICustomizer8CrafterConfig.d.ts" preserve="true" />
+/// <reference path="./class_path.ts" preserve="true" />
+/// <reference path="./shiki.bundle.d.ts" preserve="true" />
 
-// IDEA: Make the console able to read source maps and display the source locations.
+const __OUIC_customOverlays_initStartPerf__: number = performance.now();
+const __OUIC_customOverlays_initStartMs__: number = Date.now();
+
+// Hooks onto console data.
+if (console.everything === undefined!) {
+    console.everything = [];
+    // Assign the function to a constant to keep it scoped.
+    const TS = function TS(date: Date, performanceStamp?: number): string {
+        const timezoneOffset: number = date.getTimezoneOffset();
+        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")} ${date
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}.${date
+            .getMilliseconds()
+            .toString()
+            .padStart(3, "0")}${performanceStamp === undefined ? "" : ` P${performanceStamp.toFixed(4).replace(/(?<=^[+-]?)\d+(?=\d\.)/, "")}`} UTC${
+            timezoneOffset < 0 || Object.is(timezoneOffset, -0) ? "+" : "-"
+        }${Math.floor(Math.abs(timezoneOffset) / 60).toString()}${
+            timezoneOffset % 60 !== 0 ? `:${(Math.abs(timezoneOffset) % 60).toString().padStart(2, "0")}` : ""
+        }`;
+        // return new Date().toLocaleString("sv", ...([{ timeZone: "UTC" }] as unknown as [])) + "Z";
+    };
+    window.onerror = function __OUIC_handler_onerror__(
+        event: string | ErrorEvent | Event,
+        source?: string,
+        lineno?: number,
+        colno?: number,
+        error?: Error
+    ): boolean {
+        // This callback is from 8Crafter's Ore UI Customizer, and is used to log uncaught errors to the customizer's console.
+        const performanceStamp: number = performance.now();
+        const msStamp: number = Date.now();
+        const date: Date = new Date(msStamp);
+        /**
+         * @type {ErrorEvent}
+         */
+        let newEvent: ErrorEvent;
+        if (typeof event === "string") {
+            newEvent = new ErrorEvent("error", { error, message: event, filename: source!, lineno: lineno!, colno: colno! });
+        } else if (!(event instanceof ErrorEvent)) {
+            console.warn("window.onerror had an event that was not an instance of ErrorEvent or a string. Arguments: ", arguments);
+            return false;
+        } else {
+            newEvent = event;
+        }
+        /**
+         * @type {Extract<ConsoleEverythingEntry, { type: "exception" }>}
+         */
+        const data: Extract<ConsoleEverythingEntry, { type: "exception" }> = {
+            type: "exception",
+            timeStamp: TS(date, performanceStamp),
+            performanceStamp,
+            value: newEvent,
+            stack: new Error().stack?.split("\n").slice(1).join("\n"),
+        };
+        console.everything.push(data);
+        (globalThis.onConsoleLogCallbacks ?? []).forEach((f: ConsoleLogCallback): void => {
+            f(data);
+        });
+        return false;
+    };
+    window.onunhandledrejection = function __OUIC_handler_onunhandledrejection__(e: PromiseRejectionEvent): void {
+        // This callback is from 8Crafter's Ore UI Customizer, and is used to log unhandled promise rejections to the customizer's console.
+        const performanceStamp: number = performance.now();
+        const msStamp: number = Date.now();
+        const date: Date = new Date(msStamp);
+        /**
+         * @type {Extract<ConsoleEverythingEntry, { type: "promiseRejection" }>}
+         */
+        const data: Extract<ConsoleEverythingEntry, { type: "promiseRejection" }> = {
+            type: "promiseRejection",
+            timeStamp: TS(date, performanceStamp),
+            performanceStamp,
+            value: e,
+            stack: new Error().stack?.split("\n").slice(1).join("\n"),
+        };
+        console.everything.push(data);
+        (globalThis.onConsoleLogCallbacks ?? []).forEach((f: ConsoleLogCallback): void => {
+            f(data);
+        });
+    };
+
+    /**
+     * Hooks onto a {@link console} method.
+     *
+     * @param {LogType} logType
+     * @returns
+     */
+    // Assign the function to a constant to keep it scoped.
+    const hookLogType = function hookLogType(logType: LogType): (...args: unknown[]) => void {
+        const original = console[logType].bind(console);
+        return {
+            [logType](): void {
+                // This console method is being intercepted by 8Crafter's Ore UI Customizer to allow logs to be shown in the customizer's console.
+                const performanceStamp: number = performance.now();
+                const msStamp: number = Date.now();
+                const date: Date = new Date(msStamp);
+                /**
+                 * @type {Extract<ConsoleEverythingEntry, { type: LogType }>}
+                 */
+                const data: Extract<ConsoleEverythingEntry, { type: LogType }> = {
+                    type: logType,
+                    timeStamp: TS(date, performanceStamp),
+                    performanceStamp,
+                    value: Array.from(arguments),
+                    stack: new Error().stack?.split("\n").slice(1).join("\n"),
+                };
+                console.everything.push(data);
+                //@ts-ignore
+                original.apply(console, arguments);
+                (globalThis.onConsoleLogCallbacks ?? []).forEach((f: ConsoleLogCallback): void => {
+                    f(data);
+                });
+            },
+        }[logType]!;
+    };
+
+    /**
+     * @type {LogType[]}
+     */
+    const logTypes: LogType[] = ["log", "info", "error", "warn", "debug"];
+
+    logTypes.forEach((logType: LogType): void => {
+        console[logType] = hookLogType(logType);
+    });
+
+    console._logInternal = function _logInternal(..._args: unknown[]): void {
+        // This console method is for logging internal messages that only show up in the Ore UI Customizer's console and not the DevTools console.
+        const performanceStamp: number = performance.now();
+        const msStamp: number = Date.now();
+        const date: Date = new Date(msStamp);
+        const data = {
+            type: "internal",
+            timeStamp: TS(date, performanceStamp),
+            performanceStamp,
+            value: Array.from(arguments),
+            stack: new Error().stack?.split("\n").slice(1).join("\n"),
+        } as const;
+        console.everything.push(data);
+        (globalThis.onConsoleLogCallbacks ?? []).forEach((f: ConsoleLogCallback): void => {
+            f(data);
+        });
+    };
+}
+
+/**
+ * IPs and ports of servers to fetch the MOTD in order to fetch certain data.
+ *
+ * @todo Implement usage of this.
+ */
+const MOTDAPIFetchSources = {
+    latestVersion: ["motd.api.ouic.8crafter.com", 58000],
+    updateInfo: ["motd.api.ouic.8crafter.com", 58001],
+} as const satisfies Record<string, [address: string, port: number]>;
+
+/**
+ * @decorator
+ * @param value Whether the property should be writable or not.
+ */
+function writable(value: boolean): MethodDecorator & PropertyDecorator & ParameterDecorator {
+    return function setWritableDecorator(...args: Parameters<MethodDecorator | PropertyDecorator | ParameterDecorator>): void {
+        if (typeof args[2] === "object") {
+            args[2].writable = value;
+            return;
+        }
+        if (args[1] === undefined) return;
+        Object.defineProperty(args[0], args[1], { writable: value });
+    } as MethodDecorator & PropertyDecorator & ParameterDecorator;
+}
+/**
+ * @decorator
+ * @param value Whether the property should be enumerable or not.
+ */
+function enumerable(value: boolean): MethodDecorator & PropertyDecorator & ParameterDecorator {
+    return function setEnumerableDecorator(...args: Parameters<MethodDecorator | PropertyDecorator | ParameterDecorator>): void {
+        if (typeof args[2] === "object") {
+            args[2].enumerable = value;
+            return;
+        }
+        if (args[1] === undefined) return;
+        Object.defineProperty(args[0], args[1], { enumerable: value });
+    } as MethodDecorator & PropertyDecorator & ParameterDecorator;
+}
+/**
+ * @decorator
+ * @param value Whether the property should be configurable or not.
+ */
+function configurable(value: boolean): MethodDecorator & PropertyDecorator & ParameterDecorator {
+    return function setConfigurableDecorator(...args: Parameters<MethodDecorator | PropertyDecorator | ParameterDecorator>): void {
+        if (typeof args[2] === "object") {
+            args[2].configurable = value;
+            return;
+        }
+        if (args[1] === undefined) return;
+        Object.defineProperty(args[0], args[1], { configurable: value });
+    } as MethodDecorator & PropertyDecorator & ParameterDecorator;
+}
+
+// Initialize shiki.
+globalThis.shiki ??= undefined!;
+const shikiLoadedPromise = import("./shiki.bundle.js");
 
 interface Console {
     everything: ConsoleEverythingEntry[];
+    /**
+     * Logs an internal message that only shows up in the Ore UI Customizer's console and not the DevTools console.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- This is necessary.
+    _logInternal(...args: any[]): void;
 }
 
 type LogType = "log" | "info" | "error" | "warn" | "debug";
 
 type ConsoleEverythingEntry =
-    | { type: "log" | "info" | "error" | "warn" | "debug"; timeStamp: string; value: any[]; stack?: string | undefined }
+    | {
+          type: "log" | "info" | "error" | "warn" | "debug";
+          timeStamp: string;
+          performanceStamp?: number | undefined;
+          value: unknown[];
+          stack?: string | undefined;
+      }
+    | { type: "internal"; timeStamp: string; performanceStamp?: number | undefined; value: unknown[]; stack?: string | undefined }
     | {
           type: "exception";
           timeStamp: string;
+          performanceStamp?: number | undefined;
           value: ErrorEvent;
           stack?: string | undefined;
       }
-    | { type: "promiseRejection"; timeStamp: string; value: PromiseRejectionEvent; stack?: string | undefined };
+    | { type: "promiseRejection"; timeStamp: string; performanceStamp?: number | undefined; value: PromiseRejectionEvent; stack?: string | undefined };
 
 type ConsoleLogCallback = (data: ConsoleEverythingEntry) => void;
 
@@ -40,7 +250,7 @@ type ContextMenuItemCreationOptions =
           type?: "action" | undefined;
           title?: string | undefined;
           label: string;
-          action(): void;
+          action(): Promise<void> | void;
           disabled?: boolean | undefined;
       }
     | {
@@ -57,11 +267,6 @@ type ContextMenuItemCreationOptions =
 type CSSEditorSelectedType = "none" | "element" | "styleSheet" | "root" | "globalStyleElement";
 
 interface Window {
-    /**
-     * @todo Add an actual option for this.
-     * @idea Make these displayed using the `Readonly_icon.png` icon instead of an italic 75% opacity `read-only` before the property name. The icon would be to the left of the expansion arrow (or where it would be when there isn't one).
-     */
-    showReadonlyPropertiesLabelInConsoleEnabled?: boolean | undefined;
     /**
      * @internal
      */
@@ -91,117 +296,1462 @@ interface Window {
      *
      * @deprecated
      */
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- This is for consistency.
     __DEBUG_copyTextToClipboard_old_GLOBALS_copyError__?: unknown | undefined;
-    [key: `temp${bigint}`]: any;
+    [key: `temp${bigint}`]: unknown;
 }
 
-// Hooks onto console data.
-if (console.everything === undefined) {
-    console.everything = [];
-    function TS() {
-        return new Date().toLocaleString("sv", { timeZone: "UTC" }) + "Z";
-    }
-    window.onerror = function (event, source, lineno, colno, error) {
-        /**
-         * @type {ErrorEvent}
-         */
-        let newEvent: ErrorEvent;
-        if (typeof event === "string") {
-            newEvent = new ErrorEvent("error", { error, message: event, filename: source, lineno: lineno, colno: colno });
-        } else if (!(event instanceof ErrorEvent)) {
-            console.warn("window.onerror had an event that was not an instance of ErrorEvent or a string. Arguments: ", arguments);
-            return false;
-        } else {
-            newEvent = event;
+// IDEA: Make a modified version of the TypeScript ESLint `no-redundant-type-constituents` rule to allow for unknown in unions.
+// IDEA: Make a modified version of the TypeScript ESLint `no-duplicate-type-constituents` rule to allow for undefined in unions.
+
+// Hook onto Promise states.
+// const originalPromiseConstructor: PromiseConstructor = Promise.prototype.constructor as PromiseConstructor;
+// Object.defineProperties(Promise.prototype, {
+//     constructor: {
+//         value: function Promise(executor: (resolve: (value: unknown) => void, reject: (reason?: any) => void) => void): void {
+//             // Modified to include Promise states.
+//             const promise = this.originalPromiseConstructor(...(Array.from(arguments) as [executor: typeof executor]));
+//             Object.defineProperty(this, "state", { value: "panding", writable: false, enumerable: false, configurable: true });
+//             promise.then(
+//                 () => Object.defineProperty(this, "state", { value: "fulfilled", writable: false, enumerable: false, configurable: true }),
+//                 () => Object.defineProperty(this, "state", { value: "rejected", writable: false, enumerable: false, configurable: true })
+//             );
+//             console.log(this, promise);
+//         },
+//         writable: true,
+//         enumerable: false,
+//         configurable: true,
+//     },
+//     originalConstructor: {
+//         value: originalPromiseConstructor,
+//         writable: false,
+//         enumerable: false,
+//         configurable: true,
+//     },
+//     state: {
+//         value: "unknown",
+//         writable: false,
+//         enumerable: false,
+//         configurable: true,
+//     },
+// });
+// const OriginalPromise = Promise;
+
+// const PromiseStateSymbol = Symbol("Promise state");
+
+// const PromiseB = new Proxy(OriginalPromise, {
+//     construct(target, args, newTarget) {
+//         // Create the real promise
+//         const p = Reflect.construct(target, args, newTarget);
+
+//         Object.defineProperty(p, PromiseStateSymbol, {
+//             value: "pending",
+//             writable: true,
+//             configurable: true,
+//         });
+
+//         p.then(
+//             () => (p[PromiseStateSymbol] = "fulfilled"),
+//             () => (p[PromiseStateSymbol] = "rejected")
+//         );
+
+//         // console.log("Promise created:", p);
+
+//         return p;
+//     },
+
+//     apply(target, thisArg, args) {
+//         // Support calling Promise(...) without new
+//         return Reflect.construct(target, args);
+//     },
+// });
+
+// // Replace global Promise
+// window.Promise = PromiseB;
+
+async function fetchURIText(uri: string, suppresConsoleLogs = false): Promise<string | null> {
+    try {
+        new URL(uri);
+    } catch (error) {
+        if (error instanceof TypeError && error.message === "TypeError: Failed to construct 'URL': Invalid URL") {
+            throw new TypeError(`Invalid URI: ${uri}`);
         }
-        /**
-         * @type {Extract<ConsoleEverythingEntry, { type: "exception" }>}
-         */
-        const data: Extract<ConsoleEverythingEntry, { type: "exception" }> = {
-            type: "exception",
-            timeStamp: TS(),
-            value: newEvent,
-        };
-        console.everything.push(data);
-        (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
-            f(data);
-        });
-        return false;
-    };
-    window.onunhandledrejection = function (e) {
-        /**
-         * @type {Extract<ConsoleEverythingEntry, { type: "promiseRejection" }>}
-         */
-        const data: Extract<ConsoleEverythingEntry, { type: "promiseRejection" }> = {
-            type: "promiseRejection",
-            timeStamp: TS(),
-            value: e,
-        };
-        console.everything.push(data);
-        (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
-            f(data);
-        });
-    };
-
-    /**
-     * Hooks onto a {@link console} method.
-     *
-     * @param {LogType} logType
-     * @returns
-     */
-    function hookLogType(logType: LogType) {
-        const original = console[logType].bind(console);
-        return function () {
-            /**
-             * @type {Extract<ConsoleEverythingEntry, { type: LogType }>}
-             */
-            const data: Extract<ConsoleEverythingEntry, { type: LogType }> = {
-                type: logType,
-                timeStamp: TS(),
-                value: Array.from(arguments),
-                stack: new Error().stack?.split("\n").slice(1).join("\n"),
-            };
-            console.everything.push(data);
-            //@ts-ignore
-            original.apply(console, arguments);
-            (globalThis.onConsoleLogCallbacks ?? []).forEach((f) => {
-                f(data);
-            });
-        };
     }
 
-    /**
-     * @type {LogType[]}
-     */
-    const logTypes: LogType[] = ["log", "info", "error", "warn", "debug"];
+    const xhr = new XMLHttpRequest();
 
-    logTypes.forEach((logType) => {
-        console[logType] = hookLogType(logType);
+    return await new Promise((resolve, _reject) => {
+        xhr.onload = function onload(this: XMLHttpRequest, _ev: ProgressEvent): void {
+            if (this.status < 100 || this.status >= 400) {
+                // eslint-disable-next-line ore-ui/no-bugged -- This is for browser compatibility.
+                if (!suppresConsoleLogs) console.error("fetchURI request failed:", this.status, this.statusText, uri, this);
+                resolve(null);
+            }
+            resolve(this.responseText);
+        };
+        xhr.onabort = function onabort(this: XMLHttpRequest, ev: ProgressEvent): void {
+            // eslint-disable-next-line ore-ui/no-bugged -- This is for browser compatibility.
+            if (!suppresConsoleLogs) console.error("fetchURI request aborted:", this.status, this.statusText, ev, uri, this);
+            resolve(null);
+        };
+        xhr.onerror = function onerror(this: XMLHttpRequest, ev: ProgressEvent): void {
+            // eslint-disable-next-line ore-ui/no-bugged -- This is for browser compatibility.
+            if (!suppresConsoleLogs) console.error("fetchURI request errored:", this.status, this.statusText, ev, uri, this);
+            resolve(null);
+        };
+        xhr.ontimeout = function ontimeout(this: XMLHttpRequest, ev: ProgressEvent): void {
+            // eslint-disable-next-line ore-ui/no-bugged -- This is for browser compatibility.
+            if (!suppresConsoleLogs) console.error("fetchURI request timed out:", this.status, this.statusText, ev, uri, this);
+            resolve(null);
+        };
+
+        try {
+            xhr.open("GET", uri, true);
+            xhr.send(null);
+        } catch (err) {
+            // eslint-disable-next-line ore-ui/no-bugged -- This is for browser compatibility.
+            if (!suppresConsoleLogs) console.error("fetchURI request failed with error:", err, xhr.status, xhr.statusText, uri, xhr);
+            resolve(null);
+        }
     });
 }
 
 /**
- * Whether to intercept engine subscriptions and store them in the {@link cachedEngineSubscriptions} object.
+ * Cached source maps.
+ *
+ * @internal
+ */
+const cachedSourceMaps: {
+    /**
+     * Maps the URI of a JS file to the URI of its source map file, or `null` if it does not have one.
+     */
+    readonly uris: { [fileURI: string]: string | null };
+    /**
+     * Maps the URI of a source map file to its contents.
+     */
+    readonly maps: { [sourceMapURI: string]: SourceMap | null };
+} = {
+    uris: {},
+    maps: {},
+};
+
+interface SourceMap {
+    version: number;
+    file: string;
+    sourceRoot: string;
+    sources: string[];
+    names: string[];
+    mappings: string;
+}
+
+interface SourceMapSourceLocation {
+    fileURI: string;
+    source: string;
+    line: number;
+    column: number;
+}
+
+function getSourceLocationFromSourceMap(fileURI: string, line: number, column: number, sourceMap: SourceMap): SourceMapSourceLocation | undefined;
+function getSourceLocationFromSourceMap(line: number, column: number, sourceMap: SourceMap): Omit<SourceMapSourceLocation, "fileURI"> | undefined;
+function getSourceLocationFromSourceMap(
+    ...args: [fileURI: string, line: number, column: number, sourceMap: SourceMap] | [line: number, column: number, sourceMap: SourceMap]
+): SourceMapSourceLocation | Omit<SourceMapSourceLocation, "fileURI"> | undefined {
+    const BASE64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const BASE64_MAP: Record<string, number> = {};
+    for (let i = 0; i < BASE64_CHARS.length; i++) {
+        BASE64_MAP[BASE64_CHARS[i]!] = i;
+    }
+
+    interface IndexRef {
+        index: number;
+    }
+    interface MappingSegment {
+        generatedColumn: number;
+        source?: number;
+        originalLine?: number;
+        originalColumn?: number;
+        name?: number;
+    }
+
+    function decodeVLQ(str: string, indexRef: IndexRef): number {
+        let result = 0;
+        let shift = 0;
+        let continuation: boolean, digit: number | undefined;
+
+        do {
+            if (indexRef.index >= str.length) throw new Error("Unexpected end of VLQ string");
+            digit = BASE64_MAP[str.charAt(indexRef.index++)];
+            if (digit === undefined) throw new Error(`Invalid base64 digit: ${str.charAt(indexRef.index - 1)}`);
+
+            continuation = !!(digit & 32);
+            digit &= 31;
+            result += digit << shift;
+            shift += 5;
+        } while (continuation);
+
+        const shouldNegate: number = result & 1;
+        result >>= 1;
+        return shouldNegate ? -result : result;
+    }
+
+    function parseMappings(mappings: string): MappingSegment[][] {
+        const lines: string[] = mappings.split(";");
+        // let generatedLine: number = 0;
+        let previousGeneratedColumn = 0;
+        let previousSource = 0;
+        let previousOriginalLine = 0;
+        let previousOriginalColumn = 0;
+        let previousName = 0;
+
+        const parsed: MappingSegment[][] = [];
+
+        for (const line of lines) {
+            const segments: string[] = line.split(",");
+            const lineMappings: MappingSegment[] = [];
+            previousGeneratedColumn = 0;
+
+            for (const seg of segments) {
+                if (!seg) continue;
+                const indexRef = { index: 0 };
+                const segment: MappingSegment = {
+                    generatedColumn: (previousGeneratedColumn += decodeVLQ(seg, indexRef)),
+                };
+
+                if (indexRef.index < seg.length) {
+                    segment.source = previousSource += decodeVLQ(seg, indexRef);
+                    segment.originalLine = previousOriginalLine += decodeVLQ(seg, indexRef);
+                    segment.originalColumn = previousOriginalColumn += decodeVLQ(seg, indexRef);
+
+                    if (indexRef.index < seg.length) {
+                        segment.name = previousName += decodeVLQ(seg, indexRef);
+                    }
+                }
+                lineMappings.push(segment);
+            }
+            parsed.push(lineMappings);
+        }
+        return parsed;
+    }
+
+    function findOriginalPosition(
+        parsedMappings: MappingSegment[][],
+        sources: string[],
+        jsLine: number,
+        jsColumn: number
+    ): { source: string; line: number; column: number } | null {
+        const lineMappings: MappingSegment[] | undefined = parsedMappings[jsLine - 1];
+        if (!lineMappings) return null;
+
+        let candidate: MappingSegment | null = null;
+        for (const seg of lineMappings) {
+            if (seg.generatedColumn <= jsColumn) {
+                candidate = seg;
+            } else {
+                break;
+            }
+        }
+
+        if (candidate?.source === undefined) return null;
+
+        return {
+            source: sources[candidate.source]!,
+            line: candidate.originalLine! + 1,
+            column: candidate.originalColumn!,
+        };
+    }
+
+    const [fileURI, line, column, sourceMap] = args.length === 4 ? args : [undefined, args[0], args[1], args[2]];
+
+    const parsedMappings: MappingSegment[][] = parseMappings(sourceMap.mappings);
+
+    const originalPos = findOriginalPosition(parsedMappings, sourceMap.sources, line, column) ?? undefined;
+
+    if (fileURI!) {
+        return originalPos && { ...originalPos, fileURI };
+    }
+    return originalPos && originalPos;
+}
+
+async function getSourceLocationFromJSLocation(fileURI: string, line: number, column: number): Promise<SourceMapSourceLocation | undefined> {
+    if (fileURI === "<anonymous>") return;
+    try {
+        new URL(fileURI);
+    } catch {
+        return;
+    }
+    let sourceMapURI: string | null;
+    if (cachedSourceMaps.uris[fileURI] !== undefined) {
+        sourceMapURI = cachedSourceMaps.uris[fileURI];
+    } else {
+        sourceMapURI = (await fetchURIText(fileURI, true))?.match(/^\/\/# sourceMappingURL=(.*)$/m)?.[1] ?? null;
+    }
+    if (sourceMapURI === null) {
+        if (cachedSourceMaps.uris[fileURI] === undefined) cachedSourceMaps.uris[fileURI] = null;
+        return;
+    }
+    if (cachedSourceMaps.maps[sourceMapURI] !== undefined) {
+        return getSourceLocationFromSourceMap(fileURI, line, column, cachedSourceMaps.maps[sourceMapURI]!);
+    }
+    const sourceMap: string | null = await fetchURIText(sourceMapURI, true);
+    if (sourceMap !== null) {
+        if (cachedSourceMaps.maps[sourceMapURI] === null) return;
+        cachedSourceMaps.maps[sourceMapURI] ??= JSON.parse(sourceMap) as SourceMap;
+        return getSourceLocationFromSourceMap(fileURI, line, column, cachedSourceMaps.maps[sourceMapURI]!);
+    }
+    cachedSourceMaps.uris[fileURI] ??= null;
+    return;
+}
+
+/**
+ * Extracts JS file references of the form:
+ *   something.js:LINE:COLUMN
+ * Works with ANY URI protocol.
+ */
+const STACK_JS_REGEX = /((?:\S(?<!\())+?\.js):(\d+):(\d+)/g;
+
+/**
+ * Maps a stack trace to include TS equivalents.
+ *
+ * @param stack The original stack trace string.
+ * @param showLoadingPlaceholders Whether to show "(Loading...)" for uncached maps. Defaults to `true`.
+ */
+function mapStackWithTS(
+    stack: string,
+    showLoadingPlaceholders = true
+): { stack: string; hasUnloadedStacks: false } | { stack: string; hasUnloadedStacks: true; fullyLoadedStack: Promise<string> } {
+    let hasUnloaded = false;
+
+    const pendingReplacements: Promise<{ original: string; replacement: string }>[] = [];
+    const rewritten: string = stack.replace(STACK_JS_REGEX, (match: string, jsFile: string, lineStr: string, colStr: string): string => {
+        const line = Number(lineStr);
+        const column = Number(colStr);
+
+        if (cachedSourceMaps.uris[jsFile] === null) {
+            return match;
+        }
+
+        if (cachedSourceMaps.uris[jsFile] !== undefined && cachedSourceMaps.maps[cachedSourceMaps.uris[jsFile]] !== undefined) {
+            const sourceMapURI: string = cachedSourceMaps.uris[jsFile];
+            const sourceMap = cachedSourceMaps.maps[sourceMapURI]!;
+            const loc: SourceMapSourceLocation | undefined = getSourceLocationFromSourceMap(jsFile, line, column, sourceMap);
+
+            if (!loc) return match;
+
+            const tsUrl: string = jsFile.replace(/[^/]+\.js$/, loc.source.split("/").pop()!);
+            return `${match} (${tsUrl}:${loc.line}:${loc.column})`;
+        }
+
+        hasUnloaded = true;
+
+        const placeholder: string = showLoadingPlaceholders ? `${match} (Loading...)` : match;
+
+        const promise = (async (): Promise<{ original: string; replacement: string }> => {
+            const loc: SourceMapSourceLocation | undefined = await getSourceLocationFromJSLocation(jsFile, line, column);
+            if (!loc) {
+                return { original: placeholder, replacement: match };
+            }
+
+            const tsUrl: string = jsFile.replace(/[^/]+\.js$/, loc.source.split("/").pop()!);
+            return {
+                original: placeholder,
+                replacement: `${match} (${tsUrl}:${loc.line}:${loc.column})`,
+            };
+        })();
+
+        pendingReplacements.push(promise);
+
+        return placeholder;
+    });
+
+    if (!hasUnloaded) {
+        return { stack: rewritten, hasUnloadedStacks: false };
+    }
+
+    const fullyLoadedStack = (async (): Promise<string> => {
+        let finalStack = rewritten;
+
+        const results = await Promise.all(pendingReplacements);
+        for (const { original, replacement } of results) {
+            finalStack = finalStack.replace(original, replacement);
+        }
+
+        return finalStack;
+    })();
+
+    return {
+        stack: rewritten,
+        hasUnloadedStacks: true,
+        fullyLoadedStack,
+    };
+}
+
+const facetList = [
+    "core.animation",
+    "core.customScaling",
+    "core.deviceInformation",
+    "core.featureFlags",
+    "core.input",
+    "core.locale",
+    "core.performanceFacet",
+    "core.router",
+    "core.safeZone",
+    "core.screenReader",
+    "core.splitScreen",
+    "core.social",
+    "core.sound",
+    "core.user",
+    "core.vrMode", // Found in dev build file.
+
+    "vanilla.achievements",
+    "vanilla.achievementsReward",
+    "vanilla.buildSettings",
+    "vanilla.clipboard",
+    "vanilla.createNewWorld",
+    "vanilla.createPreviewRealmFacet",
+    "vanilla.debugSettings",
+    "vanilla.editor",
+    "vanilla.editorInput",
+    "vanilla.editorScripting",
+    "vanilla.editorSelectionFacet",
+    "vanilla.editorSettings",
+    "vanilla.externalServerWorldList",
+    "vanilla.followersList",
+    "vanilla.friendsListFacet",
+    "vanilla.friendsManagerFacet",
+    "vanilla.gameplay.activeLevelHardcoreMode",
+    "vanilla.gameplay.bedtime",
+    "vanilla.gameplay.closeContainerCommand",
+    "vanilla.gameplay.containerBlockActorType",
+    "vanilla.gameplay.containerItemQuery",
+    "vanilla.gameplay.containerSizeQuery",
+    "vanilla.gameplay.furnace",
+    "vanilla.gameplay.immediateRespawn",
+    "vanilla.gameplay.leaveGame",
+    "vanilla.gameplay.playerDeathInfo",
+    "vanilla.gameplay.playerPositionHudElement",
+    "vanilla.gameplay.playerRespawn",
+    "vanilla.gamertagSearch",
+    "vanilla.inbox",
+    "vanilla.lanWorldList",
+    "vanilla.localWorldList",
+    "vanilla.marketplaceSuggestions",
+    "vanilla.marketplacePassWorldTemplateList",
+    "vanilla.networkWorldDetails",
+    "vanilla.networkWorldJoiner",
+    "vanilla.notificationOptions",
+    "vanilla.notifications",
+    "vanilla.options",
+    "vanilla.party", // Found in dev build file.
+    "vanilla.playerAchievements",
+    "vanilla.playerBanned",
+    "vanilla.playerFollowingList",
+    "vanilla.playerLinkedPlatformProfile", // Found in dev build file.
+    "vanilla.playermessagingservice",
+    "vanilla.playerPermissions",
+    "vanilla.playerProfile",
+    "vanilla.playerReport",
+    "vanilla.playerSocialManager",
+    "vanilla.playerStatistics",
+    "vanilla.privacyAndOnlineSafetyFacet",
+    "vanilla.profanityFilter",
+    "vanilla.realmsListFacet",
+    "vanilla.realmSlots",
+    "vanilla.realmsMembership",
+    "vanilla.realmsStories.actions",
+    "vanilla.realmsStories.localScreenshots",
+    "vanilla.realmsStories.persistentData",
+    "vanilla.realmsStories.players",
+    "vanilla.realmsStories.realmData",
+    "vanilla.realmsStories.settings",
+    "vanilla.realmsStories.stories",
+    "vanilla.RealmsPDPFacet",
+    "vanilla.RealmWorldUploaderFacet",
+    "vanilla.recentlyPlayedWithList",
+    "vanilla.recommendedFriendsList",
+    "vanilla.resourcePackOverrides",
+    "vanilla.resourcePacks",
+    "vanilla.screenshotGalleryList",
+    "vanilla.screenSpecificOptions",
+    "vanilla.screenTechStack",
+    "vanilla.seedTemplates",
+    "vanilla.share",
+    "vanilla.simulationDistanceOptions",
+    "vanilla.telemetry",
+    "vanilla.thirdPartyWorldList",
+    "vanilla.unpairedRealmsListFacet",
+    "vanilla.userAccount",
+    "vanilla.webBrowserFacet",
+    "vanilla.worldCloudSyncFacet",
+    "vanilla.worldEditor",
+    "vanilla.worldOperations",
+    "vanilla.worldPackages",
+    "vanilla.worldPlayersList",
+    "vanilla.worldStartup",
+    "vanilla.worldTemplateList",
+    "vanilla.worldTransfer",
+
+    "vanilla.friendworldlist",
+    "vanilla.offerRepository",
+    "vanilla.realmsSettingsFacet",
+
+    "vanilla.achievementCategories",
+    "vanilla.blockInformation",
+    "debug.worldTransfer",
+    "vanilla.flatWorldPresets",
+    "vanilla.inGame",
+    "vanilla.playerPrivacy",
+    "vanilla.realmsPurchase",
+    "vanilla.realmsSubscriptionsData",
+    "vanilla.realmsSubscriptionsMethods",
+    "vanilla.realmsWorldContextCommands",
+    "vanilla.realmsWorldContextQueries",
+    "vanilla.realmsStories.sessions",
+    "vanilla.realmsListActionsFacet",
+    "vanilla.developerOptionsFacet",
+    "vanilla.realmsStories.comments",
+    "vanilla.screenshotGallery",
+    "vanilla.playerShowcasedGallery",
+    "vanilla.trialMode",
+    "vanilla.featuredWorldTemplateList",
+    "vanilla.ownedWorldTemplateList",
+    "vanilla.worldTemplateOperations",
+    "test.vector",
+    "vanilla.gameplay.localPlayerWeatherLightningFacet",
+    "vanilla.levelInfo",
+    "vanilla.currentParty",
+    "vanilla.partyCommands",
+    "vanilla.worldRealmEditor", // Found in dev build file.
+    "vanilla.worldRealmEditorCommands",
+    "vanilla.worldRealmEditorQueries",
+    "vanilla.realmBackupsCommands",
+    "vanilla.realmBackupsQueries",
+    "vanilla.realmsPurchaseCommands",
+    "vanilla.realmsPurchaseReconcilerQueries",
+    "vanilla.character-selector",
+    "vanilla.progressTracker",
+
+    // Found in preview 1.21.100.21.
+    "vanilla.realmsWorldEditorGameRulesCommands",
+    "vanilla.realmsWorldEditorGameRulesQueries",
+    "vanilla.realmsWorldEditorWorldDetailsQueries",
+    "vanilla.realmsCommitCommandsFacet",
+    "vanilla.realmsCommitQueriesFacet",
+    "vanilla.realmsPurchaseQueries",
+
+    // Found in 1.21.120.4 (but may have existed before that).
+    "vanilla.connectionErrorInfoFacet",
+    "vanilla.partyReceivedInviteList",
+    "vanilla.joinablePartyList",
+    "vanilla.realmsFeatureFlags",
+    "vanilla.realmsStories.reports",
+    "vanilla.realmsStories.reportCommands",
+    "vanilla.openAndCloseRealmCommandsFacet",
+    "dev.realmsCommitCommandsFacet",
+    "dev.realmsCommitQueriesFacet",
+    "vanilla.newPlayerChoices",
+
+    // Found in 1.21.130.26 Preview (but may have existed before that).
+    "vanilla.realmsRolesAndPermissionsQueries",
+    "vanilla.realmsRolesAndPermissionsCommands",
+    "vanilla.realmsPlayerListQueries",
+    "vanilla.realmsPlayerListCommands",
+
+    // Found in 1.26.0.26 preview (but may have existed before that).
+    "vanilla.realmsWorldEditorWorldDetailsCommands",
+    "vanilla.realmsWorldPackEditorQueries",
+    "vanilla.realmsWorldPackEditorCommands",
+
+    // Found in 1.26.0.2 Release (it is unknown what preview these were added in).
+    "vanilla.realmsRegionSettingsCommands",
+    "vanilla.realmsRegionSettingsQueries",
+
+    // Editor mode only facets (crashes the game when not in editor mode).
+    ...(location.pathname === "/hbui/editor.html" ?
+        [
+            "vanilla.editorLogging", // Crashes the game in the v1.21.110.23 preview when not in editor mode.
+            "vanilla.editorBlockPalette", // Crashes the game when not in editor mode
+            "vanilla.editorInputBinding", // Crashes the game when not in editor mode
+            "vanilla.editorInputState", // Crashes the game when not in editor mode
+            "vanilla.editorProjectConstants", // Crashes the game when not in editor mode
+            "vanilla.editorStructure", // Crashes the game when not in editor mode
+            "vanilla.editorTutorial", // Crashes the game when not in editor mode
+        ]
+    :   []),
+];
+
+// /**
+//  * Forcefully loads a facet that is not loaded (meaning it is not accessible through the {@link getAccessibleFacetSpyFacets} function).
+//  *
+//  * @param facetName The name of the facet to load.
+//  * @param timeout The timeout in milliseconds to wait for the facet to load. If set to `0` or `Infinity`, it will never time out. Defaults to `5000ms`.
+//  * @returns A promise that resolves with the loaded facet's value, if the facet it already loaded it will resolve with its current value.
+//  *
+//  * @throws {ReferenceError} If the request times out (can happen if the facet doesn't exist).
+//  * @throws {any} If the facet request throws an error.
+//  */
+// function forceLoadFacet<FacetType extends LooseAutocomplete<FacetList[number]>>(
+//     facetName: FacetType,
+//     timeout = 5000,
+//     ignoreAlreadyLoadedData = false
+// ): Promise<FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown> {
+//     return new Promise((resolve, reject) => {
+//         const currentFacetData = ignoreAlreadyLoadedData
+//             ? undefined
+//             : FacetManager.facetData[facetName];
+//         if ((currentFacetData?.toString?.() ?? "Symbol(NoValue)") !== "Symbol(NoValue)") {
+//             resolve(currentFacetData);
+//             return;
+//         }
+//         /**
+//          * @type {"unloaded" | "loaded" | "failed"}
+//          */
+//         let facetStatus = "unloaded";
+//         const callback = (value) => {
+//             try {
+//                 globalThis.forceLoadedFacets[facetName] = true;
+//                 const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
+//                 const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
+//                 if (!targetFacetA && !targetFacetB)
+//                     throw new ReferenceError(
+//                         `No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets for facet: ${facetName}`
+//                     );
+//                 targetFacetA?.set(value);
+//                 targetFacetB?.set(value);
+//                 engine.off(`facet:updated:${facetName}`, callback);
+//                 engine.off(`facet:error:${facetName}`, failureCallback);
+//                 facetStatus = "loaded";
+//                 resolve(value);
+//             } catch (e) {
+//                 facetStatus = "failed";
+//                 reject(e);
+//             }
+//         };
+//         const failureCallback = (e) => {
+//             try {
+//                 engine.off(`facet:updated:${facetName}`, callback);
+//                 engine.off(`facet:error:${facetName}`, failureCallback);
+//                 facetStatus = "failed";
+//                 reject(e);
+//             } catch (e) {
+//                 facetStatus = "failed";
+//                 reject(e);
+//             }
+//         };
+//         engine.on(`facet:updated:${facetName}`, callback);
+//         engine.on(`facet:error:${facetName}`, failureCallback);
+//         engine.trigger("facet:request", facetName, facetName, {});
+//         timeout &&
+//             timeout < Infinity &&
+//             setTimeout(() => {
+//                 if (facetStatus !== "unloaded") return;
+//                 facetStatus = "failed";
+//                 engine.off(`facet:updated:${facetName}`, callback);
+//                 engine.off(`facet:error:${facetName}`, failureCallback);
+//                 reject(new ReferenceError(`Timed out while fetching facet: ${facetName} (timeout: ${timeout})`));
+//             }, timeout);
+//     });
+// }
+// function unloadForceLoadedFacet(facetName) {
+//     if (globalThis.forceLoadedFacets[facetName]) {
+//         forceUnloadFacet(facetName);
+//         delete globalThis.forceLoadedFacets[facetName];
+//         return true;
+//     }
+//     return false;
+// }
+// function forceUnloadFacet(facetName) {
+//     engine.trigger("facet:discard", facetName);
+//     const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
+//     const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
+//     try {
+//         targetFacetA?.set(Symbol.for("NoValue"));
+//     } catch (e) {
+//         if (globalThis.logForceUnloadFacetSetValueErrors) {
+//             console.error(e);
+//         }
+//     }
+//     try {
+//         targetFacetB?.set(Symbol.for("NoValue"));
+//     } catch (e) {
+//         if (globalThis.logForceUnloadFacetSetValueErrors) {
+//             console.error(e);
+//         }
+//     }
+// }
+// function forceLoadUnloadedFacets({
+//     enableErrorLogging = false,
+//     enableSuccessLogging = false,
+//     enableAlreadyLoadedLogging = false,
+//     enableLoadingFacetsTracking = false,
+// } = {}) {
+//     if (!globalThis.facetSpyData) throw new ReferenceError("The global facetSpyData variable was not found.");
+//     enableLoadingFacetsTracking && (globalThis.loadingFacets = {});
+//     return Promise.all(
+//         facetList.map(async (facetName, i) => {
+//             enableLoadingFacetsTracking && (loadingFacets[facetName + i] = true);
+//             try {
+//                 const currentFacetData = (globalThis.facetSpyData.sharedFacets[facetName] ?? accessedFacets[facetName]())?.get();
+//                 if ((currentFacetData?.toString?.() ?? "Symbol(NoValue)") === "Symbol(NoValue)") {
+//                     const result = [facetName, await forceLoadFacet(facetName), "success", !facetList.includes(facetName)];
+//                     if (enableSuccessLogging) console.log(i, ...result);
+//                     return result;
+//                 } else {
+//                     const result = [facetName, currentFacetData, "alreadyLoaded", !facetList.includes(facetName)];
+//                     enableAlreadyLoadedLogging && console.log(i, ...result);
+//                 }
+//             } catch (e) {
+//                 enableErrorLogging && console.error(e, i, facetName, "error");
+//                 return [facetName, e, "error"];
+//             } finally {
+//                 enableLoadingFacetsTracking && delete loadingFacets[facetName + i];
+//             }
+//         })
+//     );
+// }
+// function unloadForceLoadedFacets() {
+//     return Object.keys(globalThis.forceLoadedFacets).map((facetName) => [facetName, unloadForceLoadedFacet(facetName)]);
+// }
+// globalThis.forceLoadedFacets = {};
+// globalThis.facetSpy = facetSpy;
+// globalThis.forceLoadFacet = forceLoadFacet;
+// globalThis.forceUnloadFacet = forceUnloadFacet;
+// globalThis.unloadForceLoadedFacet = unloadForceLoadedFacet;
+// globalThis.forceLoadUnloadedFacets = forceLoadUnloadedFacets;
+// globalThis.unloadForceLoadedFacets = unloadForceLoadedFacets;
+// globalThis.accessedFacets = {};
+// globalThis.notedNewFacets = [];
+// setInterval(function checkForNewFacets() {
+//     if (!globalThis.accessedFacets || typeof globalThis.accessedFacets !== "object") return;
+//     for (const facetName in globalThis.accessedFacets) {
+//         if (facetList.includes(facetName)) continue;
+//         if (globalThis.notedNewFacets.includes(facetName)) continue;
+//         globalThis.notedNewFacets.push(facetName);
+//         console.info(`New facet discovered!: ${facetName}`);
+//     }
+// }, 1);
+
+interface EngineInterceptorEventMap {
+    beforeMethodCall: EngineInterceptorBeforeMethodCallEvent;
+    methodCall: EngineInterceptorAfterMethodCallEvent;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface FacetManagerEventMap {}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface QueryManagerEventMap {}
+
+type EngineMethod = keyof { [key in keyof Engine as Engine[key] extends AnyCallableFunction<1> ? key : never]: Engine[key] };
+
+// ------------------------------
+// Types
+// ------------------------------
+
+type PolyfillEventTarget_EventListenerMap = Record<
+    string,
+    {
+        readonly callback: EventListenerOrEventListenerObject;
+        readonly capture: boolean;
+        readonly once: boolean;
+        readonly passive: boolean;
+        readonly [Symbol.toStringTag]: "EventListenerDetails";
+    }[]
+> & {
+    readonly [Symbol.toStringTag]: "EventListenerMap";
+};
+type PolyfillEventTarget_EventListenerMap_Input = Record<
+    string,
+    {
+        readonly callback: EventListenerOrEventListenerObject;
+        readonly capture: boolean;
+        readonly once: boolean;
+        readonly passive: boolean;
+    }[]
+>;
+
+/**
+ * A polyfilled version of {@link EventTarget}.
+ *
+ * This exists because in Ore UI (Cohtml), {@link EventTarget} is not constructable.
+ *
+ * EventTarget is a DOM interface implemented by objects that can receive events and may have listeners for them.
+ *
+ * [MDN Reference](https://developer.mozilla.org/docs/Web/API/EventTarget)
+ */
+class PolyfillEventTarget implements EventTarget {
+    /**
+     * The event listeners.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- This is necessary.
+    #listeners: PolyfillEventTarget_EventListenerMap = Object.create(
+        Object.create(null, {
+            [Symbol.toStringTag]: {
+                value: "EventListenerMap",
+                configurable: true,
+                enumerable: false,
+                writable: false,
+            },
+        }) as object
+    );
+    public constructor() {}
+    /**
+     * The event listeners.
+     */
+    public get listeners(): PolyfillEventTarget_EventListenerMap {
+        return this.#listeners;
+    }
+    /**
+     * The event listeners.
+     */
+    public set listeners(value: PolyfillEventTarget_EventListenerMap_Input | PolyfillEventTarget_EventListenerMap) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.#listeners =
+            (value as PolyfillEventTarget_EventListenerMap)?.[Symbol.toStringTag] === "EventListenerMap" ?
+                value
+            :   Object.assign(
+                    Object.create(
+                        Object.create(null, {
+                            [Symbol.toStringTag]: {
+                                value: "EventListenerMap",
+                                configurable: true,
+                                enumerable: false,
+                                writable: false,
+                            },
+                        }) as object
+                    ),
+                    Object.fromEntries(
+                        Object.entries(value).map(([key, value]) => [
+                            key,
+                            value.map((listener) => {
+                                if ((listener as PolyfillEventTarget_EventListenerMap[string][number])?.[Symbol.toStringTag] === "EventListenerDetails") {
+                                    return listener;
+                                }
+                                const opts = PolyfillEventTarget.#normalizeOptions(listener);
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- This is necessary.
+                                return Object.create(
+                                    Object.create(null, {
+                                        [Symbol.toStringTag]: {
+                                            value: "EventListenerDetails",
+                                            configurable: true,
+                                            enumerable: false,
+                                            writable: false,
+                                        },
+                                    }) as object,
+                                    {
+                                        callback: {
+                                            value: listener.callback,
+                                            configurable: true,
+                                            enumerable: true,
+                                            writable: false,
+                                        },
+                                        capture: {
+                                            value: opts.capture,
+                                            configurable: true,
+                                            enumerable: true,
+                                            writable: false,
+                                        },
+                                        once: {
+                                            value: opts.once,
+                                            configurable: true,
+                                            enumerable: true,
+                                            writable: false,
+                                        },
+                                        passive: {
+                                            value: opts.passive,
+                                            configurable: true,
+                                            enumerable: true,
+                                            writable: false,
+                                        },
+                                    }
+                                );
+                            }),
+                        ])
+                    )
+                );
+    }
+    public addEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options: boolean | AddEventListenerOptions = false): void {
+        // eslint-disable-next-line eqeqeq -- This is necessary.
+        if (callback == null) return;
+
+        const opts: Required<AddEventListenerOptions> = PolyfillEventTarget.#normalizeOptions(options);
+        const list = (this.#listeners[type] ||= []);
+
+        for (const rec of list) {
+            if (rec.callback === callback && rec.capture === opts.capture) {
+                return;
+            }
+        }
+
+        list.push(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- This is necessary.
+            Object.create(
+                Object.create(null, {
+                    [Symbol.toStringTag]: {
+                        value: "EventListenerDetails",
+                        configurable: true,
+                        enumerable: false,
+                        writable: false,
+                    },
+                }) as object,
+                {
+                    callback: {
+                        value: callback,
+                        configurable: true,
+                        enumerable: true,
+                        writable: false,
+                    },
+                    capture: {
+                        value: opts.capture,
+                        configurable: true,
+                        enumerable: true,
+                        writable: false,
+                    },
+                    once: {
+                        value: opts.once,
+                        configurable: true,
+                        enumerable: true,
+                        writable: false,
+                    },
+                    passive: {
+                        value: opts.passive,
+                        configurable: true,
+                        enumerable: true,
+                        writable: false,
+                    },
+                }
+            )
+        );
+    }
+    public removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null, options: boolean | EventListenerOptions = false): void {
+        // eslint-disable-next-line eqeqeq -- This is necessary.
+        if (callback == null) return;
+
+        const list = this.#listeners[type];
+        if (!list) return;
+
+        const opts = PolyfillEventTarget.#normalizeOptions(options);
+
+        for (let i = 0; i < list.length; i++) {
+            const rec = list[i]!;
+            if (rec.callback === callback && rec.capture === opts.capture) {
+                list.splice(i, 1);
+                return;
+            }
+        }
+    }
+    public dispatchEvent(event: Event): boolean {
+        if (!event || typeof event.type !== "string") {
+            throw new TypeError("Event object missing .type");
+        }
+
+        const list = this.#listeners[event.type];
+        if (!list) return true;
+
+        let _stopPropagationTriggered = false;
+        let stopImmediatePropagationTriggered = false;
+        const proxy = new Proxy(event, {
+            get(target, prop, _receiver): unknown {
+                if (prop === "stopPropagation") {
+                    return function stopPropagation(): unknown {
+                        _stopPropagationTriggered = true;
+                        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression -- This is in case the original actually returns something.
+                        return target.stopPropagation();
+                    };
+                }
+                if (prop === "stopImmediatePropagation") {
+                    return function stopImmediatePropagation(): unknown {
+                        stopImmediatePropagationTriggered = true;
+                        _stopPropagationTriggered = true;
+                        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression -- This is in case the original actually returns something.
+                        return target.stopImmediatePropagation();
+                    };
+                }
+                if (prop === "target") return this;
+                if (prop === "currentTarget") return this;
+                // Access it directly to stop TypeErrors when a getter tries to access a private property.
+                return (target as unknown as Record<PropertyKey, unknown>)[prop];
+                // return Reflect.get(target, prop, receiver);
+            },
+        });
+
+        // Snapshot (spec behavior)
+        const queue = list.slice();
+
+        for (const rec of queue) {
+            // Skip removed listeners
+            if (!list.includes(rec)) continue;
+
+            try {
+                if (typeof rec.callback === "function") {
+                    rec.callback.call(this, proxy);
+                } else {
+                    rec.callback.handleEvent(proxy);
+                }
+            } catch (err) {
+                // Browser behavior: async rethrow
+                setTimeout(() => {
+                    throw err;
+                });
+            }
+
+            if (rec.once) {
+                this.removeEventListener(event.type, rec.callback, { capture: rec.capture });
+            }
+
+            if (stopImmediatePropagationTriggered) {
+                break;
+            }
+        }
+
+        return !event.defaultPrevented;
+    }
+    /**
+     * Normalizes event listener options.
+     *
+     * @param options The event listener options.
+     * @returns The normalized event listener options.
+     */
+    static #normalizeOptions(options: boolean | AddEventListenerOptions | EventListenerOptions): Required<AddEventListenerOptions> {
+        if (typeof options === "boolean") {
+            return { capture: options, once: false, passive: false };
+        }
+        return {
+            capture: !!options.capture,
+            once: !!(options as AddEventListenerOptions).once,
+            passive: !!(options as AddEventListenerOptions).passive,
+        };
+    }
+}
+// Makes instances of PolyfillEventTarget return true for `polyfillEventTargetInstance instanceof EventTarget`.
+Object.setPrototypeOf(PolyfillEventTarget.prototype, EventTarget.prototype);
+
+class EngineInterceptorBeforeMethodCallEvent<T extends EngineMethod = EngineMethod> extends Event {
+    readonly #type = "beforeMethodCall";
+    public method: T;
+    public args: Parameters<Engine[T]>;
+    public constructor(method: T, args: Parameters<Engine[T]> | IArguments, eventInitDict?: EventInit) {
+        super("beforeMethodCall", eventInitDict);
+        this.method = method;
+        this.args = Array.from(args) as Parameters<Engine[T]>;
+    }
+    public override get type(): "beforeMethodCall" {
+        if (!this) throw new TypeError("Illegal invocation");
+        return this.#type;
+    }
+}
+class EngineInterceptorAfterMethodCallEvent<T extends EngineMethod = EngineMethod> extends Event {
+    readonly #type = "methodCall";
+    public method: T;
+    public args: Parameters<Engine[T]>;
+    public result?: ReturnType<Engine[T]>;
+    public error?: unknown;
+    public constructor(
+        method: T,
+        args: Parameters<Engine[T]> | IArguments,
+        result: { result: ReturnType<Engine[T]> } | { error: unknown },
+        eventInitDict?: EventInit
+    ) {
+        super("methodCall", eventInitDict);
+        // Object.defineProperty(this, "method", { value: method });
+        this.method = method;
+        this.args = Array.from(args) as Parameters<Engine[T]>;
+        if (typeof result !== "object" || result === null) {
+            throw new TypeError(
+                `Parameter "result" expected an object containing either result or error, but instead got: ${result === null ? "null" : typeof result}`
+            );
+        } else if ("result" in result) {
+            if ("error" in result) throw new TypeError('Parameter "result" must be an object containing either result or error, not both.');
+            this.result = result.result;
+        } else if ("error" in result) {
+            this.error = result.error;
+        } else {
+            throw new TypeError('Parameter "result" must be an object containing either result or error.');
+        }
+    }
+    public override get type(): "methodCall" {
+        if (!this) throw new TypeError("Illegal invocation");
+        return this.#type;
+    }
+}
+
+class EngineInterceptorBeforeVanillaEventListenerTriggerEvent<T extends LooseAutocomplete<EngineEventID> = string> extends Event {
+    #passingToVanillaUIFilesPrevented = false;
+    readonly #type = "beforeVanillaEventListenerTrigger";
+    public eventId: T;
+    public args: EngineEvent<T>;
+    public constructor(eventId: T, args: EngineEvent<T> | IArguments, eventInitDict?: EventInit) {
+        super("beforeVanillaEventListenerTrigger", eventInitDict);
+        this.eventId = eventId;
+        this.args = Array.from(args) as EngineEvent<T>;
+    }
+    public override get type(): "beforeVanillaEventListenerTrigger" {
+        if (!this) throw new TypeError("Illegal invocation");
+        return this.#type;
+    }
+    public get passingToVanillaUIFilesPrevented(): boolean {
+        if (!this) throw new TypeError("Illegal invocation");
+        return this.#passingToVanillaUIFilesPrevented;
+    }
+    public preventPassingToVanillaUIFiles(): void {
+        if (!this) throw new TypeError("Illegal invocation");
+        this.#passingToVanillaUIFilesPrevented = true;
+    }
+}
+
+/** @ts-ignore: This is necessary, there is no alternative. */ /***/
+namespace globalThis {
+    /** @ts-ignore: This is necessary, there is no alternative. */ /***/
+    namespace __OUICInternals__ {
+        interface OUICConsoleConfigData {
+            /**
+             * @experimental
+             * @todo Add an actual option for this to the UI.
+             * @idea Make these displayed using the `Readonly_icon.png` icon instead of an italic 75% opacity `read-only` before the property name. The icon would be to the left of the expansion arrow (or where it would be when there isn't one).
+             */
+            showReadonlyPropertiesLabelInConsoleEnabled: boolean;
+        }
+        let _OUICConsoleConfigInstance: OUICConsoleConfig;
+        /**
+         * @alpha This class is still in early development.
+         * @hideconstructor
+         */
+        class OUICConsoleConfig implements OUICConsoleConfigData {
+            static #constructed = false;
+            private constructor() {
+                if (OUICConsoleConfig.#constructed) throw new TypeError("Illegal constructor");
+                OUICConsoleConfig.#constructed = true;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- This is necessary.
+            public readonly tempOverrides: { [key in keyof OUICConsoleConfigData]: OUICConsoleConfigData[key] | undefined } & {
+                readonly [Symbol.toStringTag]: "OUICConsoleConfigTempOverrides";
+            } = Object.create(
+                {
+                    [Symbol.toStringTag]: "OUICConsoleConfigTempOverrides",
+                },
+                Object.getOwnPropertyDescriptors({
+                    showReadonlyPropertiesLabelInConsoleEnabled: undefined,
+                })
+            );
+            /**
+             * Whether or not to show labels for read-only properties in the console.
+             *
+             * @experimental
+             *
+             * @default false
+             */
+            public get showReadonlyPropertiesLabelInConsoleEnabled(): boolean {
+                if (!this) throw new TypeError("Illegal invocation");
+                return (
+                    this.tempOverrides.showReadonlyPropertiesLabelInConsoleEnabled ??
+                    (localStorage.getItem("OUICConsoleConfig:experiments:showReadonlyPropertiesLabelInConsoleEnabled") ?? "false") === "true"
+                );
+            }
+            static {
+                _OUICConsoleConfigInstance = new OUICConsoleConfig();
+            }
+        }
+        /**
+         * @alpha This class is still in early development.
+         */
+        export const OUICConsoleConfigInstance: OUICConsoleConfig = _OUICConsoleConfigInstance;
+        let _EngineInterceptorInstance: EngineInterceptor;
+        /**
+         * @alpha This class is still in early development.
+         * @hideconstructor
+         */
+        class EngineInterceptor extends PolyfillEventTarget {
+            static #constructed = false;
+            @writable(false)
+            public readonly originalEngineMethods: { readonly [method in EngineMethod]?: Engine[method] } = {};
+            @writable(false)
+            @enumerable(false)
+            private readonly _engineMethodsToIntercept: readonly EngineMethod[] = Object.freeze(["on", "off", "trigger"] satisfies EngineMethod[]);
+            private constructor() {
+                if (EngineInterceptor.#constructed) throw new TypeError("Illegal constructor");
+                EngineInterceptor.#constructed = true;
+                super();
+                this.#init();
+            }
+            #init(): void {
+                // Hook onto the engine methods.
+                for (const method of this._engineMethodsToIntercept /* in engine */) {
+                    if (typeof Object.getOwnPropertyDescriptor(engine, method)?.value !== "function") continue;
+                    Object.defineProperty(this.originalEngineMethods, method, { value: engine[method], configurable: true, enumerable: true, writable: false });
+                    try {
+                        Object.defineProperty(engine, method, {
+                            ...Object.getOwnPropertyDescriptor(engine, method),
+                            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- `method` may not always be of type `EngineMethod`.
+                            value: this.#createHookedEngineMethod(method as EngineMethod, engine[method as EngineMethod]),
+                        });
+                    } catch (error) {
+                        console.error("Error while hooking onto engine method:", method, error);
+                    }
+                }
+            }
+            #createHookedEngineMethod<T extends EngineMethod>(method: T, originalEngineMethod: Engine[T]): Engine[T] {
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
+                const EngineInterceptor: this = this;
+                return {
+                    [`_OUIC_intercepted_${method}`](this: ThisType<Engine[T]>, ...args: Parameters<Engine[T]>): ReturnType<Engine[T]> | undefined {
+                        const beforeEventCanceled = !EngineInterceptor.dispatchEvent(
+                            new EngineInterceptorBeforeMethodCallEvent(method, arguments, { cancelable: true })
+                        );
+                        if (beforeEventCanceled) return;
+                        let result:
+                            | {
+                                  result: ReturnType<Engine[T]>;
+                              }
+                            | {
+                                  error: unknown;
+                              };
+                        try {
+                            result = {
+                                result: (originalEngineMethod as (this: ThisType<Engine[T]>, ...args: Parameters<Engine[T]>) => ReturnType<Engine[T]>).apply(
+                                    this,
+                                    args
+                                ),
+                            };
+                        } catch (error) {
+                            result = {
+                                error,
+                            };
+                        }
+                        const afterEventCanceled = !EngineInterceptor.dispatchEvent(
+                            new EngineInterceptorAfterMethodCallEvent(method, arguments, result, { cancelable: true })
+                        );
+                        if (afterEventCanceled) return;
+                        if ("result" in result) return result.result;
+                        throw result.error;
+                    },
+                }[`_OUIC_intercepted_${method}`] as Engine[T];
+            }
+            public override addEventListener<K extends keyof EngineInterceptorEventMap>(
+                type: K,
+                listener: (this: EngineInterceptor, ev: EngineInterceptorEventMap[K]) => unknown,
+                options?: boolean | AddEventListenerOptions
+            ): void;
+            public override addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+            public override addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void {
+                // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression -- This is in case the original actually returns something.
+                return super.addEventListener(type, listener, options, ...(Array.from(arguments).slice(3) as []));
+            }
+            public override removeEventListener<K extends keyof EngineInterceptorEventMap>(
+                type: K,
+                listener: (this: EngineInterceptor, ev: EngineInterceptorEventMap[K]) => unknown,
+                options?: boolean | EventListenerOptions
+            ): void;
+            public override removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+            public override removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void {
+                // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression -- This is in case the original actually returns something.
+                return super.removeEventListener(type, listener, options, ...(Array.from(arguments).slice(3) as []));
+            }
+            public override dispatchEvent<K extends keyof EngineInterceptorEventMap>(event: EngineInterceptorEventMap[K]): boolean;
+            public override dispatchEvent(event: Event): boolean;
+            public override dispatchEvent(event: Event): boolean {
+                return super.dispatchEvent(event, ...(Array.from(arguments).slice(1) as []));
+            }
+            static {
+                _EngineInterceptorInstance = new EngineInterceptor();
+            }
+        }
+        /**
+         * @alpha This class is still in early development.
+         */
+        export const EngineInterceptorInstance: EngineInterceptor = _EngineInterceptorInstance;
+        // export const EngineInterceptorInstance: EngineInterceptor = new (EngineInterceptor as new () => EngineInterceptor)();
+        // EngineInterceptorInstance.addEventListener("methodCall", console.debug); // DEBUG
+        let _FacetManagerInstance: FacetManager;
+        /**
+         * @alpha This class is still in early development.
+         * @hideconstructor
+         */
+        class FacetManager extends PolyfillEventTarget {
+            static #constructed = false;
+            private constructor() {
+                if (FacetManager.#constructed) throw new TypeError("Illegal constructor");
+                FacetManager.#constructed = true;
+                super();
+                this.#init();
+            }
+            @writable(false)
+            public readonly facetData: Partial<FacetTypeMap> & Record<string, unknown> = {};
+            @writable(false)
+            public readonly forceLoadedFacets: string[] = [];
+            /**
+             * The list of facets that are currently being used by the vanilla UI files.
+             */
+            @writable(false)
+            public readonly facetsInUseByVanilla: string[] = [];
+            /**
+             * The list of facets that when updated do not have the update event passed to the vanilla UI files.
+             */
+            @writable(false)
+            public readonly facetsWithUpdatesToVanillaBlocked: string[] = [];
+            /**
+             * The list of facets that when an event related to them is triggered by the vanilla UI files, the event is blocked from passing to anything else.
+             */
+            @writable(false)
+            public readonly facetsWithUpdatesFromVanillaBlocked: string[] = [];
+
+            /**
+             * @todo
+             */
+            #init(): void {
+                if (!this) throw new TypeError("Illegal invocation");
+                (EngineInterceptorInstance.originalEngineMethods.on?.bind(engine) ?? engine.on)("*", (id: string, facetData: unknown): void => {
+                    if (!id.startsWith("facet:updated:")) return;
+                    // this.dispatchEvent(new FacetUpdatedEvent(facetName)); // TODO
+                    // TEMP
+                    this.facetData[id.slice("facet:updated:".length)] = facetData;
+                });
+                (EngineInterceptorInstance.originalEngineMethods.on?.bind(engine) ?? engine.on)("facet:discard", (facetName: FacetList[number]): void => {
+                    // this.dispatchEvent(new FacetDiscardedEvent(facetName)); // TODO
+                    // TEMP
+                    delete this.facetData[facetName];
+                });
+            }
+            /**
+             * Sets whether a facet is force loaded or not.
+             *
+             * Marking a facet as force loaded means that is cannot be discarded.
+             *
+             * @param facet The facet to set whether it is force loaded or not.
+             * @param forceLoaded Whether the facet is force loaded or not.
+             *
+             * @todo
+             */
+            @writable(false)
+            public setFacetIsForceLoaded(_facet: LooseAutocomplete<FacetList[number]>, _forceLoaded: boolean): void {
+                if (!this) throw new TypeError("Illegal invocation");
+                throw new Error("Method not implemented.");
+            }
+            static {
+                _FacetManagerInstance = new FacetManager();
+            }
+        }
+        /**
+         * @alpha This class is still in early development.
+         */
+        export const FacetManagerInstance: FacetManager = _FacetManagerInstance;
+        // export const FacetManagerInstance: FacetManager = new (FacetManager as new () => FacetManager)();
+        let _QueryManagerInstance: QueryManager;
+        /**
+         * @alpha This class is still in early development.
+         * @hideconstructor
+         */
+        class QueryManager extends PolyfillEventTarget {
+            static #constructed = false;
+            private constructor() {
+                if (QueryManager.#constructed) throw new TypeError("Illegal constructor");
+                QueryManager.#constructed = true;
+                super();
+                this.#init();
+            }
+
+            /**
+             * @todo
+             */
+            #init(): void {
+                if (!this) throw new TypeError("Illegal invocation");
+            }
+            /**
+             *
+             * @param queryName The name of the query.
+             * @param queryParameters The parameters of the query.
+             @readonly
+             *
+             * @todo
+             */
+            @writable(false)
+            public async fetchQuery<T extends keyof EngineQuerySubscribeEventParamsMap>(
+                _queryName: T,
+                ..._queryParameters: EngineQuerySubscribeEventParamsMap[T]
+            ): Promise<EngineQueryResult<T>> {
+                throw new Error("Method not implemented.");
+                // eslint-disable-next-line @typescript-eslint/await-thenable -- TEMP
+                await 1;
+            }
+            // public fetchQuery
+            static {
+                _QueryManagerInstance = new QueryManager();
+            }
+        }
+        /**
+         * @alpha This class is still in early development.
+         */
+        export const QueryManagerInstance: QueryManager = _QueryManagerInstance;
+        // export const QueryManagerInstance: QueryManager = new (QueryManager as new () => QueryManager)();
+    }
+    export import OUICConsoleConfig = __OUICInternals__.OUICConsoleConfigInstance;
+    export import EngineInterceptor = __OUICInternals__.EngineInterceptorInstance;
+    export import FacetManager = __OUICInternals__.FacetManagerInstance;
+    export import QueryManager = __OUICInternals__.QueryManagerInstance;
+    // Make the properties read-only.
+    Object.defineProperties(globalThis, {
+        OUICConsoleConfig: {
+            get: function get(this: typeof __OUICInternals__.OUICConsoleConfigInstance): typeof __OUICInternals__.OUICConsoleConfigInstance {
+                return this;
+            }.bind(__OUICInternals__.OUICConsoleConfigInstance),
+            set(): never {
+                throw new TypeError("Assignment to constant variable.");
+            },
+            configurable: true,
+            enumerable: false,
+        },
+        EngineInterceptor: {
+            get: function get(this: typeof __OUICInternals__.EngineInterceptorInstance): typeof __OUICInternals__.EngineInterceptorInstance {
+                return this;
+            }.bind(__OUICInternals__.EngineInterceptorInstance),
+            set(): never {
+                throw new TypeError("Assignment to constant variable.");
+            },
+            configurable: true,
+            enumerable: false,
+        },
+        FacetManager: {
+            get: function get(this: typeof __OUICInternals__.FacetManagerInstance): typeof __OUICInternals__.FacetManagerInstance {
+                return this;
+            }.bind(__OUICInternals__.FacetManagerInstance),
+            set(): never {
+                throw new TypeError("Assignment to constant variable.");
+            },
+            configurable: true,
+            enumerable: false,
+        },
+        QueryManager: {
+            get: function get(this: typeof __OUICInternals__.QueryManagerInstance): typeof __OUICInternals__.QueryManagerInstance {
+                return this;
+            }.bind(__OUICInternals__.QueryManagerInstance),
+            set(): never {
+                throw new TypeError("Assignment to constant variable.");
+            },
+            configurable: true,
+            enumerable: false,
+        },
+    });
+}
+
+/**
+ * Whether to intercept engine subscriptions and store them in the {@link hookedEngineSubscriptions} object.
  *
  * This stores additions and removals of event subscription callbacks (from {@link engine.on} and {@link engine.off}), as well as the parameters of
  * {@link engine.trigger} calls.
  *
  * To enable it, either set the `setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
- *
- * @type {boolean}
  */
-let __CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__: boolean = Boolean(
+var __CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__ = Boolean(
     JSON.parse(localStorage.getItem("setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__") ?? "null") ?? false
 );
+
+// localStorage.setItem("setting:__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__", "true")
+// localStorage.setItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__", "true")
 
 /**
  * Whether to intercept engine query results and store them in the {@link cachedQueryResults} object.
  *
  * To enable it, either set the `setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
- *
- * @type {boolean}
  */
-let __CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__: boolean = Boolean(
+var __CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__ = Boolean(
     JSON.parse(localStorage.getItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__") ?? "null") ?? false
 );
 
@@ -209,10 +1759,8 @@ let __CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__: boolean = Boolean(
  * Whether to intercept vanilla command calls and store their parameters and results in the {@link cachedVanillaCommandCalls} object.
  *
  * To enable it, set the `setting:__CACHING_VANILLA_COMMAND_CALLS_ENABLED__` {@link localStorage} item to `"true"`, then reload the page.
- *
- * @type {boolean}
  */
-const __CACHING_VANILLA_COMMAND_CALLS_ENABLED__: boolean = Boolean(
+const __CACHING_VANILLA_COMMAND_CALLS_ENABLED__ = Boolean(
     JSON.parse(localStorage.getItem("setting:__CACHING_VANILLA_COMMAND_CALLS_ENABLED__") ?? "null") ?? false
 );
 
@@ -221,10 +1769,8 @@ const __CACHING_VANILLA_COMMAND_CALLS_ENABLED__: boolean = Boolean(
  *
  * To enable it the {@link __CACHING_VANILLA_COMMAND_CALLS_ENABLED__ | \_\_CACHING_VANILLA_COMMAND_CALLS_ENABLED\_\_} setting must be enabled first, then either set the
  * `setting:__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__` {@link localStorage} item to `"true"` and reload the page, or set this variable to `true`.
- *
- * @type {boolean}
  */
-let __VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__: boolean = Boolean(
+var __VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__ = Boolean(
     JSON.parse(localStorage.getItem("setting:__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__") ?? "null") ?? false
 );
 
@@ -232,17 +1778,17 @@ let __VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__: boolean = Boolean(
 // localStorage.setItem("setting:__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__", "true");
 
 const hookedEngineSubscriptions = {
-    on: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.on<EngineEventID>>, 1>[]>>{},
-    off: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.off<EngineEventID>>, 1>[]>>{},
-    trigger: <Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.trigger<EngineEventID>>, 1>[]>>{},
+    on: {} as Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.on<EngineEventID>>, 1>[]>,
+    off: {} as Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.off<EngineEventID>>, 1>[]>,
+    trigger: {} as Record<EngineEventID, RemoveFirstNElements<Parameters<typeof engine.trigger<EngineEventID>>, 1>[]>,
 };
 
 /**
- * @type {{[key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key]][]} & {[key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key]][]} & Record<string, [timestamp: number, value: any][]>}
+ * @type {{[key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key], args: unknown[]][]} & {[key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key]][]} & Record<string, [timestamp: number, value: any][]>}
  */
-const cachedQueryResults: { [key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key]][] } & {
-    [key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key]][];
-} & Record<string, [timestamp: number, value: any][]> = {};
+const cachedQueryResults: { [key in keyof EngineQueryNonFacetResultMap]?: [timestamp: number, value: EngineQueryNonFacetResultMap[key], args: unknown[]][] } & {
+    [key in FacetList[number]]?: [timestamp: number, value: FacetTypeMap[key], args: unknown[]][];
+} & Record<string, [timestamp: number, value: unknown, args: unknown[]][]> = {};
 
 /**
  * @type {{[method in keyof typeof hookedEngineSubscriptions]: { "before": ((...args: Parameters<typeof engine[method]>) => void | boolean)[]; "after": ((...args: Parameters<typeof engine[method]>) => void)[] }}}
@@ -260,14 +1806,17 @@ const engineHookTriggerCallbacks: {
     off: { before: [], after: [] },
     trigger: {
         before: [
-            (id, ...args) => {
+            (id: EngineEventID, ...args: unknown[]): void => {
                 if (!__CACHING_ENGINE_QUERY_RESULTS_FROM_HOOK_ENABLED__) return;
                 if (id.startsWith("query:subscribe/")) {
-                    originalEngineMethods.on(`query:subscribed/${args[0]}`, (value) => {
-                        const key = id.slice("query:subscribe/".length);
-                        cachedQueryResults[key] ??= [];
-                        cachedQueryResults[key].push([Date.now(), value]);
-                    });
+                    originalEngineMethods.on(
+                        `query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`,
+                        (value?: unknown, ..._args: unknown[]): void => {
+                            const key: string = id.slice("query:subscribe/".length);
+                            cachedQueryResults[key] ??= [];
+                            cachedQueryResults[key].push([Date.now(), value, args]);
+                        }
+                    );
                 }
             },
         ],
@@ -279,8 +1828,11 @@ const engineHookTriggerCallbacks: {
  * @type {{[method in keyof typeof hookedEngineSubscriptions]: typeof engine[method]}}
  */
 const originalUnboundEngineMethods: { [method in keyof typeof hookedEngineSubscriptions]: (typeof engine)[method] } = {
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- This is intentional.
     on: engine.on,
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- This is intentional.
     off: engine.off,
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- This is intentional.
     trigger: engine.trigger,
 };
 
@@ -297,17 +1849,18 @@ const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscr
     /**
      * @type {FacetTypeMap["core.input"] | undefined}
      */
-    let __coreInput_value__: FacetTypeMap["core.input"] | undefined = undefined;
+    let __coreInput_value__: FacetTypeMap["core.input"] | undefined;
     /**
      * @type {Record<string, any>}
      */
-    let cachedFacetQueryData: Record<string, any> = {};
+    const cachedFacetQueryData: Record<string, unknown> = {};
+    const cachedFeatureFlagQueries: Record<string, unknown> = {};
     /**
-     * @type {{[key in keyof EngineQueryNonFacetResultMap]?: (...args: EngineQuerySubscribeEventParamsMap[key]) => EngineQueryNonFacetResultMap[key]} & Record<PropertyKey, (...args: any[]) => any>}
+     * @type {{[key in keyof EngineQueryNonFacetResultMap]?: (...args: EngineQuerySubscribeEventParamsMap[key]) => EngineQueryNonFacetResultMap[key]} & Record<PropertyKey, (this: void, ...args: never[]) => unknown>}
      */
     const __queryResolvers__: {
         [key in keyof EngineQueryNonFacetResultMap]?: (...args: EngineQuerySubscribeEventParamsMap[key]) => EngineQueryNonFacetResultMap[key];
-    } & Record<PropertyKey, (...args: any[]) => any> = {
+    } & Record<PropertyKey, (this: void, ...args: never[]) => unknown> = {
         // "vanilla.core.dataDrivenUICompositionQuery"(screenID) {
         //     const dduiScreens = getDDUIScreens(getDDUIScreensFolders());
         //     return {
@@ -325,7 +1878,7 @@ const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscr
                 litProgress: 0.5,
             };
         },
-        vanillaGameplayContainerItemQuery(containerID, slotIndex) {
+        vanillaGameplayContainerItemQuery(containerID, _slotIndex) {
             if (containerID === 59) {
                 return {
                     __Type: `vanillaGameplayContainerItemQuery$_$${Object.keys(__queryResolvers__).indexOf("vanillaGameplayContainerItemQuery")}`,
@@ -444,29 +1997,43 @@ const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscr
             };
         },
     };
-    engineHookTriggerCallbacks.trigger.before.push(function (id, ...args) {
+    engineHookTriggerCallbacks.trigger.before.push(function beforeQuerySubscribeCallback(id, ...args): void {
         if (id === "query:subscribe/core.input") {
             // console.debug(6, id, ...args);
-            //@ts-ignore
-            originalEngineMethods.on(`query:subscribed/${args[0]}`, (/** @type {FacetTypeMap["core.input"]} */ value: FacetTypeMap["core.input"]) => {
-                // console.debug(7, arguments);
-                __coreInput_value__ = value;
-            });
+            originalEngineMethods.on(
+                `query:subscribed/${(args as EngineEvent<"query:subscribe/core.input">)[0]}`,
+                //@ts-ignore
+                (value: FacetTypeMap["core.input"]): void => {
+                    // console.debug(7, arguments);
+                    __coreInput_value__ = value;
+                }
+            );
+        } else if (id === "query:subscribe/core.featureFlag") {
+            // console.debug(6, id, ...args);
+            originalEngineMethods.on(
+                `query:subscribed/${(args as EngineEvent<"query:subscribe/core.featureFlag">)[0]}`,
+                //@ts-ignore
+                (value: unknown): void => {
+                    // console.debug(7, arguments);
+                    cachedFeatureFlagQueries[args[1] as string] = value;
+                }
+            );
         } else if (id.startsWith("query:subscribe/")) {
-            const facetID = id.slice("query:subscribe/".length);
+            if (args.length > 1) return; // Don't mess with queries that have parameters.
+            const facetID: string = id.slice("query:subscribe/".length);
             // ~DEBUG: This is for overriding these queries.
             // if (__queryResolvers__[facetID]) {
             //     originalEngineMethods.trigger(`query:subscribed/${args[0]}`, __queryResolvers__[facetID](...args.slice(1)));
             //     return false;
             // }
             //@ts-ignore
-            originalEngineMethods.on(`query:subscribed/${args[0]}`, (/** @type {FacetTypeMap["core.input"]} */ value: FacetTypeMap["core.input"]) => {
+            originalEngineMethods.on(`query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`, (value: unknown): void => {
                 // console.debug(7, arguments);
                 cachedFacetQueryData[facetID] = value;
             });
         }
     });
-    engineHookTriggerCallbacks.trigger.after.push(function (id, ...args) {
+    engineHookTriggerCallbacks.trigger.after.push(function afterQuerySubscribeCallback(id, ...args): void {
         if (id === "query:subscribe/core.input") {
             if (typeof __coreInput_value__ !== "undefined") {
                 // console.log(5, __coreInput_value__);
@@ -479,40 +2046,88 @@ const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscr
                 //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
                 // );
                 originalEngineMethods.trigger(
-                    `query:subscribed/${args[0]}`,
-                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                    `query:subscribed/${(args as EngineEvent<"query:subscribe/core.input">)[0]}`,
+                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null") as unknown
                 );
             } else if (globalThis.getAccessibleFacetSpyFacets?.()["core.input"]) {
-                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, globalThis.getAccessibleFacetSpyFacets?.()["core.input"]);
+                originalEngineMethods.trigger(
+                    `query:subscribed/${(args as EngineEvent<"query:subscribe/core.input">)[0]}`,
+                    globalThis.getAccessibleFacetSpyFacets?.()["core.input"]
+                );
             } else {
-                globalThis.forceLoadFacet("core.input").then((facetData) => {
-                    originalEngineMethods.trigger(`query:subscribed/${args[0]}`, facetData);
-                });
+                globalThis.forceLoadFacet("core.input").then(
+                    (facetData): void => {
+                        originalEngineMethods.trigger(`query:subscribed/${(args as EngineEvent<"query:subscribe/core.input">)[0]}`, facetData);
+                    },
+                    (reason: unknown): void => {
+                        console.error(
+                            new ReferenceError(
+                                `Failed to load facet core.input for query subscribe/core.input with ID ${(args as EngineEvent<"query:subscribe/core.input">)[0]}.`
+                            ),
+                            reason
+                        );
+                    }
+                );
             }
-        } else if (id.startsWith("query:subscribe/")) {
-            const facetID = id.slice("query:subscribe/".length);
-            if (typeof cachedFacetQueryData[facetID] !== "undefined") {
+        } else if (id === "query:subscribe/core.featureFlag") {
+            // TEMP: The second as statement should be removed once the module has types for `core.featureFlag`.
+            const [_queryID, flag] = args as EngineEvent<"query:subscribe/core.featureFlag"> as [number | bigint, string];
+            if (typeof cachedFeatureFlagQueries[flag] !== "undefined") {
                 // console.log(5, __coreInput_value__);
 
-                localStorage.setItem("queryValueCache:query:subscribe/" + facetID, JSON.stringify(cachedFacetQueryData[facetID]));
-            } else if (localStorage.getItem("queryValueCache:query:subscribe/" + facetID)) {
+                localStorage.setItem(`queryValueCache:query:subscribe/core.featureFlag:${flag}`, JSON.stringify(cachedFeatureFlagQueries[flag]));
+            } else if (localStorage.getItem(`queryValueCache:query:subscribe/core.featureFlag:${flag}`)) {
                 // console.log(
                 //     4,
                 //     localStorage.getItem("queryValueCache:query:subscribe/core.input"),
                 //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
                 // );
                 originalEngineMethods.trigger(
-                    `query:subscribed/${args[0]}`,
-                    JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/" + facetID) ?? "null")
+                    `query:subscribed/${(args as EngineEvent<"query:subscribe/core.featureFlag">)[0]}`,
+                    JSON.parse(localStorage.getItem(`queryValueCache:query:subscribe/core.featureFlag:${flag}`) ?? "null") as unknown
+                );
+            }
+        } else if (id.startsWith("query:subscribe/")) {
+            if (args.length > 1) return /* void console.warn(id, args) */; // Don't mess with queries that have parameters.
+            const facetID: string = id.slice("query:subscribe/".length);
+            if (typeof cachedFacetQueryData[facetID] !== "undefined") {
+                // console.log(5, __coreInput_value__);
+
+                localStorage.setItem(`queryValueCache:query:subscribe/${facetID}`, JSON.stringify(cachedFacetQueryData[facetID]));
+            } else if (localStorage.getItem(`queryValueCache:query:subscribe/${facetID}`)) {
+                // console.log(
+                //     4,
+                //     localStorage.getItem("queryValueCache:query:subscribe/core.input"),
+                //     JSON.parse(localStorage.getItem("queryValueCache:query:subscribe/core.input") ?? "null")
+                // );
+                originalEngineMethods.trigger(
+                    `query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`,
+                    JSON.parse(localStorage.getItem(`queryValueCache:query:subscribe/${facetID}`) ?? "null") as unknown
                 );
             } else if (__queryResolvers__[facetID]) {
-                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, __queryResolvers__[facetID](...args.slice(1)));
+                originalEngineMethods.trigger(
+                    `query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`,
+                    __queryResolvers__[facetID](...(args.slice(1) as never[]))
+                );
             } else if (globalThis.getAccessibleFacetSpyFacets?.()[facetID]) {
-                originalEngineMethods.trigger(`query:subscribed/${args[0]}`, globalThis.getAccessibleFacetSpyFacets?.()[facetID]);
+                originalEngineMethods.trigger(
+                    `query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`,
+                    globalThis.getAccessibleFacetSpyFacets?.()[facetID]
+                );
             } else {
-                globalThis.forceLoadFacet(facetID).then((facetData) => {
-                    originalEngineMethods.trigger(`query:subscribed/${args[0]}`, facetData);
-                });
+                globalThis.forceLoadFacet(facetID).then(
+                    (facetData): void => {
+                        originalEngineMethods.trigger(`query:subscribed/${(args as EngineEvent<`query:subscribe/${string}`>)[0]}`, facetData);
+                    },
+                    (reason: unknown): void => {
+                        console.error(
+                            new ReferenceError(
+                                `Failed to load facet ${facetID} for query ${id} with ID ${(args as EngineEvent<"query:subscribe/core.input">)[0]}.`
+                            ),
+                            reason
+                        );
+                    }
+                );
             }
         }
     });
@@ -521,18 +2136,31 @@ const originalEngineMethods: Pick<typeof engine, keyof typeof hookedEngineSubscr
 /**
  * @param {keyof typeof hookedEngineSubscriptions} method
  */
-function hookEngineMethod(method: keyof typeof hookedEngineSubscriptions) {
+function hookEngineMethod(method: keyof typeof hookedEngineSubscriptions): void {
     const original = originalEngineMethods[method];
     //@ts-ignore
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, func-names
     engine[method] = function (id, ...args) {
         //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
-        if (!engineHookTriggerCallbacks[method].before.every((f) => f(id, ...args) !== false)) return method === "on" ? { clear() {} } : void 0;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        if (!engineHookTriggerCallbacks[method].before.every((f): boolean => f(id, ...args) !== false)) {
+            return method === "on" ?
+                    {
+                        clear(): void {
+                            /* empty */
+                        },
+                    }
+                :   void 0;
+        }
         //@ts-ignore
         const result = original.apply(engine, arguments);
         //@ts-ignore Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
-        engineHookTriggerCallbacks[method].after.forEach((f) => f(id, ...args));
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- Sometimes this shows an error and sometimes it doesn't, it is very inconsistent.
+        engineHookTriggerCallbacks[method].after.forEach((f): void => void f(id, ...args));
         if (__CACHING_ENGINE_SUBSCRIPTIONS_FROM_HOOK_ENABLED__) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- This is necessary.
             hookedEngineSubscriptions[method][id] ??= [];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access -- This is necessary.
             hookedEngineSubscriptions[method][id].push(args as any);
         }
         return result;
@@ -555,7 +2183,7 @@ const cachedVanillaCommandCalls: {
     };
 } = {};
 
-function vanillaCommandsInterceptor() {
+function vanillaCommandsInterceptor(): void {
     if (!globalThis.__commands__) {
         console.warn(new ReferenceError("Could not find globalThis.__commands__."));
         return;
@@ -571,20 +2199,26 @@ function vanillaCommandsInterceptor() {
         const commands: (keyof (typeof __commands__)[typeof commandGroup])[] = Object.keys(__commands__[commandGroup]!);
         for (const command of commands) {
             const original = __commands__[commandGroup]![command]!.callable.bind(__commands__[commandGroup]![command]);
-            __commands__[commandGroup]![command]!.callable = function (...args) {
+            // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+            __commands__[commandGroup]![command]!.callable = function callable(...args) {
                 cachedVanillaCommandCalls[commandGroup] ??= {};
                 cachedVanillaCommandCalls[commandGroup][command] ??= [];
                 try {
                     var result = original(...args);
+                    return result;
                 } finally {
                     try {
+                        /* eslint-disable-next-line @typescript-eslint/no-unused-expressions --
+                         * This rule needs to be disabled because this statement is here to throw an error when result is not declared due to an error occuring.
+                         **/
                         result;
                         cachedVanillaCommandCalls[commandGroup][command].push({ ...(args.length > 0 ? { params: args } : {}), result });
                     } catch {
                         cachedVanillaCommandCalls[commandGroup][command].push({ ...(args.length > 0 ? { params: args } : {}) });
                     }
-                    if (__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__)
+                    if (__VANILLA_COMMAND_CALL_DEBUG_LOGGING_ENABLED__) {
                         console.debug(commandGroup, command, ...args, "Result:", typeof result !== "undefined" ? result : undefined);
+                    }
                 }
             };
         }
@@ -657,6 +2291,11 @@ let smallCornerDebugOverlayElement: HTMLDivElement;
 /**
  * @type {HTMLDivElement}
  */
+let statsCornerDebugOverlayElement: HTMLDivElement;
+
+/**
+ * @type {HTMLDivElement}
+ */
 let cssEditorDisplayElement: HTMLDivElement;
 
 /**
@@ -715,23 +2354,25 @@ let cssEditor_selectableStyleSheets: CSSStyleSheet[] = [];
 let cssEditorSelectedElement: HTMLElement;
 
 /**
- * @type {CSSStyleSheet}
+ * The last five elements selected with the inspect tool (CSS editor select target button for now).
+ *
+ * @default
+ * [, , , , ,] // [empty × 5]
  */
+const elementInspectSelectionHistory: [
+    $0?: HTMLElement | null,
+    $1?: HTMLElement | null,
+    $2?: HTMLElement | null,
+    $3?: HTMLElement | null,
+    $4?: HTMLElement | null,
+] = [, , , , ,];
+
 let cssEditorSelectedStyleSheet: CSSStyleSheet;
 
-/**
- * @type {CSSRule[]}
- */
-let cssEditorSelectedStyleSheet_rules: CSSRule[] = [];
-/**
- * @type {CSSEditorSelectedType}
- */
+let cssEditorSelectedStyleSheet_rules: unknown[] = [];
 let cssEditorSelectedType: CSSEditorSelectedType = "none";
 
-/**
- * @type {boolean}
- */
-let cssEditorInSelectMode: boolean = false;
+let cssEditorInSelectMode = false;
 
 /**
  * @type {HTMLElement & EventTarget}
@@ -774,7 +2415,7 @@ const MOUSE_BUTTON_NAMES: readonly ["MAIN", "AUX", "SEC", "BACK", "FRWD"] = ["MA
 /**
  * An array of callbacks to be executed when a console message is intercepted.
  */
-var onConsoleLogCallbacks: ConsoleLogCallback[] = "onConsoleLogCallbacks" in globalThis ? globalThis.onConsoleLogCallbacks ?? [] : [];
+var onConsoleLogCallbacks: ConsoleLogCallback[] = "onConsoleLogCallbacks" in globalThis ? (globalThis.onConsoleLogCallbacks ?? []) : [];
 
 /**
  * Copies the current list of new facets to the clipboard.
@@ -816,7 +2457,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                     message: `Failed to join realm: ${realmName}; Failed to find realms tab button. Timed out.`,
                 };
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         //@ts-ignore This is supposed to throw an error if it can't find the element.
         document.querySelector("div[data-testid='play-screen-tab-bar-realms']").dispatchEvent(new Event("click"));
@@ -831,7 +2472,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                     message: `Failed to join realm: ${realmName}; Failed to load realms. Timed out.`,
                 };
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         for (let i = 0; i < 100; i++) {
             for (const div of document.querySelectorAll("div[data-testid='realm-list-item-joined-realm'] > div > div > div > div > div")) {
@@ -853,7 +2494,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                                 message: `Failed to join realm: ${realmName}; Failed to find the realm play button. Timed out.`,
                             };
                         }
-                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        await new Promise((resolve): void => void setTimeout(resolve, 100));
                     }
                     let playRealmButton = document.querySelector("div[data-testid='play-realm-button']");
                     let playRealmButtonSection = playRealmButton?.parentElement?.parentElement?.parentElement ?? null;
@@ -863,7 +2504,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                         playRealmButtonSection ??= playRealmButton?.parentElement?.parentElement?.parentElement ?? null;
                         playRealmButtonSectionRealmNameSpan ??= playRealmButtonSection?.querySelector("> div > span.vanilla-neutral80-text");
                         if (playRealmButton && playRealmButtonSectionRealmNameSpan?.textContent === realmName) {
-                            await new Promise((resolve) => setTimeout(resolve, 100));
+                            await new Promise((resolve): void => void setTimeout(resolve, 100));
                             playRealmButton.dispatchEvent(new Event("click"));
                             console.log(`Joined realm: ${realmName}`);
                             return {
@@ -871,7 +2512,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                                 message: `Joined realm: ${realmName}`,
                             };
                         }
-                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        await new Promise((resolve): void => void setTimeout(resolve, 100));
                     }
                     console.error(`Failed to join realm: ${realmName}; Failed to load realm details. Timed out.`);
                     return {
@@ -880,7 +2521,7 @@ async function autoJoinRealm(realmName: string): Promise<{ success: boolean; mes
                     };
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         console.error(`Failed to join realm: ${realmName}; Failed to find realm in realm list. Timed out.`);
         return {
@@ -923,12 +2564,12 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                     message: `Failed to join server: ${serverName}; Failed to find servers tab button. Timed out.`,
                 };
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         //@ts-ignore This is supposed to throw an error if it can't find the element.
         document.querySelector("div[data-testid='play-screen-tab-bar-servers']").dispatchEvent(new Event("click"));
         for (let i = 0; i < 101; i++) {
-            const addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1];
+            const addServerButtonClass = /<div class="([a-zA-Z0-9]+)">Add server<\/div>/.exec(document.body.innerHTML)?.[1];
             if (addServerButtonClass !== null) {
                 const addServerButton = Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find(
                     (div) => div.textContent === "Add server"
@@ -953,16 +2594,16 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                     message: `Failed to join server: ${serverName}; Failed to load servers. Timed out.`,
                 };
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
-        let addServerButtonClass = document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1] ?? null;
+        let addServerButtonClass = /<div class="([a-zA-Z0-9]+)">Add server<\/div>/.exec(document.body.innerHTML)?.[1] ?? null;
         let addServerButton =
             Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")?.parentElement
                 ?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
         let addServerButtonContainer = addServerButton?.parentElement ?? null;
         let serversList = addServerButtonContainer?.parentElement ?? null;
         for (let i = 0; i < 100; i++) {
-            addServerButtonClass ??= document.body.innerHTML.match(/<div class="([a-zA-Z0-9]+)">Add server<\/div>/)?.[1] ?? null;
+            addServerButtonClass ??= /<div class="([a-zA-Z0-9]+)">Add server<\/div>/.exec(document.body.innerHTML)?.[1] ?? null;
             addServerButton ??=
                 Array.from(document.querySelectorAll(`div.${addServerButtonClass}`).values()).find((div) => div.textContent === "Add server")?.parentElement
                     ?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
@@ -978,7 +2619,7 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                         message: `Failed to join server: ${serverName}; Failed to find ${!addServerButton ? "add server button" : "servers list"}. Timed out.`,
                     };
                 }
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                await new Promise((resolve): void => void setTimeout(resolve, 100));
                 continue;
             }
             for (const div of [
@@ -988,10 +2629,10 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                 ),
             ]) {
                 if (div.textContent === serverName) {
-                    //@ts-ignore
-                    const button = div.parentElement?.parentElement?.parentElement?.parentElement?.classList.contains(addServerButton.classList.item(0))
-                        ? div.parentElement.parentElement.parentElement.parentElement
-                        : div.parentElement?.parentElement?.parentElement?.parentElement?.parentElement ?? null;
+                    const button =
+                        div.parentElement?.parentElement?.parentElement?.parentElement?.classList.contains(addServerButton.classList.item(0)!) ?
+                            div.parentElement.parentElement.parentElement.parentElement
+                        :   (div.parentElement?.parentElement?.parentElement?.parentElement?.parentElement ?? null);
                     if (!button) continue;
                     button.dispatchEvent(new Event("click"));
                     for (let i = 0; i < 100; i++) {
@@ -1005,16 +2646,16 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                                 message: `Failed to join server: ${serverName}; Failed to find the server play button. Timed out.`,
                             };
                         }
-                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        await new Promise((resolve): void => void setTimeout(resolve, 100));
                     }
-                    await new Promise((resolve) => setTimeout(resolve, 100));
+                    await new Promise((resolve): void => void setTimeout(resolve, 100));
                     const playServerButton = document.querySelector("div[data-testid='server-play-button']");
                     const playServerButtonSection = playServerButton?.parentElement?.parentElement?.parentElement;
                     if (!playServerButtonSection) continue;
                     let playServerButtonSectionServerNameSpan = playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
                     for (let i = 0; i < 100; i++) {
                         playServerButtonSectionServerNameSpan ??= playServerButtonSection.querySelector("> div > span.vanilla-neutral80-text");
-                        if (playServerButtonSectionServerNameSpan && playServerButtonSectionServerNameSpan.textContent === serverName) {
+                        if (playServerButtonSectionServerNameSpan?.textContent === serverName) {
                             playServerButton.dispatchEvent(new Event("click"));
                             console.log(`Joined server: ${serverName}`);
                             return {
@@ -1022,7 +2663,7 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                                 message: `Joined server: ${serverName}`,
                             };
                         }
-                        await new Promise((resolve) => setTimeout(resolve, 100));
+                        await new Promise((resolve): void => void setTimeout(resolve, 100));
                     }
                     console.error(`Failed to join server: ${serverName}; Failed to load server details. Timed out.`);
                     return {
@@ -1031,7 +2672,7 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
                     };
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         console.error(`Failed to join server: ${serverName}; Failed to find server in server list. Timed out.`);
         return {
@@ -1052,7 +2693,7 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
  * Joins a world by name.
  *
  * @param {string} worldName The name of the world to join.
- * @returns {Promise<{success: boolean, message: string, error?: any}>} The result.
+ * @returns {Promise<{success: boolean, message: string, error?: unknown}>} The result.
  *
  * @description
  * 1. Switches to the worlds tab, it it is not already open.
@@ -1061,14 +2702,14 @@ async function autoJoinServer(serverName: string): Promise<{ success: boolean; m
  * 4. Waits for the world details to load.
  * 5. Clicks the world play button.
  */
-async function autoJoinWorld(worldName: string): Promise<{ success: boolean; message: string; error?: any }> {
+async function autoJoinWorld(worldName: string): Promise<{ success: boolean; message: string; error?: unknown }> {
     try {
         let playScreenTabBarAll = null;
         for (let i = 0; i < 100; i++) {
             if ((playScreenTabBarAll = document.querySelector("div[data-testid='play-screen-tab-bar-all']")) !== null) {
                 break;
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         if ((playScreenTabBarAll ??= document.querySelector("div[data-testid='play-screen-tab-bar-all']")) === null) {
             console.error(`Failed to join world: ${worldName}; Failed to find worlds tab button. Timed out.`);
@@ -1083,7 +2724,7 @@ async function autoJoinWorld(worldName: string): Promise<{ success: boolean; mes
             if ((multiplayerWorldListItemPrimaryAction0 = document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) !== null) {
                 break;
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         if ((multiplayerWorldListItemPrimaryAction0 ??= document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']")) === null) {
             console.error(`Failed to join world: ${worldName}; Failed to load worlds. Timed out.`);
@@ -1099,7 +2740,7 @@ async function autoJoinWorld(worldName: string): Promise<{ success: boolean; mes
                     /^multiplayer-world-list-item-primary-action-[0-9]+$/.test(div.getAttribute("data-testid") ?? "")
                 )) {
                     if (div.querySelector("div.vanilla-neutral-text")?.textContent === worldName) {
-                        // await new Promise((resolve) => setTimeout(resolve, 100));
+                        // await new Promise((resolve): void => void setTimeout(resolve, 100));
                         div.dispatchEvent(new Event("click"));
                         console.log(`Joined world: ${worldName}`);
                         return {
@@ -1109,7 +2750,7 @@ async function autoJoinWorld(worldName: string): Promise<{ success: boolean; mes
                     }
                 }
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
+            await new Promise((resolve): void => void setTimeout(resolve, 100));
         }
         if (worldsList === null) {
             console.error(`Failed to join world: ${worldName}; Failed to find world list. Timed out.`);
@@ -1117,13 +2758,12 @@ async function autoJoinWorld(worldName: string): Promise<{ success: boolean; mes
                 success: false,
                 message: `Failed to join world: ${worldName}; Failed to find world list. Timed out.`,
             };
-        } else {
-            console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
-            return {
-                success: false,
-                message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
-            };
         }
+        console.error(`Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`);
+        return {
+            success: false,
+            message: `Failed to join world: ${worldName}; Failed to find world in world list. Timed out.`,
+        };
     } catch (e) {
         console.error(e);
         return {
@@ -1134,7 +2774,7 @@ async function autoJoinWorld(worldName: string): Promise<{ success: boolean; mes
     }
 }
 
-async function enableAutoJoinForOpenServer() {
+async function enableAutoJoinForOpenServer(): Promise<void> {
     if (
         document.querySelector("div[data-testid='play-screen-tab-bar-realms']")?.querySelector("div.vanilla-neutral-icon") !== null &&
         document.querySelector("div[data-testid='play-realm-button']") !== null
@@ -1167,7 +2807,7 @@ async function enableAutoJoinForOpenServer() {
         } else {
             console.warn(new ReferenceError("Could not find auto rejoin type span."));
         }
-        promptForConfirmation(`Successfully enabled auto rejoin for the following realm: ${playRealmButtonSectionRealmNameSpan.textContent}`, "OK", "");
+        await promptForConfirmation(`Successfully enabled auto rejoin for the following realm: ${playRealmButtonSectionRealmNameSpan.textContent}`, "OK", "");
     } else if (
         document.querySelector("div[data-testid='play-screen-tab-bar-servers']")?.querySelector("div.vanilla-neutral-icon") !== null &&
         document.querySelector("div[data-testid='server-play-button']") !== null
@@ -1200,7 +2840,11 @@ async function enableAutoJoinForOpenServer() {
         } else {
             console.warn(new ReferenceError("Could not find auto rejoin type span."));
         }
-        promptForConfirmation(`Successfully enabled auto rejoin for the following server: ${playServerButtonSectionServerNameSpan.textContent}`, "OK", "");
+        await promptForConfirmation(
+            `Successfully enabled auto rejoin for the following server: ${playServerButtonSectionServerNameSpan.textContent}`,
+            "OK",
+            ""
+        );
     } else if (
         document.querySelector("div[data-testid='play-screen-tab-bar-all']")?.querySelector("div.vanilla-neutral-icon") !== null &&
         document.querySelector("div[data-testid='multiplayer-world-list-item-primary-action-0']") !== null
@@ -1242,9 +2886,9 @@ async function enableAutoJoinForOpenServer() {
         } else {
             console.warn(new ReferenceError("Could not find auto rejoin type span."));
         }
-        promptForConfirmation(`Successfully enabled auto rejoin for the following world: ${worldName}`, "OK", "");
+        await promptForConfirmation(`Successfully enabled auto rejoin for the following world: ${worldName}`, "OK", "");
     } else {
-        promptForConfirmation(
+        await promptForConfirmation(
             "Failed to enable auto rejoin, no realm or server play button was found.\nPlease either go to the worlds tab, select a realm, or select a server. Then try again.\nNote: If the currently selected realm is not active, then it will not be detected as selected.",
             "OK",
             ""
@@ -1265,14 +2909,17 @@ async function enableAutoJoinForOpenServer() {
  */
 async function promptForConfirmation(
     message: string,
-    button1: string = "Confirm",
-    button2: string = "Cancel",
-    button3?: string | undefined,
-    additionalModificationsCallback: (container: HTMLDivElement, resolve: (result: 0 | 1 | 2) => void, reject: (error: any) => void) => void = async () => {}
+    button1 = "Confirm",
+    button2 = "Cancel",
+    button3?: string,
+    additionalModificationsCallback: (
+        container: HTMLDivElement,
+        resolve: (result: 0 | 1 | 2) => void,
+        reject: (error: unknown) => void
+    ) => void = (): void => {}
 ): Promise<0 | 1 | 2> {
-    return new Promise(async (resolve, reject) => {
+    return await new Promise((resolve, reject) => {
         const container = document.createElement("div");
-        ("background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; backdrop-filter: blur(5px); border: 5px solid #87CEEb;");
         container.style.position = "fixed";
         container.style.top = "12.5vh";
         container.style.left = "12.5vw";
@@ -1281,7 +2928,7 @@ async function promptForConfirmation(
         container.style.zIndex = "20000000";
         container.style.backgroundColor = "#00000080";
         container.style.color = "#FFFFFFFF";
-        container.style.backdropFilter = "blur(5px)";
+        container.style.setProperty("backdrop-filter", "blur(5px)");
         container.style.border = "5px solid #87CEEb";
         const messageElement = document.createElement("pre");
         messageElement.textContent = message;
@@ -1371,7 +3018,7 @@ async function buttonSelectionMenu(options: {
     buttons: [text: string, icon?: string][];
     style?: "1column" | "2columns";
 }): Promise<{ canceled: boolean; selection?: number }> {
-    return new Promise(async (resolve, reject) => {
+    return await new Promise((resolve, _reject) => {
         const outerContainer = document.createElement("div");
         outerContainer.style.position = "fixed";
         outerContainer.style.top = "12.5vh";
@@ -1381,7 +3028,7 @@ async function buttonSelectionMenu(options: {
         outerContainer.style.zIndex = "20000000";
         outerContainer.style.backgroundColor = "#00000080";
         outerContainer.style.color = "#FFFFFFFF";
-        outerContainer.style.backdropFilter = "blur(5px)";
+        outerContainer.style.setProperty("backdrop-filter", "blur(5px)");
         outerContainer.style.border = "5px solid #87CEEb";
         const container = document.createElement("div");
         // container.style.position = "fixed";
@@ -1409,13 +3056,14 @@ async function buttonSelectionMenu(options: {
             container.appendChild(messageElement);
         }
         const closeButtonElement = document.createElement("button");
+        // @ts-ignore: This is for browser compatibility.
         closeButtonElement.type = "button";
         closeButtonElement.style.position = "absolute";
         closeButtonElement.style.top = "0";
         closeButtonElement.style.right = "0";
         closeButtonElement.style.fontFamily = "Minecraft Seven v2";
         closeButtonElement.style.fontSize = "50px";
-        closeButtonElement.style.aspectRatio = "1/1";
+        closeButtonElement.style.setProperty("aspect-ratio", "1/1");
         closeButtonElement.style.color = "#000000";
         closeButtonElement.style.width = "50px";
         closeButtonElement.style.height = "50px";
@@ -1436,11 +3084,24 @@ async function buttonSelectionMenu(options: {
         buttonsContainer.style.height = "100%";
         switch (options.style ?? "2columns") {
             case "1column":
-                buttonsContainer.style.height = options.buttons.length * window.outerHeight * 0.1875 + "px";
+                buttonsContainer.style.height = `${options.buttons.length * window.outerHeight * 0.1875}px`;
                 break;
             case "2columns":
-                buttonsContainer.style.height = Math.ceil(options.buttons.length / 2) * window.outerHeight * 0.1875 + "px";
+                buttonsContainer.style.height = `${Math.ceil(options.buttons.length / 2) * window.outerHeight * 0.1875}px`;
                 break;
+            default:
+                throw new TypeError(
+                    `Unknown button layout style: ${options.style}`,
+                    // Add the cause for browsers.
+                    ...([
+                        {
+                            cause: {
+                                options,
+                                style: options.style,
+                            },
+                        },
+                    ] as unknown as [])
+                );
         }
         options.buttons.forEach((button, index) => {
             const buttonElement = document.createElement("button");
@@ -1448,15 +3109,28 @@ async function buttonSelectionMenu(options: {
             buttonElement.style.position = "absolute";
             switch (options.style ?? "2columns") {
                 case "1column":
-                    buttonElement.style.top = index * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.top = `${index * window.outerHeight * 0.1875}px`;
                     buttonElement.style.left = "0";
                     buttonElement.style.width = "100%";
                     break;
                 case "2columns":
-                    buttonElement.style.top = Math.floor(index / 2) * window.outerHeight * 0.1875 + "px";
+                    buttonElement.style.top = `${Math.floor(index / 2) * window.outerHeight * 0.1875}px`;
                     buttonElement.style.left = index % 2 === 0 ? "0" : "50%";
                     buttonElement.style.width = "50%";
                     break;
+                default:
+                    throw new TypeError(
+                        `Unknown button layout style: ${options.style}`,
+                        // Add the cause for browsers.
+                        ...([
+                            {
+                                cause: {
+                                    options,
+                                    style: options.style,
+                                },
+                            },
+                        ] as unknown as [])
+                    );
             }
             buttonElement.style.height = `${window.outerHeight * 0.1875}px`;
             buttonElement.style.fontSize = `${window.outerHeight * 0.0234375}px`;
@@ -1506,121 +3180,127 @@ if (localStorage.getItem("autoJoinName")) {
     }, 1);
     switch (localStorage.getItem("autoJoinType")) {
         case "realm":
-            promptForConfirmation(
+            void promptForConfirmation(
                 `Join realm: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
                 "Join",
                 "Cancel",
                 "Turn Off Auto Rejoin",
-                async function addCountdown(container, resolve, reject) {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    for (let i = 10; i > 0; i--) {
-                        if (container.getAttribute("data-closed") === "true") return;
-                        //@ts-ignore
-                        container.querySelector("pre").textContent = container
-                            .querySelector("pre")
-                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
-                        //@ts-ignore
-                        console.log(container.querySelector("pre").textContent); // DEBUG
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
-                    }
-                    container.setAttribute("data-closed", "true");
-                    container.remove();
-                    resolve(1);
+                function addCountdown(container, resolve, _reject) {
+                    void new Promise((resolve): void => void setTimeout(resolve, 1000)).then(async (): Promise<void> => {
+                        for (let i = 10; i > 0; i--) {
+                            if (container.getAttribute("data-closed") === "true") return;
+                            //@ts-ignore
+                            container.querySelector("pre").textContent = container
+                                .querySelector("pre")
+                                .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                            //@ts-ignore
+                            console.log(container.querySelector("pre").textContent); // DEBUG
+                            await new Promise((resolve): void => void setTimeout(resolve, 1000));
+                        }
+                        container.setAttribute("data-closed", "true");
+                        container.remove();
+                        resolve(1);
+                    });
                 }
-            ).then(async (result) => {
+            ).then((result) => {
                 switch (result) {
                     case 0:
                         break;
                     case 1:
                         //@ts-ignore
-                        autoJoinRealm(localStorage.getItem("autoJoinName"));
+                        void autoJoinRealm(localStorage.getItem("autoJoinName"));
                         break;
                     case 2:
                         localStorage.removeItem("autoJoinName");
                         localStorage.removeItem("autoJoinType");
                         break;
+                    // no default
                 }
             });
             break;
         case "server":
-            promptForConfirmation(
+            void promptForConfirmation(
                 `Join server: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
                 "Join",
                 "Cancel",
                 "Turn Off Auto Rejoin",
-                async function addCountdown(container, resolve, reject) {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    for (let i = 10; i > 0; i--) {
-                        if (container.getAttribute("data-closed") === "true") return;
-                        //@ts-ignore
-                        container.querySelector("pre").textContent = container
-                            .querySelector("pre")
-                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
-                        //@ts-ignore
-                        console.log(container.querySelector("pre").textContent); // DEBUG
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
-                    }
-                    container.setAttribute("data-closed", "true");
-                    container.remove();
-                    resolve(1);
+                function addCountdown(container, resolve, _reject) {
+                    void new Promise((resolve): void => void setTimeout(resolve, 1000)).then(async (): Promise<void> => {
+                        for (let i = 10; i > 0; i--) {
+                            if (container.getAttribute("data-closed") === "true") return;
+                            //@ts-ignore
+                            container.querySelector("pre").textContent = container
+                                .querySelector("pre")
+                                .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                            //@ts-ignore
+                            console.log(container.querySelector("pre").textContent); // DEBUG
+                            await new Promise((resolve): void => void setTimeout(resolve, 1000));
+                        }
+                        container.setAttribute("data-closed", "true");
+                        container.remove();
+                        resolve(1);
+                    });
                 }
-            ).then(async (result) => {
+            ).then((result) => {
                 switch (result) {
                     case 0:
                         break;
                     case 1:
                         //@ts-ignore
-                        autoJoinServer(localStorage.getItem("autoJoinName"));
+                        void autoJoinServer(localStorage.getItem("autoJoinName"));
                         break;
                     case 2:
                         localStorage.removeItem("autoJoinName");
                         localStorage.removeItem("autoJoinType");
                         break;
+                    // no default
                 }
             });
             break;
         case "world":
-            promptForConfirmation(
+            void promptForConfirmation(
                 `Join world: ${localStorage.getItem("autoJoinName")}?\nJoining in 10 seconds.`,
                 "Join",
                 "Cancel",
                 "Turn Off Auto Rejoin",
-                async function addCountdown(container, resolve, reject) {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    for (let i = 10; i > 0; i--) {
-                        if (container.getAttribute("data-closed") === "true") return;
-                        //@ts-ignore
-                        container.querySelector("pre").textContent = container
-                            .querySelector("pre")
-                            .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
-                        //@ts-ignore
-                        console.log(container.querySelector("pre").textContent); // DEBUG
-                        await new Promise((resolve) => setTimeout(resolve, 1000));
-                    }
-                    container.setAttribute("data-closed", "true");
-                    container.remove();
-                    resolve(1);
+                function addCountdown(container, resolve, _reject) {
+                    void new Promise((resolve): void => void setTimeout(resolve, 1000)).then(async (): Promise<void> => {
+                        for (let i = 10; i > 0; i--) {
+                            if (container.getAttribute("data-closed") === "true") return;
+                            //@ts-ignore
+                            container.querySelector("pre").textContent = container
+                                .querySelector("pre")
+                                .textContent.replace(/Joining in [0-9]+ seconds\./, `Joining in ${i} seconds.`);
+                            //@ts-ignore
+                            console.log(container.querySelector("pre").textContent); // DEBUG
+                            await new Promise((resolve): void => void setTimeout(resolve, 1000));
+                        }
+                        container.setAttribute("data-closed", "true");
+                        container.remove();
+                        resolve(1);
+                    });
                 }
-            ).then(async (result) => {
+            ).then((result) => {
                 switch (result) {
                     case 0:
                         break;
                     case 1:
                         //@ts-ignore
-                        autoJoinWorld(localStorage.getItem("autoJoinName"));
+                        void autoJoinWorld(localStorage.getItem("autoJoinName"));
                         break;
                     case 2:
                         localStorage.removeItem("autoJoinName");
                         localStorage.removeItem("autoJoinType");
                         break;
+                    // no default
                 }
             });
             break;
         case null:
-            promptForConfirmation(`The server type for auto rejoin is missing, as a result auto join will not work.`, "OK", "");
+            void promptForConfirmation(`The server type for auto rejoin is missing, as a result auto join will not work.`, "OK", "");
             break;
         default:
-            promptForConfirmation(
+            void promptForConfirmation(
                 `The server type for auto rejoin is invalid, as a result auto join will not work. It is ${JSON.stringify(
                     localStorage.getItem("autoJoinType")
                 )}. It should be one of the following: "realm", "server", "world".`,
@@ -1641,36 +3321,35 @@ if (localStorage.getItem("autoJoinName")) {
 function validateCssEditorTextBoxValue(): boolean {
     if (cssEditorSelectedType === "element") {
         try {
-            const newCSS = JSON.parse(cssEditorTextBox.value);
+            const newCSS: string = JSON.parse(cssEditorTextBox.value) as string;
             cssEditorErrorText.textContent = "";
             cssEditorSelectedElement.style = newCSS;
             return true;
         } catch (e) {
-            //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
             return false;
         }
     } else if (cssEditorSelectedType === "root") {
         try {
-            const newCSS = JSON.parse(cssEditorTextBox.value);
+            const newCSS: string = JSON.parse(cssEditorTextBox.value) as string;
             cssEditorErrorText.textContent = "";
             //@ts-ignore
             document.getElementById("root").style = newCSS;
             return true;
         } catch (e) {
             //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
             return false;
         }
     } else if (cssEditorSelectedType === "globalStyleElement") {
         try {
-            const newCSS = JSON.parse(cssEditorTextBox.value);
+            const newCSS: string = JSON.parse(cssEditorTextBox.value) as string;
             cssEditorErrorText.textContent = "";
             customGlobalCSSStyleElement.style = newCSS;
             return true;
         } catch (e) {
             //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
             return false;
         }
     } else if (cssEditorSelectedType === "styleSheet") {
@@ -1679,7 +3358,7 @@ function validateCssEditorTextBoxValue(): boolean {
         return false;
     } else {
         // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'");
-        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'";
+        cssEditorErrorText.textContent = `validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '${cssEditorSelectedType}'`;
         return false;
     }
 }
@@ -1689,17 +3368,13 @@ function validateCssEditorTextBoxValue(): boolean {
  *
  * @deprecated The style sheet rules are undefined for some reason.
  */
-function cssEditor_selectDocumentStyleSheet_activate() {
+function cssEditor_selectDocumentStyleSheet_activate(): void {
     //@ts-ignore
     document.getElementById("cssEditor_mainDiv").style.display = "none";
-    cssEditor_selectableStyleSheets = [];
-    let styleSheetList = document.styleSheets;
-    for (let i = 0; i < styleSheetList.length; i++) {
-        cssEditor_selectableStyleSheets.push(styleSheetList[i]!);
-    }
+    cssEditor_selectableStyleSheets = Array.from(document.styleSheets);
     //@ts-ignore
     document.getElementById("cssEditor_documentStyleSelectorDiv").innerHTML = cssEditor_selectableStyleSheets
-        .map((s, i) => `<button type="button" onclick="cssEditor_selectDocumentStyleSheet_selected(${i})">${i}</button>`)
+        .map((_s: CSSStyleSheet, i: number): string => `<button type="button" onclick="cssEditor_selectDocumentStyleSheet_selected(${i})">${i}</button>`)
         .join("");
     //@ts-ignore
     document.getElementById("cssEditor_documentStyleSelectorDiv").style.display = "block";
@@ -1712,14 +3387,15 @@ function cssEditor_selectDocumentStyleSheet_activate() {
  *
  * @deprecated The style sheet rules are undefined for some reason.
  */
-async function cssEditor_selectDocumentStyleSheet_selected(index: number) {
+// eslint-disable-next-line @typescript-eslint/require-await -- This will be fixed once style sheet rules are able to be accessed again.
+async function cssEditor_selectDocumentStyleSheet_selected(index: number): Promise<void> {
     //@ts-ignore
     document.getElementById("cssEditor_documentStyleSelectorDiv").style.display = "none";
     cssEditorSelectedType = "styleSheet";
     cssEditorSelectedStyleSheet = cssEditor_selectableStyleSheets[index]!;
     cssEditorSelectedStyleSheet_rules = [];
     try {
-        const ownerNode = cssEditorSelectedStyleSheet.ownerNode;
+        // const ownerNode = cssEditorSelectedStyleSheet.ownerNode;
         // if(ownerNode){
         //     if(ownerNode.href){
         //         const srcData = (await fetch(ownerNode.href))
@@ -1747,10 +3423,11 @@ async function cssEditor_selectDocumentStyleSheet_selected(index: number) {
             //@ts-ignore
             Object.getOwnPropertyNames(cssEditorSelectedStyleSheet) /* , ownerNode.href ? (f(ownerNode.href)) : "NO HREF!" */
         );
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string -- This will be fixed once style sheet rules are able to be accessed again.
         cssEditorTextBox.value = cssEditorSelectedStyleSheet_rules.map((v) => v ?? "MISSING!").join("\n");
     } catch (e) {
         //@ts-ignore
-        cssEditorTextBox.value = e + e?.stack;
+        cssEditorTextBox.value = String(e instanceof Error && e.stack ? e.stack : e);
     }
     setCSSEditorMode("styleSheet");
     //@ts-ignore
@@ -1760,7 +3437,8 @@ async function cssEditor_selectDocumentStyleSheet_selected(index: number) {
 /**
  * Saves the CSS Editor changes.
  */
-async function cssEditor_saveChanges() {
+// eslint-disable-next-line @typescript-eslint/require-await -- This will be fixed once style sheet rules are able to be accessed again.
+async function cssEditor_saveChanges(): Promise<void> {
     if (cssEditorSelectedType === "element") {
         try {
             const newCSS = cssEditorTextBox.value;
@@ -1768,7 +3446,7 @@ async function cssEditor_saveChanges() {
             cssEditorSelectedElement.setAttribute("style", newCSS);
         } catch (e) {
             //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
         }
     } else if (cssEditorSelectedType === "root") {
         try {
@@ -1778,7 +3456,7 @@ async function cssEditor_saveChanges() {
             document.getElementById("root").setAttribute("style", newCSS);
         } catch (e) {
             //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
         }
     } else if (cssEditorSelectedType === "globalStyleElement") {
         try {
@@ -1786,7 +3464,6 @@ async function cssEditor_saveChanges() {
             cssEditorErrorText.textContent = "";
             // const elem = document.getElementById("customGlobalCSSStyle");
             // document.getElementById("customGlobalCSSStyle").remove();
-            customGlobalCSSStyleElement;
             customGlobalCSSStyleElement.innerHTML = newCSS;
             //initialize parser object
             // var parser = new cssjs();
@@ -1810,14 +3487,14 @@ async function cssEditor_saveChanges() {
             }
         } catch (e) {
             //@ts-ignore
-            cssEditorErrorText.textContent = e + " " + e?.stack;
+            cssEditorErrorText.textContent = String(e instanceof Error && e.stack ? e.stack : e);
         }
     } else if (cssEditorSelectedType === "styleSheet") {
         // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'");
         cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === 'styleSheet'";
     } else {
         // throw new Error("validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'");
-        cssEditorErrorText.textContent = "validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '" + cssEditorSelectedType + "'";
+        cssEditorErrorText.textContent = `validateCssEditorTextBoxValue is not implemented for cssEditorSelectedType === '${cssEditorSelectedType}'`;
     }
 }
 
@@ -1828,7 +3505,7 @@ async function cssEditor_saveChanges() {
  *
  * @throws {Error} Throws an error if the mode is not valid.
  */
-function setCSSEditorMode(mode: CSSEditorSelectedType) {
+function setCSSEditorMode(mode: CSSEditorSelectedType): void {
     cssEditorSelectedType = mode;
     cssEditorErrorText.textContent = "";
     switch (mode) {
@@ -1842,7 +3519,7 @@ function setCSSEditorMode(mode: CSSEditorSelectedType) {
             break;
         case "element":
             //@ts-ignore
-            document.getElementById("cssEditor_subtitle").textContent = "Element Style (CSS): " + UTILS.cssPath(cssEditorSelectedElement).split(" > ").pop();
+            document.getElementById("cssEditor_subtitle").textContent = `Element Style (CSS): ${UTILS.cssPath(cssEditorSelectedElement).split(" > ").pop()}`;
             cssEditorTextBox.style.backgroundColor = "";
             cssEditorTextBox.style.pointerEvents = "";
             //@ts-ignore
@@ -1850,7 +3527,7 @@ function setCSSEditorMode(mode: CSSEditorSelectedType) {
             break;
         case "root":
             //@ts-ignore
-            document.getElementById("cssEditor_subtitle").textContent = "Root Element Style (CSS): " + cssEditorSelectedElement.accessKey;
+            document.getElementById("cssEditor_subtitle").textContent = `Root Element Style (CSS): ${cssEditorSelectedElement.accessKey}`;
             cssEditorTextBox.style.backgroundColor = "";
             cssEditorTextBox.style.pointerEvents = "";
             //@ts-ignore
@@ -1866,23 +3543,23 @@ function setCSSEditorMode(mode: CSSEditorSelectedType) {
             break;
         case "styleSheet":
             //@ts-ignore
-            document.getElementById("cssEditor_subtitle").textContent = "Style Sheet Rules (JSON): " + cssEditorSelectedStyleSheet.title;
+            document.getElementById("cssEditor_subtitle").textContent = `Style Sheet Rules (JSON): ${cssEditorSelectedStyleSheet.title}`;
             cssEditorTextBox.style.backgroundColor = "";
             cssEditorTextBox.style.pointerEvents = "";
             //@ts-ignore
             document.getElementById("cssEditorSaveChangesButton").disabled = true;
             break;
         default:
-            throw new Error("setCSSEditorMode is not implemented for mode === '" + mode + "'");
+            throw new Error(`setCSSEditorMode is not implemented for mode === '${String(mode)}'`);
     }
 }
 
-function cssEditor_rootElementStylesMode() {
+function cssEditor_rootElementStylesMode(): void {
     setCSSEditorMode("root");
     cssEditorTextBox.value = document.getElementById("root")?.getAttribute("style") ?? "";
 }
 
-function cssEditor_globalStyleElementStylesMode() {
+function cssEditor_globalStyleElementStylesMode(): void {
     setCSSEditorMode("globalStyleElement");
     cssEditorTextBox.value = customGlobalCSSStyleElement.textContent ?? "";
 }
@@ -1891,18 +3568,18 @@ function cssEditor_globalStyleElementStylesMode() {
  * Sets the tab of the 8Crafter Utilities Main Menu.
  * @param {string} tab
  */
-function setMainMenu8CrafterUtilitiesTab(tab: string) {
+function setMainMenu8CrafterUtilitiesTab(tab: string): void {
     //@ts-ignore
     for (const child of document.getElementById("8CrafterUtilitiesMenu_rightSide").children) {
         if (!(child instanceof HTMLElement)) continue;
         if (child.classList.contains("customScrollbarParent")) continue;
         if (child.id === "8CrafterUtilitiesMenu_leftSidebar") continue;
-        child.style.display = child.id === "8CrafterUtilitiesMenu_" + tab ? "block" : "none";
+        child.style.display = child.id === `8CrafterUtilitiesMenu_${tab}` ? "block" : "none";
     }
     //@ts-ignore
     for (const child of document.getElementById("8CrafterUtilitiesMenu_leftSidebar").children) {
         if (child.classList.contains("customScrollbarParent")) continue;
-        if (child.id === "8CrafterUtilitiesMenu_tabButton_" + tab) {
+        if (child.id === `8CrafterUtilitiesMenu_tabButton_${tab}`) {
             child.classList.add("selected");
         } else {
             child.classList.remove("selected");
@@ -1910,7 +3587,7 @@ function setMainMenu8CrafterUtilitiesTab(tab: string) {
     }
 }
 
-function toggleSmallCornerDebugOverlay() {
+function toggleSmallCornerDebugOverlay(): void {
     if (smallCornerDebugOverlayElement.style.display === "none") {
         smallCornerDebugOverlayElement.style.display = "block";
     } else {
@@ -1918,7 +3595,29 @@ function toggleSmallCornerDebugOverlay() {
     }
 }
 
-function toggleGeneralDebugOverlayElement() {
+function toggleStatsCornerDebugOverlay(): void {
+    if (statsCornerDebugOverlayElement.style.display === "none") {
+        statsCornerDebugOverlayElement.style.display = "block";
+        localStorage.setItem("statsCornerDebugOverlayVisible", "true");
+    } else {
+        statsCornerDebugOverlayElement.style.display = "none";
+        localStorage.removeItem("statsCornerDebugOverlayVisible");
+    }
+}
+
+function togglePerfGraphDebugOverlay(graph: "FPS" | "ELL" | "FCD"): void {
+    const element: HTMLElement | null = document.getElementById(`perfGraph_${graph}_container`);
+    if (!element) throw new ReferenceError(`perfGraph_${graph}_container not found`);
+    if (element.style.display === "none") {
+        element.style.display = "block";
+        localStorage.setItem(`perfGraph_${graph}_visible`, "true");
+    } else {
+        element.style.display = "none";
+        localStorage.removeItem(`perfGraph_${graph}_visible`);
+    }
+}
+
+function toggleGeneralDebugOverlayElement(): void {
     if (elementGeneralDebugOverlayElement.style.display === "none") {
         elementGeneralDebugOverlayElement.style.display = "block";
         const boundingBox = currentMouseHoverTarget.getBoundingClientRect();
@@ -1936,19 +3635,19 @@ Bounding Box: ${JSON.stringify({
 Children: ${currentMouseHoverTarget.children.length}
 Attributes:
 ${
-    currentMouseHoverTarget.getAttributeNames().length > 0
-        ? currentMouseHoverTarget
-              .getAttributeNames()
-              .map((name) => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
-              .join("\n")
-        : "None"
+    currentMouseHoverTarget.getAttributeNames().length > 0 ?
+        currentMouseHoverTarget
+            .getAttributeNames()
+            .map((name) => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
+            .join("\n")
+    :   "None"
 }`;
     } else {
         elementGeneralDebugOverlayElement.style.display = "none";
     }
 }
 
-function toggleHTMLSourceCodePreviewElement() {
+function toggleHTMLSourceCodePreviewElement(): void {
     if (htmlSourceCodePreviewElement.style.display === "block") {
         htmlSourceCodePreviewElement.style.display = "none";
     } else {
@@ -1958,7 +3657,7 @@ function toggleHTMLSourceCodePreviewElement() {
     }
 }
 
-function toggleConsoleOverlay() {
+function toggleConsoleOverlay(): void {
     if (consoleOverlayElement.style.display === "block") {
         consoleOverlayElement.style.display = "none";
     } else {
@@ -1966,10 +3665,15 @@ function toggleConsoleOverlay() {
     }
 }
 
+interface ConsoleExecutionHistoryEntryJSON {
+    code: string;
+    time: number;
+}
+
 /**
  * Represents an entry in the console execution history.
  */
-class ConsoleExecutionHistoryEntry {
+class ConsoleExecutionHistoryEntry implements ConsoleExecutionHistoryEntryJSON {
     /**
      * The code that was executed.
      *
@@ -1977,7 +3681,7 @@ class ConsoleExecutionHistoryEntry {
      *
      * @type {string}
      */
-    code: string;
+    public code: string;
     /**
      * The time when the code was executed.
      *
@@ -1985,7 +3689,7 @@ class ConsoleExecutionHistoryEntry {
      *
      * @type {number}
      */
-    time: number;
+    public time: number;
     /**
      * Creates a new ConsoleExecutionHistoryEntry instance.
      *
@@ -1996,7 +3700,7 @@ class ConsoleExecutionHistoryEntry {
      *
      * @public
      */
-    constructor(code: string, time: number = Date.now()) {
+    public constructor(code: string, time: number = Date.now()) {
         this.code = code;
         this.time = time;
     }
@@ -2007,7 +3711,7 @@ class ConsoleExecutionHistoryEntry {
      *
      * @public
      */
-    toJSON() {
+    public toJSON(): ConsoleExecutionHistoryEntryJSON {
         return {
             code: this.code,
             time: this.time,
@@ -2016,13 +3720,13 @@ class ConsoleExecutionHistoryEntry {
     /**
      * Creates a new ConsoleExecutionHistoryEntry instance from a JSON object.
      *
-     * @param {{code: string; time: number}} json The JSON object to create the ConsoleExecutionHistoryEntry instance from.
+     * @param json The JSON object to create the ConsoleExecutionHistoryEntry instance from.
      * @returns The ConsoleExecutionHistoryEntry instance.
      *
      * @public
      * @static
      */
-    static fromJSON(json: { code: string; time: number }) {
+    public static fromJSON(this: void, json: ConsoleExecutionHistoryEntryJSON): ConsoleExecutionHistoryEntry {
         return new ConsoleExecutionHistoryEntry(json.code, json.time);
     }
 }
@@ -2039,22 +3743,18 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      *
-     * @type {number}
-     *
      * @default 100
      */
-    static maxEntries: number = 100;
+    public static maxEntries = 100;
     /**
      * The maximum length of an entry in the history.
      *
      * @public
      * @static
      *
-     * @type {number}
-     *
      * @default 1000
      */
-    static maxEntryLength: number = 1000;
+    public static maxEntryLength = 1000;
     /**
      * The entries in the history, oldest first.
      *
@@ -2062,10 +3762,8 @@ class ConsoleExecutionHistory {
      *
      * @public
      * @static
-     *
-     * @type {ConsoleExecutionHistoryEntry[]}
      */
-    static entries: ConsoleExecutionHistoryEntry[] = [];
+    public static entries: ConsoleExecutionHistoryEntry[] = [];
     /**
      * @constructor
      *
@@ -2073,7 +3771,7 @@ class ConsoleExecutionHistory {
      *
      * @private
      */
-    constructor() {
+    public constructor() {
         throw new TypeError("Failed to construct 'ConsoleExecutionHistory': Illegal constructor");
     }
     /**
@@ -2085,7 +3783,7 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      */
-    static getNthNewestEntry(n: number): ConsoleExecutionHistoryEntry | undefined {
+    public static getNthNewestEntry(n: number): ConsoleExecutionHistoryEntry | undefined {
         return ConsoleExecutionHistory.entries.at(-n - 1);
     }
     /**
@@ -2098,7 +3796,7 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      */
-    static addHistoryItem(code: string, time: number = Date.now()): ConsoleExecutionHistoryEntry {
+    public static addHistoryItem(code: string, time: number = Date.now()): ConsoleExecutionHistoryEntry {
         const entry = new ConsoleExecutionHistoryEntry(code, time);
         if (ConsoleExecutionHistory.entries.at(-1)?.code === entry.code) ConsoleExecutionHistory.entries.pop();
         ConsoleExecutionHistory.entries.push(entry);
@@ -2114,7 +3812,7 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      */
-    static clearHistory() {
+    public static clearHistory(): void {
         ConsoleExecutionHistory.entries.length = 0;
         ConsoleExecutionHistory.saveToLocalStorage();
         currentlySelctedConsoleExecutionHistoryItemIndex = -1;
@@ -2126,7 +3824,7 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      */
-    static saveToLocalStorage() {
+    public static saveToLocalStorage(): void {
         localStorage.setItem("consoleHistory", JSONB.stringify(ConsoleExecutionHistory.entries));
     }
     /**
@@ -2135,10 +3833,14 @@ class ConsoleExecutionHistory {
      * @public
      * @static
      */
-    static loadFromLocalStorage() {
+    public static loadFromLocalStorage(): void {
         const data = localStorage.getItem("consoleHistory");
         if (data) {
-            ConsoleExecutionHistory.entries.splice(0, ConsoleExecutionHistory.entries.length, ...JSONB.parse(data).map(ConsoleExecutionHistoryEntry.fromJSON));
+            ConsoleExecutionHistory.entries.splice(
+                0,
+                ConsoleExecutionHistory.entries.length,
+                ...(JSONB.parse(data) as Parameters<typeof ConsoleExecutionHistoryEntry.fromJSON>[0][]).map(ConsoleExecutionHistoryEntry.fromJSON)
+            );
         }
     }
 }
@@ -2173,7 +3875,7 @@ function readLocalStorageKeys(): string[] {
             localStorage.removeItem(key);
         }
     }
-    valueBackups.reverse().forEach(([key, value]) => localStorage.setItem(key, value));
+    valueBackups.reverse().forEach(([key, value]: [key: string, value: string]): void => void localStorage.setItem(key, value));
     return keys;
 }
 
@@ -2216,14 +3918,24 @@ function readLocalStorageKeys(): string[] {
  *
  * @default -1
  */
-var currentlySelctedConsoleExecutionHistoryItemIndex: number = -1;
+var currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+
+/**
+ * The result of the last console overlay execution.
+ *
+ * @default undefined
+ */
+let lastConsoleOverlayResult: unknown;
 
 /**
  * Executes the console input field contents.
  */
-function consoleOverlayExecute() {
+function consoleOverlayExecute(): void {
+    if (consoleOverlayInputFieldElement.value.length === 0) return;
     // Reset the currently selected console execution history item index
     currentlySelctedConsoleExecutionHistoryItemIndex = -1;
+    // Erase the saved contents to reduce memory usage.
+    savedConsoleInputFieldContents = "";
     /**
      * The input to be executed.
      *
@@ -2233,119 +3945,203 @@ function consoleOverlayExecute() {
     if (input.length <= ConsoleExecutionHistory.maxEntryLength) {
         ConsoleExecutionHistory.addHistoryItem(input, Date.now());
     }
-    /**
-     * The command element.
-     *
-     * @type {HTMLDivElement}
-     */
-    const commandElem: HTMLDivElement = document.createElement("div");
-    commandElem.style.whiteSpace = "pre-wrap";
-    commandElem.style.overflowWrap = "anywhere";
-    if (
-        consoleOverlayTextElement.children.length > 0 &&
-        consoleOverlayTextElement.lastChild instanceof HTMLElement &&
-        !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
-    ) {
-        commandElem.style.borderTop = "1px solid #888888";
+    {
+        // Scope the commandElem constant to prevent it from being accesed by the eval.
+        /**
+         * The command element.
+         *
+         * @type {HTMLDivElement}
+         */
+        const commandElem: HTMLDivElement = document.createElement("div");
+        commandElem.style.whiteSpace = "pre-wrap";
+        commandElem.style.overflowWrap = "anywhere";
+        if (
+            consoleOverlayTextElement.children.length > 0 &&
+            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+            !consoleOverlayTextElement.lastChild?.style?.backgroundColor?.length
+        ) {
+            commandElem.style.borderTop = "1px solid #888888";
+        }
+        commandElem.textContent = `> ${input}`;
+        consoleOverlayTextElement.appendChild(commandElem);
     }
-    commandElem.textContent = `> ${input}`;
-    consoleOverlayTextElement.appendChild(commandElem);
+
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    /**
+     * The value of the most recently evaluated expression.
+     *
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent}
+     */
+    const $_: unknown = lastConsoleOverlayResult;
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent-many}
+     */
+    const $0: HTMLElement | Node = elementInspectSelectionHistory[0] ?? document.childNodes[0]!;
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent-many}
+     */
+    const $1: void | HTMLElement | null = elementInspectSelectionHistory[1];
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent-many}
+     */
+    const $2: void | HTMLElement | null = elementInspectSelectionHistory[2];
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent-many}
+     */
+    const $3: void | HTMLElement | null = elementInspectSelectionHistory[3];
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#recent-many}
+     */
+    const $4: void | HTMLElement | null = elementInspectSelectionHistory[4];
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#querySelector-function}
+     */
+    const $: {
+        <K extends keyof HTMLElementTagNameMap>(selectors: K, startNode?: ParentNode): HTMLElementTagNameMap[K] | null;
+        <K extends keyof SVGElementTagNameMap>(selectors: K, startNode?: ParentNode): SVGElementTagNameMap[K] | null;
+        <K extends keyof HTMLElementDeprecatedTagNameMap>(selectors: K, startNode?: ParentNode): HTMLElementDeprecatedTagNameMap[K] | null;
+        <E extends Element = Element>(selectors: string, startNode?: ParentNode): E | null;
+    } = (selectors: string, startNode?: ParentNode): Element | null => (startNode ?? document).querySelector(selectors);
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#querySelectorAll-function}
+     */
+    const $$: {
+        <K extends keyof HTMLElementTagNameMap>(selectors: K, startNode?: ParentNode): HTMLElementTagNameMap[K][];
+        <K extends keyof SVGElementTagNameMap>(selectors: K, startNode?: ParentNode): SVGElementTagNameMap[K][];
+        <K extends keyof HTMLElementDeprecatedTagNameMap>(selectors: K, startNode?: ParentNode): HTMLElementDeprecatedTagNameMap[K][];
+        <E extends Element = Element>(selectors: string, startNode?: ParentNode): E[];
+    } = (selectors: string, startNode?: ParentNode): Element[] => Array.from((startNode ?? document).querySelectorAll(selectors));
+    /**
+     * @see {@link https://developer.chrome.com/docs/devtools/console/utilities#clear-function}
+     */
+    function clear(): void {
+        consoleOverlayTextElement.innerHTML = "";
+        console.everything.length = 0;
+        console._logInternal("Console was cleared");
+    }
+    type __MarkEvalVarsUsed__ = [typeof $_, typeof $0, typeof $1, typeof $2, typeof $3, typeof $4, typeof $, typeof $$, typeof clear, __MarkEvalVarsUsed2__];
+    type __MarkEvalVarsUsed2__ = __MarkEvalVarsUsed__;
+    /* eslint-enable @typescript-eslint/no-unused-vars */
 
     /**
      * The result element that will display the result of the executed command.
      *
      * @type {HTMLDivElement}
      */
-    const resultElem: HTMLDivElement = document.createElement("div");
-    resultElem.style.whiteSpace = "pre-wrap";
-    resultElem.style.overflowWrap = "anywhere";
+    const $resultElem: HTMLDivElement = document.createElement("div");
+    $resultElem.style.whiteSpace = "pre-wrap";
+    $resultElem.style.overflowWrap = "anywhere";
+    const $noResultElemModificationsSymbol: unique symbol = Symbol("DoNotModifyConsoleOverlayExecuteResultElement");
     try {
         /**
          * The result of the executed command.
          *
          * @type {any}
          */
-        const result: any = eval(input);
-        if ((typeof result === "object" && result !== null) || typeof result === "function") {
-            resultElem.appendChild(
-                createExpandableObjectView(result, true, undefined, {
-                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
-                })
-            );
-        } else if (typeof result === "symbol") {
-            resultElem.textContent = result.toString();
-            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
-        } else {
-            resultElem.textContent = JSONB.stringify(result);
-            addContextMenuToTopLevelPrimitiveConsoleValue(result, resultElem);
-        }
-        if (
-            consoleOverlayTextElement.children.length > 0 &&
-            consoleOverlayTextElement.lastChild instanceof HTMLElement &&
-            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
-        ) {
-            resultElem.style.borderTop = "1px solid #888888";
-        }
-        consoleOverlayTextElement.appendChild(resultElem);
-        consoleOverlayInputFieldElement.value = "";
-    } catch (e) {
-        resultElem.style.backgroundColor = "#FF000055";
-        if (e instanceof Error) {
-            resultElem.appendChild(
-                createExpandableObjectView(e, true, false, {
-                    summaryValueOverride: e.stack,
-                    showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
-                })
-            );
-        } else {
-            if ((typeof e === "object" && e !== null) || typeof e === "function") {
-                resultElem.appendChild(
-                    createExpandableObjectView(e, true, undefined, {
-                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+        const result: unknown = eval(input);
+        lastConsoleOverlayResult = result;
+        if (result !== $noResultElemModificationsSymbol) {
+            if ((typeof result === "object" && result !== null) || typeof result === "function") {
+                $resultElem.appendChild(
+                    createExpandableObjectView(result, true, undefined, {
+                        showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                        currentPath: [],
+                        currentDisplayedPath: [],
                     })
                 );
-            } else if (typeof e === "symbol") {
-                resultElem.textContent = e.toString();
+            } else if (typeof result === "symbol") {
+                $resultElem.textContent = result.toString();
+                addContextMenuToTopLevelPrimitiveConsoleValue(result, $resultElem);
             } else {
-                resultElem.textContent = JSONB.stringify(e);
+                $resultElem.textContent = JSONB.stringify(result);
+                addContextMenuToTopLevelPrimitiveConsoleValue(result as string | number | boolean | bigint | null | undefined, $resultElem);
             }
+            if (
+                consoleOverlayTextElement.children.length > 0 &&
+                consoleOverlayTextElement.lastChild instanceof HTMLElement &&
+                (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === ($resultElem.style.backgroundColor ?? "")
+            ) {
+                $resultElem.style.borderTop = "1px solid #888888";
+            }
+        }
+        consoleOverlayTextElement.appendChild($resultElem);
+        consoleOverlayInputFieldElement.value = "";
+    } catch (e) {
+        $resultElem.style.backgroundColor = "#FF000055";
+        if (e instanceof Error) {
+            const stack = e.stack === undefined ? undefined : mapStackWithTS(e.stack);
+
+            const errorElem = $resultElem.appendChild(
+                createExpandableObjectView(e, true, false, {
+                    summaryValueOverride: stack?.stack ?? e.stack,
+                    showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                    currentPath: [],
+                    currentDisplayedPath: [],
+                    hideSummaryValueWhenExpanded: false,
+                })
+            );
+            if (stack?.hasUnloadedStacks) {
+                void stack.fullyLoadedStack.then((stack: string): void => {
+                    errorElem.parentNode?.replaceChild(
+                        createExpandableObjectView(e, true, false, {
+                            summaryValueOverride: stack,
+                            showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                            currentPath: [],
+                            currentDisplayedPath: [],
+                            hideSummaryValueWhenExpanded: false,
+                        }),
+                        errorElem
+                    );
+                });
+            }
+        } else if ((typeof e === "object" && e !== null) || typeof e === "function") {
+            $resultElem.appendChild(
+                createExpandableObjectView(e, true, undefined, {
+                    showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                    currentPath: [],
+                    currentDisplayedPath: [],
+                })
+            );
+        } else if (typeof e === "symbol") {
+            $resultElem.textContent = e.toString();
+        } else {
+            $resultElem.textContent = JSONB.stringify(e);
         }
         if (
             consoleOverlayTextElement.children.length > 0 &&
             consoleOverlayTextElement.lastChild instanceof HTMLElement &&
-            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === (resultElem.style.backgroundColor ?? "")
+            (consoleOverlayTextElement.lastChild?.style?.backgroundColor ?? "") === ($resultElem.style.backgroundColor ?? "")
         ) {
-            resultElem.style.borderTop = "1px solid #888888";
+            $resultElem.style.borderTop = "1px solid #888888";
         }
-        consoleOverlayTextElement.appendChild(resultElem);
+        consoleOverlayTextElement.appendChild($resultElem);
     }
 }
 
 /**
  * The contents of the console input field before it was replaced with a history item.
  *
- * @type {string}
- *
  * @default ""
  */
-var savedConsoleInputFieldContents: string = "";
+var savedConsoleInputFieldContents = "";
 
 /**
  * Sets the contents of the console input field to the contents of the nth most recent history item.
  *
  * @param {number} index The index of the history item to set the input field to. It will be bound to be withing the range of the history items, or `-1`. If `-1`, the input field will be restored to what it was before replacing the input field with a history item.
  */
-function setConsoleInputFieldContentsToHistoryItem(index: number) {
+function setConsoleInputFieldContentsToHistoryItem(index: number): void {
     index = Math.max(-1, index);
     if (index === -1) {
         if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
             // If the index is -1 and no history item is currently selected, do nothing.
             return;
         }
-        // If the index is -1, restore the input field to what it was before replacing it with a history item.
+        // If the index is -1 and a history item is currently selected, restore the input field to what it was before replacing it with a history item.
         consoleOverlayInputFieldElement.value = savedConsoleInputFieldContents;
         // Erase the saved contents to reduce memory usage.
         savedConsoleInputFieldContents = "";
+        currentlySelctedConsoleExecutionHistoryItemIndex = -1;
         return;
     }
     if (currentlySelctedConsoleExecutionHistoryItemIndex === -1) {
@@ -2413,10 +4209,16 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
     const onClickHandler: (e: MouseEvent) => void = (event): void => {
         if (event.target instanceof Node && !menuElement.contains(event.target) && menuElement !== event.target) {
             closeMenu();
+        } else if (event.target instanceof HTMLElement && (menuElement.contains(event.target) || menuElement === event.target)) {
+            event.target.querySelectorAll(".context-menu-item-submenu-open").forEach((element) => {
+                element.classList.remove("context-menu-item-submenu-open");
+                const submenuElement = element.querySelector(".context-menu-submenu");
+                if (submenuElement instanceof HTMLElement) submenuElement.style.display = "none";
+            });
         }
     };
     window.addEventListener("ouic-context-menu-open", closeMenu);
-    function closeMenu() {
+    function closeMenu(): void {
         menuElement.remove();
         window.removeEventListener("click", onClickHandler);
         window.removeEventListener("ouic-context-menu-open", closeMenu);
@@ -2446,8 +4248,11 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
         backElement.textContent = "< Back";
         backElement.classList.add("context-menu-submenu-back");
         backElement.classList.add("context-menu-item");
-        backElement.addEventListener("click", () => {
+        backElement.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
             submenuElement.style.display = "none";
+            submenuElement.parentElement?.classList.remove("context-menu-item-submenu-open");
         });
         submenuElement.appendChild(backElement);
         submenu.submenu.forEach((item) => {
@@ -2462,12 +4267,14 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
      * @param {number} depth The depth of the item.
      * @returns {HTMLElement} The view for the item.
      */
-    function createContextMenuItem(item: ContextMenuItemCreationOptions, depth: number = 0): HTMLElement {
+    function createContextMenuItem(item: ContextMenuItemCreationOptions, depth = 0): HTMLElement {
         switch (item.type) {
             case "action":
             case undefined: {
                 const itemElement = document.createElement("div");
                 itemElement.textContent = item.label;
+                // TODO: Implement a custom title tooltip functionality for CoHTML.
+                // @ts-ignore: This is for the browser.
                 if (item.title) itemElement.title = item.title;
                 itemElement.classList.add("context-menu-item-action");
                 itemElement.classList.add("context-menu-item");
@@ -2475,7 +4282,7 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
                 itemElement.addEventListener("click", (event) => {
                     event.preventDefault();
                     event.stopPropagation();
-                    item.action();
+                    void item.action();
                     closeMenu();
                 });
                 return itemElement;
@@ -2491,16 +4298,33 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
                 itemElement.classList.add("context-menu-item-submenu");
                 itemElement.classList.add("context-menu-item");
                 itemElement.textContent = item.label;
+                // TODO: Implement a custom title tooltip functionality for CoHTML.
+                // @ts-ignore: This is for the browser.
                 if (item.title) itemElement.title = item.title;
                 if (item.disabled) itemElement.setAttribute("disabled", "");
                 const submenuElement = itemElement.appendChild(createContextMenuView(item, depth + 1));
                 itemElement.addEventListener("click", (event) => {
                     event.preventDefault();
                     event.stopPropagation();
+                    if (item.disabled) return;
                     submenuElement.style.display = "";
+                    itemElement.classList.add("context-menu-item-submenu-open");
                 });
                 return itemElement;
             }
+            default:
+                throw new TypeError(
+                    `Unknown item type in context menu: ${(item as ContextMenuItemCreationOptions).type}`,
+                    // Add the cause for browsers.
+                    ...([
+                        {
+                            cause: {
+                                item,
+                                itemType: (item as ContextMenuItemCreationOptions).type,
+                            },
+                        },
+                    ] as unknown as [])
+                );
         }
     }
     menu.items.forEach((item) => {
@@ -2510,15 +4334,17 @@ function showContextMenu(menu: ContextMenuCreationOptions): void {
     window.addEventListener("click", onClickHandler);
 }
 
-function quoteStringDynamic(str: string) {
+function quoteStringDynamic(str: string): string {
     const jsonifiedStr: string = JSON.stringify(str);
-    return str.includes("'")
-        ? str.includes('"')
-            ? str.includes("`")
-                ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
-                : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
-            : jsonifiedStr
-        : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`;
+    return (
+        str.includes("'") ?
+            str.includes('"') ?
+                str.includes("`") ?
+                    `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                :   `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+            :   jsonifiedStr
+        :   `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+    );
 }
 
 /**
@@ -2533,7 +4359,7 @@ function quoteStringDynamic(str: string) {
 function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
     primitiveValue: string | number | boolean | bigint | symbol | null | undefined,
     primitiveValueElement: T,
-    options?: { copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined }
+    options?: { copyConsoleMessageStackCallback?: (() => Promise<void> | void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined }
 ): T {
     if (typeof primitiveValue === "function") throw new TypeError("Functions are not primitive values.");
     if (typeof primitiveValue === "object" && primitiveValue !== null) throw new TypeError("Non-null objects are not primitive values.");
@@ -2549,8 +4375,10 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
         case "bigint":
             contextMenu.items.push({
                 label: "Copy bigint",
-                action() {
-                    copyTextToClipboardAsync(`${primitiveValue}n`);
+                action(): void {
+                    copyTextToClipboardAsync(`${primitiveValue}n`).catch((reason: unknown): void => {
+                        console.error(new Error("[8CrafterConsole::Copy bigint] An error occured while copying to the clipboard."), reason);
+                    });
                 },
             });
             break;
@@ -2560,8 +4388,10 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
         case "undefined":
             contextMenu.items.push({
                 label: `Copy ${typeof primitiveValue}`,
-                action() {
-                    copyTextToClipboardAsync(`${primitiveValue}`);
+                action(): void {
+                    copyTextToClipboardAsync(`${primitiveValue}`).catch((reason: unknown): void => {
+                        console.error(new Error(`[8CrafterConsole::Copy ${typeof primitiveValue}] An error occured while copying to the clipboard.`), reason);
+                    });
                 },
             });
             break;
@@ -2569,23 +4399,37 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
             contextMenu.items.push(
                 {
                     label: "Copy string contents",
-                    action() {
-                        copyTextToClipboardAsync(primitiveValue);
+                    action(): void {
+                        copyTextToClipboardAsync(primitiveValue).catch((reason: unknown): void => {
+                            console.error(new Error(`[8CrafterConsole::Copy string contents] An error occured while copying to the clipboard.`), reason);
+                        });
                     },
                 },
                 {
                     label: "Copy string as JavaScript literal",
-                    action() {
-                        copyTextToClipboardAsync(quoteStringDynamic(primitiveValue));
+                    action(): void {
+                        copyTextToClipboardAsync(quoteStringDynamic(primitiveValue)).catch((reason: unknown): void => {
+                            console.error(
+                                new Error(`[8CrafterConsole::Copy string as JavaScript literal] An error occured while copying to the clipboard.`),
+                                reason
+                            );
+                        });
                     },
                 },
                 {
                     label: "Copy string as JSON literal",
-                    action() {
-                        copyTextToClipboardAsync(JSON.stringify(primitiveValue, null, 4));
+                    action(): void {
+                        copyTextToClipboardAsync(JSON.stringify(primitiveValue, null, 4)).catch((reason: unknown): void => {
+                            console.error(new Error(`[8CrafterConsole::Copy string as JSON literal] An error occured while copying to the clipboard.`), reason);
+                        });
                     },
                 }
             );
+            break;
+        case "function":
+        case "symbol":
+        default:
+            break;
     }
     if (contextMenu.items.length > 0) {
         contextMenu.items.push({
@@ -2597,8 +4441,8 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
     }
     contextMenu.items.push({
         label: "Store as global variable",
-        action() {
-            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+        action(): void {
+            while (`temp${++__console_last_temp_variable_id__}` in window);
             window[`temp${__console_last_temp_variable_id__}`] = primitiveValue;
             displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
         },
@@ -2629,7 +4473,7 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
         if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
             event.preventDefault();
             event.stopImmediatePropagation();
-            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
         }
         clickStartTime = null;
     });
@@ -2637,51 +4481,97 @@ function addContextMenuToTopLevelPrimitiveConsoleValue<T extends HTMLElement>(
         if (event.button !== 2) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
         // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
     });
     return primitiveValueElement;
 }
 
+function coherentArrayProxyToArrayReplacer(this: unknown, _key: string, value: unknown): unknown {
+    try {
+        if (typeof value === "object" && value?.constructor?.name === "CoherentArrayProxy") {
+            return Object.defineProperty(Array.from(value as Iterable<unknown>), Symbol.toStringTag, {
+                value: "CoherentArrayProxy",
+                configurable: true,
+                enumerable: false,
+                writable: true,
+            });
+        }
+    } catch {}
+    return value;
+}
+
+const propertyIdentifierRegex = new RegExp(
+    // eslint-disable-next-line no-misleading-character-class
+    String.raw`^[\u0024\u0041-\u005a\u005f\u0061-\u007a\u00aa\u00b5\u00ba\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376-\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0561-\u0587\u05d0-\u05ea\u05f0-\u05f2\u0620-\u064a\u066e-\u066f\u0671-\u06d3\u06d5\u06e5-\u06e6\u06ee-\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4-\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u08a0-\u08b2\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f-\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc-\u09dd\u09df-\u09e1\u09f0-\u09f1\u0a05-\u0a0a\u0a0f-\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32-\u0a33\u0a35-\u0a36\u0a38-\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2-\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0-\u0ae1\u0b05-\u0b0c\u0b0f-\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32-\u0b33\u0b35-\u0b39\u0b3d\u0b5c-\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99-\u0b9a\u0b9c\u0b9e-\u0b9f\u0ba3-\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c59\u0c60-\u0c61\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cde\u0ce0-\u0ce1\u0cf1-\u0cf2\u0d05-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d60-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32-\u0e33\u0e40-\u0e46\u0e81-\u0e82\u0e84\u0e87-\u0e88\u0e8a\u0e8d\u0e94-\u0e97\u0e99-\u0e9f\u0ea1-\u0ea3\u0ea5\u0ea7\u0eaa-\u0eab\u0ead-\u0eb0\u0eb2-\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065-\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f4\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u170c\u170e-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1877\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19c1-\u19c7\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4b\u1b83-\u1ba0\u1bae-\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1ce9-\u1cec\u1cee-\u1cf1\u1cf5-\u1cf6\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2c2e\u2c30-\u2c5e\u2c60-\u2ce4\u2ceb-\u2cee\u2cf2-\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312d\u3131-\u318e\u31a0-\u31ba\u31f0-\u31ff\u3400-\u4db5\u4e00-\u9fcc\ua000-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a-\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua78e\ua790-\ua7ad\ua7b0-\ua7b1\ua7f7-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5-\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab5f\uab64-\uab65\uabc0-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40-\ufb41\ufb43-\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc][\u0009-\u000d\u0020\u0024\u0030-\u0039\u0041-\u005a\u005f\u0061-\u007a\u00a0\u00aa\u00b5\u00b7\u00ba\u00c0-\u00d6\u00d8-\u00f6\u00f8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0300-\u0374\u0376-\u0377\u037a-\u037d\u037f\u0386-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u0483-\u0487\u048a-\u052f\u0531-\u0556\u0559\u0561-\u0587\u0591-\u05bd\u05bf\u05c1-\u05c2\u05c4-\u05c5\u05c7\u05d0-\u05ea\u05f0-\u05f2\u0610-\u061a\u0620-\u0669\u066e-\u06d3\u06d5-\u06dc\u06df-\u06e8\u06ea-\u06fc\u06ff\u0710-\u074a\u074d-\u07b1\u07c0-\u07f5\u07fa\u0800-\u082d\u0840-\u085b\u08a0-\u08b2\u08e4-\u0963\u0966-\u096f\u0971-\u0983\u0985-\u098c\u098f-\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bc-\u09c4\u09c7-\u09c8\u09cb-\u09ce\u09d7\u09dc-\u09dd\u09df-\u09e3\u09e6-\u09f1\u0a01-\u0a03\u0a05-\u0a0a\u0a0f-\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32-\u0a33\u0a35-\u0a36\u0a38-\u0a39\u0a3c\u0a3e-\u0a42\u0a47-\u0a48\u0a4b-\u0a4d\u0a51\u0a59-\u0a5c\u0a5e\u0a66-\u0a75\u0a81-\u0a83\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2-\u0ab3\u0ab5-\u0ab9\u0abc-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ad0\u0ae0-\u0ae3\u0ae6-\u0aef\u0b01-\u0b03\u0b05-\u0b0c\u0b0f-\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32-\u0b33\u0b35-\u0b39\u0b3c-\u0b44\u0b47-\u0b48\u0b4b-\u0b4d\u0b56-\u0b57\u0b5c-\u0b5d\u0b5f-\u0b63\u0b66-\u0b6f\u0b71\u0b82-\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99-\u0b9a\u0b9c\u0b9e-\u0b9f\u0ba3-\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd0\u0bd7\u0be6-\u0bef\u0c00-\u0c03\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55-\u0c56\u0c58-\u0c59\u0c60-\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbc-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5-\u0cd6\u0cde\u0ce0-\u0ce3\u0ce6-\u0cef\u0cf1-\u0cf2\u0d01-\u0d03\u0d05-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d-\u0d44\u0d46-\u0d48\u0d4a-\u0d4e\u0d57\u0d60-\u0d63\u0d66-\u0d6f\u0d7a-\u0d7f\u0d82-\u0d83\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2-\u0df3\u0e01-\u0e3a\u0e40-\u0e4e\u0e50-\u0e59\u0e81-\u0e82\u0e84\u0e87-\u0e88\u0e8a\u0e8d\u0e94-\u0e97\u0e99-\u0e9f\u0ea1-\u0ea3\u0ea5\u0ea7\u0eaa-\u0eab\u0ead-\u0eb9\u0ebb-\u0ebd\u0ec0-\u0ec4\u0ec6\u0ec8-\u0ecd\u0ed0-\u0ed9\u0edc-\u0edf\u0f00\u0f18-\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e-\u0f47\u0f49-\u0f6c\u0f71-\u0f84\u0f86-\u0f97\u0f99-\u0fbc\u0fc6\u1000-\u1049\u1050-\u109d\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u135d-\u135f\u1369-\u1371\u1380-\u138f\u13a0-\u13f4\u1401-\u166c\u166f-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u170c\u170e-\u1714\u1720-\u1734\u1740-\u1753\u1760-\u176c\u176e-\u1770\u1772-\u1773\u1780-\u17d3\u17d7\u17dc-\u17dd\u17e0-\u17e9\u180b-\u180d\u1810-\u1819\u1820-\u1877\u1880-\u18aa\u18b0-\u18f5\u1900-\u191e\u1920-\u192b\u1930-\u193b\u1946-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u19d0-\u19da\u1a00-\u1a1b\u1a20-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1aa7\u1ab0-\u1abd\u1b00-\u1b4b\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1bf3\u1c00-\u1c37\u1c40-\u1c49\u1c4d-\u1c7d\u1cd0-\u1cd2\u1cd4-\u1cf6\u1cf8-\u1cf9\u1d00-\u1df5\u1dfc-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2000-\u200a\u200c-\u200d\u2028-\u2029\u202f\u203f-\u2040\u2054\u205f\u2071\u207f\u2090-\u209c\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2c2e\u2c30-\u2c5e\u2c60-\u2ce4\u2ceb-\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d7f-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u2de0-\u2dff\u3000\u3005-\u3007\u3021-\u302f\u3031-\u3035\u3038-\u303c\u3041-\u3096\u3099-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312d\u3131-\u318e\u31a0-\u31ba\u31f0-\u31ff\u3400-\u4db5\u4e00-\u9fcc\ua000-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua62b\ua640-\ua66f\ua674-\ua67d\ua67f-\ua69d\ua69f-\ua6f1\ua717-\ua71f\ua722-\ua788\ua78b-\ua78e\ua790-\ua7ad\ua7b0-\ua7b1\ua7f7-\ua827\ua840-\ua873\ua880-\ua8c4\ua8d0-\ua8d9\ua8e0-\ua8f7\ua8fb\ua900-\ua92d\ua930-\ua953\ua960-\ua97c\ua980-\ua9c0\ua9cf-\ua9d9\ua9e0-\ua9fe\uaa00-\uaa36\uaa40-\uaa4d\uaa50-\uaa59\uaa60-\uaa76\uaa7a-\uaac2\uaadb-\uaadd\uaae0-\uaaef\uaaf2-\uaaf6\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab5f\uab64-\uab65\uabc0-\uabea\uabec-\uabed\uabf0-\uabf9\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40-\ufb41\ufb43-\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe00-\ufe0f\ufe20-\ufe2d\ufe33-\ufe34\ufe4d-\ufe4f\ufe70-\ufe74\ufe76-\ufefc\ufeff\uff10-\uff19\uff21-\uff3a\uff3f\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc]*$`,
+    "u"
+);
+
 /**
  * The last used ID for a temporary variable from the console.
  *
- * @type {bigint}
- *
  * @default 0n
  */
-var __console_last_temp_variable_id__: bigint = 0n;
+var __console_last_temp_variable_id__ = 0n;
 
 /**
  * The last used ID for a console expansion arrow.
  *
- * @type {bigint}
- *
  * @default 0n
  */
-var consoleExpansionArrowID: bigint = 0n;
+var consoleExpansionArrowID = 0n;
+
+/**
+ * Stringifies a symbol if it is not unique (eg. `Symbol.toStringTag` or `Symbol.for("foo")`).
+ *
+ * If the symbol is unique, it returns `undefined`.
+ */
+function stringifyNonUniqueSymbol(symbol: symbol): string | undefined {
+    if (Symbol.keyFor(symbol) !== undefined) return `Symbol.for(${JSON.stringify(Symbol.keyFor(symbol))})`;
+    const wellKnownSymbol = Object.getOwnPropertyNames(Symbol).find(
+        (key) => typeof Symbol[key as keyof typeof Symbol] === "symbol" && symbol === Symbol[key as keyof typeof Symbol]
+    );
+    if (wellKnownSymbol !== undefined) {
+        return propertyIdentifierRegex.test(wellKnownSymbol) ? `Symbol.${wellKnownSymbol}` : `Symbol[${JSON.stringify(wellKnownSymbol)}]`;
+    }
+    return undefined;
+}
 
 /**
  * Creates a view for an expandable object for use in the console.
  *
- * @param {Record<PropertyKey, any>} obj The object to create a view for.
- * @param {boolean} [isRoot=false] Whether the object is the root object. Defaults to `false`.
- * @param {boolean} [forceObjectMode=false] Whether to force the value into object mode. Defaults to `false`.
- * @param {{ summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; displayKey?: string | undefined; objectKeysSource?: Record<PropertyKey, any> | undefined; copyConsoleMessageStackCallback?: (() => void) | undefined; copyConsoleMessageStackButtonEnabled?: boolean | undefined; showReadonly?: boolean | undefined }} [options] The options for creating the view.
- * @returns {HTMLDivElement} The view for the object.
+ * @param obj The object to create a view for.
+ * @param isRoot Whether the object is the root object. Defaults to `false`.
+ * @param forceObjectMode Whether to force the value into object mode. Defaults to `false`.
+ * @param options The options for creating the view.
+ * @returns The view for the object.
  */
 function createExpandableObjectView(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required to allow passing any object/function.
     obj: Record<PropertyKey, any>,
-    isRoot: boolean = false,
-    forceObjectMode: boolean = false,
+    isRoot = false,
+    forceObjectMode = false,
     options?: {
         summaryValueOverride?: string | undefined;
         summaryValueOverride_toStringTag?: string | undefined;
         displayKey?: string | undefined;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required to allow passing any object/function.
         objectKeysSource?: Record<PropertyKey, any> | undefined;
-        copyConsoleMessageStackCallback?: (() => void) | undefined;
+        copyConsoleMessageStackCallback?: (() => Promise<void> | void) | undefined;
         copyConsoleMessageStackButtonEnabled?: boolean | undefined;
         showReadonly?: boolean | undefined;
+        currentPath?: PropertyKey[] | undefined;
+        currentDisplayedPath?: string[] | undefined;
+        /**
+         * @default
+         * isRoot && typeof obj === "function"
+         */
+        includeViewableToString?: boolean | undefined;
+        /**
+         * @default !isRoot
+         */
+        hideSummaryValueWhenExpanded?: boolean | undefined;
+        preSummaryHTML?: string | { collapsed?: string | undefined; expanded?: string | undefined } | undefined;
     }
 ): HTMLDivElement {
     const arrowID = (consoleExpansionArrowID++).toString(36);
@@ -2700,18 +4590,7 @@ function createExpandableObjectView(
     summary.textContent = JSONBConsole.stringify(
         //@ts-ignore
         isCoherentArrayProxy ? Array.from(obj) : obj,
-        (key, value) => {
-            try {
-                if (
-                    typeof value === "object" &&
-                    obj?.constructor?.name === "CoherentArrayProxy" &&
-                    obj?.constructor?.constructor?.name === "CoherentArrayProxy"
-                ) {
-                    return Array.from(value);
-                }
-            } catch {}
-            return value;
-        },
+        coherentArrayProxyToArrayReplacer,
         4,
         {
             bigint: true,
@@ -2725,79 +4604,136 @@ function createExpandableObjectView(
             class: false,
             includeProtoValues: false,
         },
-        5,
-        2
+        { maxLength: 1000, maxDepth: 1, inlineArrays: true, inlineObjects: true, maxPropertyCount: 5, maxLineCount: 5 }
     );
     if (options?.summaryValueOverride) {
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
-        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
-            options.displayKey ? `${options.displayKey}: ` : ""
-        }${
-            options.summaryValueOverride_toStringTag
-                ? `<i style="display: inline; font-style: italic;">${options.summaryValueOverride_toStringTag
-                      .replaceAll("<", "&lt;")
-                      .replaceAll(">", "&gt;")}</i> `
-                : ""
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${
+            arrowID
+        }"><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        }" class="summaryCollapsed">${
+            typeof options.preSummaryHTML === "object" ? (options.preSummaryHTML?.collapsed ?? "") : (options.preSummaryHTML ?? "")
+        }${options.displayKey ? `${options.displayKey}: ` : ""}${
+            options.summaryValueOverride_toStringTag ?
+                `<i style="display: inline; font-style: italic;">${options.summaryValueOverride_toStringTag
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")}</i> `
+            :   ""
         }${options.summaryValueOverride
             .replaceAll("<", "&lt;")
             .replaceAll(">", "&gt;")
-            .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`)}</span>`;
-    } else if (obj?.[Symbol.toStringTag]) {
+            .replaceAll("\n", "<br />")}</p><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        } display: none;" class="summaryExpanded">${
+            typeof options.preSummaryHTML === "object" ? (options.preSummaryHTML?.expanded ?? "") : (options.preSummaryHTML ?? "")
+        }}${
+            options.displayKey ? `${options.displayKey}:${options.summaryValueOverride_toStringTag ? " " : ""}` : ""
+        }${options.summaryValueOverride_toStringTag ? `${options.summaryValueOverride_toStringTag.replaceAll("<", "&lt;").replaceAll(">", "&gt;")}` : ""}</p>`;
+    } else if (
+        // HACK: Make this actually handle if accessing the constructor/constructor name or Symbol.toStringTag throws an error.
+        typeof obj?.[Symbol.toStringTag] === "string" &&
+        (typeof obj !== "function" ||
+            (obj as AnyFunction & { [Symbol.toStringTag]: string })[Symbol.toStringTag] !== obj.constructor?.name ||
+            ![
+                Function,
+                /* eslint-disable @typescript-eslint/no-empty-function */
+                (async (): Promise<void> => {}).constructor,
+                function* _(): unknown {}.constructor,
+                async function* _(): unknown {}.constructor,
+                /* eslint-enable @typescript-eslint/no-empty-function */
+            ].includes(obj.constructor))
+    ) {
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
-        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${
+            arrowID
+        }"><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        }" class="summaryCollapsed">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.collapsed ?? "") : (options?.preSummaryHTML ?? "")
+        }${
             options?.displayKey ? `${options.displayKey}: ` : ""
         }<i style="display: inline; font-style: italic;">${String(obj[Symbol.toStringTag]).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
-            summary.textContent
-                ?.replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
-        }</span>`;
-    } else if (obj?.constructor?.name && obj.constructor !== Array && obj.constructor !== Object) {
+            summary.textContent?.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br />") ?? "MISSING CONTENTS"
+        }</p><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        } display: none;" class="summaryExpanded">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.expanded ?? "") : (options?.preSummaryHTML ?? "")
+        }${options?.displayKey ? `${options.displayKey}: ` : ""}${String(obj[Symbol.toStringTag]).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</p>`;
+    } else if (
+        obj?.constructor?.name &&
+        (typeof obj !== "object" || (obj.constructor !== Array && obj.constructor !== Object)) &&
+        (typeof obj !== "function" ||
+            ![
+                Function,
+                /* eslint-disable @typescript-eslint/no-empty-function */
+                (async (): Promise<void> => {}).constructor,
+                function* _(): unknown {}.constructor,
+                async function* _(): unknown {}.constructor,
+                /* eslint-enable @typescript-eslint/no-empty-function */
+            ].includes(obj.constructor))
+    ) {
+        // TODO (IMPORTANT): Copy these changes to the other versions.
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
-        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
-            options?.displayKey ? `${options.displayKey}: ` : ""
-        }<i style="display: inline; font-style: italic;">${String(obj.constructor.name).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</i> ${
-            summary.textContent
-                ?.replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
-        }</span>`;
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${
+            arrowID
+        }"><p${isRoot ? " cohinline" : ""} style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis; overflow-wrap: anywhere; flex-shink: 1; flex-direction: row;"
+        }" class="summaryCollapsed">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.collapsed ?? "") : (options?.preSummaryHTML ?? "")
+        }${options?.displayKey ? `${options.displayKey}: ` : ""}<i style="display: inline; font-style: italic;">${String(obj.constructor.name)
+            .replaceAll("<", "&lt;")
+            .replaceAll(
+                ">",
+                "&gt;"
+            )}</i>&nbsp;<span style="margin: 0; white-space: pre; overflow: hidden; text-overflow: ellipsis; flex-shrink: 1; min-width: 0px; flex-direction: column;">${
+            summary.textContent?.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br />") ?? "MISSING CONTENTS"
+        }</span></p><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""}; display: none;" class="summaryExpanded">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.expanded ?? "") : (options?.preSummaryHTML ?? "")
+        }${options?.displayKey ? `${options.displayKey}: ` : ""}${String(obj.constructor.name).replaceAll("<", "&lt;").replaceAll(">", "&gt;")}</p>`;
     } else {
         summary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: ${
             isRoot ? 0 : -22
-        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}"><span style="display: inline; white-space: pre-wrap;">${
-            options?.displayKey ? `${options.displayKey}: ` : ""
-        }${
-            summary.textContent
-                ?.replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll("\n", `</span><span style="/* display: inline; */ white-space: pre-wrap;">`) ?? "MISSING CONTENTS"
-        }</span>`;
+        }px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${
+            arrowID
+        }"><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        }" class="summaryCollapsed">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.collapsed ?? "") : (options?.preSummaryHTML ?? "")
+        }${options?.displayKey ? `${options.displayKey}: ` : ""}${
+            summary.textContent?.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br />") ?? "MISSING CONTENTS"
+        }</p><p cohinline style="margin: 0; display: inline; white-space: pre${isRoot ? "-wrap" : ""};${
+            isRoot ? "" : " overflow: hidden; text-overflow: ellipsis;"
+        } display: none;" class="summaryExpanded">${
+            typeof options?.preSummaryHTML === "object" ? (options.preSummaryHTML?.expanded ?? "") : (options?.preSummaryHTML ?? "")
+        }${options?.displayKey ? `${options.displayKey}:` : ""}</p>`;
     }
-    const evaluatedUponFirstExpandingInfo = document.createElement("div");
-    evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
-    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
-    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
-    evaluatedUponFirstExpandingInfoIcon.style =
-        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
-    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
-        evaluatedUponFirstExpandingInfoText.style.display = "inline";
-    });
-    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
-        evaluatedUponFirstExpandingInfoText.style.display = "none";
-    });
-    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
-    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
-    evaluatedUponFirstExpandingInfoText.style =
-        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
-    evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
-    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
-    //@ts-ignore
-    summary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
+    for (const targetSummaryElement of [summary.querySelector(".summaryCollapsed"), summary.querySelector(".summaryExpanded")]) {
+        if (!(targetSummaryElement instanceof HTMLElement)) continue;
+        const evaluatedUponFirstExpandingInfo: HTMLDivElement = document.createElement("div");
+        evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+        evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+        const evaluatedUponFirstExpandingInfoIcon: HTMLImageElement = document.createElement("img");
+        evaluatedUponFirstExpandingInfoIcon.style =
+            "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+        evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", (): void => {
+            evaluatedUponFirstExpandingInfoText.style.display = "inline";
+        });
+        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", (): void => {
+            evaluatedUponFirstExpandingInfoText.style.display = "none";
+        });
+        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+        const evaluatedUponFirstExpandingInfoText: HTMLSpanElement = document.createElement("span");
+        evaluatedUponFirstExpandingInfoText.style =
+            "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+        evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+        targetSummaryElement.appendChild(evaluatedUponFirstExpandingInfo);
+    }
     summary.style.cursor = "pointer";
     summary.style.display = "block";
     if (isRoot) {
@@ -2809,31 +4745,77 @@ function createExpandableObjectView(
             width: 400,
             height: 600,
             items: [
-                {
-                    label: "Copy property path",
-                    action() {
-                        console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
-                    },
-                    disabled: true,
-                },
+                ...(isRoot && !options?.currentPath?.length ?
+                    []
+                :   [
+                        {
+                            label: "Copy property path",
+                            action(): void {
+                                if (!options?.currentPath?.length) {
+                                    console.error("The property path could not be copied to the clipboard as it is not available.");
+                                    return;
+                                }
+                                copyTextToClipboardAsync(
+                                    options.currentPath
+                                        .map((v, i) => {
+                                            if (typeof v === "symbol") {
+                                                const nonUniqueSymbolAccessor = stringifyNonUniqueSymbol(v);
+                                                if (nonUniqueSymbolAccessor) {
+                                                    return `[${nonUniqueSymbolAccessor}]`;
+                                                }
+                                            }
+                                            return (
+                                                propertyIdentifierRegex.test(String(v)) ?
+                                                    i ? `.${String(v)}`
+                                                    :   String(v)
+                                                :   `[${JSON.stringify(String(v))}]`
+                                            );
+                                        })
+                                        .join("")
+                                ).catch((reason: unknown): void => {
+                                    console.error(new Error(`[8CrafterConsole::Copy property path] An error occured while copying to the clipboard.`), reason);
+                                });
+                            },
+                            disabled: !options?.currentPath?.length,
+                        } satisfies ContextMenuItemCreationOptions,
+                    ]),
+                ...(obj instanceof Error ?
+                    [
+                        {
+                            label: "Copy error stack",
+                            async action(): Promise<void> {
+                                if (!obj.stack) {
+                                    console.error("The error stack could not be copied to the clipboard as it is not available.");
+                                    return;
+                                }
+                                const stack = mapStackWithTS(obj.stack);
+                                await copyTextToClipboardAsync(stack.hasUnloadedStacks ? await stack.fullyLoadedStack : stack.stack);
+                            },
+                            title: "test title",
+                            disabled: !obj.stack,
+                        } satisfies ContextMenuItemCreationOptions,
+                    ]
+                :   []),
                 {
                     label: "Copy object",
-                    action() {
+                    action(): void {
                         console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
                     },
                     disabled: true,
                 },
                 {
                     label: "Copy object as JSON literal",
-                    action() {
-                        copyTextToClipboardAsync(JSON.stringify(obj, null, 4));
+                    action(): void {
+                        copyTextToClipboardAsync(JSON.stringify(obj, coherentArrayProxyToArrayReplacer, 4)).catch((reason: unknown): void => {
+                            console.error(new Error(`[8CrafterConsole::Copy object as JSON literal] An error occured while copying to the clipboard.`), reason);
+                        });
                     },
                 },
                 {
                     label: "Copy object as JSONB literal",
-                    action() {
+                    action(): void {
                         copyTextToClipboardAsync(
-                            JSONB.stringify(obj, null, 4, {
+                            JSONB.stringify(obj, coherentArrayProxyToArrayReplacer, 4, {
                                 bigint: true,
                                 undefined: true,
                                 Infinity: true,
@@ -2843,13 +4825,19 @@ function createExpandableObjectView(
                                 set: false,
                                 function: true,
                                 class: false, // IDEA: Add a button to copy with getters and setters.
+                                symbol: true,
                             })
-                        );
+                        ).catch((reason: unknown): void => {
+                            console.error(
+                                new Error(`[8CrafterConsole::Copy object as JSONB literal] An error occured while copying to the clipboard.`),
+                                reason
+                            );
+                        });
                     },
                 },
                 {
                     label: "Copy object as JSON literal (+non-enumerable)",
-                    action() {
+                    action(): void {
                         copyTextToClipboardAsync(
                             JSON.stringify(
                                 Object.fromEntries(
@@ -2858,15 +4846,20 @@ function createExpandableObjectView(
                                         obj[key],
                                     ])
                                 ),
-                                null,
+                                coherentArrayProxyToArrayReplacer,
                                 4
                             )
-                        );
+                        ).catch((reason: unknown): void => {
+                            console.error(
+                                new Error(`[8CrafterConsole::Copy object as JSON literal (+non-enumerable)] An error occured while copying to the clipboard.`),
+                                reason
+                            );
+                        });
                     },
                 },
                 {
                     label: "Copy object as JSONB literal (+non-enumerable)",
-                    action() {
+                    action(): void {
                         copyTextToClipboardAsync(
                             JSONB.stringify(
                                 Object.fromEntries(
@@ -2875,7 +4868,7 @@ function createExpandableObjectView(
                                         obj[key],
                                     ])
                                 ),
-                                null,
+                                coherentArrayProxyToArrayReplacer,
                                 4,
                                 {
                                     bigint: true,
@@ -2887,9 +4880,15 @@ function createExpandableObjectView(
                                     set: false,
                                     function: true,
                                     class: false, // IDEA: Add a button to copy with getters and setters.
+                                    symbol: true,
                                 }
                             )
-                        );
+                        ).catch((reason: unknown): void => {
+                            console.error(
+                                new Error(`[8CrafterConsole::Copy object as JSONB literal (+non-enumerable)] An error occured while copying to the clipboard.`),
+                                reason
+                            );
+                        });
                     },
                 },
                 {
@@ -2897,8 +4896,8 @@ function createExpandableObjectView(
                 },
                 {
                     label: "Store as global variable",
-                    action() {
-                        while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                    action(): void {
+                        while (`temp${++__console_last_temp_variable_id__}` in window);
                         window[`temp${__console_last_temp_variable_id__}`] = obj;
                         displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
                     },
@@ -2931,7 +4930,7 @@ function createExpandableObjectView(
             if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
             }
             clickStartTime = null;
         });
@@ -2939,7 +4938,7 @@ function createExpandableObjectView(
             if (event.button !== 2) return;
             event.preventDefault();
             event.stopImmediatePropagation();
-            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
         });
     }
     container.appendChild(summary);
@@ -2954,10 +4953,22 @@ function createExpandableObjectView(
                 } catch (e) {
                     console.error(e);
                 }
-                //@ts-ignore
-                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+
+                if (options?.hideSummaryValueWhenExpanded ?? !isRoot) {
+                    (summary.getElementsByClassName("summaryCollapsed")[0] as HTMLElement).style.display = "none";
+                    (summary.getElementsByClassName("summaryExpanded")[0] as HTMLElement).style.display = "";
+                }
+
+                (
+                    summary.getElementsByClassName("summaryCollapsed")[0]!.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement
+                ).style.display = "inline";
+                (
+                    summary.getElementsByClassName("summaryExpanded")[0]!.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement
+                ).style.display = "inline";
                 const details = document.createElement("div");
                 details.classList.add("console-value-details");
+                // const t = Date.now(); // DEBUG
+                // while (t + 50 > Date.now()); // DEBUG
                 /**
                  * @type {(string | number | symbol | { displayName: string; key: string } | { displayName: string; objectKeysSource: Record<PropertyKey, any>; summaryValueOverride?: string | undefined; summaryValueOverride_toStringTag?: string | undefined; propertyName?: string | undefined })[]}
                  */
@@ -2968,10 +4979,11 @@ function createExpandableObjectView(
                     | { displayName: string; key: string }
                     | {
                           displayName: string;
-                          objectKeysSource: Record<PropertyKey, any>;
+                          objectKeysSource: object;
                           summaryValueOverride?: string | undefined;
                           summaryValueOverride_toStringTag?: string | undefined;
                           propertyName?: string | undefined;
+                          hideSummaryValueWhenExpanded?: boolean | undefined;
                       }
                 )[] = [
                     ...new Set([
@@ -2997,36 +5009,44 @@ function createExpandableObjectView(
                         ...Object.getOwnPropertySymbols(options?.objectKeysSource ?? obj),
                     ]),
                 ];
-                if ((options?.objectKeysSource ?? obj)?.__proto__)
+                if ((options?.objectKeysSource ?? obj)?.__proto__ || Object.getPrototypeOf(options?.objectKeysSource ?? obj)) {
                     keys.push({
                         displayName: "[[Prototype]]",
-                        objectKeysSource: (options?.objectKeysSource ?? obj).__proto__,
+                        objectKeysSource:
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is necessary as in some native objects, __proto__ returns an empty string.
+                            (options?.objectKeysSource ?? obj).__proto__ || (Object.getPrototypeOf(options?.objectKeysSource ?? obj) as object),
                         summaryValueOverride:
-                            (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj) ? "Object" : "circular reference",
+                            (
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is necessary as in some native objects, __proto__ returns an empty string
+                                ((options?.objectKeysSource ?? obj).__proto__ || (Object.getPrototypeOf(options?.objectKeysSource ?? obj) as object)) !==
+                                (options?.objectKeysSource ?? obj)
+                            ) ?
+                                ((
+                                    (options?.objectKeysSource ?? obj).__proto__ || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- This is necessary as in some native objects, __proto__ returns an empty string
+                                    (Object.getPrototypeOf(options?.objectKeysSource ?? obj) as object)
+                                )?.constructor?.name ?? "Object")
+                            :   "circular reference",
                         propertyName: "__proto__",
+                        hideSummaryValueWhenExpanded: false,
                     });
+                }
                 for (const keyRaw of keys) {
                     /**
-                     * @type {PropertyKey | Extract<typeof keys[number], { objectKeysSource: Record<PropertyKey, any> }>}
+                     * @type {PropertyKey | Extract<typeof keys[number], { objectKeysSource: object }>}
                      */
-                    //@ts-ignore
-                    const key: PropertyKey | Extract<(typeof keys)[number], { objectKeysSource: Record<PropertyKey, any> }> = [
-                        "number",
-                        "string",
-                        "symbol",
-                    ].includes(typeof keyRaw)
-                        ? keyRaw
-                        : "objectKeysSource" in <object>keyRaw
-                        ? (keyRaw as Extract<typeof keyRaw, { objectKeysSource: any }>)
-                        : (keyRaw as Exclude<Extract<typeof keyRaw, object>, { objectKeysSource: any }>).key;
+                    const key: PropertyKey | Extract<(typeof keys)[number], { objectKeysSource: object }> =
+                        ["number", "string", "symbol"].includes(typeof keyRaw) ? (keyRaw as string | number | symbol)
+                        : "objectKeysSource" in (keyRaw as object) ? (keyRaw as Extract<typeof keyRaw, { objectKeysSource: object }>)
+                        : (keyRaw as Exclude<Extract<typeof keyRaw, object>, { objectKeysSource: object }>).key;
                     /**
                      * @type {string}
                      */
-                    const displayName: string = ["number", "string", "symbol"].includes(typeof keyRaw)
-                        ? keyRaw.toString()
+                    const displayName: string =
+                        ["number", "string"].includes(typeof keyRaw) ? (keyRaw as string | number).toString()
+                        : typeof keyRaw === "symbol" ? keyRaw.toString()
                         : (keyRaw as Extract<typeof keyRaw, object>).displayName;
                     const item = document.createElement("div");
-                    item.style.marginLeft = "44px";
+                    item.style.marginLeft = isRoot ? "44px" : "22px";
                     try {
                         if (typeof key === "object") {
                             const expandableObjectView = createExpandableObjectView(obj, false, false, {
@@ -3036,8 +5056,13 @@ function createExpandableObjectView(
                                 copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
                                 copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
                                 showReadonly: options?.showReadonly,
+                                currentPath: options?.currentPath,
+                                currentDisplayedPath: options?.currentDisplayedPath?.concat(displayName),
+                                hideSummaryValueWhenExpanded: key.hideSummaryValueWhenExpanded,
+                                displayKey: displayName,
                             });
-                            expandableObjectView!.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // expandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // expandableObjectView.children[0]!.children[2]!.insertAdjacentText("afterbegin", `${displayName}: `);
                             item.appendChild(expandableObjectView);
                             /**
                              * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
@@ -3046,57 +5071,77 @@ function createExpandableObjectView(
                                 width: 400,
                                 height: 600,
                                 items: [
-                                    {
+                                    /* {
                                         label: "Copy property path",
-                                        action() {
-                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        action(): void {
+                                            if (!options?.currentPath) {
+                                                console.error("The property path could not be copied to the clipboard as it is not available.");
+                                                return;
+                                            }
+                                            copyTextToClipboardAsync(
+                                                options.currentPath
+                                                    .concat(key)
+                                                    .map((v, i) =>
+                                                        propertyIdentifierRegex.test(String(v)) ? (i ? "." + String(v) : String(v)) : `[${JSON.stringify(String(v))}]`
+                                                    )
+                                                    .join("")
+                                            );
                                         },
                                         disabled: true,
-                                    },
+                                    }, */
                                     {
                                         label: "Copy object",
-                                        action() {
+                                        action(): void {
                                             console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
                                         },
                                         disabled: true,
                                     },
                                     {
                                         label: "Copy object as JSON literal",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSON.stringify(
                                                     Object.fromEntries(
                                                         Object.keys(key.objectKeysSource).map((key) => [
                                                             key,
-                                                            (() => {
+                                                            ((): unknown => {
                                                                 try {
                                                                     return obj[key];
                                                                 } catch {}
+                                                                return;
                                                             })(),
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSON literal] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy object as JSONB literal",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSONB.stringify(
                                                     Object.fromEntries(
                                                         Object.keys(key.objectKeysSource).map((key) => [
                                                             key,
-                                                            (() => {
+                                                            ((): unknown => {
                                                                 try {
                                                                     return obj[key];
                                                                 } catch {}
+                                                                return;
                                                             })(),
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4,
                                                     {
                                                         bigint: true,
@@ -3108,14 +5153,22 @@ function createExpandableObjectView(
                                                         set: false,
                                                         function: true,
                                                         class: false, // IDEA: Add a button to copy with getters and setters.
+                                                        symbol: true,
                                                     }
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSONB literal] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy object as JSON literal (+non-enumerable)",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSON.stringify(
                                                     Object.fromEntries(
@@ -3126,25 +5179,33 @@ function createExpandableObjectView(
                                                                 ...Object.getOwnPropertySymbols(key.objectKeysSource),
                                                             ]),
                                                         ].map((key) => [
-                                                            typeof key === "symbol"
-                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
-                                                                : key,
-                                                            (() => {
+                                                            typeof key === "symbol" ?
+                                                                `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                            :   key,
+                                                            ((): unknown => {
                                                                 try {
                                                                     return obj[key];
                                                                 } catch {}
+                                                                return;
                                                             })(),
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSON literal (+non-enumerable)] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy object as JSONB literal (+non-enumerable)",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSONB.stringify(
                                                     Object.fromEntries(
@@ -3155,17 +5216,18 @@ function createExpandableObjectView(
                                                                 ...Object.getOwnPropertySymbols(key.objectKeysSource),
                                                             ]),
                                                         ].map((key) => [
-                                                            typeof key === "symbol"
-                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
-                                                                : key,
-                                                            (() => {
+                                                            typeof key === "symbol" ?
+                                                                `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${key.toString()}__`
+                                                            :   key,
+                                                            ((): unknown => {
                                                                 try {
                                                                     return obj[key];
                                                                 } catch {}
+                                                                return;
                                                             })(),
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4,
                                                     {
                                                         bigint: true,
@@ -3177,9 +5239,17 @@ function createExpandableObjectView(
                                                         set: false,
                                                         function: true,
                                                         class: false, // IDEA: Add a button to copy with getters and setters.
+                                                        symbol: true,
                                                     }
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSONB literal (+non-enumerable)] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
@@ -3187,8 +5257,8 @@ function createExpandableObjectView(
                                     },
                                     {
                                         label: "Store as global variable",
-                                        action() {
-                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
+                                        action(): void {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window);
                                             window[`temp${__console_last_temp_variable_id__}`] = key.objectKeysSource;
                                             displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
                                         },
@@ -3209,44 +5279,55 @@ function createExpandableObjectView(
                              * @type {number | null}
                              */
                             let clickStartTime: number | null = null;
-                            item.addEventListener("mousedown", (event) => {
+                            item.addEventListener("mousedown", (event): void => {
                                 if (event.button !== 0) return;
                                 clickStartTime = Date.now();
                             });
                             item.addEventListener("mouseleave", () => {
                                 clickStartTime = null;
                             });
-                            item.addEventListener("click", (event) => {
+                            item.addEventListener("click", (event): void => {
                                 if (event.button !== 0) return;
                                 if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                                     event.preventDefault();
                                     event.stopImmediatePropagation();
-                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                    setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 }
                                 clickStartTime = null;
                             });
-                            item.addEventListener("mouseup", (event) => {
+                            item.addEventListener("mouseup", (event): void => {
                                 if (event.button !== 2) return;
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
-                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
                             });
                         } else if (forceObjectMode || (typeof obj[key] === "object" && obj[key] !== null) /*  || typeof obj[key] === "function" */) {
-                            const expandableObjectView = createExpandableObjectView(obj[key], undefined, undefined, {
+                            let preSummaryHTML: string | undefined;
+                            if (options?.showReadonly) {
+                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                                    preSummaryHTML = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;${preSummaryHTML ?? ""}`;
+                                }
+                            }
+                            const expandableObjectView = createExpandableObjectView(obj[key] as object, undefined, undefined, {
                                 copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
                                 copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
                                 showReadonly: options?.showReadonly,
+                                currentPath: options?.currentPath?.concat(key),
+                                currentDisplayedPath: options?.currentDisplayedPath?.concat(displayName),
+                                displayKey: displayName,
+                                preSummaryHTML,
                             });
-                            expandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
-                            if (options?.showReadonly) {
-                                if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
-                                    expandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
-                                        "afterbegin",
-                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                    );
-                                }
-                            }
+                            // expandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // expandableObjectView.children[0]!.children[2]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // if (options?.showReadonly) {
+                            //     if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                            //         expandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
+                            //             "afterbegin",
+                            //             `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //         );
+                            //     }
+                            // }
                             item.appendChild(expandableObjectView);
                             /**
                              * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
@@ -3257,29 +5338,77 @@ function createExpandableObjectView(
                                 items: [
                                     {
                                         label: "Copy property path",
-                                        action() {
-                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        action(): void {
+                                            if (!options?.currentPath) {
+                                                console.error("The property path could not be copied to the clipboard as it is not available.");
+                                                return;
+                                            }
+                                            copyTextToClipboardAsync(
+                                                options.currentPath
+                                                    .concat(key)
+                                                    .map((v, i) => {
+                                                        if (typeof v === "symbol") {
+                                                            const nonUniqueSymbolAccessor = stringifyNonUniqueSymbol(v);
+                                                            if (nonUniqueSymbolAccessor) {
+                                                                return `[${nonUniqueSymbolAccessor}]`;
+                                                            }
+                                                        }
+                                                        return (
+                                                            propertyIdentifierRegex.test(String(v)) ?
+                                                                i ? `.${String(v)}`
+                                                                :   String(v)
+                                                            :   `[${JSON.stringify(String(v))}]`
+                                                        );
+                                                    })
+                                                    .join("")
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(`[8CrafterConsole::Copy property path] An error occured while copying to the clipboard.`),
+                                                    reason
+                                                );
+                                            });
                                         },
-                                        disabled: true,
+                                        disabled: !options?.currentPath,
                                     },
+                                    ...(typeof key === "symbol" ?
+                                        [
+                                            {
+                                                label: "Store key symbol as global variable",
+                                                action(): void {
+                                                    while (`temp${++__console_last_temp_variable_id__}` in window);
+                                                    window[`temp${__console_last_temp_variable_id__}`] = key;
+                                                    displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                                },
+                                            } satisfies ContextMenuItemCreationOptions,
+                                        ]
+                                    :   []),
                                     {
                                         label: "Copy object",
-                                        action() {
+                                        action(): void {
                                             console.error(new Error("[8CrafterConsole::Copy object] Not yet implemented."));
                                         },
                                         disabled: true,
                                     },
                                     {
                                         label: "Copy object as JSON literal",
-                                        action() {
-                                            copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
+                                        action(): void {
+                                            copyTextToClipboardAsync(JSON.stringify(obj[key], coherentArrayProxyToArrayReplacer, 4)).catch(
+                                                (reason: unknown): void => {
+                                                    console.error(
+                                                        new Error(
+                                                            `[8CrafterConsole::Copy object as JSON literal] An error occured while copying to the clipboard.`
+                                                        ),
+                                                        reason
+                                                    );
+                                                }
+                                            );
                                         },
                                     },
                                     {
                                         label: "Copy object as JSONB literal",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
-                                                JSONB.stringify(obj[key], null, 4, {
+                                                JSONB.stringify(obj[key], coherentArrayProxyToArrayReplacer, 4, {
                                                     bigint: true,
                                                     undefined: true,
                                                     Infinity: true,
@@ -3289,55 +5418,70 @@ function createExpandableObjectView(
                                                     set: false,
                                                     function: true,
                                                     class: false, // IDEA: Add a button to copy with getters and setters.
+                                                    symbol: true,
                                                 })
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSONB literal] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy object as JSON literal (+non-enumerable)",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSON.stringify(
                                                     Object.fromEntries(
                                                         [
                                                             ...new Set([
-                                                                ...Object.keys(obj[key]),
+                                                                ...Object.keys(obj[key] as object),
                                                                 ...Object.getOwnPropertyNames(obj[key]),
                                                                 ...Object.getOwnPropertySymbols(obj[key]),
                                                             ]),
                                                         ].map((objKey) => [
-                                                            typeof objKey === "symbol"
-                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
-                                                                : objKey,
-                                                            obj[key][objKey],
+                                                            typeof objKey === "symbol" ?
+                                                                `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                            :   objKey,
+                                                            (obj[key] as Record<PropertyKey, unknown>)[objKey],
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSON literal (+non-enumerable)] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy object as JSONB literal (+non-enumerable)",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSONB.stringify(
                                                     Object.fromEntries(
                                                         [
                                                             ...new Set([
-                                                                ...Object.keys(obj[key]),
+                                                                ...Object.keys(obj[key] as object),
                                                                 ...Object.getOwnPropertyNames(obj[key]),
                                                                 ...Object.getOwnPropertySymbols(obj[key]),
                                                             ]),
                                                         ].map((objKey) => [
-                                                            typeof objKey === "symbol"
-                                                                ? `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
-                                                                : objKey,
-                                                            obj[key][objKey],
+                                                            typeof objKey === "symbol" ?
+                                                                `$__SYMBOL_${Math.floor(Math.random() * 1000000)}_${objKey.toString()}__`
+                                                            :   objKey,
+                                                            (obj[key] as Record<PropertyKey, unknown>)[objKey],
                                                         ])
                                                     ),
-                                                    null,
+                                                    coherentArrayProxyToArrayReplacer,
                                                     4,
                                                     {
                                                         bigint: true,
@@ -3349,9 +5493,17 @@ function createExpandableObjectView(
                                                         set: false,
                                                         function: true,
                                                         class: false, // IDEA: Add a button to copy with getters and setters.
+                                                        symbol: true,
                                                     }
                                                 )
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy object as JSONB literal (+non-enumerable)] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
@@ -3359,9 +5511,9 @@ function createExpandableObjectView(
                                     },
                                     {
                                         label: "Store as global variable",
-                                        action() {
-                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
-                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                        action(): void {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window);
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key] as unknown;
                                             displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
                                         },
                                     },
@@ -3381,97 +5533,113 @@ function createExpandableObjectView(
                              * @type {number | null}
                              */
                             let clickStartTime: number | null = null;
-                            item.addEventListener("mousedown", (event) => {
+                            item.addEventListener("mousedown", (event): void => {
                                 if (event.button !== 0) return;
                                 clickStartTime = Date.now();
                             });
-                            item.addEventListener("mouseleave", () => {
+                            item.addEventListener("mouseleave", (): void => {
                                 clickStartTime = null;
                             });
-                            item.addEventListener("click", (event) => {
+                            item.addEventListener("click", (event): void => {
                                 if (event.button !== 0) return;
                                 if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                                     event.preventDefault();
                                     event.stopImmediatePropagation();
-                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                    setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 }
                                 clickStartTime = null;
                             });
-                            item.addEventListener("mouseup", (event) => {
+                            item.addEventListener("mouseup", (event): void => {
                                 if (event.button !== 2) return;
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
-                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
                             });
                         } else if (typeof obj[key] === "function") {
-                            const arrowID = (consoleExpansionArrowID++).toString(36);
-                            const funcSummary = document.createElement("span");
-                            let preSummaryLabelHTMLContent = "";
+                            // const arrowID = (consoleExpansionArrowID++).toString(36);
+                            // const funcSummary = document.createElement("span");
+                            // let preSummaryLabelHTMLContent = "";
+                            // if (options?.showReadonly) {
+                            //     if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                            //         preSummaryLabelHTMLContent = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`;
+                            //     }
+                            // }
+                            // funcSummary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}">${
+                            //     preSummaryLabelHTMLContent ?? ""
+                            // }<span style="display: inline; white-space: pre-wrap; display: none;" class="funcSummaryExpanded">${displayName}:</span><span style="display: inline; white-space: pre-wrap;" class="funcSummaryCollapsed">${displayName}: ${JSONBConsole.stringify(
+                            //     obj[key],
+                            //     coherentArrayProxyToArrayReplacer,
+                            //     4,
+                            //     {
+                            //         bigint: true,
+                            //         undefined: true,
+                            //         Infinity: true,
+                            //         NegativeInfinity: true,
+                            //         NaN: true,
+                            //         get: true,
+                            //         set: true,
+                            //         function: true,
+                            //         class: false,
+                            //         includeProtoValues: false,
+                            //     },
+                            //     { maxLength: 1000, maxDepth: 1 }
+                            // )
+                            //     .replaceAll("<", "&lt;")
+                            //     .replaceAll(">", "&gt;")
+                            //     .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
+                            // funcSummary.style.cursor = "pointer";
+                            // const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                            // evaluatedUponFirstExpandingInfo.style =
+                            //     "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                            // evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                            // const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                            // evaluatedUponFirstExpandingInfoIcon.style =
+                            //     "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                            // evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                            // evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                            //     evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                            // });
+                            // evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                            //     evaluatedUponFirstExpandingInfoText.style.display = "none";
+                            // });
+                            // evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                            // const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                            // evaluatedUponFirstExpandingInfoText.style =
+                            //     "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                            // evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+                            // evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                            // //@ts-ignore
+                            // funcSummary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
+                            // item.appendChild(funcSummary);
+                            let preSummaryHTML: string | undefined;
                             if (options?.showReadonly) {
                                 if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
-                                    preSummaryLabelHTMLContent = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`;
+                                    preSummaryHTML = `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;${preSummaryHTML ?? ""}`;
                                 }
                             }
-                            funcSummary.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowID}">${
-                                preSummaryLabelHTMLContent ?? ""
-                            }<span style="display: inline; white-space: pre-wrap;">${displayName}: ${JSONBConsole.stringify(
-                                obj[key],
-                                (key, value) => {
-                                    try {
-                                        if (
-                                            typeof value === "object" &&
-                                            obj?.constructor?.name === "CoherentArrayProxy" &&
-                                            obj?.constructor?.constructor?.name === "CoherentArrayProxy"
-                                        ) {
-                                            return Array.from(value);
-                                        }
-                                    } catch {}
-                                    return value;
-                                },
-                                4,
-                                {
-                                    bigint: true,
-                                    undefined: true,
-                                    Infinity: true,
-                                    NegativeInfinity: true,
-                                    NaN: true,
-                                    get: true,
-                                    set: true,
-                                    function: true,
-                                    class: false,
-                                    includeProtoValues: false,
-                                },
-                                5,
-                                1
-                            )
-                                .replaceAll("<", "&lt;")
-                                .replaceAll(">", "&gt;")
-                                .replaceAll("\n", `</span><span style="display: inline; white-space: pre-wrap;">`)}</span>`;
-                            funcSummary.style.cursor = "pointer";
-                            const evaluatedUponFirstExpandingInfo = document.createElement("div");
-                            evaluatedUponFirstExpandingInfo.style =
-                                "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
-                            evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
-                            const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
-                            evaluatedUponFirstExpandingInfoIcon.style =
-                                "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-                            evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
-                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
-                                evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                            const expandableObjectView = createExpandableObjectView(obj[key] as object, undefined, undefined, {
+                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                showReadonly: options?.showReadonly,
+                                currentPath: options?.currentPath?.concat(key),
+                                currentDisplayedPath: options?.currentDisplayedPath?.concat(displayName),
+                                includeViewableToString: true,
+                                hideSummaryValueWhenExpanded: false,
+                                displayKey: displayName,
+                                preSummaryHTML,
                             });
-                            evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
-                                evaluatedUponFirstExpandingInfoText.style.display = "none";
-                            });
-                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
-                            const evaluatedUponFirstExpandingInfoText = document.createElement("span");
-                            evaluatedUponFirstExpandingInfoText.style =
-                                "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
-                            evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
-                            evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
-                            //@ts-ignore
-                            funcSummary.lastChild.appendChild(evaluatedUponFirstExpandingInfo);
-                            item.appendChild(funcSummary);
+                            // expandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // expandableObjectView.children[0]!.children[2]!.insertAdjacentText("afterbegin", `${displayName}: `);
+                            // if (options?.showReadonly) {
+                            //     if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
+                            //         expandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
+                            //             "afterbegin",
+                            //             `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //         );
+                            //     }
+                            // }
+                            item.appendChild(expandableObjectView);
                             /**
                              * @type {Omit<ContextMenuCreationOptions, "x" | "y">}
                              */
@@ -3481,20 +5649,64 @@ function createExpandableObjectView(
                                 items: [
                                     {
                                         label: "Copy property path",
-                                        action() {
-                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        action(): void {
+                                            if (!options?.currentPath) {
+                                                console.error("The property path could not be copied to the clipboard as it is not available.");
+                                                return;
+                                            }
+                                            copyTextToClipboardAsync(
+                                                options.currentPath
+                                                    .concat(key)
+                                                    .map((v, i) => {
+                                                        if (typeof v === "symbol") {
+                                                            const nonUniqueSymbolAccessor = stringifyNonUniqueSymbol(v);
+                                                            if (nonUniqueSymbolAccessor) {
+                                                                return `[${nonUniqueSymbolAccessor}]`;
+                                                            }
+                                                        }
+                                                        return (
+                                                            propertyIdentifierRegex.test(String(v)) ?
+                                                                i ? `.${String(v)}`
+                                                                :   String(v)
+                                                            :   `[${JSON.stringify(String(v))}]`
+                                                        );
+                                                    })
+                                                    .join("")
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(`[8CrafterConsole::Copy property path] An error occured while copying to the clipboard.`),
+                                                    reason
+                                                );
+                                            });
                                         },
-                                        disabled: true,
+                                        disabled: !options?.currentPath,
                                     },
+                                    ...(typeof key === "symbol" ?
+                                        [
+                                            {
+                                                label: "Store key symbol as global variable",
+                                                action(): void {
+                                                    while (`temp${++__console_last_temp_variable_id__}` in window);
+                                                    window[`temp${__console_last_temp_variable_id__}`] = key;
+                                                    displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                                },
+                                            } satisfies ContextMenuItemCreationOptions,
+                                        ]
+                                    :   []),
                                     {
                                         label: "Copy stringified function",
-                                        action() {
-                                            copyTextToClipboardAsync(obj[key].toString());
+                                        action(): void {
+                                            copyTextToClipboardAsync((obj[key] as () => void).toString()).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(`[8CrafterConsole::Copy stringified function] An error occured while copying to the clipboard.`),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
                                         label: "Copy function as JSONB literal",
-                                        action() {
+                                        action(): void {
                                             copyTextToClipboardAsync(
                                                 JSONB.stringify(obj[key], null, 4, {
                                                     bigint: true,
@@ -3507,7 +5719,14 @@ function createExpandableObjectView(
                                                     function: true,
                                                     class: false, // IDEA: Add a button to copy with getters and setters.
                                                 })
-                                            );
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(
+                                                        `[8CrafterConsole::Copy function as JSONB literal] An error occured while copying to the clipboard.`
+                                                    ),
+                                                    reason
+                                                );
+                                            });
                                         },
                                     },
                                     {
@@ -3515,9 +5734,9 @@ function createExpandableObjectView(
                                     },
                                     {
                                         label: "Store as global variable",
-                                        action() {
-                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
-                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                        action(): void {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window);
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key] as unknown;
                                             displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
                                         },
                                     },
@@ -3537,193 +5756,257 @@ function createExpandableObjectView(
                              * @type {number | null}
                              */
                             let clickStartTime: number | null = null;
-                            funcSummary.addEventListener("mousedown", (event) => {
+                            item.addEventListener("mousedown", (event): void => {
                                 if (event.button !== 0) return;
                                 clickStartTime = Date.now();
                             });
-                            funcSummary.addEventListener("mouseleave", () => {
+                            item.addEventListener("mouseleave", (): void => {
                                 clickStartTime = null;
                             });
-                            funcSummary.addEventListener("click", (event) => {
+                            item.addEventListener("click", (event): void => {
                                 if (event.button !== 0) return;
                                 if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                                     event.preventDefault();
                                     event.stopImmediatePropagation();
-                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                    setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 }
                                 clickStartTime = null;
                             });
-                            funcSummary.addEventListener("mouseup", (event) => {
+                            item.addEventListener("mouseup", (event): void => {
                                 if (event.button !== 2) return;
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
-                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
                             });
+                            // /**
+                            //  * @type {number | null}
+                            //  */
+                            // let clickStartTime: number | null = null;
+                            // funcSummary.addEventListener("mousedown", (event) => {
+                            //     if (event.button !== 0) return;
+                            //     clickStartTime = Date.now();
+                            // });
+                            // funcSummary.addEventListener("mouseleave", () => {
+                            //     clickStartTime = null;
+                            // });
+                            // funcSummary.addEventListener("click", (event) => {
+                            //     if (event.button !== 0) return;
+                            //     if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
+                            //         event.preventDefault();
+                            //         event.stopImmediatePropagation();
+                            //         setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                            //     }
+                            //     clickStartTime = null;
+                            // });
+                            // funcSummary.addEventListener("mouseup", (event) => {
+                            //     if (event.button !== 2) return;
+                            //     event.preventDefault();
+                            //     event.stopImmediatePropagation();
+                            //     setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                            //     // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
+                            // });
 
-                            funcSummary.addEventListener("click", () => {
-                                if (event.defaultPrevented) return;
-                                if (funcSummary.nextSibling) {
-                                    //@ts-expect-error
-                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
-                                    //@ts-expect-error
-                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
-                                    funcSummary.nextSibling.remove();
-                                } else {
-                                    //@ts-expect-error
-                                    document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
-                                    //@ts-expect-error
-                                    funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
-                                    const funcDetails = document.createElement("div");
-                                    const funcName = document.createElement("div");
-                                    funcName.textContent = `name: ${obj[key].name}`;
-                                    funcName.style.marginLeft = "44px";
-                                    funcName.style.whiteSpace = "pre-wrap";
-                                    funcName.style.display = "inline";
-                                    if (options?.showReadonly) {
-                                        if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
-                                            funcName.insertAdjacentHTML(
-                                                "afterbegin",
-                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                            );
-                                        }
-                                    }
-                                    funcDetails.appendChild(funcName);
-                                    const funcLength = document.createElement("div");
-                                    funcLength.textContent = `length: ${obj[key].length}`;
-                                    funcLength.style.marginLeft = "44px";
-                                    funcName.style.whiteSpace = "pre-wrap";
-                                    // funcName.style.display = "inline"; // DEBUG
-                                    if (options?.showReadonly) {
-                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
-                                            funcLength.insertAdjacentHTML(
-                                                "afterbegin",
-                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                            );
-                                        }
-                                    }
-                                    funcDetails.appendChild(funcLength);
-                                    const arrowIDB = (consoleExpansionArrowID++).toString(36);
-                                    const funcToStringContainer = document.createElement("div");
-                                    const funcToString = document.createElement("span");
-                                    funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">toString: ƒ toString()</span>`;
-                                    funcToString.style.cursor = "pointer";
-                                    funcToString.style.marginLeft = "44px";
-                                    if (options?.showReadonly) {
-                                        if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
-                                            funcToString.insertAdjacentHTML(
-                                                "afterbegin",
-                                                `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                            );
-                                        }
-                                    }
-                                    const evaluatedUponFirstExpandingInfo = document.createElement("div");
-                                    evaluatedUponFirstExpandingInfo.style =
-                                        "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
-                                    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
-                                    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
-                                    evaluatedUponFirstExpandingInfoIcon.style =
-                                        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
-                                    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
-                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
-                                        evaluatedUponFirstExpandingInfoText.style.display = "inline";
-                                    });
-                                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
-                                        evaluatedUponFirstExpandingInfoText.style.display = "none";
-                                    });
-                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
-                                    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
-                                    evaluatedUponFirstExpandingInfoText.style =
-                                        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
-                                    evaluatedUponFirstExpandingInfoText.textContent =
-                                        "This value was evaluated upon first expanding. It may have changed since then.";
-                                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
-                                    funcToString.appendChild(evaluatedUponFirstExpandingInfo);
-                                    funcToStringContainer.appendChild(funcToString);
-                                    funcDetails.appendChild(funcToStringContainer);
-                                    Object.getOwnPropertySymbols(obj[key]).forEach((symbol) => {
-                                        try {
-                                            const symbolDetails = document.createElement("div");
-                                            symbolDetails.textContent = `${symbol.toString()}: ${JSONB.stringify(obj[key][symbol], undefined, undefined, {
-                                                bigint: true,
-                                                undefined: true,
-                                                Infinity: true,
-                                                NegativeInfinity: true,
-                                                NaN: true,
-                                                get: true,
-                                                set: true,
-                                                function: true,
-                                                class: false,
-                                            })}`;
-                                            symbolDetails.style.marginLeft = "44px";
-                                            if (options?.showReadonly) {
-                                                if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
-                                                    symbolDetails.insertAdjacentHTML(
-                                                        "afterbegin",
-                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                                    );
-                                                }
-                                            }
-                                            funcDetails.appendChild(symbolDetails);
-                                        } catch (e) {
-                                            console.error(e);
-                                        }
-                                    });
+                            // funcSummary.addEventListener("click", () => {
+                            //     if (event.defaultPrevented) return;
+                            //     if (funcSummary.nextSibling) {
+                            //         //@ts-expect-error
+                            //         document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(0deg)";
+                            //         //@ts-expect-error
+                            //         funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                            //         (funcSummary.getElementsByClassName("funcSummaryExpanded")[0] as HTMLElement).style.display = "none";
+                            //         (funcSummary.getElementsByClassName("funcSummaryCollapsed")[0] as HTMLElement).style.display = "";
+                            //         funcSummary.nextSibling.remove();
+                            //     } else {
+                            //         //@ts-expect-error
+                            //         document.getElementById(`consoleExpansionArrow-${arrowID}`).style.transform = "rotateZ(90deg)";
+                            //         //@ts-expect-error
+                            //         funcSummary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                            //         (funcSummary.getElementsByClassName("funcSummaryCollapsed")[0] as HTMLElement).style.display = "none";
+                            //         (funcSummary.getElementsByClassName("funcSummaryExpanded")[0] as HTMLElement).style.display = "";
+                            //         const funcDetails = document.createElement("div");
+                            //         const funcName = document.createElement("div");
+                            //         funcName.textContent = `name: ${obj[key].name}`;
+                            //         funcName.style.marginLeft = "44px";
+                            //         funcName.style.whiteSpace = "pre-wrap";
+                            //         funcName.style.display = "inline";
+                            //         if (options?.showReadonly) {
+                            //             if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                            //                 funcName.insertAdjacentHTML(
+                            //                     "afterbegin",
+                            //                     `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                 );
+                            //             }
+                            //         }
+                            //         funcDetails.appendChild(funcName);
+                            //         const funcLength = document.createElement("div");
+                            //         funcLength.textContent = `length: ${obj[key].length}`;
+                            //         funcLength.style.marginLeft = "44px";
+                            //         funcName.style.whiteSpace = "pre-wrap";
+                            //         // funcName.style.display = "inline"; // DEBUG
+                            //         if (options?.showReadonly) {
+                            //             if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                            //                 funcLength.insertAdjacentHTML(
+                            //                     "afterbegin",
+                            //                     `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                 );
+                            //             }
+                            //         }
+                            //         funcDetails.appendChild(funcLength);
+                            //         const arrowIDB = (consoleExpansionArrowID++).toString(36);
+                            //         const funcToStringContainer = document.createElement("div");
+                            //         const funcToString = document.createElement("span");
+                            //         funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">toString: ƒ toString()</span>`;
+                            //         funcToString.style.cursor = "pointer";
+                            //         funcToString.style.marginLeft = "44px";
+                            //         if (options?.showReadonly) {
+                            //             if (Object.getOwnPropertyDescriptor(obj[key], "length")?.writable === false) {
+                            //                 funcToString.insertAdjacentHTML(
+                            //                     "afterbegin",
+                            //                     `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                 );
+                            //             }
+                            //         }
+                            //         const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                            //         evaluatedUponFirstExpandingInfo.style =
+                            //             "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                            //         evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                            //         const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                            //         evaluatedUponFirstExpandingInfoIcon.style =
+                            //             "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                            //         evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                            //         evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                            //             evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                            //         });
+                            //         evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                            //             evaluatedUponFirstExpandingInfoText.style.display = "none";
+                            //         });
+                            //         evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                            //         const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                            //         evaluatedUponFirstExpandingInfoText.style =
+                            //             "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                            //         evaluatedUponFirstExpandingInfoText.textContent =
+                            //             "This value was evaluated upon first expanding. It may have changed since then.";
+                            //         evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                            //         funcToString.appendChild(evaluatedUponFirstExpandingInfo);
+                            //         funcToStringContainer.appendChild(funcToString);
+                            //         funcDetails.appendChild(funcToStringContainer);
+                            //         Object.getOwnPropertyNames(obj[key]).forEach((property) => {
+                            //             try {
+                            //                 const propertyDetails = document.createElement("div");
+                            //                 propertyDetails.textContent = `${property.toString()}: ${JSONB.stringify(obj[key][property], undefined, undefined, {
+                            //                     bigint: true,
+                            //                     undefined: true,
+                            //                     Infinity: true,
+                            //                     NegativeInfinity: true,
+                            //                     NaN: true,
+                            //                     get: true,
+                            //                     set: true,
+                            //                     function: true,
+                            //                     class: false,
+                            //                     symbol: true,
+                            //                 })}`;
+                            //                 propertyDetails.style.marginLeft = "44px";
+                            //                 if (options?.showReadonly) {
+                            //                     if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                            //                         propertyDetails.insertAdjacentHTML(
+                            //                             "afterbegin",
+                            //                             `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                         );
+                            //                     }
+                            //                 }
+                            //                 funcDetails.appendChild(propertyDetails);
+                            //             } catch (e) {
+                            //                 console.error(e);
+                            //             }
+                            //         });
+                            //         Object.getOwnPropertySymbols(obj[key]).forEach((symbol) => {
+                            //             try {
+                            //                 const symbolDetails = document.createElement("div");
+                            //                 symbolDetails.textContent = `${symbol.toString()}: ${JSONB.stringify(obj[key][symbol], undefined, undefined, {
+                            //                     bigint: true,
+                            //                     undefined: true,
+                            //                     Infinity: true,
+                            //                     NegativeInfinity: true,
+                            //                     NaN: true,
+                            //                     get: true,
+                            //                     set: true,
+                            //                     function: true,
+                            //                     class: false,
+                            //                     symbol: true,
+                            //                 })}`;
+                            //                 symbolDetails.style.marginLeft = "44px";
+                            //                 if (options?.showReadonly) {
+                            //                     if (Object.getOwnPropertyDescriptor(obj[key], "name")?.writable === false) {
+                            //                         symbolDetails.insertAdjacentHTML(
+                            //                             "afterbegin",
+                            //                             `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                         );
+                            //                     }
+                            //                 }
+                            //                 funcDetails.appendChild(symbolDetails);
+                            //             } catch (e) {
+                            //                 console.error(e);
+                            //             }
+                            //         });
 
-                                    if (obj[key].__proto__) {
-                                        try {
-                                            const prototypeExpandableObjectView = createExpandableObjectView(obj[key], false, true, {
-                                                displayKey: "[[Prototype]]",
-                                                objectKeysSource: obj[key].__proto__,
-                                                summaryValueOverride:
-                                                    (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj)
-                                                        ? "Object"
-                                                        : "circular reference",
-                                                copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
-                                                copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
-                                                showReadonly: options?.showReadonly,
-                                            });
-                                            // prototypeExpandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `[[Prototype]]: `);
-                                            prototypeExpandableObjectView.style.marginLeft = "44px";
-                                            if (options?.showReadonly) {
-                                                if (Object.getOwnPropertyDescriptor(obj[key], "__proto__")?.writable === false) {
-                                                    funcName.insertAdjacentHTML(
-                                                        "afterbegin",
-                                                        `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
-                                                    );
-                                                }
-                                            }
-                                            funcDetails.appendChild(prototypeExpandableObjectView);
-                                        } catch (e) {
-                                            console.error(e);
-                                        }
-                                    } else {
-                                        console.warn(`No prototype found for ${displayName}`);
-                                    }
+                            //         if (obj[key].__proto__) {
+                            //             try {
+                            //                 const prototypeExpandableObjectView = createExpandableObjectView(obj[key], false, true, {
+                            //                     displayKey: "[[Prototype]]",
+                            //                     objectKeysSource: obj[key].__proto__,
+                            //                     summaryValueOverride:
+                            //                         (options?.objectKeysSource ?? obj).__proto__ !== (options?.objectKeysSource ?? obj)
+                            //                             ? "Object"
+                            //                             : "circular reference",
+                            //                     copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                            //                     copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                            //                     showReadonly: options?.showReadonly,
+                            //                     currentPath: options?.currentPath,
+                            //                     currentDisplayedPath: options?.currentDisplayedPath?.concat("[[Prototype]]"),
+                            //                 });
+                            //                 // prototypeExpandableObjectView.children[0]!.children[1]!.insertAdjacentText("afterbegin", `[[Prototype]]: `);
+                            //                 // prototypeExpandableObjectView.children[0]!.children[2]!.insertAdjacentText("afterbegin", `[[Prototype]]: `);
+                            //                 prototypeExpandableObjectView.style.marginLeft = "44px";
+                            //                 if (options?.showReadonly) {
+                            //                     if (Object.getOwnPropertyDescriptor(obj[key], "__proto__")?.writable === false) {
+                            //                         funcName.insertAdjacentHTML(
+                            //                             "afterbegin",
+                            //                             `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
+                            //                         );
+                            //                     }
+                            //                 }
+                            //                 funcDetails.appendChild(prototypeExpandableObjectView);
+                            //             } catch (e) {
+                            //                 console.error(e);
+                            //             }
+                            //         } else {
+                            //             console.warn(`No prototype found for ${displayName}`);
+                            //         }
 
-                                    funcToString.addEventListener("click", () => {
-                                        if (funcToString.nextSibling) {
-                                            //@ts-expect-error
-                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(0deg)";
-                                            //@ts-expect-error
-                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
-                                            funcToString.nextSibling.remove();
-                                        } else {
-                                            //@ts-expect-error
-                                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(90deg)";
-                                            //@ts-expect-error
-                                            funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
-                                            const funcSource = document.createElement("pre");
-                                            funcSource.classList.add("funcSource");
-                                            funcSource.textContent = obj[key].toString();
-                                            funcSource.style.marginLeft = "88px";
-                                            funcToStringContainer.appendChild(funcSource);
-                                        }
-                                    });
+                            //         funcToString.addEventListener("click", () => {
+                            //             if (funcToString.nextSibling) {
+                            //                 //@ts-expect-error
+                            //                 document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(0deg)";
+                            //                 //@ts-expect-error
+                            //                 funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+                            //                 funcToString.nextSibling.remove();
+                            //             } else {
+                            //                 //@ts-expect-error
+                            //                 document.getElementById(`consoleExpansionArrow-${arrowIDB}`).style.transform = "rotateZ(90deg)";
+                            //                 //@ts-expect-error
+                            //                 funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "inline";
+                            //                 const funcSource = document.createElement("pre");
+                            //                 funcSource.classList.add("funcSource");
+                            //                 funcSource.textContent = obj[key].toString();
+                            //                 funcSource.style.marginLeft = "88px";
+                            //                 funcToStringContainer.appendChild(funcSource);
+                            //             }
+                            //         });
 
-                                    item.appendChild(funcDetails);
-                                }
-                            });
+                            //         item.appendChild(funcDetails);
+                            //     }
+                            // });
                         } else {
                             item.textContent = `${displayName}: ${JSONB.stringify(obj[key], undefined, undefined, {
                                 bigint: true,
@@ -3735,6 +6018,7 @@ function createExpandableObjectView(
                                 set: true,
                                 function: true,
                                 class: false,
+                                symbol: true,
                             })}`;
                             if (options?.showReadonly) {
                                 if (Object.getOwnPropertyDescriptor(obj, key)?.writable === false) {
@@ -3750,80 +6034,154 @@ function createExpandableObjectView(
                                 items: [
                                     {
                                         label: "Copy property path",
-                                        action() {
-                                            console.error(new Error("[8CrafterConsole::Copy property path] Not yet implemented."));
+                                        action(): void {
+                                            if (!options?.currentPath) {
+                                                console.error("The property path could not be copied to the clipboard as it is not available.");
+                                                return;
+                                            }
+                                            copyTextToClipboardAsync(
+                                                options.currentPath
+                                                    .concat(key)
+                                                    .map((v, i) => {
+                                                        if (typeof v === "symbol") {
+                                                            const nonUniqueSymbolAccessor = stringifyNonUniqueSymbol(v);
+                                                            if (nonUniqueSymbolAccessor) {
+                                                                return `[${nonUniqueSymbolAccessor}]`;
+                                                            }
+                                                        }
+                                                        return (
+                                                            propertyIdentifierRegex.test(String(v)) ?
+                                                                i ? `.${String(v)}`
+                                                                :   String(v)
+                                                            :   `[${JSON.stringify(String(v))}]`
+                                                        );
+                                                    })
+                                                    .join("")
+                                            ).catch((reason: unknown): void => {
+                                                console.error(
+                                                    new Error(`[8CrafterConsole::Copy property path] An error occured while copying to the clipboard.`),
+                                                    reason
+                                                );
+                                            });
                                         },
-                                        disabled: true,
+                                        disabled: !options?.currentPath,
                                     },
-                                    ...(typeof obj[key] === "bigint"
-                                        ? [
-                                              {
-                                                  label: "Copy bigint",
-                                                  action() {
-                                                      copyTextToClipboardAsync(`${obj[key]}n`);
-                                                  },
-                                              },
-                                          ]
-                                        : [
-                                              "boolean",
-                                              "number",
-                                              "object", // null
-                                              "undefined",
-                                          ].includes(typeof obj[key])
-                                        ? [
-                                              {
-                                                  label: `Copy ${typeof obj[key]}`,
-                                                  action() {
-                                                      copyTextToClipboardAsync(`${obj[key]}`);
-                                                  },
-                                              },
-                                          ]
-                                        : typeof obj[key] === "string"
-                                        ? [
-                                              {
-                                                  label: "Copy string contents",
-                                                  action() {
-                                                      copyTextToClipboardAsync(obj[key]);
-                                                  },
-                                              },
-                                              {
-                                                  label: "Copy string as JavaScript literal",
-                                                  action() {
-                                                      /**
-                                                       * @type {string}
-                                                       */
-                                                      const str: string = obj[key];
-                                                      /**
-                                                       * @type {string}
-                                                       */
-                                                      const jsonifiedStr: string = JSON.stringify(str);
-                                                      copyTextToClipboardAsync(
-                                                          str.includes("'")
-                                                              ? str.includes('"')
-                                                                  ? str.includes("`")
-                                                                      ? `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
-                                                                      : `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
-                                                                  : jsonifiedStr
-                                                              : `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
-                                                      );
-                                                  },
-                                              },
-                                              {
-                                                  label: "Copy string as JSON literal",
-                                                  action() {
-                                                      copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4));
-                                                  },
-                                              },
-                                          ]
-                                        : []),
+                                    ...(typeof key === "symbol" ?
+                                        [
+                                            {
+                                                label: "Store key symbol as global variable",
+                                                action(): void {
+                                                    while (`temp${++__console_last_temp_variable_id__}` in window);
+                                                    window[`temp${__console_last_temp_variable_id__}`] = key;
+                                                    displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
+                                                },
+                                            } satisfies ContextMenuItemCreationOptions,
+                                        ]
+                                    :   []),
+                                    ...(typeof obj[key] === "bigint" ?
+                                        [
+                                            {
+                                                label: "Copy bigint",
+                                                action(): void {
+                                                    copyTextToClipboardAsync(`${obj[key]}n`).catch((reason: unknown): void => {
+                                                        console.error(
+                                                            new Error(`[8CrafterConsole::Copy bigint] An error occured while copying to the clipboard.`),
+                                                            reason
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        ]
+                                    : (
+                                        [
+                                            "boolean",
+                                            "number",
+                                            "object", // null
+                                            "undefined",
+                                        ].includes(typeof obj[key])
+                                    ) ?
+                                        [
+                                            {
+                                                label: `Copy ${typeof obj[key]}`,
+                                                action(): void {
+                                                    copyTextToClipboardAsync(`${obj[key]}`).catch((reason: unknown): void => {
+                                                        console.error(
+                                                            new Error(
+                                                                `[8CrafterConsole::Copy ${typeof obj[key]}] An error occured while copying to the clipboard.`
+                                                            ),
+                                                            reason
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        ]
+                                    : typeof obj[key] === "string" ?
+                                        [
+                                            {
+                                                label: "Copy string contents",
+                                                action(): void {
+                                                    copyTextToClipboardAsync(obj[key] as string).catch((reason: unknown): void => {
+                                                        console.error(
+                                                            new Error(
+                                                                `[8CrafterConsole::Copy string contents] An error occured while copying to the clipboard.`
+                                                            ),
+                                                            reason
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                            {
+                                                label: "Copy string as JavaScript literal",
+                                                action(): void {
+                                                    /**
+                                                     * @type {string}
+                                                     */
+                                                    const str: string = obj[key] as string;
+                                                    /**
+                                                     * @type {string}
+                                                     */
+                                                    const jsonifiedStr: string = JSON.stringify(str);
+                                                    copyTextToClipboardAsync(
+                                                        str.includes("'") ?
+                                                            str.includes('"') ?
+                                                                str.includes("`") ?
+                                                                    `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                                :   `\`${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"')}\``
+                                                            :   jsonifiedStr
+                                                        :   `'${jsonifiedStr.slice(1, -1).replaceAll('\\"', '"').replaceAll("'", "\\'")}'`
+                                                    ).catch((reason: unknown): void => {
+                                                        console.error(
+                                                            new Error(
+                                                                `[8CrafterConsole::Copy string as JavaScript literal] An error occured while copying to the clipboard.`
+                                                            ),
+                                                            reason
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                            {
+                                                label: "Copy string as JSON literal",
+                                                action(): void {
+                                                    copyTextToClipboardAsync(JSON.stringify(obj[key], null, 4)).catch((reason: unknown): void => {
+                                                        console.error(
+                                                            new Error(
+                                                                `[8CrafterConsole::Copy string as JSON literal] An error occured while copying to the clipboard.`
+                                                            ),
+                                                            reason
+                                                        );
+                                                    });
+                                                },
+                                            },
+                                        ]
+                                    :   []),
                                     {
                                         type: "separator",
                                     },
                                     {
                                         label: "Store as global variable",
-                                        action() {
-                                            while (`temp${++__console_last_temp_variable_id__}` in window) {}
-                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key];
+                                        action(): void {
+                                            while (`temp${++__console_last_temp_variable_id__}` in window);
+                                            window[`temp${__console_last_temp_variable_id__}`] = obj[key] as unknown;
                                             displayStoredConsoleTempVariable(`temp${__console_last_temp_variable_id__}`);
                                         },
                                     },
@@ -3843,60 +6201,216 @@ function createExpandableObjectView(
                              * @type {number | null}
                              */
                             let clickStartTime: number | null = null;
-                            item.addEventListener("mousedown", (event) => {
+                            item.addEventListener("mousedown", (event): void => {
                                 if (event.button !== 0) return;
                                 clickStartTime = Date.now();
                             });
-                            item.addEventListener("mouseleave", () => {
+                            item.addEventListener("mouseleave", (): void => {
                                 clickStartTime = null;
                             });
-                            item.addEventListener("click", (event) => {
+                            item.addEventListener("click", (event): void => {
                                 if (event.button !== 0) return;
                                 if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                                     event.preventDefault();
                                     event.stopImmediatePropagation();
-                                    setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                    setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 }
                                 clickStartTime = null;
                             });
-                            item.addEventListener("mouseup", (event) => {
+                            item.addEventListener("mouseup", (event): void => {
                                 if (event.button !== 2) return;
                                 event.preventDefault();
                                 event.stopImmediatePropagation();
-                                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
                                 // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
                             });
                         }
                         details.appendChild(item);
-                    } catch (e) {
-                        //@ts-ignore
-                        const exceptionExpandableObjectView = createExpandableObjectView(e, false, false, {
-                            summaryValueOverride: `(Exception)`,
-                            //@ts-ignore
-                            summaryValueOverride_toStringTag: e?.name ?? e?.[Symbol.toStringTag],
-                            displayKey: displayName,
-                            copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
-                            copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
-                            showReadonly: options?.showReadonly,
-                        });
+                    } catch (e: unknown) {
+                        // $resultElem.innerHTML = (await shiki.codeToHtml(`{"default": {…}}`, { lang: "js", theme: "dark-plus" })).replaceAll("<span", "<span cohinline=\"\""); // TODO: Test this.
+                        const arrowIDB = (consoleExpansionArrowID++).toString(36);
+                        const exceptionExpandableObjectViewContainer = document.createElement("div");
+                        const exceptionExpandableObjectView = document.createElement("span");
+                        exceptionExpandableObjectView.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: -22px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${
+                            arrowIDB
+                        }"><p cohinline style="margin: 0; display: inline; white-space: pre;" class="summaryCollapsed">${displayName}: <i style="display: inline; font-style: italic;">${String(
+                            (e as Record<PropertyKey, unknown> | undefined)?.["name"] ??
+                                (typeof (e as Record<PropertyKey, unknown> | undefined)?.[Symbol.toStringTag] === "string" ?
+                                    (e as Record<PropertyKey, unknown>)[Symbol.toStringTag]
+                                :   undefined)
+                        )
+                            .replaceAll("<", "&lt;")
+                            .replaceAll(">", "&gt;")}</i> (Exception)</p>`;
+                        exceptionExpandableObjectView.style.cursor = "pointer";
                         if (options?.showReadonly) {
                             if (
-                                (typeof key === "object"
-                                    ? key.propertyName !== undefined
-                                        ? Object.getOwnPropertyDescriptor(obj, key.propertyName)
-                                        : undefined
-                                    : Object.getOwnPropertyDescriptor(obj, key)
+                                (typeof key === "object" ?
+                                    key.propertyName !== undefined ?
+                                        Object.getOwnPropertyDescriptor(obj, key.propertyName)
+                                    :   undefined
+                                :   Object.getOwnPropertyDescriptor(obj, key)
                                 )?.writable === false
                             ) {
-                                exceptionExpandableObjectView.children[0]!.children[1]!.insertAdjacentHTML(
+                                exceptionExpandableObjectView.insertAdjacentHTML(
                                     "afterbegin",
                                     `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`
                                 );
                             }
                         }
-                        item.appendChild(exceptionExpandableObjectView);
+                        const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                        evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                        evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                        const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                        evaluatedUponFirstExpandingInfoIcon.style =
+                            "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                        evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                            evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                        });
+                        evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                            evaluatedUponFirstExpandingInfoText.style.display = "none";
+                        });
+                        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                        const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                        evaluatedUponFirstExpandingInfoText.style =
+                            "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                        evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+                        evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                        exceptionExpandableObjectView.appendChild(evaluatedUponFirstExpandingInfo);
+                        exceptionExpandableObjectViewContainer.appendChild(exceptionExpandableObjectView);
+                        details.appendChild(exceptionExpandableObjectViewContainer);
+                        exceptionExpandableObjectView.addEventListener("click", () => {
+                            if (exceptionExpandableObjectView.nextSibling) {
+                                document.getElementById(`consoleExpansionArrow-${arrowIDB}`)!.style.transform = "rotateZ(0deg)";
+                                (exceptionExpandableObjectView.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement).style.display =
+                                    "none";
+                                exceptionExpandableObjectView.nextSibling.remove();
+                            } else {
+                                document.getElementById(`consoleExpansionArrow-${arrowIDB}`)!.style.transform = "rotateZ(90deg)";
+                                (exceptionExpandableObjectView.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement).style.display =
+                                    "inline";
+                                if (e instanceof Error) {
+                                    const stack = e.stack === undefined ? undefined : mapStackWithTS(e.stack);
+
+                                    const errorElem = exceptionExpandableObjectViewContainer.appendChild(
+                                        createExpandableObjectView(e, true, false, {
+                                            summaryValueOverride: stack?.stack ?? e.stack,
+                                            copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                            copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                            showReadonly: options?.showReadonly,
+                                            currentPath: [],
+                                            currentDisplayedPath: [],
+                                            hideSummaryValueWhenExpanded: false,
+                                        })
+                                    );
+                                    // errorElem.style.marginLeft = "22px";
+                                    if (stack?.hasUnloadedStacks) {
+                                        void stack.fullyLoadedStack.then((stack: string): void => {
+                                            /* const newErrorElem = */ errorElem.parentNode?.replaceChild(
+                                                createExpandableObjectView(e, true, false, {
+                                                    summaryValueOverride: stack,
+                                                    copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                                    copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                                    showReadonly: options?.showReadonly,
+                                                    currentPath: [],
+                                                    currentDisplayedPath: [],
+                                                    hideSummaryValueWhenExpanded: false,
+                                                }),
+                                                errorElem
+                                            );
+                                            // if (newErrorElem) newErrorElem.style.marginLeft = "22px";
+                                        });
+                                    }
+                                } else if ((typeof e === "object" && e !== null) || typeof e === "function") {
+                                    /* const errorElem = */ exceptionExpandableObjectViewContainer.appendChild(
+                                        createExpandableObjectView(e as object | AnyFunction, true, undefined, {
+                                            copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                                            copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                                            showReadonly: options?.showReadonly,
+                                            currentPath: [],
+                                            currentDisplayedPath: [],
+                                        })
+                                    );
+                                    // errorElem.style.marginLeft = "22px";
+                                } else if (typeof e === "symbol") {
+                                    const errorElem = exceptionExpandableObjectViewContainer.appendChild(document.createElement("pre"));
+                                    errorElem.classList.add("exceptionDetails");
+                                    errorElem.textContent = stringifyNonUniqueSymbol(e) ?? e.toString();
+                                    // errorElem.style.marginLeft = "22px";
+                                } else {
+                                    const errorElem = exceptionExpandableObjectViewContainer.appendChild(document.createElement("pre"));
+                                    errorElem.classList.add("exceptionDetails");
+                                    errorElem.textContent = JSONB.stringify(e);
+                                    // errorElem.style.marginLeft = "22px";
+                                }
+                            }
+                        });
+                        // const exceptionExpandableObjectView = createExpandableObjectView(e, false, false, {
+                        //     summaryValueOverride: `(Exception)`,
+                        //     summaryValueOverride_toStringTag: e?.name ?? (typeof e?.[Symbol.toStringTag] === "string" ? e[Symbol.toStringTag] : undefined),
+                        //     displayKey: displayName,
+                        //     copyConsoleMessageStackCallback: options?.copyConsoleMessageStackCallback,
+                        //     copyConsoleMessageStackButtonEnabled: options?.copyConsoleMessageStackButtonEnabled,
+                        //     showReadonly: options?.showReadonly,
+                        //     currentPath: typeof key !== "object" ? options?.currentPath?.concat(key) : options?.currentPath,
+                        //     currentDisplayedPath: options?.currentDisplayedPath?.concat(displayName),
+                        //     hideSummaryValueWhenExpanded: false,
+                        // });
+                        item.appendChild(exceptionExpandableObjectViewContainer);
                         details.appendChild(item);
                     }
+                }
+                if (options?.includeViewableToString ?? (isRoot && typeof obj === "function")) {
+                    const arrowIDB = (consoleExpansionArrowID++).toString(36);
+                    const funcToStringContainer = document.createElement("div");
+                    const funcToString = document.createElement("span");
+                    funcToString.innerHTML = `<img src="assets/chevron_new_white_right.png" style="width: 22px; height: 22px; vertical-align: bottom; position: absolute; left: 0px; top: 50%; margin-top: -11px; margin-bottom: 11px; image-rendering: pixelated; float: left; display: inline;" id="consoleExpansionArrow-${arrowIDB}"><span style="display: inline; white-space: pre-wrap;">[[toString]]: ƒ toString()</span>`;
+                    funcToString.style.cursor = "pointer";
+                    funcToString.style.marginLeft = "22px";
+                    if (options?.showReadonly) {
+                        if (Object.getOwnPropertyDescriptor(obj, "toString")?.writable === false) {
+                            funcToString.insertAdjacentHTML("afterbegin", `<i style="display: inline; font-style: italic; opacity: 0.75;">read-only</i>&nbsp;`);
+                        }
+                    }
+                    const evaluatedUponFirstExpandingInfo = document.createElement("div");
+                    evaluatedUponFirstExpandingInfo.style = "display: none; white-space: pre-wrap; position: relative; left: 0px; top: 0px; height: 100%;";
+                    evaluatedUponFirstExpandingInfo.classList.add("evaluatedUponFirstExpandingInfo");
+                    const evaluatedUponFirstExpandingInfoIcon = document.createElement("img");
+                    evaluatedUponFirstExpandingInfoIcon.style =
+                        "display: inline; width: 24px; height: 24px; position: relative; left: 0px; top: 50%; margin-top: -12px; margin-bottom: -12px; image-rendering: pixelated;";
+                    evaluatedUponFirstExpandingInfoIcon.src = "assets/Information_icon.png";
+                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseover", () => {
+                        evaluatedUponFirstExpandingInfoText.style.display = "inline";
+                    });
+                    evaluatedUponFirstExpandingInfoIcon.addEventListener("mouseout", () => {
+                        evaluatedUponFirstExpandingInfoText.style.display = "none";
+                    });
+                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoIcon);
+                    const evaluatedUponFirstExpandingInfoText = document.createElement("span");
+                    evaluatedUponFirstExpandingInfoText.style =
+                        "position: absolute; top: -100%; left: 0px; display: none; background-color: #FFFFFFAA; color: #000000FF; pointer-events: none;";
+                    evaluatedUponFirstExpandingInfoText.textContent = "This value was evaluated upon first expanding. It may have changed since then.";
+                    evaluatedUponFirstExpandingInfo.appendChild(evaluatedUponFirstExpandingInfoText);
+                    funcToString.appendChild(evaluatedUponFirstExpandingInfo);
+                    funcToStringContainer.appendChild(funcToString);
+                    details.appendChild(funcToStringContainer);
+                    funcToString.addEventListener("click", () => {
+                        if (funcToString.nextSibling) {
+                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`)!.style.transform = "rotateZ(0deg)";
+                            (funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement).style.display = "none";
+                            funcToString.nextSibling.remove();
+                        } else {
+                            document.getElementById(`consoleExpansionArrow-${arrowIDB}`)!.style.transform = "rotateZ(90deg)";
+                            (funcToString.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement).style.display = "inline";
+                            const funcSource = document.createElement("p");
+                            funcSource.classList.add("funcSource");
+                            funcSource.textContent = (obj as () => void).toString();
+                            funcSource.style.margin = "0";
+                            funcSource.style.marginLeft = "44px";
+                            funcSource.setAttribute("cohinline", "");
+                            funcToStringContainer.appendChild(funcSource);
+                        }
+                    });
                 }
                 container.appendChild(details);
             } else {
@@ -3906,8 +6420,16 @@ function createExpandableObjectView(
                 } catch (e) {
                     console.error(e);
                 }
-                //@ts-ignore
-                summary.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0].style.display = "none";
+
+                (summary.getElementsByClassName("summaryExpanded")[0] as HTMLElement).style.display = "none";
+                (summary.getElementsByClassName("summaryCollapsed")[0] as HTMLElement).style.display = "";
+
+                (
+                    summary.getElementsByClassName("summaryCollapsed")[0]!.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement
+                ).style.display = "none";
+                (
+                    summary.getElementsByClassName("summaryExpanded")[0]!.getElementsByClassName("evaluatedUponFirstExpandingInfo")[0] as HTMLElement
+                ).style.display = "none";
                 container.removeChild(container.childNodes[1]!);
             }
         }, 1);
@@ -3920,7 +6442,7 @@ function createExpandableObjectView(
  *
  * @param {`temp${bigint}`} variableName
  */
-function displayStoredConsoleTempVariable(variableName: `temp${bigint}`) {
+function displayStoredConsoleTempVariable(variableName: `temp${bigint}`): void {
     /**
      * The command element.
      *
@@ -3949,13 +6471,16 @@ function displayStoredConsoleTempVariable(variableName: `temp${bigint}`) {
     resultElem.style.overflowWrap = "anywhere";
     try {
         /**
-         * The result of the executed command.
-         *
-         * @type {any}
+         * The value of the temp variable.
          */
-        const result: any = window[variableName];
+        const result: unknown = window[variableName];
         if ((typeof result === "object" && result !== null) || typeof result === "function") {
-            resultElem.appendChild(createExpandableObjectView(result, true));
+            resultElem.appendChild(
+                createExpandableObjectView(result, true, undefined, {
+                    currentPath: [],
+                    currentDisplayedPath: [],
+                })
+            );
         } else if (typeof result === "symbol") {
             resultElem.textContent = result.toString();
         } else {
@@ -3973,19 +6498,39 @@ function displayStoredConsoleTempVariable(variableName: `temp${bigint}`) {
     } catch (e) {
         resultElem.style.backgroundColor = "#FF000055";
         if (e instanceof Error) {
-            resultElem.appendChild(
+            const stack = e.stack === undefined ? undefined : mapStackWithTS(e.stack);
+            const errorElem = resultElem.appendChild(
                 createExpandableObjectView(e, true, false, {
-                    summaryValueOverride: e.stack,
+                    summaryValueOverride: stack?.stack ?? e.stack,
+                    currentPath: [],
+                    currentDisplayedPath: [],
+                    hideSummaryValueWhenExpanded: false,
                 })
             );
-        } else {
-            if ((typeof e === "object" && e !== null) || typeof e === "function") {
-                resultElem.appendChild(createExpandableObjectView(e, true));
-            } else if (typeof e === "symbol") {
-                resultElem.textContent = e.toString();
-            } else {
-                resultElem.textContent = JSONB.stringify(e);
+            if (stack?.hasUnloadedStacks) {
+                void stack.fullyLoadedStack.then((stack) => {
+                    errorElem.parentNode?.replaceChild(
+                        createExpandableObjectView(e, true, false, {
+                            summaryValueOverride: stack,
+                            currentPath: [],
+                            currentDisplayedPath: [],
+                            hideSummaryValueWhenExpanded: false,
+                        }),
+                        errorElem
+                    );
+                });
             }
+        } else if ((typeof e === "object" && e !== null) || typeof e === "function") {
+            resultElem.appendChild(
+                createExpandableObjectView(e, true, undefined, {
+                    currentPath: [],
+                    currentDisplayedPath: [],
+                })
+            );
+        } else if (typeof e === "symbol") {
+            resultElem.textContent = e.toString();
+        } else {
+            resultElem.textContent = JSONB.stringify(e);
         }
         if (
             consoleOverlayTextElement.children.length > 0 &&
@@ -4066,18 +6611,25 @@ var consoleOverlayOnLoadMessageQueue: ConsoleEverythingEntry[] = [];
  *
  * @idea Make a system where it uses the click location to determine what text was right-clicked or long-pressed on to determine which context menu to show.
  */
-function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
+function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry): void {
     if (!consoleOverlayTextElement) {
         consoleOverlayOnLoadMessageQueue.push(data);
         return;
     }
     // To prevent error spam from trying to load all of the vanilla facets.
-    if (Array.isArray(data.value) && data.value.length === 1 && data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')) {
+    if (
+        Array.isArray(data.value) &&
+        data.value.length === 1 &&
+        typeof data.value[0] === "string" &&
+        data.value[0]?.startsWith?.('Error "activate-facet-not-found" while using facet ')
+    ) {
         return;
     }
-    function copyConsoleMessageStackCallback() {
-        if (data.stack !== undefined) copyTextToClipboardAsync(data.stack);
-        else console.error("The stack of the console message could not be copied to the clipboard as it is not available.");
+    async function copyConsoleMessageStackCallback(): Promise<void> {
+        if (data.stack !== undefined) {
+            const stack = mapStackWithTS(data.stack);
+            await copyTextToClipboardAsync(stack.hasUnloadedStacks ? await stack.fullyLoadedStack : stack.stack);
+        } else console.error("The stack of the console message could not be copied to the clipboard as it is not available.");
     }
     const elem = document.createElement("pre");
     // elem.style.display = "flex";
@@ -4103,14 +6655,16 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
         case "debug":
             elem.style.backgroundColor = "#5555BB55";
             break;
+        case "internal":
+        case "log":
         default:
     }
-    function appendCurrentTextContentElem(force: boolean = false): void {
+    function appendCurrentTextContentElem(force = false): void {
         if (!currentTextContentOuterElem) return;
         if (!currentTextContentElem) return;
         if (force || currentTextContentElem.textContent?.length) {
             if (currentTextContentOuterElem.children.length) {
-                const spacer = currentTextContentOuterElem.appendChild(document.createElement("span"));
+                const spacer: HTMLSpanElement = currentTextContentOuterElem.appendChild(document.createElement("span"));
                 // spacer.style.display = "inline";
                 spacer.style.whiteSpace = "pre-wrap";
                 spacer.textContent = " ";
@@ -4162,60 +6716,129 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
     // currentTextContentElem.style.display = "inline";
     currentTextContentElem.style.whiteSpace = "pre-wrap";
     currentTextContentElem.style.overflowWrap = "break-word";
-    currentTextContentElem.textContent = `[${data.timeStamp}] [${
-        data.type === "exception"
-            ? `unhandled exception] [${data.value.filename}:${data.value.lineno}:${data.value.colno}`
-            : data.type === "promiseRejection"
-            ? "unhandled promise rejection"
-            : data.type
-    }]`;
+    if (data.type === "exception") {
+        const stack = mapStackWithTS(`${data.value.filename === "undefined" ? "<anonymous>" : data.value.filename}:${data.value.lineno}:${data.value.colno}`);
+        currentTextContentElem.textContent = `[${data.timeStamp}] [unhandled exception] [${stack.stack}]`;
+        const elem: HTMLSpanElement = currentTextContentElem;
+        if (stack?.hasUnloadedStacks) {
+            void stack.fullyLoadedStack.then((stack: string): void => {
+                elem.textContent = `[${data.timeStamp}] [unhandled exception] [${stack}]`;
+            });
+        }
+    } else {
+        currentTextContentElem.textContent = `[${data.timeStamp}] [${data.type === "promiseRejection" ? "unhandled promise rejection" : data.type}]`;
+    }
     appendCurrentTextContentElem();
     if (data.type === "exception") {
         appendCurrentTextContentOuterElem();
         const value = data.value;
-        elem.appendChild(
+        const stack = value.error instanceof Error && value.error.stack !== undefined ? mapStackWithTS(value.error.stack) : undefined;
+        const errorElem = elem.appendChild(
             createExpandableObjectView(value, true, false, {
-                summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+                summaryValueOverride: stack?.stack ?? (value.error instanceof Error && value.error.stack !== undefined ? value.error.stack : value.message),
                 copyConsoleMessageStackCallback,
                 copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
-                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                currentPath: [],
+                currentDisplayedPath: [],
             })
         );
+        if (stack?.hasUnloadedStacks) {
+            void stack.fullyLoadedStack.then((stack: string): void => {
+                errorElem.parentNode?.replaceChild(
+                    createExpandableObjectView(value, true, false, {
+                        summaryValueOverride: stack,
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                        currentPath: [],
+                        currentDisplayedPath: [],
+                    }),
+                    errorElem
+                );
+            });
+        }
     } else if (data.type === "promiseRejection") {
         appendCurrentTextContentOuterElem();
         const value = data.value;
-        elem.appendChild(
+        const stack = value.reason instanceof Error && value.reason.stack !== undefined ? mapStackWithTS(value.reason.stack) : undefined;
+        const errorElem = elem.appendChild(
             createExpandableObjectView(value, true, false, {
-                summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason?.message ?? String(value.reason),
+                summaryValueOverride:
+                    stack?.stack ??
+                    (value.reason instanceof Error ?
+                        value.reason.stack! !== undefined ?
+                            value.reason.stack
+                        :   value.reason.message
+                    :   String(value.reason)),
                 copyConsoleMessageStackCallback,
                 copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
-                showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                currentPath: [],
+                currentDisplayedPath: [],
             })
         );
+        if (stack?.hasUnloadedStacks) {
+            void stack.fullyLoadedStack.then((stack: string): void => {
+                errorElem.parentNode?.replaceChild(
+                    createExpandableObjectView(value, true, false, {
+                        summaryValueOverride: stack,
+                        copyConsoleMessageStackCallback,
+                        copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                        showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                        currentPath: [],
+                        currentDisplayedPath: [],
+                    }),
+                    errorElem
+                );
+            });
+        }
     } else {
         for (const v of data.value) {
             if (v instanceof Error) {
                 appendCurrentTextContentOuterElem();
-                elem.appendChild(
+                const stack = v.stack === undefined ? undefined : mapStackWithTS(v.stack);
+                const errorElem = elem.appendChild(
                     createExpandableObjectView(v, true, false, {
-                        summaryValueOverride: v.stack,
+                        summaryValueOverride: stack?.stack ?? v.stack,
                         copyConsoleMessageStackCallback,
                         copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
-                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                        showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                        currentPath: [],
+                        currentDisplayedPath: [],
+                        hideSummaryValueWhenExpanded: false,
                     })
                 );
+                if (stack?.hasUnloadedStacks) {
+                    void stack.fullyLoadedStack.then((stack: string): void => {
+                        errorElem.parentNode?.replaceChild(
+                            createExpandableObjectView(v, true, false, {
+                                summaryValueOverride: stack,
+                                copyConsoleMessageStackCallback,
+                                copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
+                                showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                                currentPath: [],
+                                currentDisplayedPath: [],
+                                hideSummaryValueWhenExpanded: false,
+                            }),
+                            errorElem
+                        );
+                    });
+                }
             } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
                 appendCurrentTextContentOuterElem();
                 elem.appendChild(
                     createExpandableObjectView(v, true, undefined, {
                         copyConsoleMessageStackCallback,
                         copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
-                        showReadonly: window.showReadonlyPropertiesLabelInConsoleEnabled,
+                        showReadonly: OUICConsoleConfig.showReadonlyPropertiesLabelInConsoleEnabled,
+                        currentPath: [],
+                        currentDisplayedPath: [],
                     })
                 );
             } else if (v === null) {
                 createNewTextContentElemIfNecessary();
-                currentTextContentElem.textContent += (currentTextContentElem.textContent.length ? " " : "") + "null";
+                currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}null`;
                 addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
                     copyConsoleMessageStackCallback,
                     copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
@@ -4238,10 +6861,14 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
                     case "boolean":
                     case "number":
                     case "undefined":
-                    default:
                         currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}${v}`;
+                        break;
+                    case "function":
+                    case "object":
+                    default:
+                        currentTextContentElem.textContent += `${currentTextContentElem.textContent.length ? " " : ""}${String(v as unknown)}`;
                 }
-                addContextMenuToTopLevelPrimitiveConsoleValue(v, currentTextContentElem, {
+                addContextMenuToTopLevelPrimitiveConsoleValue(v as string | number | bigint | boolean | symbol | undefined, currentTextContentElem, {
                     copyConsoleMessageStackCallback,
                     copyConsoleMessageStackButtonEnabled: data.stack !== undefined,
                 });
@@ -4274,13 +6901,13 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
             },
             {
                 label: "Clear console",
-                action() {
-                    consoleOverlayTextElement.replaceChildren();
+                action(): void {
+                    consoleOverlayTextElement.innerHTML = "";
                 },
             },
             {
                 label: "Clear console history",
-                action() {
+                action(): void {
                     ConsoleExecutionHistory.clearHistory();
                 },
             },
@@ -4289,15 +6916,17 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
             },
             {
                 label: "Copy console",
-                action() {
-                    if (consoleOverlayTextElement.textContent)
+                action(): void {
+                    if (consoleOverlayTextElement.textContent) {
                         copyTextToClipboardAsync(
                             Array.from(consoleOverlayTextElement.children)
                                 .map((child) => child.textContent)
                                 .filter((v) => v !== null)
                                 .join("\n")
-                        );
-                    else console.warn("Could not copy console to clipboard because the console is empty.");
+                        ).catch((reason: unknown): void => {
+                            console.error(new Error(`[8CrafterConsole::Copy console] An error occured while copying to the clipboard.`), reason);
+                        });
+                    } else console.warn("Could not copy console to clipboard because the console is empty.");
                 },
                 get disabled(): boolean {
                     return !consoleOverlayTextElement.textContent;
@@ -4309,27 +6938,27 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
      * @type {number | null}
      */
     let clickStartTime: number | null = null;
-    elem.addEventListener("mousedown", (event) => {
+    elem.addEventListener("mousedown", (event): void => {
         if (event.button !== 0) return;
         clickStartTime = Date.now();
     });
-    elem.addEventListener("mouseleave", () => {
+    elem.addEventListener("mouseleave", (): void => {
         clickStartTime = null;
     });
-    elem.addEventListener("click", (event) => {
+    elem.addEventListener("click", (event): void => {
         if (event.button !== 0) return;
         if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
             event.preventDefault();
             event.stopImmediatePropagation();
-            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
         }
         clickStartTime = null;
     });
-    elem.addEventListener("mouseup", (event) => {
+    elem.addEventListener("mouseup", (event): void => {
         if (event.button !== 2) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+        setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
     });
     consoleOverlayTextElement.appendChild(elem);
 }
@@ -4433,6 +7062,8 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
 //         currentTextContentOuterElem.appendChild(
 //             createExpandableObjectView(value, true, false, {
 //                 summaryValueOverride: value.error?.stack !== undefined ? value.error.stack : value.message,
+//                 currentPath: [],
+//                 currentDisplayedPath: [],
 //             })
 //         );
 //     } else if (data.type === "promiseRejection") {
@@ -4440,6 +7071,8 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
 //         currentTextContentOuterElem.appendChild(
 //             createExpandableObjectView(value, true, false, {
 //                 summaryValueOverride: value.reason?.stack !== undefined ? value.reason.stack : value.reason.message ?? String(value.reason),
+//                 currentPath: [],
+//                 currentDisplayedPath: [],
 //             })
 //         );
 //     } else {
@@ -4449,11 +7082,18 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
 //                 currentTextContentOuterElem.appendChild(
 //                     createExpandableObjectView(v, true, false, {
 //                         summaryValueOverride: v.stack,
+//                         currentPath: [],
+//                         currentDisplayedPath: [],
+//                         hideSummaryValueWhenExpanded: false,
 //                     })
 //                 );
 //             } else if ((typeof v === "object" && v !== null) || typeof v === "function") {
 //                 appendCurrentTextContentOuterElem();
-//                 elem.appendChild(createExpandableObjectView(v, true));
+//                 elem.appendChild(createExpandableObjectView(v, true, undefined, {
+//                     currentPath: [],
+//                     currentDisplayedPath: [],
+//                     hideSummaryValueWhenExpanded: false,
+//                 }));
 //             } else if (v === null) {
 //                 appendCurrentTextContentElem();
 //                 createNewTextContentElemIfNecessary();
@@ -4494,19 +7134,25 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
 // }
 
 // This is so that any messages logged before the console overlay was loaded will be displayed.
-(async function loadConsoleOverlayOnLoadMessageQueue() {
-    while (true) {
-        do {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            //@ts-ignore This should not have an error.
-        } while (!consoleOverlayTextElement);
-        if (consoleOverlayOnLoadMessageQueue.length === 0) continue;
-        for (const data of consoleOverlayOnLoadMessageQueue) {
-            consoleOverlayOnLoadMessageQueue.splice(consoleOverlayOnLoadMessageQueue.indexOf(data), 1);
-            consoleOverlayConsoleLogCallback(data);
-        }
-    }
-})();
+queueMicrotask(
+    setTimeout.bind(
+        void 0,
+        async function loadConsoleOverlayOnLoadMessageQueue(): Promise<never> {
+            while (true) {
+                do {
+                    await new Promise((resolve: (value: unknown) => void): void => void setTimeout(resolve, 100));
+                    //@ts-ignore This should not have an error.
+                } while (!consoleOverlayTextElement);
+                if (consoleOverlayOnLoadMessageQueue.length === 0) continue;
+                for (const data of consoleOverlayOnLoadMessageQueue) {
+                    consoleOverlayOnLoadMessageQueue.splice(consoleOverlayOnLoadMessageQueue.indexOf(data), 1);
+                    consoleOverlayConsoleLogCallback(data);
+                }
+            }
+        },
+        1
+    )
+);
 
 /**
  * @param {Parameters<typeof onConsoleLogCallbacks[0]>[0]} data
@@ -4542,14 +7188,15 @@ function consoleOverlayConsoleLogCallback(data: ConsoleEverythingEntry) {
     consoleOverlayTextElement.appendChild(elem);
 } */
 
+console.everything.forEach(consoleOverlayConsoleLogCallback);
 onConsoleLogCallbacks.push(consoleOverlayConsoleLogCallback);
 
-let nonTextKeyCodes = [
+const nonTextKeyCodes: readonly number[] = [
     8, 9, 13, 16, 17, 18, 20, 27, 32, 33, 34, 35, 37, 38, 39, 40, 45, 46, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 112, 113, 114, 115, 116, 117, 118, 119,
     120, 121, 122, 123, 195, 196, 197, 198, 199, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210,
 ];
 
-let types_KeyboardKey = {
+const types_KeyboardKey = {
     8: "BACKSPACE",
     9: "TAB",
     13: "ENTER",
@@ -4785,7 +7432,7 @@ let types_KeyboardKey = {
     CR_SEL: 247,
     EX_SEL: 248,
     ERASE_EOF: 249,
-};
+} as const;
 
 // const container = consoleOverlayTextElement;
 // const textBox = createCustomTextBox(container);
@@ -4807,15 +7454,18 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
             selectionEnd: 0,
         };
         const textBox = document.createElement("div");
+        // @ts-ignore: This is for browser compatibility
         textBox.contentEditable = "true";
         textBox.style.width = "100%";
         textBox.style.height = "200px";
         textBox.style.overflowY = "auto";
+        // @ts-ignore: This is for browser compatibility
         textBox.style.wordWrap = "break-word";
+        textBox.style.overflowWrap = "break-word";
         textBox.style.padding = "10px";
         textBox.style.border = "1px solid #ccc";
         textBox.style.cursor = "text"; // Add cursor
-        textBox.tabIndex = 0; // Make focusable
+        textBox.setAttribute("tabindex", "0"); // Make focusable
         textBox.classList.add("customTextBox");
         const textBoxValueDisplay = document.createElement("div");
         textBoxValueDisplay.style.width = "100%";
@@ -4833,10 +7483,12 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
                 console.warn(new ReferenceError("Could not find current text selection."));
                 return;
             }
+            // @ts-ignore: This is for browser compatibility.
             if (!e.clipboardData) {
                 console.warn(new ReferenceError("Could not find clipboard data."));
                 return;
             }
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */ /* @ts-ignore: This is for browser compatibility. */
             e.clipboardData.setData("text", selectedText);
             e.preventDefault();
         });
@@ -4847,10 +7499,12 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
                 console.warn(new ReferenceError("Could not find current text selection."));
                 return;
             }
+            // @ts-ignore: This is for browser compatibility.
             if (!e.clipboardData) {
                 console.warn(new ReferenceError("Could not find clipboard data."));
                 return;
             }
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */ /* @ts-ignore: This is for browser compatibility. */
             e.clipboardData.setData("text", selectedText);
             if (textBoxValueDisplay.textContent === null) {
                 console.warn(new ReferenceError("Text box value display has null text content."));
@@ -4861,16 +7515,19 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
         });
 
         textBox.addEventListener("paste", (e) => {
+            // @ts-ignore: This is for browser compatibility.
             if (!e.clipboardData) {
                 console.warn(new ReferenceError("Could not find clipboard data."));
                 return;
             }
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */ /* @ts-ignore: This is for browser compatibility. */
             const pastedText = e.clipboardData.getData("text");
             const selection = window.getSelection();
             if (!selection) {
                 console.warn(new ReferenceError("Could not find current text selection."));
                 return;
             }
+            /* eslint-disable-next-line @typescript-eslint/no-unsafe-call */ /* @ts-ignore: This is for browser compatibility. */
             selection.deleteFromDocument();
             textBoxValueDisplay.textContent += pastedText;
             e.preventDefault();
@@ -4917,28 +7574,28 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
                         }
                         break;
                     case types_KeyboardKey.ENTER:
-                        newText = text.substring(0, textBoxSelection.selectionStart) + "\n" + text.substring(textBoxSelection.selectionEnd);
+                        newText = `${text.substring(0, textBoxSelection.selectionStart)}\n${text.substring(textBoxSelection.selectionEnd)}`;
                         break;
                     case types_KeyboardKey.LEFT:
                         if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
                             if (e.shiftKey) {
-                                textBoxSelection.selectionStart -= 1;
+                                textBoxSelection.selectionStart--;
                             } else {
-                                textBoxSelection.selectionStart -= 1;
-                                textBoxSelection.selectionEnd -= 1;
+                                textBoxSelection.selectionStart--;
+                                textBoxSelection.selectionEnd--;
                             }
                         } else if (e.shiftKey) {
-                            textBoxSelection.selectionEnd -= 1;
+                            textBoxSelection.selectionEnd--;
                         } else {
                             textBoxSelection.selectionEnd = textBoxSelection.selectionStart;
                         }
                         break;
                     case types_KeyboardKey.RIGHT:
                         if (textBoxSelection.selectionStart === textBoxSelection.selectionEnd) {
-                            textBoxSelection.selectionStart += 1;
-                            textBoxSelection.selectionEnd += 1;
+                            textBoxSelection.selectionStart++;
+                            textBoxSelection.selectionEnd++;
                         } else if (e.shiftKey) {
-                            textBoxSelection.selectionEnd += 1;
+                            textBoxSelection.selectionEnd++;
                         } else {
                             textBoxSelection.selectionEnd = textBoxSelection.selectionStart;
                         }
@@ -4979,6 +7636,7 @@ function createCustomTextBox(container: HTMLElement): HTMLDivElement | undefined
         return textBox;
     } catch (e) {
         console.error(e);
+        return undefined;
     }
 }
 
@@ -5030,7 +7688,7 @@ function addScrollbarToHTMLElement(element: Element): boolean {
     var scrollbarTop = 0;
 
     // Add event listeners to the scrollbar
-    scrollbarParent.addEventListener("mousedown", function (event) {
+    scrollbarParent.addEventListener("mousedown", function onScrollbarMouseDown(event: MouseEvent): void {
         event.preventDefault();
         var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
         mouseDownOnScrollbar = true;
@@ -5048,23 +7706,23 @@ function addScrollbarToHTMLElement(element: Element): boolean {
         element.scrollTop = scrollPosition;
         scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
         scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-        scrollbar.style.height = scrollbarHeight + "px";
-        scrollbar.style.top = scrollbarTop + "px";
-        scrollbarParent.style.top = element.scrollTop + "px";
+        scrollbar.style.height = `${scrollbarHeight}px`;
+        scrollbar.style.top = `${scrollbarTop}px`;
+        scrollbarParent.style.top = `${element.scrollTop}px`;
     });
 
-    document.addEventListener("mouseup", function (event) {
+    document.addEventListener("mouseup", function onScrollbarMouseUp(event: MouseEvent): void {
         if (mouseDownOnScrollbar) {
             event.preventDefault();
             mouseDownOnScrollbar = false;
         }
     });
 
-    document.addEventListener("mousemove", function (event) {
+    document.addEventListener("mousemove", function onScrollbarDrag(event: MouseEvent): void {
         if (mouseDownOnScrollbar) {
             event.preventDefault();
-            var scrollbarParentClientRect = scrollbarParent.getBoundingClientRect();
-            var mouseY = Math.min(
+            var scrollbarParentClientRect: DOMRect = scrollbarParent.getBoundingClientRect();
+            var mouseY: number = Math.min(
                 scrollbarParentClientRect.top + scrollbarParentClientRect.height,
                 Math.max(scrollbarParentClientRect.top, event.clientY - mousePosOffset)
             );
@@ -5077,34 +7735,34 @@ function addScrollbarToHTMLElement(element: Element): boolean {
             element.scrollTop = scrollPosition;
             scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
             scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-            scrollbar.style.height = scrollbarHeight + "px";
-            scrollbar.style.top = scrollbarTop + "px";
-            scrollbarParent.style.top = element.scrollTop + "px";
+            scrollbar.style.height = `${scrollbarHeight}px`;
+            scrollbar.style.top = `${scrollbarTop}px`;
+            scrollbarParent.style.top = `${element.scrollTop}px`;
         }
     });
 
     // Update the scrollbar position when the div is scrolled
-    element.addEventListener("scroll", function () {
-        var scrollPosition = element.scrollTop;
+    element.addEventListener("scroll", function updateScrollbarOnElementScroll(): void {
+        var scrollPosition: number = element.scrollTop;
         totalHeight = element.scrollHeight;
         if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
         scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
         scrollbarTop = Math.min((scrollPosition / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-        scrollbar.style.height = scrollbarHeight + "px";
-        scrollbar.style.top = scrollbarTop + "px";
-        scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
-        scrollbarParent.style.height = visibleHeight + "px";
+        scrollbar.style.height = `${scrollbarHeight}px`;
+        scrollbar.style.top = `${scrollbarTop}px`;
+        scrollbarParent.style.top = `${Math.min(element.scrollTop, element.scrollHeight - visibleHeight)}px`;
+        scrollbarParent.style.height = `${visibleHeight}px`;
     });
-    const mutationObserver = new MutationObserver(() => {
+    const mutationObserver = new MutationObserver((): void => {
         setTimeout(() => {
             totalHeight = element.scrollHeight;
             if (element.parentElement) visibleHeight = element.parentElement.getBoundingClientRect().height;
             scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
             scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
-            scrollbar.style.height = scrollbarHeight + "px";
-            scrollbar.style.top = scrollbarTop + "px";
-            scrollbarParent.style.top = Math.min(element.scrollTop, element.scrollHeight - visibleHeight) + "px";
-            scrollbarParent.style.height = visibleHeight + "px";
+            scrollbar.style.height = `${scrollbarHeight}px`;
+            scrollbar.style.top = `${scrollbarTop}px`;
+            scrollbarParent.style.top = `${Math.min(element.scrollTop, element.scrollHeight - visibleHeight)}px`;
+            scrollbarParent.style.height = `${visibleHeight}px`;
         }, 10);
     });
     mutationObserver.observe(element, {
@@ -5115,8 +7773,9 @@ function addScrollbarToHTMLElement(element: Element): boolean {
     return true;
 }
 
-var litePlayScreenActive: boolean = false;
+var litePlayScreenActive = false;
 
+/* eslint-disable no-useless-computed-key */
 /**
  * Maps game mode IDs to their names.
  */
@@ -5133,11 +7792,12 @@ const GameModeIDMap = {
     [8]: "GM8",
     [9]: "GM9",
 };
+/* eslint-enable no-useless-computed-key */
 
 /**
  * Enables the lite play screen.
  */
-async function enableLitePlayScreen(noReload = false) {
+async function enableLitePlayScreen(noReload = false): Promise<void> {
     if (litePlayScreenActive) {
         return;
     }
@@ -5171,24 +7831,23 @@ async function enableLitePlayScreen(noReload = false) {
         // Array.from(document.getElementById("root").children).forEach((element) => (element.innerHTML = ""));
         router.history.replace(
             `/ouic/play?isLitePlayScreen=true${
-                originalRouterLocation.pathname.startsWith("/play/")
-                    ? "&tab=" +
-                      ({ all: "worlds", realms: "realms", servers: "servers" }[originalRouterLocation.pathname.slice(6)] ??
-                          originalRouterLocation.pathname.slice(6))
-                    : ""
+                originalRouterLocation.pathname.startsWith("/play/") ?
+                    `&tab=${
+                        { all: "worlds", realms: "realms", servers: "servers" }[originalRouterLocation.pathname.slice(6)] ??
+                        originalRouterLocation.pathname.slice(6)
+                    }`
+                :   ""
             }`
         );
         if (noReload) {
-            Array.from(document.querySelectorAll("div#root > div > div")).forEach((v) => v.remove());
-        }
-        if (!noReload) {
+            Array.from(document.querySelectorAll("div#root > div > div")).forEach((v): void => void v.remove());
+        } else {
             if (router.history.location.pathname.startsWith("/ouic/play")) {
                 location.reload();
                 return;
-            } else {
-                console.error("Failed to enable lite play screen, the router path was not changed when attempting to change it.");
-                return;
             }
+            console.error("Failed to enable lite play screen, the router path was not changed when attempting to change it.");
+            return;
         }
     }
     let i = 0;
@@ -5201,11 +7860,11 @@ async function enableLitePlayScreen(noReload = false) {
         if (i === 100) {
             return;
         }
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve): void => void setTimeout(resolve, 10));
         i++;
     }
     for (let i = 0; i < 1000; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve): void => void setTimeout(resolve, 10));
         if (
             Array.from(document.querySelectorAll("div#root > div > div > div > div.vanilla-neutral20-background")).find(
                 (element) => !element.hasAttribute("data-old-title-bar")
@@ -5255,9 +7914,9 @@ async function enableLitePlayScreen(noReload = false) {
         (getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"] ?? (await forceLoadFacet("vanilla.realmsListFacet")))?.realms?.length ?? "..."
     })</button>
     <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_friendsTabButton" data-tab-id="friends">Friends (${(function getFriendsTabWorldsCount(
-        friends,
-        lan
-    ) {
+        friends: number,
+        lan: number
+    ): number | "..." {
         return friends !== undefined || lan !== undefined ? (friends ?? 0) + (lan ?? 0) : "...";
     })(
         (getAccessibleFacetSpyFacets()["vanilla.friendworldlist"] ?? (await forceLoadFacet("vanilla.friendworldlist")))?.friendWorlds?.length,
@@ -5267,10 +7926,18 @@ async function enableLitePlayScreen(noReload = false) {
         (getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ?? (await forceLoadFacet("vanilla.externalServerWorldList")))?.externalServerWorlds
             ?.length ?? "..."
     })</button>
-    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButton" data-tab-id="featured">Featured (${
-        (getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList")))?.thirdPartyWorlds?.length ??
-        "..."
-    })</button>
+    <button type="button" class="btn nsel" style="font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2" id="litePlayScreen_featuredTabButton" data-tab-id="featured">Featured (${((
+        thirdPartyWorldList
+    ): string => {
+        if (!thirdPartyWorldList) return "...";
+        const serverListIterables =
+            thirdPartyWorldList ?
+                "thirdPartyWorlds" in thirdPartyWorldList ?
+                    [thirdPartyWorldList.thirdPartyWorlds]
+                :   [thirdPartyWorldList.creatorExperiences, thirdPartyWorldList.featuredExperiences]
+            :   [];
+        return serverListIterables.map((v) => v.length).join("+");
+    })(getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList")))})</button>
 </div><div id="litePlayScreen_tabContent" style="display: flex; flex-direction: column; width: 90%; margin: 0 5%; overflow-y: scroll; justify-content: flex-start; flex-grow: 1"></div></div>`;
     const tabContent = document.getElementById("litePlayScreen_tabContent");
     const tabList = document.getElementById("litePlayScreen_tabList");
@@ -5278,10 +7945,8 @@ async function enableLitePlayScreen(noReload = false) {
     const tabListButtons = tabList.querySelectorAll("button");
     /**
      * The currently selected page.
-     *
-     * @type {number}
      */
-    let currentPage: number = Number(
+    let currentPage = Number(
         originalRouterLocation.search
             .replace("?", "")
             .split("&")
@@ -5290,8 +7955,6 @@ async function enableLitePlayScreen(noReload = false) {
     );
     /**
      * The currently selected tab.
-     *
-     * @type {typeof tabIDs[number]}
      */
     //@ts-ignore
     let currentTab: (typeof tabIDs)[number] =
@@ -5314,7 +7977,7 @@ async function enableLitePlayScreen(noReload = false) {
      * @param {typeof tabIDs[number]} tab The tab to change to.
      * @param {boolean} [clickTab=true] Whether to click the tab button.
      */
-    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab: boolean = true) {
+    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab = true): void {
         currentPage = page;
         currentTab = tab;
         if (!router) throw new ReferenceError("The router facet has become unavailable.");
@@ -5334,29 +7997,31 @@ async function enableLitePlayScreen(noReload = false) {
         }
     }
     for (let i = 0; i < tabListButtons.length; i++) {
-        tabListButtons[i]!.addEventListener("click", async () => {
-            if (tabListButtons[i]!.getAttribute("data-tab-id") !== currentTab) {
+        const index = i;
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
+        tabListButtons[index]!.addEventListener("click", async () => {
+            if (tabListButtons[index]!.getAttribute("data-tab-id") !== currentTab) {
                 if (!silentClick) {
                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                 }
                 currentPage = 0;
-                for (let j = 0; j < tabListButtons.length; j++) {
-                    tabListButtons[j]!.classList.remove("selected");
+                for (const tabListButton of tabListButtons) {
+                    tabListButton.classList.remove("selected");
                 }
-                tabListButtons[i]!.classList.add("selected");
-                changePage(0, tabIDs[i]!, false);
-            } else if (!tabListButtons[i]!.classList.contains("selected")) {
-                tabListButtons[i]!.classList.add("selected");
+                tabListButtons[index]!.classList.add("selected");
+                changePage(0, tabIDs[index]!, false);
+            } else if (!tabListButtons[index]!.classList.contains("selected")) {
+                tabListButtons[index]!.classList.add("selected");
             }
             silentClick = false;
             if (!tabContent) throw new ReferenceError("The tab content element could not be found.");
-            Array.from(tabContent.children).forEach((element) => element.remove());
+            Array.from(tabContent.children).forEach((element): void => void element.remove());
             /**
              * The ID of the tab button.
              *
              * @type {typeof tabIDs[number]}
              */
-            const tabButtonID: (typeof tabIDs)[number] = <any>tabListButtons[i]!.getAttribute("data-tab-id") ?? "worlds";
+            const tabButtonID: (typeof tabIDs)[number] = (tabListButtons[index]!.getAttribute("data-tab-id") ?? "worlds") as (typeof tabIDs)[number];
             switch (tabButtonID) {
                 case "worlds": {
                     currentTab = "worlds";
@@ -5416,6 +8081,7 @@ async function enableLitePlayScreen(noReload = false) {
                             worldButtonContainer.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButtonContainer_${world.id}`;
                             worldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const worldButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             worldButton.type = "button";
                             worldButton.classList.add("btn", "nsel");
                             worldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
@@ -5438,6 +8104,7 @@ async function enableLitePlayScreen(noReload = false) {
                                 world.playerHasDied ? " | Player Has Died" : ""
                             }`;
                             worldButton.appendChild(worldButton_worldDetails);
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             worldButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const worldStartup = getAccessibleFacetSpyFacets()["vanilla.worldStartup"] ?? (await forceLoadFacet("vanilla.worldStartup"));
@@ -5446,14 +8113,16 @@ async function enableLitePlayScreen(noReload = false) {
                                 }
                             });
                             const editWorldButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             editWorldButton.type = "button";
                             editWorldButton.classList.add("btn", "nsel");
                             editWorldButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             editWorldButton.id = `litePlayScreen_worldsTabWorldList_worldListContainer_worldButton_editWorldButton_${world.id}`;
                             const worldID = world.id;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             editWorldButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                const router = getAccessibleFacetSpyFacets()["core.router"];
+                                const router = getAccessibleFacetSpyFacets()["core.router"] ?? (await forceLoadFacet("core.router"));
                                 if (router) {
                                     router.history.push(`/edit-world/${worldID}`);
                                 }
@@ -5501,6 +8170,7 @@ async function enableLitePlayScreen(noReload = false) {
                             router.history.push(`/start-from-template`);
                         }
                     });
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                     rightButtons.children[1]!.addEventListener("click", async () => {
                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                         const worldTransfer = getAccessibleFacetSpyFacets()["vanilla.worldTransfer"] ?? (await forceLoadFacet("vanilla.worldTransfer"));
@@ -5574,6 +8244,7 @@ async function enableLitePlayScreen(noReload = false) {
                             realmButtonContainer.id = `litePlayScreen_realmsTabRealmList_realmListContainer_realmButtonContainer_${realm.world.id}`;
                             realmButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const realmButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             realmButton.type = "button";
                             realmButton.classList.add("btn", "nsel");
                             realmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; flex-grow: 1; font-family: Minecraft Seven v2; text-align: left;";
@@ -5588,13 +8259,10 @@ async function enableLitePlayScreen(noReload = false) {
                             realmButton_realmDetails.textContent = `Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${
                                 realm.world.full ? " (Full)" : ""
                             }${
-                                realm.world.expired
-                                    ? " | Expired"
-                                    : realm.world.closed
-                                    ? " | Closed"
-                                    : realm.isOwner
-                                    ? ` | Days Left: ${realm.world.daysLeft}`
-                                    : ""
+                                realm.world.expired ? " | Expired"
+                                : realm.world.closed ? " | Closed"
+                                : realm.isOwner ? ` | Days Left: ${realm.world.daysLeft}`
+                                : ""
                             } | ${
                                 //@ts-ignore
                                 GameModeIDMap[realm.world.gameMode]
@@ -5603,6 +8271,7 @@ async function enableLitePlayScreen(noReload = false) {
                             } | Description: ${realm.world.description}`;
                             realmButton.appendChild(realmButton_realmDetails);
                             const realmID = realm.world.id;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             realmButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const networkWorldJoiner =
@@ -5613,6 +8282,7 @@ async function enableLitePlayScreen(noReload = false) {
                             });
                             realmButtonContainer.appendChild(realmButton);
                             const realmOptionsButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             realmOptionsButton.type = "button";
                             realmOptionsButton.classList.add("btn", "nsel");
                             realmOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
@@ -5628,7 +8298,11 @@ async function enableLitePlayScreen(noReload = false) {
     <div id="realmOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-realm-options-overlay-field="realmName"></h1>
         <p data-realm-options-overlay-field="slotName" style="display: ${realm.world.slotName ? "block" : "none"}"></p>
-        <p>Status: ${realm.world.expired ? "Expired" : realm.world.closed ? "Closed" : "Open"}</p>
+        <p>Status: ${
+            realm.world.expired ? "Expired"
+            : realm.world.closed ? "Closed"
+            : "Open"
+        }</p>
         <p>Players: ${realm.world.onlinePlayers.length}/${realm.world.maxPlayers}${realm.world.full ? " (Full)" : ""}</p>
         <p>Unread Story Count: ${realm.unreadStoryCount}</p>
         <p data-realm-options-overlay-field="description" style="display: ${realm.world.description ? "block" : "none"}"></p>
@@ -5650,24 +8324,20 @@ async function enableLitePlayScreen(noReload = false) {
                                 //@ts-ignore
                                 realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='realmName']").textContent = realm.world.realmName;
                                 //@ts-ignore
-                                realmOptionsOverlayElement.querySelector(
-                                    "[data-realm-options-overlay-field='slotName']"
-                                ).textContent = `Slot Name: ${realm.world.slotName}`;
+                                realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='slotName']").textContent =
+                                    `Slot Name: ${realm.world.slotName}`;
                                 //@ts-ignore
-                                realmOptionsOverlayElement.querySelector(
-                                    "[data-realm-options-overlay-field='description']"
-                                ).textContent = `Description: ${realm.world.description}`;
+                                realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='description']").textContent =
+                                    `Description: ${realm.world.description}`;
                                 if (realm.world.lastSaved !== null) {
                                     //@ts-ignore
-                                    realmOptionsOverlayElement.querySelector(
-                                        "[data-realm-options-overlay-field='lastSaved']"
-                                    ).textContent = `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
+                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").textContent =
+                                        `Last Saved: ${new Date(realm.world.lastSaved * 1000).toLocaleString()}`;
                                 } else {
-                                    //@ts-ignore
-                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']").remove();
+                                    realmOptionsOverlayElement.querySelector("[data-realm-options-overlay-field='lastSaved']")!.remove();
                                 }
-                                //@ts-ignore
-                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton").addEventListener("click", async () => {
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_joinRealmButton")!.addEventListener("click", async () => {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                     const networkWorldJoiner =
                                         getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
@@ -5675,8 +8345,7 @@ async function enableLitePlayScreen(noReload = false) {
                                         networkWorldJoiner.joinRealmWorld(realmID.toString(), 0);
                                     }
                                 });
-                                //@ts-ignore
-                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton").addEventListener("click", () => {
+                                realmOptionsOverlayElement.querySelector("#realmOptionsOverlayElement_realmsStoriesButton")!.addEventListener("click", () => {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                     const router = getAccessibleFacetSpyFacets()["core.router"];
                                     if (router) {
@@ -5696,6 +8365,7 @@ async function enableLitePlayScreen(noReload = false) {
                             realmButtonContainer.appendChild(realmOptionsButton);
                             if (realm.isOwner) {
                                 const editRealmButton = document.createElement("button");
+                                // @ts-ignore: This is for browser compatibility.
                                 editRealmButton.type = "button";
                                 editRealmButton.classList.add("btn", "nsel");
                                 editRealmButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
@@ -5819,6 +8489,7 @@ async function enableLitePlayScreen(noReload = false) {
                             friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
                             friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const friendWorldButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             friendWorldButton.type = "button";
                             friendWorldButton.classList.add("btn", "nsel");
                             friendWorldButton.style =
@@ -5833,29 +8504,34 @@ async function enableLitePlayScreen(noReload = false) {
                             friendWorldButton_friendWorldDetails.style =
                                 "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
                             friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
-                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : " | LAN"
+                                "friendOfFriendWorld" in world ?
+                                    world.friendOfFriendWorld ?
+                                        " | Friend of Friend"
+                                    :   " | Friend"
+                                :   " | LAN"
                             } | ${
                                 //@ts-ignore
                                 GameModeIDMap[world.gameMode]
                             }${world.isHardcore ? " | Hardcore" : ""}${"ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""}${
-                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
-                                    ? ` | Address: ${world.address}:${world.port}`
-                                    : ""
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ?
+                                    ` | Address: ${world.address}:${world.port}`
+                                :   ""
                             }`;
                             friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
                             const friendWorldID = world.id;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             friendWorldButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const networkWorldJoiner =
                                     getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
                                 if (networkWorldJoiner) {
-                                    "friendOfFriendWorld" in world
-                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
-                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                    if ("friendOfFriendWorld" in world) networkWorldJoiner.joinFriendServer(friendWorldID);
+                                    else networkWorldJoiner.joinLanServer(friendWorldID);
                                 }
                             });
                             friendWorldButtonContainer.appendChild(friendWorldButton);
                             const friendWorldOptionsButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             friendWorldOptionsButton.type = "button";
                             friendWorldOptionsButton.classList.add("btn", "nsel");
                             friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
@@ -5874,11 +8550,17 @@ async function enableLitePlayScreen(noReload = false) {
         <h1 data-friend-world-options-overlay-field="friendWorldName"></h1>
         <p data-friend-world-options-overlay-field="ownerName"></p>
         <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${("ownerId" in world && world.ownerId) || "N/A"}</p>
-        <p>${"friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? "Friend of Friend" : "Friend") : "LAN"}</p>
+        <p>${
+            "friendOfFriendWorld" in world ?
+                world.friendOfFriendWorld ?
+                    "Friend of Friend"
+                :   "Friend"
+            :   "LAN"
+        }</p>
         <p>Players: ${world.playerCount}/${world.capacity}</p>
         <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${
-                                        ("ping" in world && world.ping) || "N/A"
-                                    }</p>
+            ("ping" in world && world.ping) || "N/A"
+        }</p>
         <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
         <p data-friend-world-options-overlay-field="address" style="display: ${
             "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
@@ -5893,24 +8575,21 @@ async function enableLitePlayScreen(noReload = false) {
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
     </div>
 </div>`;
-                                    //@ts-ignore
-                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='friendWorldName']").textContent =
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='friendWorldName']")!.textContent =
                                         world.name;
-                                    //@ts-ignore
-                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='ownerName']").textContent =
+                                    friendWorldOptionsOverlayElement.querySelector("[data-friend-world-options-overlay-field='ownerName']")!.textContent =
                                         world.ownerName;
-                                    //@ts-ignore
                                     friendWorldOptionsOverlayElement
-                                        .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
+                                        .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")!
+                                        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                                         .addEventListener("click", async () => {
                                             getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                             const networkWorldJoiner =
                                                 getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ??
                                                 (await forceLoadFacet("vanilla.networkWorldJoiner"));
                                             if (networkWorldJoiner) {
-                                                "friendOfFriendWorld" in world
-                                                    ? networkWorldJoiner.joinFriendServer(friendWorldID)
-                                                    : networkWorldJoiner.joinLanServer(friendWorldID);
+                                                if ("friendOfFriendWorld" in world) networkWorldJoiner.joinFriendServer(friendWorldID);
+                                                else networkWorldJoiner.joinLanServer(friendWorldID);
                                             }
                                         });
                                     document.body.appendChild(friendWorldOptionsOverlayElement);
@@ -6021,6 +8700,7 @@ async function enableLitePlayScreen(noReload = false) {
                             serverButtonContainer.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
                             serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const serverButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             serverButton.type = "button";
                             serverButton.classList.add("btn", "nsel");
                             serverButton.style =
@@ -6038,6 +8718,7 @@ async function enableLitePlayScreen(noReload = false) {
                             } | Ping: ${server.ping} | ID: ${server.id} | ${server.description ? `Description: ${server.description}` : ""}`;
                             serverButton.appendChild(serverButton_serverDetails);
                             const serverID = server.id;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             serverButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const networkWorldJoiner =
@@ -6048,10 +8729,12 @@ async function enableLitePlayScreen(noReload = false) {
                             });
                             serverButtonContainer.appendChild(serverButton);
                             const serverOptionsButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             serverOptionsButton.type = "button";
                             serverOptionsButton.classList.add("btn", "nsel");
                             serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             serverOptionsButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             serverOptionsButton.addEventListener("click", async () => {
                                 try {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
@@ -6064,12 +8747,15 @@ async function enableLitePlayScreen(noReload = false) {
 <div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
     <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-server-options-overlay-field="serverName"></h1>
-        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p data-server-options-overlay-field="motd"></p>
         <p>Ping: <span>${server.ping}</span></p>
         <p>Players: ${server.playerCount}/${server.capacity}</p>
         <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
         <p>Server ID: ${server.id}</p>
-        <img src="${server.image}" />
+        <p data-server-options-overlay-field="ip">IP: Loading...</p>
+        <p data-server-options-overlay-field="type">Type: Loading...</p>
+        <p data-server-options-overlay-field="isSupportedForPartyTravel" style="display: none;"></p>
+        <img data-server-options-overlay-field="favicon" />
         <img data-server-options-overlay-field="image" />
     </div>
     <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
@@ -6079,12 +8765,17 @@ async function enableLitePlayScreen(noReload = false) {
                                     //@ts-ignore
                                     serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
                                     //@ts-ignore
-                                    serverOptionsOverlayElement.querySelector(
-                                        "[data-server-options-overlay-field='description']"
-                                    ).textContent = `Description: ${server.description}`;
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='description']").textContent =
+                                        `Description: ${server.description}`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='motd']").textContent =
+                                        `MOTD: ${server.msgOfTheDay}`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='favicon']").src = server.image;
                                     //@ts-ignore
                                     serverOptionsOverlayElement
                                         .querySelector("#serverOptionsOverlayElement_joinServerButton")
+                                        // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                                         .addEventListener("click", async () => {
                                             getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                             const networkWorldJoiner =
@@ -6112,6 +8803,7 @@ async function enableLitePlayScreen(noReload = false) {
                             serverOptionsButton.appendChild(serverOptionsButton_label);
                             serverButtonContainer.appendChild(serverOptionsButton);
                             const editServerButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             editServerButton.type = "button";
                             editServerButton.classList.add("btn", "nsel");
                             editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
@@ -6169,9 +8861,20 @@ async function enableLitePlayScreen(noReload = false) {
                 }
                 case "featured": {
                     currentTab = "featured";
-                    const serverListIterable = (
-                        getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList"))
-                    )?.thirdPartyWorlds;
+                    const thirdPartyWorldList =
+                        getAccessibleFacetSpyFacets()["vanilla.thirdPartyWorldList"] ?? (await forceLoadFacet("vanilla.thirdPartyWorldList"));
+                    const serverListIterables =
+                        thirdPartyWorldList ?
+                            "thirdPartyWorlds" in thirdPartyWorldList ?
+                                [thirdPartyWorldList.thirdPartyWorlds]
+                            :   [thirdPartyWorldList.creatorExperiences, thirdPartyWorldList.featuredExperiences]
+                        :   [];
+                    const iterableTypeNameMap =
+                        thirdPartyWorldList ?
+                            "thirdPartyWorlds" in thirdPartyWorldList ?
+                                ["Third Party World"]
+                            :   ["Creator Experience", "Featured Experience"]
+                        :   [];
                     /**
                      * The featured tab button.
                      *
@@ -6180,9 +8883,9 @@ async function enableLitePlayScreen(noReload = false) {
                     //@ts-ignore
                     const featuredTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_featuredTabButton");
                     if (featuredTabButton) {
-                        featuredTabButton.textContent = `Featured (${serverListIterable?.length ?? 0})`;
+                        featuredTabButton.textContent = `Featured (${serverListIterables.map((v) => v.length).join("+")})`;
                     }
-                    const pageCount = Math.ceil((serverListIterable?.length ?? 0) / 5);
+                    const pageCount = Math.ceil(serverListIterables.reduce((p, v) => p + v.length, 0) / 5);
                     const buttonBar = document.createElement("div");
                     buttonBar.id = "litePlayScreen_featuredTabButtonBar";
                     buttonBar.style = "width: 100%; display: flex; flex-direction: row; justify-content: space-between; margin: 1em 0";
@@ -6202,7 +8905,7 @@ async function enableLitePlayScreen(noReload = false) {
                     // serverListContainer.style.display = "contents";
                     serverListContainer.style.width = "100%";
                     // serverListContainer.style.height = "100%";
-                    if (!serverListIterable || pageCount === 0) {
+                    if (!serverListIterables.length || pageCount === 0) {
                         const emptyListInfo = document.createElement("p");
                         emptyListInfo.textContent = "No featured servers found.";
                         emptyListInfo.style.fontSize = "2vw";
@@ -6216,13 +8919,17 @@ async function enableLitePlayScreen(noReload = false) {
                             changePage(Math.max(0, Math.min(pageCount - 1, 0)), currentTab);
                             return;
                         }
-                        const serverList = Array.from(serverListIterable).sort((serverA, serverB) => Number(serverA.id) - Number(serverB.id));
+                        const serverList = serverListIterables
+                            .map((v) => Array.from(v))
+                            .flat()
+                            .sort((serverA, serverB) => Number(serverA.id) - Number(serverB.id));
                         for (let i = currentPage * 5; i < Math.min(serverList.length, (currentPage + 1) * 5); i++) {
                             const server = serverList[i]!;
                             const serverButtonContainer = document.createElement("div");
                             serverButtonContainer.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButtonContainer_${server.id}`;
                             serverButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const serverButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             serverButton.type = "button";
                             serverButton.classList.add("btn", "nsel");
                             serverButton.style =
@@ -6236,11 +8943,12 @@ async function enableLitePlayScreen(noReload = false) {
                             serverButton_serverDetails.style =
                                 "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
                             serverButton_serverDetails.classList.add("fc77bf1310dc483c1eba");
-                            serverButton_serverDetails.textContent = `Players: ${server.playerCount}/${server.capacity}${
+                            serverButton_serverDetails.textContent = `${serverListIterables.length > 1 ? `${iterableTypeNameMap[serverListIterables.findIndex((v) => v.includes(server))]} | ` : ""}Players: ${server.playerCount}/${server.capacity}${
                                 server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
                             } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
                             serverButton.appendChild(serverButton_serverDetails);
                             const serverID = server.id;
+                            // eslint-disable-next-line @typescript-eslint/no-misused-promises -- This is intentional.
                             serverButton.addEventListener("click", async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const networkWorldJoiner =
@@ -6251,11 +8959,12 @@ async function enableLitePlayScreen(noReload = false) {
                             });
                             serverButtonContainer.appendChild(serverButton);
                             const serverOptionsButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             serverOptionsButton.type = "button";
                             serverOptionsButton.classList.add("btn", "nsel");
                             serverOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             serverOptionsButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
-                            serverOptionsButton.addEventListener("click", async () => {
+                            serverOptionsButton.addEventListener("click", (async () => {
                                 try {
                                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                     const serverOptionsOverlayElement = document.createElement("div");
@@ -6267,27 +8976,35 @@ async function enableLitePlayScreen(noReload = false) {
 <div style="display: flex; flex-direction: row; height: 100%; width: 100%; padding: 0.5vh 0.5vh">
     <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-server-options-overlay-field="serverName"></h1>
-        <p>MOTD: ${server.msgOfTheDay}</p>
+        <p data-server-options-overlay-field="motd"></p>
         <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
         <p>Players: ${server.playerCount}/${server.capacity}</p>
         <p data-server-options-overlay-field="description"></p>
         <p>Server ID: ${server.id}</p>
+        <p data-server-options-overlay-field="ip">IP: Loading...</p>
+        <p data-server-options-overlay-field="type">Type: Loading...</p>
+        <p data-server-options-overlay-field="isSupportedForPartyTravel" style="display: none;"></p>
         <img data-server-options-overlay-field="image" />
     </div>
     <div id="serverOptionsOverlayElement_buttonsElement" style="display: flex; flex-direction: row; justify-content: space-between; position: absolute; bottom: 0; left: 0; width: 100%; padding: 0.5vh 0.5vh">
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="serverOptionsOverlayElement_joinServerButton">Join Server</button>
     </div>
 </div>`;
+
+                                    // Set these options here as text to prevent remote code execution.
                                     //@ts-ignore
                                     serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='serverName']").textContent = server.name;
                                     //@ts-ignore
-                                    serverOptionsOverlayElement.querySelector(
-                                        "[data-server-options-overlay-field='description']"
-                                    ).textContent = `Description: ${server.description}`;
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='description']").textContent =
+                                        `Description: ${server.description}`;
+                                    //@ts-ignore
+                                    serverOptionsOverlayElement.querySelector("[data-server-options-overlay-field='motd']").textContent =
+                                        `MOTD: ${server.msgOfTheDay}`;
+
                                     //@ts-ignore
                                     serverOptionsOverlayElement
                                         .querySelector("#serverOptionsOverlayElement_joinServerButton")
-                                        .addEventListener("click", async () => {
+                                        .addEventListener("click", (async () => {
                                             getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                             const networkWorldJoiner =
                                                 getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ??
@@ -6295,7 +9012,7 @@ async function enableLitePlayScreen(noReload = false) {
                                             if (networkWorldJoiner) {
                                                 networkWorldJoiner.joinExternalServer(serverID.toString());
                                             }
-                                        });
+                                        }) as () => void);
                                     document.body.appendChild(serverOptionsOverlayElement);
                                     (
                                         getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"] ?? (await forceLoadFacet("vanilla.networkWorldDetails"))
@@ -6303,7 +9020,7 @@ async function enableLitePlayScreen(noReload = false) {
                                 } catch (e) {
                                     console.error(e);
                                 }
-                            });
+                            }) as () => void);
                             const serverOptionsButton_icon = document.createElement("img");
                             serverOptionsButton_icon.src = "/hbui/assets/Options-Horizontal-426f7783c8eede73d0a9.png";
                             serverOptionsButton_icon.style = "width: 2vw; height: 2vw;";
@@ -6314,17 +9031,26 @@ async function enableLitePlayScreen(noReload = false) {
                             serverOptionsButton.appendChild(serverOptionsButton_label);
                             serverButtonContainer.appendChild(serverOptionsButton);
                             const editServerButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             editServerButton.type = "button";
                             editServerButton.classList.add("btn", "nsel");
                             editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             editServerButton.id = `litePlayScreen_featuredTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
-                            editServerButton.addEventListener("click", () => {
-                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                const router = getAccessibleFacetSpyFacets()["core.router"];
-                                if (router) {
-                                    router.history.push(`/play/servers/${serverID}/external/edit`);
-                                }
-                            });
+                            editServerButton.addEventListener(
+                                "click",
+                                (): void =>
+                                    void (async (): Promise<void> => {
+                                        (
+                                            getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"] ??
+                                            (await forceLoadFacet("vanilla.networkWorldDetails"))
+                                        )?.loadNetworkWorldDetails(serverID, 0);
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                                        if (router) {
+                                            router.history.push(`/play/servers/${serverID}/external/edit`);
+                                        }
+                                    })()
+                            );
                             const editServerButton_icon = document.createElement("img");
                             editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
                             editServerButton_icon.style = "width: 2vw; height: 2vw;";
@@ -6360,6 +9086,7 @@ async function enableLitePlayScreen(noReload = false) {
                     });
                     break;
                 }
+                // no default
             }
         });
     }
@@ -6411,6 +9138,18 @@ async function enableLitePlayScreen(noReload = false) {
     if (window.observingThirdPartyWorldListForLitePlayScreenServersTab !== true) {
         window.observingThirdPartyWorldListForLitePlayScreenServersTab = true;
         facetSpyData.sharedFacets["vanilla.thirdPartyWorldList"].observe((thirdPartyWorldList) => {
+            const serverListIterables =
+                thirdPartyWorldList ?
+                    "thirdPartyWorlds" in thirdPartyWorldList ?
+                        [thirdPartyWorldList.thirdPartyWorlds]
+                    :   [thirdPartyWorldList.creatorExperiences, thirdPartyWorldList.featuredExperiences]
+                :   [];
+            const iterableTypeNameMap =
+                thirdPartyWorldList ?
+                    "thirdPartyWorlds" in thirdPartyWorldList ?
+                        ["Third Party World"]
+                    :   ["Creator Experience", "Featured Experience"]
+                :   [];
             /**
              * The featured tab button.
              *
@@ -6419,14 +9158,16 @@ async function enableLitePlayScreen(noReload = false) {
             //@ts-ignore
             const featuredTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_featuredTabButton");
             if (featuredTabButton) {
-                featuredTabButton.textContent = `Featured (${thirdPartyWorldList.thirdPartyWorlds.length})`;
+                featuredTabButton.textContent = `Featured (${serverListIterables.map((v) => v.length).join("+")})`;
             }
             if (currentTab !== "featured") {
                 return;
             } /* 
             if (document.getElementById("serverOptionsOverlayElement")) {
             } */
-            for (const server of Array.from(thirdPartyWorldList.thirdPartyWorlds)) {
+            for (const server of "thirdPartyWorlds" in thirdPartyWorldList ?
+                Array.from(thirdPartyWorldList.thirdPartyWorlds)
+            :   [...Array.from(thirdPartyWorldList.creatorExperiences), ...Array.from(thirdPartyWorldList.featuredExperiences)]) {
                 /**
                  * The server button container.
                  *
@@ -6440,16 +9181,17 @@ async function enableLitePlayScreen(noReload = false) {
                     //@ts-ignore
                     serverButtonContainer.querySelector(
                         `#litePlayScreen_featuredTabServerList_serverListContainer_serverButton_${server.id}`
-                    ).children[1]!.textContent = `Players: ${server.playerCount}/${server.capacity}${
-                        server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
-                    } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
+                    ).children[1]!.textContent =
+                        `${serverListIterables.length > 1 ? `${iterableTypeNameMap[serverListIterables.findIndex((v) => v.includes(server))]} | ` : ""}Players: ${server.playerCount}/${server.capacity}${
+                            server.msgOfTheDay ? ` | MOTD: ${server.msgOfTheDay}` : ""
+                        } | Ping: ${server.ping} | ${server.description ? `Description: ${server.description}` : ""}`;
                 }
             }
         });
     }
     if (window.observingFriendWorldListForLitePlayScreenFriendsTab !== true) {
         window.observingFriendWorldListForLitePlayScreenFriendsTab = true;
-        facetSpyData.sharedFacets["vanilla.friendworldlist"].observe((friendworldList) => {
+        facetSpyData.sharedFacets["vanilla.friendworldlist"].observe((_friendworldList) => {
             if (currentTab !== "friends") {
                 return;
             }
@@ -6458,16 +9200,14 @@ async function enableLitePlayScreen(noReload = false) {
              *
              * @type {HTMLButtonElement | null}
              */
-            //@ts-ignore
             const friendsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_friendsTabButton");
-            silentClick = true;
-            //@ts-ignore
-            friendsTabButton.dispatchEvent(new Event("click"));
+            if (friendsTabButton) silentClick = true;
+            friendsTabButton?.dispatchEvent(new Event("click"));
         });
     }
     if (window.observingLANWorldListForLitePlayScreenLanTab !== true) {
         window.observingLANWorldListForLitePlayScreenLanTab = true;
-        facetSpyData.sharedFacets["vanilla.lanWorldList"].observe((lanWorldList) => {
+        facetSpyData.sharedFacets["vanilla.lanWorldList"].observe((_lanWorldList) => {
             if (currentTab !== "friends") {
                 return;
             }
@@ -6476,11 +9216,9 @@ async function enableLitePlayScreen(noReload = false) {
              *
              * @type {HTMLButtonElement | null}
              */
-            //@ts-ignore
             const friendsTabButton: HTMLButtonElement | null = document.getElementById("litePlayScreen_friendsTabButton");
-            silentClick = true;
-            //@ts-ignore
-            friendsTabButton.dispatchEvent(new Event("click"));
+            if (friendsTabButton) silentClick = true;
+            friendsTabButton?.dispatchEvent(new Event("click"));
         });
     }
     if (window.observingNetworkWorldDetailsForLitePlayScreenServersTab !== true) {
@@ -6501,6 +9239,25 @@ async function enableLitePlayScreen(noReload = false) {
                 if (imageElement instanceof HTMLImageElement) {
                     imageElement.src = networkWorldDetails.networkDetails.imagePath;
                 }
+                const ipElement = serverOptionsOverlayElement.querySelector('[data-server-options-overlay-field="ip"]');
+                if (ipElement instanceof HTMLParagraphElement) {
+                    ipElement.textContent = `IP: ${networkWorldDetails.networkDetails.address || "N/A"}:${networkWorldDetails.networkDetails.port}`;
+                }
+                const typeElement = serverOptionsOverlayElement.querySelector('[data-server-options-overlay-field="type"]');
+                if (typeElement instanceof HTMLParagraphElement) {
+                    typeElement.textContent = `Type: ${networkWorldDetails.networkDetails.type}`;
+                }
+                const isSupportedForPartyTravelElement = serverOptionsOverlayElement.querySelector(
+                    '[data-server-options-overlay-field="isSupportedForPartyTravel"]'
+                );
+                if (
+                    isSupportedForPartyTravelElement instanceof HTMLParagraphElement &&
+                    networkWorldDetails.networkDetails.isSupportedForPartyTravel !== undefined
+                ) {
+                    isSupportedForPartyTravelElement.textContent =
+                        networkWorldDetails.networkDetails.isSupportedForPartyTravel ? "Supported for party travel." : "Not supported for party travel.";
+                    isSupportedForPartyTravelElement.style.display = "";
+                }
             }
         });
     }
@@ -6509,11 +9266,12 @@ const a = facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].get();
 a.playScreenWorldLayoutMode = 0;
 facetSpyData.sharedFacets["vanilla.screenSpecificOptions"].set(a); */
 
-async function disableLitePlayScreen() {
+// eslint-disable-next-line @typescript-eslint/require-await -- This is for future compatibility because this may need to be async in the future.
+async function disableLitePlayScreen(): Promise<void> {
     globalThis.litePlayScreenActive = false;
 }
 
-async function litePlayScreen_friendsMenu() {
+async function litePlayScreen_friendsMenu(): Promise<void> {
     let i = 0;
     while (
         !Array.from(document.querySelectorAll("div#root > div > div > div > div")).find(
@@ -6524,7 +9282,7 @@ async function litePlayScreen_friendsMenu() {
         if (i === 100) {
             return;
         }
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve): void => void setTimeout(resolve, 10));
         i++;
     }
     /**
@@ -6593,7 +9351,7 @@ async function litePlayScreen_friendsMenu() {
      *
      * @type {number}
      */
-    let currentPage: number = Number(
+    let currentPage = Number(
         originalRouterLocation.search
             .replace("?", "")
             .split("&")
@@ -6610,7 +9368,7 @@ async function litePlayScreen_friendsMenu() {
         originalRouterLocation.search
             .replace("?", "")
             .split("&")
-            .find((param) => param.split("=")[0] === "tab")
+            .find((param: string): boolean => param.split("=")[0] === "tab")
             ?.split("=")[1] ?? "worlds";
     let silentClick = false;
     /**
@@ -6622,11 +9380,11 @@ async function litePlayScreen_friendsMenu() {
     /**
      * Changes the page and tab.
      *
-     * @param {number} page The page to change to.
-     * @param {typeof tabIDs[number]} tab The tab to change to.
-     * @param {boolean} [clickTab=true] Whether to click the tab button.
+     * @param page The page to change to.
+     * @param tab The tab to change to.
+     * @param clickTab Whether to click the tab button.
      */
-    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab: boolean = true) {
+    function changePage(page: number, tab: (typeof tabIDs)[number], clickTab = true): void {
         currentPage = page;
         currentTab = tab;
         getAccessibleFacetSpyFacets()["core.router"]?.history.replace(
@@ -6634,7 +9392,7 @@ async function litePlayScreen_friendsMenu() {
                 ...router!.history.location.search
                     .replace("?", "")
                     .split("&")
-                    .filter((param) => !["page", "tab"].includes(param.split("=")[0]!)),
+                    .filter((param: string): boolean => !["page", "tab"].includes(param.split("=")[0]!)),
                 `page=${page}`,
                 `tab=${tab}`,
             ].join("&")}`
@@ -6654,29 +9412,30 @@ async function litePlayScreen_friendsMenu() {
             tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
         }
     }
-    for (let i: number = 0; i < tabListButtons.length; i++) {
-        tabListButtons[i]!.addEventListener("click", async (): Promise<void> => {
-            if (tabListButtons[i]!.getAttribute("data-tab-id") !== currentTab) {
+    for (let i = 0; i < tabListButtons.length; i++) {
+        const index = i;
+        tabListButtons[index]!.addEventListener("click", (async (): Promise<void> => {
+            if (tabListButtons[index]!.getAttribute("data-tab-id") !== currentTab) {
                 if (!silentClick) {
                     getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                 }
                 currentPage = 0;
-                for (let j: number = 0; j < tabListButtons.length; j++) {
-                    tabListButtons[j]!.classList.remove("selected");
+                for (const tabListButton of tabListButtons) {
+                    tabListButton.classList.remove("selected");
                 }
-                tabListButtons[i]!.classList.add("selected");
-                changePage(0, tabIDs[i]!, false);
-            } else if (!tabListButtons[i]!.classList.contains("selected")) {
-                tabListButtons[i]!.classList.add("selected");
+                tabListButtons[index]!.classList.add("selected");
+                changePage(0, tabIDs[index]!, false);
+            } else if (!tabListButtons[index]!.classList.contains("selected")) {
+                tabListButtons[index]!.classList.add("selected");
             }
             silentClick = false;
-            Array.from(tabContent!.children).forEach((element: Element): void => element.remove());
+            Array.from(tabContent!.children).forEach((element: Element): void => void element.remove());
             /**
              * The ID of the tab button.
              *
              * @type {typeof tabIDs[number]}
              */
-            const tabButtonID: (typeof tabIDs)[number] = <any>tabListButtons[i]!.getAttribute("data-tab-id") ?? "worlds";
+            const tabButtonID: (typeof tabIDs)[number] = (tabListButtons[index]!.getAttribute("data-tab-id") ?? "worlds") as (typeof tabIDs)[number];
             switch (tabButtonID) {
                 case "friends": {
                     currentTab = "friends";
@@ -6735,6 +9494,7 @@ async function litePlayScreen_friendsMenu() {
                             friendWorldButtonContainer.id = `litePlayScreen_friendsTabFriendWorldList_friendWorldListContainer_friendWorldButtonContainer_${world.id}`;
                             friendWorldButtonContainer.style = "display: flex; flex-direction: row; width: 100%; height: 6vw; justify-content: space-between;";
                             const friendWorldButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             friendWorldButton.type = "button";
                             friendWorldButton.classList.add("btn", "nsel");
                             friendWorldButton.style =
@@ -6749,29 +9509,33 @@ async function litePlayScreen_friendsMenu() {
                             friendWorldButton_friendWorldDetails.style =
                                 "text-overflow: ellipsis; white-space: nowrap; overflow: hidden; width: 90%; display: block; position: absolute; bottom: 0; left: 0.4rem; font-size: 1vw; line-height: 1.4285714288vw;";
                             friendWorldButton_friendWorldDetails.textContent = `${world.ownerName} | Players: ${world.playerCount}/${world.capacity}${
-                                "friendOfFriendWorld" in world ? (world.friendOfFriendWorld ? " | Friend of Friend" : " | Friend") : ""
+                                "friendOfFriendWorld" in world ?
+                                    world.friendOfFriendWorld ?
+                                        " | Friend of Friend"
+                                    :   " | Friend"
+                                :   ""
                             } | ${
                                 //@ts-ignore
                                 GameModeIDMap[world.gameMode]
                             }${world.isHardcore ? " | Hardcore" : ""}${"ping" in world && world.ping ? ` | Ping: ${world.ping}` : ""}${
-                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address
-                                    ? ` | Address: ${world.address}:${world.port}`
-                                    : ""
+                                "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ?
+                                    ` | Address: ${world.address}:${world.port}`
+                                :   ""
                             }`;
                             friendWorldButton.appendChild(friendWorldButton_friendWorldDetails);
                             const friendWorldID = world.id;
-                            friendWorldButton.addEventListener("click", async () => {
+                            friendWorldButton.addEventListener("click", (async () => {
                                 getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                 const networkWorldJoiner =
                                     getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
                                 if (networkWorldJoiner) {
-                                    "friendOfFriendWorld" in world
-                                        ? networkWorldJoiner.joinFriendServer(friendWorldID)
-                                        : networkWorldJoiner.joinLanServer(friendWorldID);
+                                    if ("friendOfFriendWorld" in world) networkWorldJoiner.joinFriendServer(friendWorldID);
+                                    else networkWorldJoiner.joinLanServer(friendWorldID);
                                 }
-                            });
+                            }) as () => void);
                             friendWorldButtonContainer.appendChild(friendWorldButton);
                             const friendWorldOptionsButton = document.createElement("button");
+                            // @ts-ignore: This is for browser compatibility.
                             friendWorldOptionsButton.type = "button";
                             friendWorldOptionsButton.classList.add("btn", "nsel");
                             friendWorldOptionsButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
@@ -6790,12 +9554,12 @@ async function litePlayScreen_friendsMenu() {
         <p data-friend-world-options-overlay-field="ownerName"></p>
         <p style="display: ${"ownerId" in world ? "block" : "none"}">Owner XUID: ${"ownerId" in world && world.ownerId}</p>
         <p style="display: ${"friendOfFriendWorld" in world ? "block" : "none"}">${
-                                    "friendOfFriendWorld" in world && world.friendOfFriendWorld ? "Friend of Friend" : "Friend"
-                                }</p>
-        <p>Players: ${world.playerCount}/${"maxPlayers" in world && world.maxPlayers ? world.maxPlayers : world.capacity}</p>
+            "friendOfFriendWorld" in world && world.friendOfFriendWorld ? "Friend of Friend" : "Friend"
+        }</p>
+        <p>Players: ${world.playerCount}/${world.capacity}</p>
         <p data-friend-world-options-overlay-field="ping" style="display: ${"ping" in world && world.ping ? "block" : "none"}">Ping: ${
-                                    "ping" in world && world.ping
-                                }</p>
+            "ping" in world && world.ping
+        }</p>
         <p style="display: ${world.isHardcore ? "block" : "none"}">Hardcore mode is enabled.</p>
         <p data-friend-world-options-overlay-field="address" style="display: ${
             "address" in world && world.address !== "UNASSIGNED_SYSTEM_ADDRESS" && world.address ? "block" : "none"
@@ -6810,24 +9574,21 @@ async function litePlayScreen_friendsMenu() {
         <button type="button" class="btn" style="font-size: 2vw; line-height: 2.8571428572vw; font-family: Minecraft Seven v2; display: table-cell" id="friendWorldOptionsOverlayElement_joinFriendWorldButton">Join World</button>
     </div>
 </div>`;
-                                //@ts-ignore
-                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='friendWorldName']").textContent =
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='friendWorldName']")!.textContent =
                                     world.name;
-                                //@ts-ignore
-                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='ownerName']").textContent = world.ownerName;
-                                //@ts-ignore
+                                friendWorldOptionsOverlayElement.querySelector("[data-friend-options-overlay-field='ownerName']")!.textContent =
+                                    world.ownerName;
                                 friendWorldOptionsOverlayElement
-                                    .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")
-                                    .addEventListener("click", async () => {
+                                    .querySelector("#friendWorldOptionsOverlayElement_joinFriendWorldButton")!
+                                    .addEventListener("click", (async () => {
                                         getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
                                         const networkWorldJoiner =
                                             getAccessibleFacetSpyFacets()["vanilla.networkWorldJoiner"] ?? (await forceLoadFacet("vanilla.networkWorldJoiner"));
                                         if (networkWorldJoiner) {
-                                            "friendOfFriendWorld" in world
-                                                ? networkWorldJoiner.joinFriendServer(friendWorldID)
-                                                : networkWorldJoiner.joinLanServer(friendWorldID);
+                                            if ("friendOfFriendWorld" in world) networkWorldJoiner.joinFriendServer(friendWorldID);
+                                            else networkWorldJoiner.joinLanServer(friendWorldID);
                                         }
-                                    });
+                                    }) as () => void);
                                 document.body.appendChild(friendWorldOptionsOverlayElement);
                             });
                             const friendWorldOptionsButton_icon = document.createElement("img");
@@ -6866,8 +9627,12 @@ async function litePlayScreen_friendsMenu() {
                     });
                     break;
                 }
+                case "recents":
+                case "recommended":
+                // TODO
+                // no default
             }
-        });
+        }) as () => void);
     }
     silentClick = true;
     tabListButtons[Math.max(0, tabIDs.indexOf(currentTab))]!.dispatchEvent(new Event("click"));
@@ -6881,7 +9646,7 @@ async function litePlayScreen_friendsMenu() {
  *
  * @throws {ReferenceError} If the external server world list is not available.
  */
-function setLitePlayScreenEnabled(value: boolean, noReload: boolean = false) {
+function setLitePlayScreenEnabled(value: boolean, noReload = false): void {
     if (value) {
         localStorage.setItem("enableLitePlayScreen", "true");
         if (noReload) {
@@ -6914,137 +9679,147 @@ function setLitePlayScreenEnabled(value: boolean, noReload: boolean = false) {
 }
 
 // Enables the lite play screen.
-(async function startEnablingLitePlayScreen() {
-    for (let i = 0; i < 1000; i++) {
-        try {
-            /**
-             * The router facet.
-             *
-             * @type {FacetTypeMap["core.router"] | undefined}
-             */
-            const router: FacetTypeMap["core.router"] | undefined = globalThis.facetSpyData && globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
-            if (!router) {
-                // If the router facet is not available, wait for a short time and try again.
-                await new Promise((resolve) => setTimeout(resolve, 10));
-                continue;
-            }
-            /**
-             * Loads a custom screen from 8Crafter's Ore UI Customizer.
-             *
-             * @param {string} pathname The path to load.
-             * @returns {Promise<void>} A promise that resolves when the screen is loaded.
-             */
-            async function loadOUICScreen(pathname: string): Promise<void> {
-                pathname = pathname?.replace(/^\/ouic\//, "");
-                switch (true) {
-                    case pathname.startsWith("play"):
-                        await enableLitePlayScreen();
-                        break;
-                    case pathname.startsWith("friends"):
-                        await litePlayScreen_friendsMenu();
-                        break;
-                }
-            }
-            if (/^\/ouic\//.test(router.history.location.pathname)) {
-                await loadOUICScreen(router.history.location.pathname);
-            }
-            let loadedRouterPositions = router.history.list
-                .slice(0)
-                .map(
-                    /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
-                        !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
-                );
-            const routerObserveCallback = async (/** @type {FacetTypeMap["core.router"]} */ router: FacetTypeMap["core.router"]) => {
-                if (router.history.list.length < loadedRouterPositions.length) {
-                    loadedRouterPositions.splice(router.history.list.length - 1, loadedRouterPositions.length - router.history.list.length);
-                } else if (router.history.list.length > loadedRouterPositions.length) {
-                    loadedRouterPositions.push(
-                        ...router.history.list
-                            .slice(loadedRouterPositions.length)
-                            .map(
-                                /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
-                                    !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
-                            )
-                    );
-                } else if (
-                    router.history.list[router.history.list.length - 1]!.pathname !== loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname &&
-                    router.history.list[router.history.list.length - 1]!.pathname.startsWith("/ouic/") &&
-                    router.history.list[router.history.list.length - 1]!.pathname.match(/^\/ouic\/[^/]+/)?.[0] !==
-                        loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname.match(/^\/ouic\/[^/]+/)?.[0]
-                ) {
-                    loadedRouterPositions[loadedRouterPositions.length - 1] = undefined;
-                }
-                if (/^\/ouic\//.test(router.history.location.pathname) && loadedRouterPositions[loadedRouterPositions.length - 1] === undefined) {
-                    await loadOUICScreen(router.history.location.pathname);
-                }
-            };
-            facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
-            let localForceLoadedFacets = [];
-            try {
-                let forceLoadedExternalServerWorldListFacet = false;
-                var externalServerWorldList =
-                    getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ??
-                    ((forceLoadedExternalServerWorldListFacet = true), await forceLoadFacet("vanilla.externalServerWorldList"));
-                if (forceLoadedExternalServerWorldListFacet) localForceLoadedFacets.push("vanilla.externalServerWorldList");
-            } catch (e) {
-                if (e === "activate-facet-not-found") {
-                    try {
-                        let forceLoadedInGameFacet = false;
-                        const inGameFacet =
-                            getAccessibleFacetSpyFacets()["vanilla.inGame"] ?? ((forceLoadedInGameFacet = true), await forceLoadFacet("vanilla.inGame"));
-                        if (forceLoadedInGameFacet) localForceLoadedFacets.push("vanilla.inGame");
-                        if (inGameFacet.isInGame) {
-                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
-                            return;
+queueMicrotask(
+    setTimeout.bind(
+        void 0,
+        async function startEnablingLitePlayScreen(): Promise<void> {
+            for (let i = 0; i < 1000; i++) {
+                try {
+                    /**
+                     * The router facet.
+                     *
+                     * @type {FacetTypeMap["core.router"] | undefined}
+                     */
+                    const router: FacetTypeMap["core.router"] | undefined =
+                        globalThis.facetSpyData && globalThis.getAccessibleFacetSpyFacets?.()["core.router"];
+                    if (!router) {
+                        // If the router facet is not available, wait for a short time and try again.
+                        await new Promise((resolve): void => void setTimeout(resolve, 10));
+                        continue;
+                    }
+                    /**
+                     * Loads a custom screen from 8Crafter's Ore UI Customizer.
+                     *
+                     * @param {string} pathname The path to load.
+                     * @returns {Promise<void>} A promise that resolves when the screen is loaded.
+                     */
+                    const loadOUICScreen = async function loadOUICScreen(pathname: string): Promise<void> {
+                        pathname = pathname?.replace(/^\/ouic\//, "");
+                        switch (true as never) {
+                            case pathname.startsWith("play"):
+                                await enableLitePlayScreen();
+                                break;
+                            case pathname.startsWith("friends"):
+                                await litePlayScreen_friendsMenu();
+                                break;
+                            // no default
                         }
-                        console.error(new ReferenceError('Unable to get "vanilla.externalServerWorldList" facet.'));
-                        // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
-                        return;
+                    };
+                    if (router.history.location.pathname.startsWith("/ouic/")) {
+                        await loadOUICScreen(router.history.location.pathname);
+                    }
+                    const loadedRouterPositions = router.history.list
+                        .slice(0)
+                        .map(
+                            /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
+                                !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+                        );
+                    const routerObserveCallback = (async (/** @type {FacetTypeMap["core.router"]} */ router: FacetTypeMap["core.router"]) => {
+                        if (router.history.list.length < loadedRouterPositions.length) {
+                            loadedRouterPositions.splice(router.history.list.length - 1, loadedRouterPositions.length - router.history.list.length);
+                        } else if (router.history.list.length > loadedRouterPositions.length) {
+                            loadedRouterPositions.push(
+                                ...router.history.list
+                                    .slice(loadedRouterPositions.length)
+                                    .map(
+                                        /** @returns {RouteHistoryItem | undefined} */ (v, i): RouteHistoryItem | undefined =>
+                                            !v.pathname.startsWith("/ouic/") || i === router.history.list.length - 1 ? { ...v } : undefined
+                                    )
+                            );
+                        } else if (
+                            router.history.list[router.history.list.length - 1]!.pathname !==
+                                loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname &&
+                            router.history.list[router.history.list.length - 1]!.pathname.startsWith("/ouic/") &&
+                            /^\/ouic\/[^/]+/.exec(router.history.list[router.history.list.length - 1]!.pathname)?.[0] !==
+                                loadedRouterPositions[loadedRouterPositions.length - 1]?.pathname.match(/^\/ouic\/[^/]+/)?.[0]
+                        ) {
+                            loadedRouterPositions[loadedRouterPositions.length - 1] = undefined;
+                        }
+                        if (router.history.location.pathname.startsWith("/ouic/") && loadedRouterPositions[loadedRouterPositions.length - 1] === undefined) {
+                            await loadOUICScreen(router.history.location.pathname);
+                        }
+                    }) as (router: FacetTypeMap["core.router"]) => void;
+                    facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
+                    const localForceLoadedFacets: FacetList[number][] = [];
+                    try {
+                        let forceLoadedExternalServerWorldListFacet = false;
+                        var externalServerWorldList =
+                            getAccessibleFacetSpyFacets()["vanilla.externalServerWorldList"] ??
+                            ((forceLoadedExternalServerWorldListFacet = true), await forceLoadFacet("vanilla.externalServerWorldList"));
+                        if (forceLoadedExternalServerWorldListFacet) localForceLoadedFacets.push("vanilla.externalServerWorldList");
                     } catch (e) {
                         if (e === "activate-facet-not-found") {
-                            console.warn(new ReferenceError('Unable to get "vanilla.inGame" facet.'));
-                            // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
-                            return;
+                            try {
+                                let forceLoadedInGameFacet = false;
+                                const inGameFacet =
+                                    getAccessibleFacetSpyFacets()["vanilla.inGame"] ??
+                                    ((forceLoadedInGameFacet = true), await forceLoadFacet("vanilla.inGame"));
+                                if (forceLoadedInGameFacet) localForceLoadedFacets.push("vanilla.inGame");
+                                if (inGameFacet.isInGame) {
+                                    // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                                    return;
+                                }
+                                console.error(new ReferenceError('Unable to get "vanilla.externalServerWorldList" facet.'));
+                                // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                                return;
+                            } catch (e) {
+                                if (e === "activate-facet-not-found") {
+                                    console.warn(new ReferenceError('Unable to get "vanilla.inGame" facet.'));
+                                    // localForceLoadedFacets.forEach((f) => unloadForceLoadedFacet(f));
+                                    return;
+                                }
+                                throw e;
+                            }
                         }
                         throw e;
                     }
-                }
-                throw e;
-            }
-            const externalServerWorlds = externalServerWorldList.externalServerWorlds;
-            if (
-                localStorage.getItem("enableLitePlayScreen") !== null ||
-                externalServerWorldList.externalServerWorlds.some(
-                    (server) => server.name === "LitePlayScreenEnabled" || server.name === "LitePlayScreenEnabledNoReload"
-                )
-            ) {
-                try {
-                    //@ts-expect-error
-                    document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = "Disable Lite Play Screen";
-                } catch (e) {
-                    console.error(e);
-                }
-                if (router.history.location.pathname.startsWith("/play/") /*  || /^\/ouic\/play/.test(router.history.location.pathname) */) {
-                    const originalRouterLocation = { ...router.history.location };
-                    // router.history.replace(`/play/all` + router.history.location.search + router.history.location.hash);
-                    // If the router facet is available, enable the lite play screen.
-                    try {
-                        externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload");
-                    } catch (e) {
-                        console.error(e);
+                    const externalServerWorlds = externalServerWorldList.externalServerWorlds;
+                    if (
+                        localStorage.getItem("enableLitePlayScreen") !== null ||
+                        externalServerWorldList.externalServerWorlds.some(
+                            (server) => server.name === "LitePlayScreenEnabled" || server.name === "LitePlayScreenEnabledNoReload"
+                        )
+                    ) {
+                        try {
+                            //@ts-expect-error
+                            document.getElementById("8CrafterUtilitiesMenu_button_toggleLitePlayScreen").textContent = "Disable Lite Play Screen";
+                        } catch (e) {
+                            console.error(e);
+                        }
+                        if (router.history.location.pathname.startsWith("/play/") /*  || /^\/ouic\/play/.test(router.history.location.pathname) */) {
+                            // const originalRouterLocation = { ...router.history.location };
+                            // router.history.replace(`/play/all` + router.history.location.search + router.history.location.hash);
+                            // If the router facet is available, enable the lite play screen.
+                            try {
+                                externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload");
+                            } catch (e) {
+                                console.error(e);
+                            }
+                            await enableLitePlayScreen(externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload"));
+                        }
                     }
-                    await enableLitePlayScreen(externalServerWorlds.some((world) => world.name === "LitePlayScreenEnabledNoReload"));
+                    return;
+                } catch (e) {
+                    console.error(e instanceof Error ? e : new Error(String(e), .../* For browsers only. */ ([{ cause: e }] as unknown as [])));
+                    await new Promise((resolve): void => void setTimeout(resolve, 10));
+                    continue;
                 }
             }
-            return;
-        } catch (e) {
-            console.error(e instanceof Error ? e : new Error(String(e), { cause: e }));
-            await new Promise((resolve) => setTimeout(resolve, 10));
-            continue;
-        }
-    }
-    console.error("Failed to enable lite play screen, timed out.");
-})();
+            console.error("Failed to enable lite play screen, timed out.");
+        },
+        1
+    )
+);
 
 /**
  * Copies text to the clipboard.
@@ -7097,13 +9872,13 @@ async function copyTextToClipboard_old(text: string): Promise<boolean> {
         /**
          * The clipboard facet.
          *
-         * @type {{copyToClipboard(text: string): void, [k: PropertyKey]: any} | undefined}
+         * @type {{copyToClipboard(text: string): void, [k: PropertyKey]: unknown} | undefined}
          */
-        const clipboardFacet: { copyToClipboard(text: string): void; [k: PropertyKey]: any } | undefined =
+        const clipboardFacet: { copyToClipboard(text: string): void; [k: PropertyKey]: unknown } | undefined =
             globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
         if (!clipboardFacet) {
             // If the clipboard facet is not available, wait for a short time and try again.
-            await new Promise((resolve) => setTimeout(resolve, 10));
+            await new Promise((resolve): void => void setTimeout(resolve, 10));
             continue;
         }
         // If the clipboard facet is available, copy the text to the clipboard.
@@ -7141,16 +9916,16 @@ function copyTextToClipboard(text: string): boolean {
  * @param {string} text The text to copy to the clipboard.
  * @param {number} [timeout=100] The timeout in milliseconds to wait for the facet to load. If set to `0` or `Infinity`, it will never time out. Defaults to `100ms`.
  * @param {boolean} [allowErrorLogging=true] Whether to log errors that occur while force loading the facet to the console. Defaults to `true`.
- * @returns {Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: any]>} A promise that resolves with a tuple with the first]\item being whether the text was copied to the clipboard, and the second item being whether it was force loaded or already loaded if it was successful or the error that occured if it wasn't, and a third item being the original error if the failure happened while force loading the facet.
+ * @returns {Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: unknown]>} A promise that resolves with a tuple with the first]\item being whether the text was copied to the clipboard, and the second item being whether it was force loaded or already loaded if it was successful or the error that occured if it wasn't, and a third item being the original error if the failure happened while force loading the facet.
  */
 async function copyTextToClipboardAsync(
     text: string,
-    timeout: number = 100,
-    allowErrorLogging: boolean = true
-): Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: any]> {
+    timeout = 100,
+    allowErrorLogging = true
+): Promise<[success: true, successType: "alreadyLoaded" | "forceLoaded"] | [sucess: false, error: Error, originalError?: unknown]> {
     if (copyTextToClipboard(text)) return [true, "alreadyLoaded"];
     try {
-        var clipboardFacet = await forceLoadFacet("vanilla.clipboard", 100);
+        var clipboardFacet = await forceLoadFacet("vanilla.clipboard", timeout);
     } catch (e) {
         const error = new Error("Failed to force load the clipboard facet.");
         if (allowErrorLogging) console.error(error);
@@ -7168,75 +9943,85 @@ async function copyTextToClipboardAsync(
     if (textToCopy !== null) {
         // Set a flag to indicate that the copy function is running.
         window.copying = true;
-        (async function copyTextToClipboard() {
-            try {
-                for (let i = 0; i < 1000; i++) {
-                    /**
-                     * The router facet.
-                     */
-                    var routerFacet = getAccessibleFacetSpyFacets()["core.router"];
-                    if (!routerFacet) {
-                        // If the router facet is not available, wait for a short time and try again.
-                        await new Promise((resolve) => setTimeout(resolve, 10));
-                        continue;
-                    }
-                    /**
-                     * The clipboard facet.
-                     */
-                    const clipboardFacet = globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
-                    if (!clipboardFacet) {
-                        // If the clipboard facet is not available, wait for a short time and try again.
-                        await new Promise((resolve) => setTimeout(resolve, 10));
-                        continue;
-                    }
-                    // If the clipboard facet is available, copy the text to the clipboard.
-                    clipboardFacet.copyToClipboard(textToCopy);
+        queueMicrotask(() => {
+            void (async function copyTextToClipboard(): Promise<boolean> {
+                try {
+                    for (let i = 0; i < 1000; i++) {
+                        /**
+                         * The router facet.
+                         */
+                        var routerFacet = getAccessibleFacetSpyFacets()["core.router"];
+                        if (!routerFacet) {
+                            // If the router facet is not available, wait for a short time and try again.
+                            await new Promise((resolve): void => void setTimeout(resolve, 10));
+                            continue;
+                        }
+                        /**
+                         * The clipboard facet.
+                         */
+                        const clipboardFacet = globalThis.getAccessibleFacetSpyFacets?.()["vanilla.clipboard"];
+                        if (!clipboardFacet) {
+                            // If the clipboard facet is not available, wait for a short time and try again.
+                            await new Promise((resolve): void => void setTimeout(resolve, 10));
+                            continue;
+                        }
+                        // If the clipboard facet is available, copy the text to the clipboard.
+                        clipboardFacet.copyToClipboard(textToCopy);
 
-                    // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
-                    localStorage.removeItem("textToCopy");
-                    // Set the status of the copy operation to success.
-                    localStorage.setItem("clipboardCopyStatus", "success");
-                    // Close the add friend page and return to the previous page and context.
-                    routerFacet.history.goBack();
-                    return true;
+                        // Remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+                        localStorage.removeItem("textToCopy");
+                        // Set the status of the copy operation to success.
+                        localStorage.setItem("clipboardCopyStatus", "success");
+                        // Close the add friend page and return to the previous page and context.
+                        routerFacet.history.goBack();
+                        return true;
+                    }
+                } catch (e) {
+                    // If the copy operation failed, store the error in the localStorage so it can be accessed in the context and route that triggered the copy operation.
+                    localStorage.setItem("clipboardCopyError", e instanceof Error ? (e.stack ?? String(e)) : String(e));
+                    // If the copy operation failed, store the error in a global variable for debugging purposes.
+                    window.__DEBUG_copyTextToClipboard_old_GLOBALS_copyError__ = e;
+                    // Log the error to the console.
+                    console.error("Failed to copy text to clipboard:", e);
                 }
-            } catch (e) {
-                // If the copy operation failed, store the error in the localStorage so it can be accessed in the context and route that triggered the copy operation.
-                localStorage.setItem("clipboardCopyError", e instanceof Error ? e.stack ?? String(e) : String(e));
-                // If the copy operation failed, store the error in a global variable for debugging purposes.
-                window.__DEBUG_copyTextToClipboard_old_GLOBALS_copyError__ = e;
-                // Log the error to the console.
-                console.error("Failed to copy text to clipboard:", e);
-            }
-            // If the copy operation failed, remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
-            localStorage.removeItem("textToCopy");
-            // Set the status of the copy operation to failed.
-            localStorage.setItem("clipboardCopyStatus", "failed");
+                // If the copy operation failed, remove the text to copy from the localStorage so it doesn't interfere with future copy operations.
+                localStorage.removeItem("textToCopy");
+                // Set the status of the copy operation to failed.
+                localStorage.setItem("clipboardCopyStatus", "failed");
 
-            // Close the add friend page and return to the previous page and context.
-            //@ts-ignore
-            getAccessibleFacetSpyFacets()["core.router"].history.goBack();
-            return false;
-        })();
+                // Close the add friend page and return to the previous page and context.
+                //@ts-ignore
+                getAccessibleFacetSpyFacets()["core.router"].history.goBack();
+                return false;
+            })();
+        });
     }
 }
 
 var framesSinceLastSecond = 0;
+var currentFrameTimeHistory: number[] = [];
 var currentFPS = 0;
 
-setInterval(function updateFPS() {
-    currentFPS = framesSinceLastSecond;
-    framesSinceLastSecond = 0;
-}, 1000);
+queueMicrotask((): void => {
+    setInterval(function updateFPS(): void {
+        // currentFPS = framesSinceLastSecond;
+        const currentTime: number = performance.now();
+        const lastValidFrameIndex: number = currentFrameTimeHistory.findIndex((frameTime: number): boolean => frameTime >= currentTime - 1000);
+        currentFrameTimeHistory.splice(0, lastValidFrameIndex !== -1 ? lastValidFrameIndex : currentFrameTimeHistory.length);
+        currentFPS = currentFrameTimeHistory.length;
+        framesSinceLastSecond = 0;
+    }, 1000);
 
-requestAnimationFrame(function trackFrameForFPSCount() {
-    framesSinceLastSecond++;
-    requestAnimationFrame(trackFrameForFPSCount);
+    requestAnimationFrame(function trackFrameForFPSCount(timestamp: number): void {
+        framesSinceLastSecond++;
+        currentFrameTimeHistory.push(timestamp);
+        requestAnimationFrame(trackFrameForFPSCount);
+    });
 });
 
-(() => {
+((): void => {
     //#region Event Listeners
-    window.onkeyup = function (/** @type {KeyboardEvent} */ e: KeyboardEvent) {
+    window.onkeyup = function __OUIC_keyboardShortcutHandler_keyUp__(/** @type {KeyboardEvent} */ e: KeyboardEvent): void {
         if (e.keyCode === types_KeyboardKey.KEY_P && e.ctrlKey && !e.altKey && !e.shiftKey) {
             e.preventDefault();
             // cssEditorInSelectMode = false;
@@ -7282,11 +10067,13 @@ requestAnimationFrame(function trackFrameForFPSCount() {
             // cssEditorSelectedElement = srcElement;
             // cssEditorTextBox.value = JSON.stringify(srcElement.attributes.style, undefined, 4);
             // cssEditorDisplayElement.style.display = "block";
+        } else if (e.keyCode === types_KeyboardKey.F3 && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+            e.preventDefault();
         } else if (e.keyCode === types_KeyboardKey.F8 && e.ctrlKey && !e.altKey && !e.shiftKey) {
             e.preventDefault();
         }
     };
-    window.onkeydown = function (/** @type {KeyboardEvent} */ e: KeyboardEvent) {
+    window.onkeydown = function __OUIC_keyboardShortcutHandler_keyDown__(/** @type {KeyboardEvent} */ e: KeyboardEvent): void {
         if (e.keyCode === types_KeyboardKey.KEY_P && e.ctrlKey && !e.altKey && !e.shiftKey) {
             e.preventDefault();
             cssEditorInSelectMode = false;
@@ -7307,6 +10094,9 @@ requestAnimationFrame(function trackFrameForFPSCount() {
         } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && !e.altKey && !e.shiftKey) {
             e.preventDefault();
             toggleSmallCornerDebugOverlay();
+        } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && !e.altKey && e.shiftKey) {
+            e.preventDefault();
+            toggleStatsCornerDebugOverlay();
         } else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && e.altKey && !e.shiftKey) {
             e.preventDefault();
             toggleGeneralDebugOverlayElement();
@@ -7332,14 +10122,22 @@ requestAnimationFrame(function trackFrameForFPSCount() {
             const srcElement: HTMLElement & EventTarget = currentMouseHoverTarget;
             cssEditorSelectedType = "element";
             cssEditorSelectedElement = srcElement;
+            elementInspectSelectionHistory.unshift(srcElement);
+            elementInspectSelectionHistory.pop();
             cssEditorTextBox.value = srcElement.getAttribute("style") ?? "";
             setCSSEditorMode("element");
             cssEditorDisplayElement.style.display = "block";
+        } else if (e.keyCode === types_KeyboardKey.KEY_2 && !e.ctrlKey && !e.altKey && !e.shiftKey && heldKeyCodes.includes(types_KeyboardKey.F3)) {
+            togglePerfGraphDebugOverlay("FPS");
+        } else if (e.keyCode === types_KeyboardKey.KEY_3 && !e.ctrlKey && !e.altKey && !e.shiftKey && heldKeyCodes.includes(types_KeyboardKey.F3)) {
+            togglePerfGraphDebugOverlay("ELL");
+        } else if (e.keyCode === types_KeyboardKey.KEY_4 && !e.ctrlKey && !e.altKey && !e.shiftKey && heldKeyCodes.includes(types_KeyboardKey.F3)) {
+            togglePerfGraphDebugOverlay("FCD");
         } else if (e.keyCode === types_KeyboardKey.F8 && e.ctrlKey && !e.altKey && !e.shiftKey) {
             location.reload();
         }
     };
-    window.onmousedown = function (/** @type {MouseEvent} */ e: MouseEvent) {
+    window.onmousedown = function __OUIC_globalHandler_mouseDown__(/** @type {MouseEvent} */ e: MouseEvent): void {
         if (cssEditorInSelectMode && e.target !== cssEditorSelectTargetButton) {
             e.preventDefault();
             // cssEditorInSelectMode = false;
@@ -7349,6 +10147,8 @@ requestAnimationFrame(function trackFrameForFPSCount() {
             const srcElement: HTMLElement & EventTarget = currentMouseHoverTarget;
             cssEditorSelectedType = "element";
             cssEditorSelectedElement = srcElement;
+            elementInspectSelectionHistory.unshift(srcElement);
+            elementInspectSelectionHistory.pop();
             cssEditorTextBox.value = srcElement.getAttribute("style") ?? "";
             setCSSEditorMode("element");
             cssEditorDisplayElement.style.display = "block";
@@ -7358,7 +10158,7 @@ requestAnimationFrame(function trackFrameForFPSCount() {
             // document.getElementById("root").style.filter = "brightness(5)";
         }
     };
-    window.onmouseup = function (/** @type {MouseEvent} */ e: MouseEvent) {
+    window.onmouseup = function __OUIC_globalHandler_mouseUp__(/** @type {MouseEvent} */ e: MouseEvent): void {
         if (cssEditorInSelectMode && e.target !== cssEditorSelectTargetButton) {
             e.preventDefault();
             cssEditorInSelectMode = false;
@@ -7374,7 +10174,7 @@ requestAnimationFrame(function trackFrameForFPSCount() {
             // e.target = undefined;
         }
     };
-    window.onmousemove = function (/** @type {MouseEvent} */ e: MouseEvent) {
+    window.onmousemove = function __OUIC_globalHandler_mouseMove__(/** @type {MouseEvent} */ e: MouseEvent): void {
         /**
          * @type {HTMLElement & EventTarget}
          */
@@ -7401,12 +10201,12 @@ Bounding Box: ${JSON.stringify({
 Children: ${srcElement.children.length}
 Attributes:
 ${
-    currentMouseHoverTarget.getAttributeNames().length > 0
-        ? currentMouseHoverTarget
-              .getAttributeNames()
-              .map((name) => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
-              .join("\n")
-        : "None"
+    currentMouseHoverTarget.getAttributeNames().length > 0 ?
+        currentMouseHoverTarget
+            .getAttributeNames()
+            .map((name: string): string => `${name}: ${currentMouseHoverTarget.getAttribute(name)}`)
+            .join("\n")
+    :   "None"
 }`;
         }
     };
@@ -7415,7 +10215,7 @@ ${
      *
      * @param {MouseEvent | KeyboardEvent} event
      */
-    function updateSmallCornerDebugOverlayElement(event: MouseEvent | KeyboardEvent) {
+    function updateSmallCornerDebugOverlayElement(event: MouseEvent | KeyboardEvent): void {
         if (event instanceof MouseEvent) {
             mousePos.clientX = event.clientX;
             mousePos.clientY = event.clientY;
@@ -7443,22 +10243,22 @@ ${
 Screen: x: ${mousePos.screenX} y: ${mousePos.screenY}
 Movement: x: ${mousePos.movementX} y: ${mousePos.movementY}
 M Target Offset: ${
-            mousePos.mTarget instanceof Element
-                ? `x: ${Math.round((mousePos.clientX - mousePos.mTarget.getBoundingClientRect().x) * 100) / 100} y: ${
-                      Math.round((mousePos.clientY - mousePos.mTarget.getBoundingClientRect().y) * 100) / 100
-                  }`
-                : "null"
+            mousePos.mTarget instanceof Element ?
+                `x: ${Math.round((mousePos.clientX - mousePos.mTarget.getBoundingClientRect().x) * 100) / 100} y: ${
+                    Math.round((mousePos.clientY - mousePos.mTarget.getBoundingClientRect().y) * 100) / 100
+                }`
+            :   "null"
         }
 K Target Offset: ${
-            mousePos.kTarget instanceof Element
-                ? `x: ${Math.round((mousePos.clientX - mousePos.kTarget.getBoundingClientRect().x) * 100) / 100} y: ${
-                      Math.round((mousePos.clientY - mousePos.kTarget.getBoundingClientRect().y) * 100) / 100
-                  }`
-                : "null"
+            mousePos.kTarget instanceof Element ?
+                `x: ${Math.round((mousePos.clientX - mousePos.kTarget.getBoundingClientRect().x) * 100) / 100} y: ${
+                    Math.round((mousePos.clientY - mousePos.kTarget.getBoundingClientRect().y) * 100) / 100
+                }`
+            :   "null"
         }
-Held Keys: ${heldKeys}
-Held Key Codes: ${heldKeyCodes}
-Mouse Buttons: ${heldMouseButtons}
+Held Keys: ${heldKeys.join(",")}
+Held Key Codes: ${heldKeyCodes.join(",")}
+Mouse Buttons: ${heldMouseButtons.join(",")}
 Modifiers: ${[
             [event.ctrlKey, "CTRL"],
             [event.altKey, "ALT"],
@@ -7466,13 +10266,45 @@ Modifiers: ${[
             [event.metaKey, "META"],
         ]
             .filter((key) => key[0])
-            .map((key) => key[1])}`;
+            .map((key) => key[1])
+            .join(",")}`;
     }
     addEventListener("mousemove", updateSmallCornerDebugOverlayElement);
     addEventListener("mousedown", updateSmallCornerDebugOverlayElement);
     addEventListener("mouseup", updateSmallCornerDebugOverlayElement);
     addEventListener("keydown", updateSmallCornerDebugOverlayElement);
     addEventListener("keyup", updateSmallCornerDebugOverlayElement);
+
+    function updateStatsCornerDebugOverlayElement(): void {
+        if (statsCornerDebugOverlayElement.style.display === "none") return;
+        function formatDuration(duration: number): string {
+            return `${Math.floor(Math.floor(duration) / (60 ** 2 * 1000)).toFixed(0)}:${Math.floor((Math.floor(duration) / (60 * 1000)) % 60).toFixed(0)}:${(
+                Math.floor(Math.floor(duration) / 1000) % 60
+            )
+                .toFixed(0)
+                .padStart(2, "0")}.${(duration % 1000).toFixed(4).replace(".", "").padStart(7, "0")}`;
+        }
+        try {
+            var deviceInformationFacet: FacetTypeMap["core.deviceInformation"] | undefined =
+                globalThis.getAccessibleFacetSpyFacets?.()?.["core.deviceInformation"];
+        } catch {}
+        let pixelsPerMillimeter: number | undefined = deviceInformationFacet?.pixelsPerMillimeter;
+        if (pixelsPerMillimeter === undefined) {
+            const localStorageValue: string | null = localStorage.getItem('facetValuePropertyCache:["core.deviceInformation","pixelsPerMillimeter"]');
+            if (localStorageValue !== null) pixelsPerMillimeter = Number(localStorageValue);
+        }
+        statsCornerDebugOverlayElement.querySelector("div")!.textContent = `FPS: ${currentFPS}
+Avg. Frame Time: ${currentFPS > 0 ? (1000 / currentFPS).toFixed(3) : 0} ms
+Frames Since Last Second: ${framesSinceLastSecond}
+Uptime: ${formatDuration(performance.now())}
+Screen Size: ${screen.width}x${screen.height}
+Available Screen Size: ${screen.availWidth}x${window.screen.availHeight}
+Screen Color Depth: ${screen.colorDepth}
+Screen Pixel Depth: ${screen.pixelDepth}
+Device Pixel Ratio: ${devicePixelRatio}
+Pixels Per Millimeter: ${pixelsPerMillimeter ?? "Loading..."}`;
+    }
+    queueMicrotask(setInterval.bind(void 0, updateStatsCornerDebugOverlayElement, 10));
     //#endregion
 
     //#region HTML Injection
@@ -7507,6 +10339,171 @@ Modifiers: ${[
     );
     smallCornerDebugOverlayElement.textContent = "Nothing selected!";
     document.body.appendChild(smallCornerDebugOverlayElement);
+
+    // Stats corner debug info overlay, accessed with CTRL+SHIFT+I.
+    statsCornerDebugOverlayElement = document.createElement("div");
+    statsCornerDebugOverlayElement.id = "statsCornerDebugOverlayElement";
+    statsCornerDebugOverlayElement.setAttribute(
+        "style",
+        `pointer-events: none; background-color: #00000080; color: #FFFFFFFF; width: auto; height: auto; position: fixed; top: 0; left: 0; z-index: 10000000;${
+            localStorage.getItem("statsCornerDebugOverlayVisible") === "true" ? "" : " display: none;"
+        } white-space: pre-wrap; overflow-wrap: anywhere;`
+    );
+    let changingPerfGraphScale = false;
+    let changingPerfGraphScaleB = false;
+    let changingPerfGraphScaleLastId = -1;
+    let perfGraphScale: number;
+    {
+        try {
+            var deviceInformationFacet: FacetTypeMap["core.deviceInformation"] | undefined =
+                globalThis.getAccessibleFacetSpyFacets?.()?.["core.deviceInformation"];
+        } catch {}
+        const guiScaleBase: number =
+            deviceInformationFacet?.guiScaleBase ??
+            (Number(localStorage.getItem('facetValuePropertyCache:["core.deviceInformation","guiScaleBase"]') ?? 1) || 1);
+        const guiScaleModifier: number =
+            deviceInformationFacet?.guiScaleModifier ??
+            (Number(localStorage.getItem('facetValuePropertyCache:["core.deviceInformation","guiScaleModifier"]') ?? 0) || 0);
+        if (typeof deviceInformationFacet?.guiScaleBase === "number") {
+            localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","guiScaleBase"]', `${deviceInformationFacet.guiScaleBase}`);
+        }
+        if (typeof deviceInformationFacet?.guiScaleModifier === "number") {
+            localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","guiScaleModifier"]', `${deviceInformationFacet.guiScaleModifier}`);
+        }
+        if (typeof deviceInformationFacet?.pixelsPerMillimeter === "number") {
+            localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","pixelsPerMillimeter"]', `${deviceInformationFacet.pixelsPerMillimeter}`);
+        }
+        perfGraphScale = Math.ceil(Math.max(1, guiScaleBase + guiScaleModifier) / 1.5);
+    }
+    async function changePerfGraphScale(scale: number): Promise<void> {
+        if (!Number.isFinite(scale) || scale <= 0) throw new TypeError(`Invalid scale: ${scale}`);
+        while (changingPerfGraphScaleB) await new Promise((resolve: (value: void) => void): void => void setTimeout(resolve, 1));
+        const id: number = ++changingPerfGraphScaleLastId;
+        let endedSuccessfully = false;
+        try {
+            changingPerfGraphScale = true;
+            changingPerfGraphScaleB = true;
+            await new Promise((resolve: (value: void) => void): void => void setTimeout(resolve, 10));
+            perfGraphScale = scale;
+            document.querySelectorAll(".perfGraphContainer").forEach((container: Element): void => {
+                if (!(container instanceof HTMLDivElement)) return;
+                container.style.width = `${Number(container.getAttribute("data-base-width")) * scale}px`;
+                container.style.height = `${Number(container.getAttribute("data-base-height")) * scale}px`;
+                container.style.setProperty("--current-width", `${Number(container.getAttribute("data-base-width")) * scale}px`);
+                container.style.setProperty("--current-height", `${Number(container.getAttribute("data-base-width")) * scale}px`);
+            });
+            await Promise.all(
+                Array.from(document.querySelectorAll(".perfGraph")).map(async (canvas: Element): Promise<void> => {
+                    if (!(canvas instanceof HTMLCanvasElement)) return;
+                    canvas.getContext("2d").setTransform(1, 0, 0, 1, 0, 0);
+                    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+                    if (canvas.width !== Number(canvas.getAttribute("data-base-width")) * scale) {
+                        canvas.width = Number(canvas.getAttribute("data-base-width")) * scale;
+                    }
+                    if (canvas.height !== Number(canvas.getAttribute("data-base-height")) * scale) {
+                        canvas.height = Number(canvas.getAttribute("data-base-height")) * scale;
+                    }
+                    await new Promise((resolve: (value: void) => void): void => void setTimeout(resolve, 1));
+                    canvas.dispatchEvent(new Event("rerenderCanvas"));
+                    await new Promise((resolve: (value: void) => void): void => void setTimeout(resolve, 1));
+                })
+            );
+            if (id === changingPerfGraphScaleLastId) changingPerfGraphScale = false;
+            endedSuccessfully = true;
+        } finally {
+            if (!endedSuccessfully) changingPerfGraphScale &&= false;
+            changingPerfGraphScaleB &&= false;
+        }
+    }
+    // globalThis.changePerfGraphScale = changePerfGraphScale;
+    (EngineInterceptor.originalEngineMethods.on?.bind(engine) ?? engine.on.bind(engine))(
+        "facet:updated:core.deviceInformation",
+        function handleGUIScaleChangeForPerfGraph(this: void, deviceInformation: FacetTypeMap["core.deviceInformation"]): void {
+            if (!deviceInformation || typeof deviceInformation.guiScaleBase !== "number" || typeof deviceInformation.guiScaleModifier !== "number") return;
+            if (Number.isNaN(deviceInformation.guiScaleBase) || Number.isNaN(deviceInformation.guiScaleModifier)) return;
+            localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","guiScaleBase"]', deviceInformation.guiScaleBase.toString());
+            localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","guiScaleModifier"]', deviceInformation.guiScaleModifier.toString());
+            if (typeof deviceInformation?.pixelsPerMillimeter === "number") {
+                localStorage.setItem('facetValuePropertyCache:["core.deviceInformation","pixelsPerMillimeter"]', `${deviceInformation.pixelsPerMillimeter}`);
+            }
+            const GUIScale: number = Math.ceil(Math.max(1, deviceInformation.guiScaleBase + deviceInformation.guiScaleModifier) / 1.5);
+            if (GUIScale !== perfGraphScale) {
+                void changePerfGraphScale(GUIScale);
+            }
+        }
+    );
+    statsCornerDebugOverlayElement.innerHTML = `<div style="display: contents;">Stats loading...</div>`;
+    document.body.appendChild(statsCornerDebugOverlayElement);
+
+    {
+        // Lagometer, accessed with F3+2.
+        const perfGraphOverlay_FPS = document.createElement("div");
+        perfGraphOverlay_FPS.id = "perfGraph_FPS_container";
+        perfGraphOverlay_FPS.classList.add("perfGraphContainer");
+        perfGraphOverlay_FPS.setAttribute(
+            "style",
+            `pointer-events: none; background-color: #00000000; color: #FFFFFFFF; width: auto; height: auto; position: fixed; bottom: 0; left: 0; z-index: 90000000; white-space: pre-wrap; overflow-wrap: anywhere;`
+        );
+        // TODO: Make the height of this based on the screen so that the bar can extend to the top of the screen.
+        const baseSize: [width: number, height: number] = [242, 201];
+        perfGraphOverlay_FPS.style.width = `${baseSize[0] * perfGraphScale}px`;
+        perfGraphOverlay_FPS.style.height = `${baseSize[1] * perfGraphScale}px`;
+        perfGraphOverlay_FPS.setAttribute("data-base-width", String(baseSize[0]));
+        perfGraphOverlay_FPS.setAttribute("data-base-height", String(baseSize[1]));
+        perfGraphOverlay_FPS.style.setProperty("--current-width", `${baseSize[0] * perfGraphScale}px`);
+        perfGraphOverlay_FPS.style.setProperty("--current-height", `${baseSize[1] * perfGraphScale}px`);
+        perfGraphOverlay_FPS.innerHTML = `<canvas id="perfGraph_FPS" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 1;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1] - 1}" width="${baseSize[0] * perfGraphScale}" height="${(baseSize[1] - 1) * perfGraphScale}"></canvas>
+<!-- To make this identical to Java Edition, make the overlay the same height as the graph (the one pixel difference is so the bottom pixel of the bars isn't covered up by the border). -->
+<canvas id="perfGraph_FPS_overlay" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 2;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1]}" width="${baseSize[0] * perfGraphScale}" height="${baseSize[1] * perfGraphScale}"></canvas>`;
+        if (localStorage.getItem("perfGraph_FPS_visible") !== "true") perfGraphOverlay_FPS.style.display = "none";
+        document.body.appendChild(perfGraphOverlay_FPS);
+    }
+
+    {
+        // Event Loop Lagometer, accessed with F3+3.
+        const perfGraphOverlay_ELL = document.createElement("div");
+        perfGraphOverlay_ELL.id = "perfGraph_ELL_container";
+        perfGraphOverlay_ELL.classList.add("perfGraphContainer");
+        perfGraphOverlay_ELL.setAttribute(
+            "style",
+            `pointer-events: none; background-color: #00000000; color: #FFFFFFFF; width: auto; height: auto; position: fixed; bottom: 0; right: 0; z-index: 90000000; white-space: pre-wrap; overflow-wrap: anywhere;`
+        );
+        // TODO: Make the height of this based on the screen so that the bar can extend to the top of the screen.
+        const baseSize: [width: number, height: number] = [242, 201];
+        perfGraphOverlay_ELL.style.width = `${baseSize[0] * perfGraphScale}px`;
+        perfGraphOverlay_ELL.style.height = `${baseSize[1] * perfGraphScale}px`;
+        perfGraphOverlay_ELL.setAttribute("data-base-width", String(baseSize[0]));
+        perfGraphOverlay_ELL.setAttribute("data-base-height", String(baseSize[1]));
+        perfGraphOverlay_ELL.style.setProperty("--current-width", `${baseSize[0] * perfGraphScale}px`);
+        perfGraphOverlay_ELL.style.setProperty("--current-height", `${baseSize[1] * perfGraphScale}px`);
+        perfGraphOverlay_ELL.innerHTML = `<canvas id="perfGraph_ELL" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 1;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1] - 1}" width="${baseSize[0] * perfGraphScale}" height="${(baseSize[1] - 1) * perfGraphScale}"></canvas>
+<canvas id="perfGraph_ELL_overlay" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 2;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1]}" width="${baseSize[0] * perfGraphScale}" height="${baseSize[1] * perfGraphScale}"></canvas>`;
+        if (localStorage.getItem("perfGraph_ELL_visible") !== "true") perfGraphOverlay_ELL.style.display = "none";
+        document.body.appendChild(perfGraphOverlay_ELL);
+    }
+
+    {
+        // Frame Callback Delay Graph, accessed with F3+3.
+        const perfGraphOverlay_FCD = document.createElement("div");
+        perfGraphOverlay_FCD.id = "perfGraph_FCD_container";
+        perfGraphOverlay_FCD.classList.add("perfGraphContainer");
+        perfGraphOverlay_FCD.setAttribute(
+            "style",
+            `pointer-events: none; background-color: #00000000; color: #FFFFFFFF; width: auto; height: auto; position: fixed; bottom: 0; left: calc(50vw - (var(--current-width) / 2)); z-index: 90000000; white-space: pre-wrap; overflow-wrap: anywhere;`
+        );
+        // TODO: Make the height of this based on the screen so that the bar can extend to the top of the screen.
+        const baseSize: [width: number, height: number] = [242, 201];
+        perfGraphOverlay_FCD.style.width = `${baseSize[0] * perfGraphScale}px`;
+        perfGraphOverlay_FCD.style.height = `${baseSize[1] * perfGraphScale}px`;
+        perfGraphOverlay_FCD.setAttribute("data-base-width", String(baseSize[0]));
+        perfGraphOverlay_FCD.setAttribute("data-base-height", String(baseSize[1]));
+        perfGraphOverlay_FCD.style.setProperty("--current-width", `${baseSize[0] * perfGraphScale}px`);
+        perfGraphOverlay_FCD.style.setProperty("--current-height", `${baseSize[1] * perfGraphScale}px`);
+        perfGraphOverlay_FCD.innerHTML = `<canvas id="perfGraph_FCD" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 1;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1] - 1}" width="${baseSize[0] * perfGraphScale}" height="${(baseSize[1] - 1) * perfGraphScale}"></canvas>
+<canvas id="perfGraph_FCD_overlay" class="perfGraph" style="position: absolute; top: 0; left: 0; z-index: 2;" data-base-width="${baseSize[0]}" data-base-height="${baseSize[1]}" width="${baseSize[0] * perfGraphScale}" height="${baseSize[1] * perfGraphScale}"></canvas>`;
+        if (localStorage.getItem("perfGraph_FCD_visible") !== "true") perfGraphOverlay_FCD.style.display = "none";
+        document.body.appendChild(perfGraphOverlay_FCD);
+    }
 
     // CSS Editor, accessed with CTRL+P.
     cssEditorDisplayElement = document.createElement("div");
@@ -7584,13 +10581,13 @@ Modifiers: ${[
             items: [
                 {
                     label: "Clear console",
-                    action() {
-                        consoleOverlayTextElement.replaceChildren();
+                    action(): void {
+                        consoleOverlayTextElement.innerHTML = "";
                     },
                 },
                 {
                     label: "Clear console history",
-                    action() {
+                    action(): void {
                         ConsoleExecutionHistory.clearHistory();
                     },
                 },
@@ -7599,15 +10596,17 @@ Modifiers: ${[
                 },
                 {
                     label: "Copy console",
-                    action() {
-                        if (consoleOverlayTextElement.textContent)
+                    action(): void {
+                        if (consoleOverlayTextElement.textContent) {
                             copyTextToClipboardAsync(
                                 Array.from(consoleOverlayTextElement.children)
                                     .map((child) => child.textContent)
                                     .filter((v) => v !== null)
                                     .join("\n")
-                            );
-                        else console.warn("Could not copy console to clipboard because the console is empty.");
+                            ).catch((reason: unknown): void => {
+                                console.error(new Error(`[8CrafterConsole::Copy console] An error occured while copying to the clipboard.`), reason);
+                            });
+                        } else console.warn("Could not copy console to clipboard because the console is empty.");
                     },
                     get disabled(): boolean {
                         return !consoleOverlayTextElement.textContent;
@@ -7619,27 +10618,27 @@ Modifiers: ${[
          * @type {number | null}
          */
         let clickStartTime: number | null = null;
-        consoleOverlayTextElement.addEventListener("mousedown", (event) => {
+        consoleOverlayTextElement.addEventListener("mousedown", (event): void => {
             if (event.button !== 0) return;
             clickStartTime = Date.now();
         });
-        consoleOverlayTextElement.addEventListener("mouseleave", () => {
+        consoleOverlayTextElement.addEventListener("mouseleave", (): void => {
             clickStartTime = null;
         });
-        consoleOverlayTextElement.addEventListener("click", (event) => {
+        consoleOverlayTextElement.addEventListener("click", (event): void => {
             if (event.button !== 0) return;
             if (clickStartTime !== null && Date.now() - clickStartTime >= 500) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+                setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
             }
             clickStartTime = null;
         });
-        consoleOverlayTextElement.addEventListener("mouseup", (event) => {
+        consoleOverlayTextElement.addEventListener("mouseup", (event): void => {
             if (event.button !== 2) return;
             event.preventDefault();
             event.stopImmediatePropagation();
-            setTimeout(() => showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
+            setTimeout((): void => void showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY }), 1);
             // showContextMenu({ ...contextMenu, x: event.clientX, y: event.clientY });
         });
     }
@@ -7648,7 +10647,7 @@ Modifiers: ${[
 
     // 8Crafter Utilities Main Menu, accessed with CTRL+M.
     const mainMenu8CrafterUtilitiesTempContainer = document.createElement("div");
-    mainMenu8CrafterUtilitiesTempContainer.innerHTML = `<div id="mainMenu8CrafterUtilities" style="background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; backdrop-filter: blur(5px); border: 5px solid #87CEEb;" draggable="true">
+    mainMenu8CrafterUtilitiesTempContainer.innerHTML = `<div id="mainMenu8CrafterUtilities" style="background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; border: 5px solid #87CEEb;" draggable="true">
     <div id="8CrafterUtilitiesMenu_leftSidebar" style="display: block; height: 100%; width: 30%; border-right: 5px solid #87CEEb; position: absolute; top: 0; left: 0;">
         <button type="button" class="btn nsel selected" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_general" onclick="setMainMenu8CrafterUtilitiesTab('general'); event.preventDefault();">General</button>
         <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
@@ -7667,16 +10666,16 @@ Modifiers: ${[
             </center>
             <p>
                 <span style="white-space: pre-wrap;"><b>Version:</b> ${
-                    typeof oreUICustomizerVersion !== "undefined"
-                        ? "v" + oreUICustomizerVersion
-                        : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
+                    typeof oreUICustomizerVersion !== "undefined" ?
+                        `v${oreUICustomizerVersion}`
+                    :   '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
                 }</span>
             </p>
             <p>
                 <span style="white-space: pre-wrap;"><b>Config:</b> ${
-                    typeof oreUICustomizerConfig !== "undefined"
-                        ? JSON.stringify(oreUICustomizerConfig, undefined, 4)
-                        : '<em style="color: red;"><strong>&lt;MISSING CONFIG!&gt;</strong></em>'
+                    typeof oreUICustomizerConfig !== "undefined" ?
+                        JSON.stringify(oreUICustomizerConfig, undefined, 4)
+                    :   '<em style="color: red;"><strong>&lt;MISSING CONFIG!&gt;</strong></em>'
                 }</span>
             </p>
         </div>
@@ -7687,8 +10686,13 @@ Modifiers: ${[
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_viewHTMLSource" onclick="toggleHTMLSourceCodePreviewElement(); event.preventDefault();">View HTML Source</button>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_CSSEditor" onclick="cssEditorDisplayElement.style.display = cssEditorDisplayElement.style.display === 'none' ? 'block' : 'none'; event.preventDefault();">CSS Editor</button>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_smallCornerDebugOverlayElement" onclick="toggleSmallCornerDebugOverlay(); event.preventDefault();">Small Corner Debug Overlay</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_statsCornerDebugOverlayElement" onclick="toggleStatsCornerDebugOverlay(); event.preventDefault();">Stats Corner Debug Overlay</button>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_elementGeneralDebugOverlayElement" onclick="toggleGeneralDebugOverlayElement(); event.preventDefault();">Element General Debug Overlay</button>
             <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_consoleOverlay" onclick="toggleConsoleOverlay(); event.preventDefault();">Console</button>
+            <h2>F3 Graphs</h2>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FPS'); event.preventDefault();">Lagometer</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('ELL'); event.preventDefault();">Event Loop Lag Graph</button>
+            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FCD'); event.preventDefault();">Frame Callback Delay Graph</button>
         </div>
         <div id="8CrafterUtilitiesMenu_about" style="display: none;">
             <center>
@@ -7696,9 +10700,9 @@ Modifiers: ${[
             </center>
             <p>
                 8Crafter's Ore UI Customizer ${
-                    typeof oreUICustomizerVersion !== "undefined"
-                        ? "v" + oreUICustomizerVersion
-                        : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
+                    typeof oreUICustomizerVersion !== "undefined" ?
+                        `v${oreUICustomizerVersion}`
+                    :   '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'
                 }
             </p>
             <p>
@@ -7729,6 +10733,9 @@ Modifiers: ${[
                     <code>CTRL + ALT + I</code> - Toggle Element General Debug Overlay visibility.
                 </li>
                 <li>
+                    <code>CTRL + SHIFT + I</code> - Toggle Stats Corner Debug Overlay visibility.
+                </li>
+                <li>
                     <code>CTRL + ALT + M</code> - Toggle 8Crafter Utilities Menu visibility.
                 </li>
                 <li>
@@ -7739,6 +10746,15 @@ Modifiers: ${[
                 </li>
                 <li>
                     <code>CTRL + F8</code> - Reload Ore UI.
+                </li>
+                <li>
+                    <code>F3 + 2</code> - Toggle Lagometer.
+                </li>
+                <li>
+                    <code>F3 + 3</code> - Toggle Event Loop Lag Graph.
+                </li>
+                <li>
+                    <code>F3 + 4</code> - Toggle Frame Callback Delay Graph.
                 </li>
             </ul>
         </div>
@@ -7811,9 +10827,9 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
     /**
      * @param {FacetTypeMap["core.router"]} router
      */
-    function routerObserveCallback(router: FacetTypeMap["core.router"]) {
+    function routerObserveCallback(router: FacetTypeMap["core.router"]): void {
         try {
-            const routerStack = document.getElementById("8CrafterUtilitiesMenu_div_router_stack");
+            const routerStack: HTMLElement | null = document.getElementById("8CrafterUtilitiesMenu_div_router_stack");
             if (routerStack) {
                 while (routerStack.children.length > 0) {
                     routerStack.children[0]!.remove();
@@ -7821,7 +10837,7 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
                 for (let i = 0; i < router.history.list.length; i++) {
                     const route = router.history.list[i]!;
                     const div = document.createElement("div");
-                    div.onclick = (event) => {
+                    div.onclick = (event: MouseEvent): void => {
                         const router = getAccessibleFacetSpyFacets()["core.router"];
                         router?.history.go(i - (router.history.list.length - 1));
                         event.preventDefault();
@@ -7835,13 +10851,13 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
             console.error(e);
         }
     }
-    (async function waitToInitRouterFacetObserverForRouterTabOf8CrafterUtilitiesMenu() {
+    void (async function waitToInitRouterFacetObserverForRouterTabOf8CrafterUtilitiesMenu(): Promise<void> {
         while (
             typeof facetSpyData === "undefined" ||
             !facetSpyData?.sharedFacets?.["core.router"] ||
             typeof facetSpyData.sharedFacets["core.router"] !== "object"
         ) {
-            await new Promise((resolve) => setTimeout(resolve, 1));
+            await new Promise((resolve: (value: unknown) => void): void => void setTimeout(resolve, 1));
         }
         while (true) {
             const routerFacetContext = facetSpyData.sharedFacets["core.router"];
@@ -7849,7 +10865,7 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
                 routerFacetContext.observe(routerObserveCallback);
                 break;
             }
-            await new Promise((resolve) => setTimeout(resolve, 1));
+            await new Promise((resolve: (value: unknown) => void): void => void setTimeout(resolve, 1));
         }
     })();
     // facetSpyData.sharedFacets["core.router"].observe(routerObserveCallback);
@@ -7874,10 +10890,9 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
     customGlobalCSSStyleElement = document.createElement("style");
     customGlobalCSSStyleElement.id = "customGlobalCSSStyle";
     document.head.appendChild(customGlobalCSSStyleElement);
-
-    cssEditorTextBox.addEventListener("mouseup", () => {
-        const caretPosition = cssEditorTextBox.selectionStart;
-        screenDisplayElement.textContent = "Caret position: " + caretPosition;
+    cssEditorTextBox.addEventListener("mouseup", (): void => {
+        const caretPosition: number = cssEditorTextBox.selectionStart;
+        screenDisplayElement.textContent = `Caret position: ${caretPosition}`;
     });
     // cssEditorTextBox.addEventListener("focusin", () => {
     //     document.getElementById("root").style.display = "none";
@@ -7914,6 +10929,870 @@ Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
     //         }
     //     }
     // }
+    canvasInit: {
+        const canvas_FPS_container: HTMLElement | null = document.getElementById("perfGraph_FPS_container");
+        const canvas_FPS: HTMLElement | null = document.getElementById("perfGraph_FPS");
+        const canvas_FPS_overlay: HTMLElement | null = document.getElementById("perfGraph_FPS_overlay");
+        const canvas_ELL_container: HTMLElement | null = document.getElementById("perfGraph_ELL_container");
+        const canvas_ELL: HTMLElement | null = document.getElementById("perfGraph_ELL");
+        const canvas_ELL_overlay: HTMLElement | null = document.getElementById("perfGraph_ELL_overlay");
+        const canvas_FCD_container: HTMLElement | null = document.getElementById("perfGraph_FCD_container");
+        const canvas_FCD: HTMLElement | null = document.getElementById("perfGraph_FCD");
+        const canvas_FCD_overlay: HTMLElement | null = document.getElementById("perfGraph_FCD_overlay");
+        if (!(canvas_FPS instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_FPS" was not found.');
+            break canvasInit;
+        }
+        if (!(canvas_FPS_overlay instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_FPS_overlay" was not found.');
+            break canvasInit;
+        }
+        if (!(canvas_ELL instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_ELL" was not found.');
+            break canvasInit;
+        }
+        if (!(canvas_ELL_overlay instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_ELL_overlay" was not found.');
+            break canvasInit;
+        }
+        if (!(canvas_FCD instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_FCD" was not found.');
+            break canvasInit;
+        }
+        if (!(canvas_FCD_overlay instanceof HTMLCanvasElement)) {
+            console.error('Canvas with id "perfGraph_FCD_overlay" was not found.');
+            break canvasInit;
+        }
+        const ctx_FPS: CanvasRenderingContext2D = canvas_FPS.getContext("2d");
+        const ctx_FPS_overlay: CanvasRenderingContext2D = canvas_FPS_overlay.getContext("2d");
+        const ctx_ELL: CanvasRenderingContext2D = canvas_ELL.getContext("2d");
+        const ctx_ELL_overlay: CanvasRenderingContext2D = canvas_ELL_overlay.getContext("2d");
+        const ctx_FCD: CanvasRenderingContext2D = canvas_FCD.getContext("2d");
+        const ctx_FCD_overlay: CanvasRenderingContext2D = canvas_FCD_overlay.getContext("2d");
+
+        // const width = canvas_FPS.width;
+        // const height = canvas_FPS.height;
+
+        // type ELLStatus = "Excellent" | "Good" | "Stressed" | "Critical" | "Loading..." | "N/A";
+
+        // let ell = 0;
+        // let ellStatus: ELLStatus = "Loading..."; // Thread Responsiveness (TR);
+
+        // FPS monitor.
+        const startFPSMonitor = function startFPSMonitor(onSample?: (frameTime: number) => void): () => number {
+            let lastFrame: DOMHighResTimeStamp = performance.now();
+            let frameTime = 0;
+            function tick(time: DOMHighResTimeStamp): void {
+                frameTime = time - lastFrame;
+                lastFrame = time;
+                onSample?.(frameTime);
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+            return (): number => frameTime;
+        };
+
+        // Event Loop Lag monitor.
+        const startJsLagMonitor = function startJsLagMonitor(interval: number | (() => number) = 5, onSample?: (ell: number) => void): () => number {
+            let last: number = performance.now();
+            let lag = 0;
+            let lastInterval: number = typeof interval === "number" ? interval : interval();
+
+            function tick(): void {
+                const now: number = performance.now();
+                const delta: number = now - Math.max(lastAnimationFrameTime /* lastAnimationFrameCallbackTime */, last);
+                lag = Math.max(0, delta /* - lastInterval */);
+
+                onSample?.(lag); // draw a bar for THIS sample
+
+                last = now;
+                setTimeout(tick, (lastInterval = typeof interval === "number" ? interval : interval()));
+            }
+
+            setTimeout(tick, lastInterval);
+            return (): number => lag;
+        };
+
+        let lastAnimationFrameTime: DOMHighResTimeStamp = performance.now();
+        let lastAnimationFrameCallbackTime: DOMHighResTimeStamp = performance.now();
+        void lastAnimationFrameTime;
+        void lastAnimationFrameCallbackTime;
+
+        // Frame Callback Delay monitor.
+        const startFCDMonitor = function startFCDMonitor(onSample?: (delay: number) => void): () => number {
+            let delay = 0;
+
+            function tick(time: DOMHighResTimeStamp): void {
+                const now: DOMHighResTimeStamp = performance.now();
+                delay = now - time;
+                lastAnimationFrameTime = time;
+                lastAnimationFrameCallbackTime = now;
+                onSample?.(delay);
+                requestAnimationFrame(tick);
+            }
+
+            requestAnimationFrame(tick);
+            return (): number => delay;
+        };
+
+        let bufferCanvas_FPS: HTMLCanvasElement = document.createElement("canvas");
+        bufferCanvas_FPS.width = canvas_FPS.width;
+        bufferCanvas_FPS.height = canvas_FPS.height;
+        let bufferCtx_FPS: CanvasRenderingContext2D = bufferCanvas_FPS.getContext("2d");
+
+        let bufferCanvas_ELL: HTMLCanvasElement = document.createElement("canvas");
+        bufferCanvas_ELL.width = canvas_ELL.width;
+        bufferCanvas_ELL.height = canvas_ELL.height;
+        let bufferCtx_ELL: CanvasRenderingContext2D = bufferCanvas_ELL.getContext("2d");
+
+        let bufferCanvas_FCD: HTMLCanvasElement = document.createElement("canvas");
+        bufferCanvas_FCD.width = canvas_FCD.width;
+        bufferCanvas_FCD.height = canvas_FCD.height;
+        let bufferCtx_FCD: CanvasRenderingContext2D = bufferCanvas_FCD.getContext("2d");
+
+        const graphFrameTimeValues: number[] = [];
+
+        const getFpsColor = function getFpsColor(ms: number): string {
+            const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v));
+            const t = clamp(ms / 100, 0, 1);
+
+            let r: number, g: number;
+
+            if (t < 0.3) {
+                // Green to Yellow
+                r = (t / 0.3) * 255;
+                g = 255;
+            } else {
+                // Yellow to Red
+                r = 255;
+                g = 255 - ((t - 0.3) / 0.7) * 255;
+            }
+
+            return `rgb(${Math.round(r)},${Math.round(g)},0)`;
+        };
+
+        let maxFrameRate = NaN;
+        let currentFrameRateQueryID = 12527412642613253000n + BigInt(Date.now());
+        const startMaxFrameRateMonitor = function startMaxFrameRateMonitor(this: void, delay: number): void {
+            async function queryMaxFrameRate(): Promise<void> {
+                while (canvas_FPS_container?.style.display === "none") await new Promise((resolve): void => void setTimeout(resolve, delay));
+                const queryId: bigint = currentFrameRateQueryID++;
+                const queryCallback = (value: unknown): void => {
+                    const data = value as Extract<EngineQueryNonFacetResultMap["vanilla.menus.settingsNumberQuery"], { id: "video.mode.fancy.framerate" }>;
+                    maxFrameRate = parseInt(data.valueText, 10) || Infinity;
+                    (EngineInterceptor.originalEngineMethods.off?.bind(engine) ?? engine.off.bind(engine))(`query:subscribed/${queryId}`, queryCallback);
+
+                    setTimeout(queryMaxFrameRate, delay);
+                };
+                (EngineInterceptor.originalEngineMethods.on?.bind(engine) ?? engine.on.bind(engine))(`query:subscribed/${queryId}`, queryCallback);
+                (EngineInterceptor.originalEngineMethods.trigger?.bind(engine) ?? engine.trigger.bind(engine))(
+                    "query:subscribe/vanilla.menus.settingsNumberQuery",
+                    queryId,
+                    "video.mode.fancy.framerate"
+                );
+            }
+            {
+                const queryId: bigint = currentFrameRateQueryID++;
+                const settingsGroupQueryCallback = function settingsGroupQueryCallback(): void {
+                    (EngineInterceptor.originalEngineMethods.off?.bind(engine) ?? engine.off.bind(engine))(
+                        `query:subscribed/${queryId}`,
+                        settingsGroupQueryCallback
+                    );
+                    void queryMaxFrameRate();
+                };
+                (EngineInterceptor.originalEngineMethods.on?.bind(engine) ?? engine.on.bind(engine))(`query:subscribed/${queryId}`, settingsGroupQueryCallback);
+                (EngineInterceptor.originalEngineMethods.trigger?.bind(engine) ?? engine.trigger.bind(engine))(
+                    "query:subscribe/vanilla.menus.settingsGroupQuery",
+                    queryId,
+                    "video.mode.fancy"
+                );
+            }
+        };
+        setTimeout(startMaxFrameRateMonitor.bind(void 0, 100), 1);
+
+        const fpsGraphDrawQueue: number[] = [];
+
+        /**
+         * 1 ms on the FPS graph is this many pixels.
+         */
+        const FPS_GRAPH_SCALE = 1.8;
+
+        const drawFpsGraph = function drawFpsGraph(frameTime: number | readonly number[], bypassChangeScaleWait = false): void {
+            if (frameTime instanceof Array && frameTime.length === 0) return;
+            if (!bypassChangeScaleWait && changingPerfGraphScale) {
+                return void fpsGraphDrawQueue.push(...(typeof frameTime === "number" ? [frameTime] : frameTime));
+            }
+            const RENDERED_SCALE: number = perfGraphScale;
+            const w: number = canvas_FPS.width / RENDERED_SCALE;
+            const h: number = canvas_FPS.height / RENDERED_SCALE;
+            // const wO: number = canvas_FPS_overlay.width / RENDERED_SCALE;
+            const hO: number = canvas_FPS_overlay.height / RENDERED_SCALE;
+            if (!bypassChangeScaleWait) {
+                if (fpsGraphDrawQueue.length > 0) {
+                    frameTime = [...fpsGraphDrawQueue, ...(typeof frameTime === "number" ? [frameTime] : frameTime)];
+                    fpsGraphDrawQueue.length = 0;
+                    graphFrameTimeValues.push(...frameTime);
+                    graphFrameTimeValues.splice(0, Math.max(0, graphFrameTimeValues.length - (w - 2)));
+                } else {
+                    graphFrameTimeValues.push(...(typeof frameTime === "number" ? [frameTime] : frameTime));
+                    graphFrameTimeValues.splice(0, Math.max(0, graphFrameTimeValues.length - (w - 2)));
+                }
+            }
+            if (frameTime instanceof Array && frameTime.length > w - 2) frameTime = frameTime.slice(-w + 2);
+            if (bufferCanvas_FPS.width !== canvas_FPS.width || bufferCanvas_FPS.height !== canvas_FPS.height) {
+                bufferCtx_FPS.clearRect(0, 0, bufferCanvas_FPS.width, bufferCanvas_FPS.height);
+                bufferCanvas_FPS = document.createElement("canvas");
+                bufferCanvas_FPS.width = canvas_FPS.width;
+                bufferCanvas_FPS.height = canvas_FPS.height;
+                bufferCtx_FPS = bufferCanvas_FPS.getContext("2d");
+            }
+            ctx_FPS.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FPS_overlay.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FPS_overlay.scale(RENDERED_SCALE, RENDERED_SCALE);
+
+            const currentFrameTime: number = typeof frameTime === "number" ? frameTime : frameTime.at(-1)!;
+
+            const fps: number = 1000 / currentFrameTime;
+
+            const newBarCount: number = typeof frameTime === "number" ? 1 : frameTime.length;
+
+            bufferCtx_FPS.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+
+            // Adds the translucent background to the graph when it is first rendered.
+            if (graphFrameTimeValues.length === 1 && w > 3) {
+                // bufferCtx_FPS.setTransform(1, 0, 0, 1, 0, 0);
+                ctx_FPS.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE); // Clear canvas to remove the data from the last time the page was loaded.
+                bufferCtx_FPS.fillStyle = "#ffffff24";
+                bufferCtx_FPS.fillRect(1 * RENDERED_SCALE, (h - 60) * RENDERED_SCALE, (w - 2) * RENDERED_SCALE, 60 * RENDERED_SCALE);
+                // bufferCtx_FPS.scale(RENDERED_SCALE, RENDERED_SCALE);
+            } else {
+                bufferCtx_FPS.drawImage(canvas_FPS, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+            }
+
+            ctx_FPS.clearRect(1 * RENDERED_SCALE, 0, (w - 2 - newBarCount) * RENDERED_SCALE, h * RENDERED_SCALE);
+            ctx_FPS.drawImage(
+                bufferCanvas_FPS,
+                (1 + newBarCount) * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE,
+                1 * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE
+            );
+            ctx_FPS.scale(RENDERED_SCALE, RENDERED_SCALE);
+            ctx_FPS.clearRect(w - 1 - newBarCount, 0, newBarCount, h);
+
+            ctx_FPS.fillStyle = "#ffffff24";
+            ctx_FPS.fillRect(w - 1 - newBarCount, h - 60, newBarCount, 60);
+
+            frameTime = typeof frameTime === "number" ? [frameTime] : frameTime;
+            for (let i = 0; i < frameTime.length; i++) {
+                const frameTimeValue: number | undefined = frameTime[i];
+                if (typeof frameTimeValue !== "number") continue;
+                // const barHeight = Math.floor(frametime * graphScale); // Floored version that is identical to Java Edition.
+                const barHeight: number = frameTimeValue * FPS_GRAPH_SCALE;
+                ctx_FPS.fillStyle = getFpsColor(frameTimeValue);
+                ctx_FPS.fillRect(w - 1 - frameTime.length + i, h - barHeight, 1, barHeight);
+            }
+
+            ctx_FPS_overlay.clearRect(0, 0, w, h);
+
+            // ctx_FPS_overlay.strokeStyle = "#888";
+            ctx_FPS_overlay.strokeStyle = "#fff";
+            ctx_FPS_overlay.beginPath();
+            ctx_FPS_overlay.moveTo(0, hO - 0.5);
+            ctx_FPS_overlay.lineTo(w, hO - 0.5);
+            ctx_FPS_overlay.moveTo(0, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            ctx_FPS_overlay.lineTo(w, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            ctx_FPS_overlay.moveTo(0, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_FPS_overlay.lineTo(w, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_FPS_overlay.moveTo(0.5, h - 60);
+            ctx_FPS_overlay.lineTo(0.5, hO);
+            ctx_FPS_overlay.moveTo(w - 0.5, h - 60);
+            ctx_FPS_overlay.lineTo(w - 0.5, hO);
+            ctx_FPS_overlay.stroke();
+
+            if (Number.isFinite(maxFrameRate)) {
+                ctx_FPS_overlay.strokeStyle = "#0ff";
+                const barPosition: number = (1000 / maxFrameRate) * FPS_GRAPH_SCALE;
+                ctx_FPS_overlay.beginPath();
+                ctx_FPS_overlay.moveTo(0, h - barPosition + 0.5);
+                ctx_FPS_overlay.lineTo(w, h - barPosition + 0.5);
+                ctx_FPS_overlay.stroke();
+            }
+
+            const minFrameTimeValue: number = Math.min(...graphFrameTimeValues);
+            const avgFrameTimeValue: number = graphFrameTimeValues.reduce((a: number, b: number): number => a + b, 0) / graphFrameTimeValues.length;
+            const maxFrameTimeValue: number = Math.max(...graphFrameTimeValues);
+
+            // ---- Text Drawing ----
+
+            // Clear scaling.
+            ctx_FPS.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FPS_overlay.setTransform(1, 0, 0, 1, 0, 0);
+
+            ctx_FPS_overlay.font = `${8 * RENDERED_SCALE}px "Minecraft Seven v4"`;
+            ctx_FPS_overlay.textBaseline = "top";
+            const statText_FPS = `FPS: ${fps.toFixed(1).padStart(6, " ")}`;
+            const statText_FT = `FT: ${currentFrameTime.toFixed(1)} ms`;
+            // Draw text shadow.
+            ctx_FPS_overlay.fillStyle = "#373737";
+            ctx_FPS_overlay.fillText(statText_FPS, 3 * RENDERED_SCALE, (h - 96) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(statText_FT, 3 * RENDERED_SCALE, (h - 86) * RENDERED_SCALE);
+            // Draw text.
+            ctx_FPS_overlay.fillStyle = "#fff";
+            ctx_FPS_overlay.fillText(statText_FPS, 2 * RENDERED_SCALE, (h - 97) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(statText_FT, 2 * RENDERED_SCALE, (h - 87) * RENDERED_SCALE);
+
+            ctx_FPS_overlay.fillStyle = "#ffffff13";
+            ctx_FPS_overlay.fillRect(
+                1 * RENDERED_SCALE,
+                (h - 29) * RENDERED_SCALE,
+                ctx_FPS_overlay.measureText("60 FPS").width + 2 * RENDERED_SCALE,
+                9 * RENDERED_SCALE
+            );
+            ctx_FPS_overlay.fillRect(
+                1 * RENDERED_SCALE,
+                (h - 59) * RENDERED_SCALE,
+                ctx_FPS_overlay.measureText("30 FPS").width + 2 * RENDERED_SCALE,
+                9 * RENDERED_SCALE
+            );
+            ctx_FPS_overlay.fillStyle = "#fff";
+            ctx_FPS_overlay.fillText("60 FPS", 2 * RENDERED_SCALE, (h - 26) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText("30 FPS", 2 * RENDERED_SCALE, (h - 56) * RENDERED_SCALE);
+
+            const minMSText = `${minFrameTimeValue.toFixed(1)} ms min`;
+            const avgMSText = `${avgFrameTimeValue.toFixed(1)} ms avg`;
+            const maxMSText = `${maxFrameTimeValue.toFixed(1)} ms max`;
+            const avgMSSize: number = ctx_FPS_overlay.measureText(avgMSText).width / RENDERED_SCALE + 1;
+            const maxMSSize: number = ctx_FPS_overlay.measureText(maxMSText).width / RENDERED_SCALE + 1;
+            const minFPSText = `${(1000 / maxFrameTimeValue).toFixed(1)} FPS min`;
+            const avgFPSText = `${(1000 / avgFrameTimeValue).toFixed(1)} FPS avg`;
+            const maxFPSText = `${(1000 / minFrameTimeValue).toFixed(1)} FPS max`;
+            const avgFPSSize: number = ctx_FPS_overlay.measureText(avgFPSText).width / RENDERED_SCALE + 1;
+            const maxFPSSize: number = ctx_FPS_overlay.measureText(maxFPSText).width / RENDERED_SCALE + 1;
+            // Draw text shadow.
+            ctx_FPS_overlay.fillStyle = "#373737";
+            ctx_FPS_overlay.fillText(minMSText, 3 * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(avgMSText, (Math.floor((w - avgMSSize) / 2) + 1) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(maxMSText, (w - maxMSSize) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(minFPSText, 3 * RENDERED_SCALE, (h - 76) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(avgFPSText, (Math.floor((w - avgFPSSize) / 2) + 1) * RENDERED_SCALE, (h - 76) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(maxFPSText, (w - maxFPSSize) * RENDERED_SCALE, (h - 76) * RENDERED_SCALE);
+            // Draw text.
+            ctx_FPS_overlay.fillStyle = "#fff";
+            ctx_FPS_overlay.fillText(minMSText, 2 * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(avgMSText, Math.floor((w - avgMSSize) / 2) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(maxMSText, (w - 1 - maxMSSize) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(minFPSText, 2 * RENDERED_SCALE, (h - 77) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(avgFPSText, Math.floor((w - avgFPSSize) / 2) * RENDERED_SCALE, (h - 77) * RENDERED_SCALE);
+            ctx_FPS_overlay.fillText(maxFPSText, (w - 1 - maxFPSSize) * RENDERED_SCALE, (h - 77) * RENDERED_SCALE);
+        };
+
+        const graphEllValues: number[] = [];
+
+        const getEllColor = function getEllColor(ms: number): string {
+            const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v));
+            const t = clamp(ms / 50, 0, 1);
+
+            let r: number, g: number;
+
+            if (t < 0.3) {
+                // Green to Yellow
+                r = (t / 0.3) * 255;
+                g = 255;
+            } else {
+                // Yellow to Red
+                r = 255;
+                g = 255 - ((t - 0.3) / 0.7) * 255;
+            }
+
+            return `rgb(${Math.round(r)},${Math.round(g)},0)`;
+        };
+
+        const ellGraphDrawQueue: number[] = [];
+
+        /**
+         * 1 ms on the ELL graph is this many pixels.
+         */
+        const ELL_GRAPH_SCALE = 1;
+
+        /**
+         * The list of times to use to determine the positions to put the bars at in the ELL graph.
+         *
+         * Should be in descending order for optimal performance.
+         */
+        const ELL_GRAPH_HORIZONTAL_BAR_TIMES: readonly number[] = Object.freeze([15, 6, 2].map((v: number): number => Math.round(v * ELL_GRAPH_SCALE)));
+
+        const drawEllGraph = function drawEllGraph(ell: number | readonly number[], bypassChangeScaleWait = false): void {
+            if (ell instanceof Array && ell.length === 0) return;
+            if (!bypassChangeScaleWait && changingPerfGraphScale) {
+                return void ellGraphDrawQueue.push(...(typeof ell === "number" ? [ell] : ell));
+            }
+            const RENDERED_SCALE: number = perfGraphScale;
+            const w: number = canvas_ELL.width / RENDERED_SCALE;
+            const h: number = canvas_ELL.height / RENDERED_SCALE;
+            // const wO = canvas_ELL_overlay.width / RENDERED_SCALE;
+            const hO: number = canvas_ELL_overlay.height / RENDERED_SCALE;
+            if (!bypassChangeScaleWait) {
+                if (ellGraphDrawQueue.length > 0) {
+                    ell = [...ellGraphDrawQueue, ...(typeof ell === "number" ? [ell] : ell)];
+                    ellGraphDrawQueue.length = 0;
+                    graphEllValues.push(...ell);
+                    graphEllValues.splice(0, Math.max(0, graphEllValues.length - (w - 2)));
+                } else {
+                    graphEllValues.push(...(typeof ell === "number" ? [ell] : ell));
+                    graphEllValues.splice(0, Math.max(0, graphEllValues.length - (w - 2)));
+                }
+            }
+            if (ell instanceof Array && ell.length > w - 2) ell = ell.slice(-w + 2);
+            if (bufferCanvas_ELL.width !== canvas_ELL.width || bufferCanvas_ELL.height !== canvas_ELL.height) {
+                bufferCtx_ELL.clearRect(0, 0, bufferCanvas_ELL.width, bufferCanvas_ELL.height);
+                bufferCanvas_ELL = document.createElement("canvas");
+                bufferCanvas_ELL.width = canvas_ELL.width;
+                bufferCanvas_ELL.height = canvas_ELL.height;
+                bufferCtx_ELL = bufferCanvas_ELL.getContext("2d");
+            }
+            ctx_ELL.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_ELL_overlay.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_ELL_overlay.scale(RENDERED_SCALE, RENDERED_SCALE);
+
+            const newBarCount: number = typeof ell === "number" ? 1 : ell.length;
+
+            bufferCtx_ELL.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+
+            // Adds the translucent background to the graph when it is first rendered.
+            if (graphEllValues.length === 1 && w > 3) {
+                ctx_ELL.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE); // Clear canvas to remove the data from the last time the page was loaded.
+                bufferCtx_ELL.fillStyle = "#ffffff24";
+                bufferCtx_ELL.fillRect(1 * RENDERED_SCALE, (h - 60) * RENDERED_SCALE, (w - 2) * RENDERED_SCALE, 60 * RENDERED_SCALE);
+
+                // Draw the horizontal background bars.
+                bufferCtx_ELL.scale(RENDERED_SCALE, RENDERED_SCALE);
+                bufferCtx_ELL.strokeStyle = "#444";
+                bufferCtx_ELL.beginPath();
+                for (const barPosition of ELL_GRAPH_HORIZONTAL_BAR_TIMES) {
+                    bufferCtx_ELL.moveTo(0, h - barPosition + 0.5);
+                    bufferCtx_ELL.lineTo(w, h - barPosition + 0.5);
+                }
+                bufferCtx_ELL.stroke();
+                bufferCtx_ELL.setTransform(1, 0, 0, 1, 0, 0);
+            } else {
+                bufferCtx_ELL.drawImage(canvas_ELL, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+            }
+
+            ctx_ELL.clearRect(1 * RENDERED_SCALE, 0, (w - 2 - newBarCount) * RENDERED_SCALE, h * RENDERED_SCALE);
+            ctx_ELL.drawImage(
+                bufferCanvas_ELL,
+                (1 + newBarCount) * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE,
+                1 * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE
+            );
+            ctx_ELL.scale(RENDERED_SCALE, RENDERED_SCALE);
+            ctx_ELL.clearRect(w - 1 - newBarCount, 0, newBarCount, h);
+
+            // Adds the translucent background to the graph.
+            ctx_ELL.fillStyle = "#ffffff24";
+            ctx_ELL.fillRect(w - 1 - newBarCount, h - 60, newBarCount, 60);
+
+            ell = typeof ell === "number" ? [ell] : ell;
+            for (let i = 0; i < ell.length; i++) {
+                const ellValue: number | undefined = ell[i];
+                if (typeof ellValue !== "number") continue;
+                // const barHeight = Math.floor(ell * graphScale); // Floored version that is identical to Java Edition.
+                const barHeight: number = ellValue * ELL_GRAPH_SCALE;
+
+                // Draw the horizontal background bars.
+                ctx_ELL.fillStyle = "#444";
+                for (const barPosition of ELL_GRAPH_HORIZONTAL_BAR_TIMES) {
+                    // Breaks the loop when the bar is not going to be drawn, only works when barPositions is in descending order.
+                    if (barHeight >= barPosition) break;
+
+                    ctx_ELL.fillRect(w - 1 - ell.length + i, h - barPosition, 1, 1);
+                }
+
+                // Draw the ELL bar.
+                ctx_ELL.fillStyle = getEllColor(ellValue);
+                ctx_ELL.fillRect(w - 1 - ell.length + i, h - barHeight, 1, barHeight);
+            }
+
+            ctx_ELL_overlay.clearRect(0, 0, w, h);
+
+            ctx_ELL_overlay.strokeStyle = "#fff";
+            ctx_ELL_overlay.beginPath();
+            ctx_ELL_overlay.moveTo(0, hO - 0.5);
+            ctx_ELL_overlay.lineTo(w, hO - 0.5);
+            // ctx_ELL_overlay.moveTo(0, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            // ctx_ELL_overlay.lineTo(w, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            ctx_ELL_overlay.moveTo(0, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_ELL_overlay.lineTo(w, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_ELL_overlay.moveTo(0.5, h - 60);
+            ctx_ELL_overlay.lineTo(0.5, hO);
+            ctx_ELL_overlay.moveTo(w - 0.5, h - 60);
+            ctx_ELL_overlay.lineTo(w - 0.5, hO);
+            ctx_ELL_overlay.stroke();
+
+            // ---- Text Drawing ----
+
+            // Clear scaling.
+            ctx_ELL.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_ELL_overlay.setTransform(1, 0, 0, 1, 0, 0);
+
+            ctx_ELL_overlay.font = `${8 * RENDERED_SCALE}px "Minecraft Seven v4"`;
+            ctx_ELL_overlay.textBaseline = "top";
+
+            const ellClassificaitonCounts: Record<"excellent" | "good" | "stressed" | "critical", number> = {
+                excellent: 0,
+                good: 0,
+                stressed: 0,
+                critical: 0,
+            };
+            for (const ellValue of graphEllValues) {
+                if (ellValue < 2) ellClassificaitonCounts.excellent++;
+                else if (ellValue < 6) ellClassificaitonCounts.good++;
+                else if (ellValue < 15) ellClassificaitonCounts.stressed++;
+                else ellClassificaitonCounts.critical++;
+            }
+
+            const statText_ELL = `ELL: ${ell.at(-1)!.toFixed(1)} ms`;
+            const statText_excellent = `Excellent: ${ellClassificaitonCounts.excellent}`;
+            const statText_good = `Good: ${ellClassificaitonCounts.good}`;
+            const statText_stressed = `Stressed: ${ellClassificaitonCounts.stressed}`;
+            const statText_critical = `Critical: ${ellClassificaitonCounts.critical}`;
+            // Draw text shadow.
+            ctx_ELL_overlay.fillStyle = "#373737";
+            ctx_ELL_overlay.fillText(statText_ELL, 3 * RENDERED_SCALE, (h - 116) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_excellent, 3 * RENDERED_SCALE, (h - 106) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_good, 3 * RENDERED_SCALE, (h - 96) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_stressed, 3 * RENDERED_SCALE, (h - 86) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_critical, 3 * RENDERED_SCALE, (h - 76) * RENDERED_SCALE);
+            // Draw text.
+            ctx_ELL_overlay.fillStyle = "#fff";
+            ctx_ELL_overlay.fillText(statText_ELL, 2 * RENDERED_SCALE, (h - 117) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_excellent, 2 * RENDERED_SCALE, (h - 107) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_good, 2 * RENDERED_SCALE, (h - 97) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_stressed, 2 * RENDERED_SCALE, (h - 87) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(statText_critical, 2 * RENDERED_SCALE, (h - 77) * RENDERED_SCALE);
+            // ctx_ELL_overlay.fillText(`< 2: Excellent`, 4, 11);
+            // ctx_ELL_overlay.fillText(`< 6:  Good`, 4, 20);
+            // ctx_ELL_overlay.fillText(`< 15: Stressed`, 4, 29);
+            // ctx_ELL_overlay.fillText(`>= 15: Critical`, 4, 38);
+
+            ctx_ELL_overlay.fillStyle = "#ffffff13";
+            ctx_ELL_overlay.fillRect(
+                1 * RENDERED_SCALE,
+                (h - 59) * RENDERED_SCALE,
+                ctx_ELL_overlay.measureText("60 ms").width + 2 * RENDERED_SCALE,
+                9 * RENDERED_SCALE
+            );
+            ctx_ELL_overlay.fillStyle = "#fff";
+            ctx_ELL_overlay.fillText("60 ms", 2 * RENDERED_SCALE, (h - 56) * RENDERED_SCALE);
+
+            const minMSText = `${Math.min(...graphEllValues).toFixed(1)} ms min`;
+            const avgMSText = `${(graphEllValues.reduce((a: number, b: number): number => a + b, 0) / graphEllValues.length).toFixed(1)} ms avg`;
+            const avgMSSize: number = ctx_ELL_overlay.measureText(avgMSText).width / RENDERED_SCALE + 1;
+            const maxMSText = `${Math.max(...graphEllValues).toFixed(1)} ms max`;
+            const maxMSSize: number = ctx_ELL_overlay.measureText(maxMSText).width / RENDERED_SCALE + 1;
+            // Draw text shadow.
+            ctx_ELL_overlay.fillStyle = "#373737";
+            ctx_ELL_overlay.fillText(minMSText, 3 * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(avgMSText, (Math.floor((w - avgMSSize) / 2) + 1) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(maxMSText, (w - maxMSSize) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            // Draw text.
+            ctx_ELL_overlay.fillStyle = "#fff";
+            ctx_ELL_overlay.fillText(minMSText, 2 * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(avgMSText, Math.floor((w - avgMSSize) / 2) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(maxMSText, (w - 1 - maxMSSize) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+        };
+
+        const graphFcdValues: number[] = [];
+
+        const getFcdColor = function getFcdColor(ms: number): string {
+            const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v));
+            const t = clamp(ms / 10, 0, 1);
+
+            let r: number, g: number;
+
+            if (t < 0.5) {
+                // Green to Yellow
+                r = (t / 0.5) * 255;
+                g = 255;
+            } else {
+                // Yellow to Red
+                r = 255;
+                g = 255 - ((t - 0.5) / 0.7) * 255;
+            }
+
+            return `rgb(${Math.round(r)},${Math.round(g)},0)`;
+        };
+
+        const fcdGraphDrawQueue: number[] = [];
+
+        /**
+         * 1 ms on the FCD graph is this many pixels.
+         */
+        const FCD_GRAPH_SCALE = 6;
+
+        /**
+         * The list of times to use to determine the positions to put the bars at in the FCD graph.
+         *
+         * Should be in descending order for optimal performance.
+         */
+        const FCD_GRAPH_HORIZONTAL_BAR_TIMES: readonly number[] = Object.freeze([10, 5, 1.5].map((v: number): number => Math.round(v * FCD_GRAPH_SCALE)));
+
+        const drawFcdGraph = function drawFcdGraph(fcd: number | readonly number[], bypassChangeScaleWait = false): void {
+            if (fcd instanceof Array && fcd.length === 0) return;
+            if (!bypassChangeScaleWait && changingPerfGraphScale) {
+                return void fpsGraphDrawQueue.push(...(typeof fcd === "number" ? [fcd] : fcd));
+            }
+            const RENDERED_SCALE: number = perfGraphScale;
+            const w: number = canvas_FCD.width / RENDERED_SCALE;
+            const h: number = canvas_FCD.height / RENDERED_SCALE;
+            // const wO: number = canvas_FCD_overlay.width / RENDERED_SCALE;
+            const hO: number = canvas_FCD_overlay.height / RENDERED_SCALE;
+            if (!bypassChangeScaleWait) {
+                if (fcdGraphDrawQueue.length > 0) {
+                    fcd = [...fcdGraphDrawQueue, ...(typeof fcd === "number" ? [fcd] : fcd)];
+                    fcdGraphDrawQueue.length = 0;
+                    graphFcdValues.push(...fcd);
+                    graphFcdValues.splice(0, Math.max(0, graphFcdValues.length - (w - 2)));
+                } else {
+                    graphFcdValues.push(...(typeof fcd === "number" ? [fcd] : fcd));
+                    graphFcdValues.splice(0, Math.max(0, graphFcdValues.length - (w - 2)));
+                }
+            }
+            if (fcd instanceof Array && fcd.length > w - 2) fcd = fcd.slice(-w + 2);
+            if (bufferCanvas_FCD.width !== canvas_FCD.width || bufferCanvas_FCD.height !== canvas_FCD.height) {
+                bufferCtx_FCD.clearRect(0, 0, bufferCanvas_FCD.width, bufferCanvas_FCD.height);
+                bufferCanvas_FCD = document.createElement("canvas");
+                bufferCanvas_FCD.width = canvas_FCD.width;
+                bufferCanvas_FCD.height = canvas_FCD.height;
+                bufferCtx_FCD = bufferCanvas_FCD.getContext("2d");
+            }
+            ctx_FCD.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FCD_overlay.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FCD_overlay.scale(RENDERED_SCALE, RENDERED_SCALE);
+
+            const newBarCount: number = typeof fcd === "number" ? 1 : fcd.length;
+
+            bufferCtx_FCD.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+
+            // Adds the translucent background to the graph when it is first rendered.
+            if (graphFcdValues.length === 1 && w > 3) {
+                ctx_FCD.clearRect(0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE); // Clear canvas to remove the data from the last time the page was loaded.
+                bufferCtx_FCD.fillStyle = "#ffffff24";
+                bufferCtx_FCD.fillRect(1 * RENDERED_SCALE, (h - 60) * RENDERED_SCALE, (w - 2) * RENDERED_SCALE, 60 * RENDERED_SCALE);
+
+                // Draw the horizontal background bars.
+                bufferCtx_FCD.scale(RENDERED_SCALE, RENDERED_SCALE);
+                bufferCtx_FCD.strokeStyle = "#444";
+                bufferCtx_FCD.beginPath();
+                for (const barPosition of FCD_GRAPH_HORIZONTAL_BAR_TIMES) {
+                    bufferCtx_FCD.moveTo(0, h - barPosition + 0.5);
+                    bufferCtx_FCD.lineTo(w, h - barPosition + 0.5);
+                }
+                bufferCtx_FCD.stroke();
+                bufferCtx_FCD.setTransform(1, 0, 0, 1, 0, 0);
+            } else {
+                bufferCtx_FCD.drawImage(canvas_FCD, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE, 0, 0, w * RENDERED_SCALE, h * RENDERED_SCALE);
+            }
+
+            ctx_FCD.clearRect(1 * RENDERED_SCALE, 0, (w - 2 - newBarCount) * RENDERED_SCALE, h * RENDERED_SCALE);
+            ctx_FCD.drawImage(
+                bufferCanvas_FCD,
+                (1 + newBarCount) * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE,
+                1 * RENDERED_SCALE,
+                0,
+                (w - 2 - newBarCount) * RENDERED_SCALE,
+                h * RENDERED_SCALE
+            );
+            ctx_FCD.scale(RENDERED_SCALE, RENDERED_SCALE);
+            ctx_FCD.clearRect(w - 1 - newBarCount, 0, newBarCount, h);
+
+            // Adds the translucent background to the graph.
+            ctx_FCD.fillStyle = "#ffffff24";
+            ctx_FCD.fillRect(w - 1 - newBarCount, h - 60, newBarCount, 60);
+
+            fcd = typeof fcd === "number" ? [fcd] : fcd;
+            for (let i = 0; i < fcd.length; i++) {
+                const fcdValue: number | undefined = fcd[i];
+                if (typeof fcdValue !== "number") continue;
+                // const barHeight = Math.floor(fcd * graphScale); // Floored version that is identical to Java Edition.
+                const barHeight: number = fcdValue * FCD_GRAPH_SCALE;
+
+                // Draw the horizontal background bars.
+                ctx_FCD.fillStyle = "#444";
+                for (const barPosition of FCD_GRAPH_HORIZONTAL_BAR_TIMES) {
+                    // Breaks the loop when the bar is not going to be drawn, only works when barPositions is in descending order.
+                    if (barHeight >= barPosition) break;
+
+                    ctx_FCD.fillRect(w - 1 - fcd.length + i, h - barPosition, 1, 1);
+                }
+
+                // Draw the FCD bar.
+                ctx_FCD.fillStyle = getFcdColor(fcdValue);
+                ctx_FCD.fillRect(w - 1 - fcd.length + i, h - barHeight, 1, barHeight);
+            }
+
+            ctx_FCD_overlay.clearRect(0, 0, w, h);
+
+            // ctx_FCD_overlay.strokeStyle = "#fff";
+            // ctx_FCD_overlay.beginPath();
+            // ctx_FCD_overlay.moveTo(0, h - (1000 / 60 / maxMs) * h);
+            // ctx_FCD_overlay.lineTo(w, h - (1000 / 60 / maxMs) * h);
+            // ctx_FCD_overlay.moveTo(0, h - (1000 / 30 / maxMs) * h);
+            // ctx_FCD_overlay.lineTo(w, h - (1000 / 30 / maxMs) * h);
+            // ctx_FCD_overlay.stroke();
+
+            ctx_FCD_overlay.strokeStyle = "#fff";
+            ctx_FCD_overlay.beginPath();
+            ctx_FCD_overlay.moveTo(0, hO - 0.5);
+            ctx_FCD_overlay.lineTo(w, hO - 0.5);
+            // ctx_FCD_overlay.moveTo(0, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            // ctx_FCD_overlay.lineTo(w, h - 29.5 /* (1000 / 60 / maxMs) * h */);
+            ctx_FCD_overlay.moveTo(0, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_FCD_overlay.lineTo(w, h - 59.5 /* (1000 / 30 / maxMs) * h */);
+            ctx_FCD_overlay.moveTo(0.5, h - 60);
+            ctx_FCD_overlay.lineTo(0.5, hO);
+            ctx_FCD_overlay.moveTo(w - 0.5, h - 60);
+            ctx_FCD_overlay.lineTo(w - 0.5, hO);
+            ctx_FCD_overlay.stroke();
+
+            // ---- Text Drawing ----
+
+            // Clear scaling.
+            ctx_FCD.setTransform(1, 0, 0, 1, 0, 0);
+            ctx_FCD_overlay.setTransform(1, 0, 0, 1, 0, 0);
+
+            ctx_FCD_overlay.font = `${8 * RENDERED_SCALE}px "Minecraft Seven v4"`;
+            ctx_FCD_overlay.textBaseline = "top";
+
+            const fcdClassificaitonCounts: Record<"excellent" | "good" | "stressed" | "critical", number> = {
+                excellent: 0,
+                good: 0,
+                stressed: 0,
+                critical: 0,
+            };
+            for (const fcdValue of graphFcdValues) {
+                if (fcdValue <= 0.3) fcdClassificaitonCounts.excellent++;
+                else if (fcdValue <= 1) fcdClassificaitonCounts.good++;
+                else if (fcdValue <= 3) fcdClassificaitonCounts.stressed++;
+                else fcdClassificaitonCounts.critical++;
+            }
+
+            const statText_FCD = `FCD: ${fcd.at(-1)!.toFixed(1)} ms`;
+            const statText_excellent = `Excellent: ${fcdClassificaitonCounts.excellent}`;
+            const statText_good = `Good: ${fcdClassificaitonCounts.good}`;
+            const statText_stressed = `Stressed: ${fcdClassificaitonCounts.stressed}`;
+            const statText_critical = `Critical: ${fcdClassificaitonCounts.critical}`;
+            // Draw text shadow.
+            ctx_FCD_overlay.fillStyle = "#373737";
+            ctx_FCD_overlay.fillText(statText_FCD, 3 * RENDERED_SCALE, (h - 116) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_excellent, 3 * RENDERED_SCALE, (h - 106) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_good, 3 * RENDERED_SCALE, (h - 96) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_stressed, 3 * RENDERED_SCALE, (h - 86) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_critical, 3 * RENDERED_SCALE, (h - 76) * RENDERED_SCALE);
+            // Draw text.
+            ctx_FCD_overlay.fillStyle = "#fff";
+            ctx_FCD_overlay.fillText(statText_FCD, 2 * RENDERED_SCALE, (h - 117) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_excellent, 2 * RENDERED_SCALE, (h - 107) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_good, 2 * RENDERED_SCALE, (h - 97) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_stressed, 2 * RENDERED_SCALE, (h - 87) * RENDERED_SCALE);
+            ctx_FCD_overlay.fillText(statText_critical, 2 * RENDERED_SCALE, (h - 77) * RENDERED_SCALE);
+
+            // Draw graph bar labels.
+            ctx_FCD_overlay.fillStyle = "#ffffff13";
+            ctx_FCD_overlay.fillRect(
+                1 * RENDERED_SCALE,
+                (h - 59) * RENDERED_SCALE,
+                ctx_FCD_overlay.measureText("10 ms").width + 2 * RENDERED_SCALE,
+                9 * RENDERED_SCALE
+            );
+            ctx_FCD_overlay.fillStyle = "#fff";
+            ctx_FCD_overlay.fillText("10 ms", 2 * RENDERED_SCALE, (h - 56) * RENDERED_SCALE);
+
+            const minMSText = `${Math.min(...graphFcdValues).toFixed(1)} ms min`;
+            const avgMSText = `${(graphFcdValues.reduce((a: number, b: number): number => a + b, 0) / graphFcdValues.length).toFixed(1)} ms avg`;
+            const avgMSSize: number = ctx_FCD_overlay.measureText(avgMSText).width / RENDERED_SCALE + 1;
+            const maxMSText = `${Math.max(...graphFcdValues).toFixed(1)} ms max`;
+            const maxMSSize: number = ctx_FCD_overlay.measureText(maxMSText).width / RENDERED_SCALE + 1;
+            // Draw text shadow.
+            ctx_ELL_overlay.fillStyle = "#373737";
+            ctx_ELL_overlay.fillText(minMSText, 3 * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(avgMSText, (Math.floor((w - avgMSSize) / 2) + 1) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(maxMSText, (w - maxMSSize) * RENDERED_SCALE, (h - 66) * RENDERED_SCALE);
+            // Draw text.
+            ctx_ELL_overlay.fillStyle = "#fff";
+            ctx_ELL_overlay.fillText(minMSText, 2 * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(avgMSText, Math.floor((w - avgMSSize) / 2) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+            ctx_ELL_overlay.fillText(maxMSText, (w - 1 - maxMSSize) * RENDERED_SCALE, (h - 67) * RENDERED_SCALE);
+        };
+
+        const lagSimulator = function lagSimulator(delay: number, interval: number | "frame"): void {
+            function loop(): void {
+                const t: number = performance.now();
+                while (t + delay > performance.now());
+                if (interval === "frame") requestAnimationFrame(loop);
+                else setTimeout(loop, interval);
+            }
+            if (interval === "frame") requestAnimationFrame(loop);
+            else setTimeout(loop, interval);
+        };
+        void lagSimulator;
+        const handleFpsGraphTick = function handleFpsGraphTick(frameTime: number): void {
+            if (canvas_FPS_container?.style.display !== "none") return void drawFpsGraph(frameTime);
+
+            const w: number = +(canvas_FPS.getAttribute("data-base-width") ?? canvas_FPS.width / perfGraphScale);
+
+            fpsGraphDrawQueue.push(frameTime);
+            fpsGraphDrawQueue.splice(0, Math.max(0, fpsGraphDrawQueue.length - (w - 2)));
+        };
+        const handleEllGraphTick = function handleFpsGraphTick(ell: number): void {
+            if (canvas_ELL_container?.style.display !== "none") return void drawEllGraph(ell);
+
+            const w: number = +(canvas_ELL.getAttribute("data-base-width") ?? canvas_ELL.width / perfGraphScale);
+
+            ellGraphDrawQueue.push(ell);
+            ellGraphDrawQueue.splice(0, Math.max(0, ellGraphDrawQueue.length - (w - 2)));
+        };
+        const handleFcdGraphTick = function handleFcdGraphTick(fcd: number): void {
+            if (canvas_FCD_container?.style.display !== "none") return void drawFcdGraph(fcd);
+
+            const w: number = +(canvas_FCD.getAttribute("data-base-width") ?? canvas_FCD.width / perfGraphScale);
+
+            fcdGraphDrawQueue.push(fcd);
+            fcdGraphDrawQueue.splice(0, Math.max(0, fcdGraphDrawQueue.length - (w - 2)));
+        };
+        startFCDMonitor(handleFcdGraphTick);
+        startFPSMonitor(handleFpsGraphTick);
+        // queueMicrotask(() =>
+        //     startJsLagMonitor(
+        //         1 /* (): number => (Number.isFinite(maxFrameRate) ? Math.ceil(1000 / maxFrameRate) : Math.ceil(1000 / 60)) */,
+        //         (ell: number): void => void ellGraphDrawQueue.push(ell)
+        //     )
+        // );
+        // requestAnimationFrame(() =>
+        startJsLagMonitor(1 /* (): number => (Number.isFinite(maxFrameRate) ? Math.ceil(1000 / maxFrameRate) : Math.ceil(1000 / 60)) */, handleEllGraphTick);
+        // );
+        // lagSimulator(10, "frame");
+
+        canvas_FPS.addEventListener("rerenderCanvas", (): void => void drawFpsGraph([...graphFrameTimeValues], true));
+        canvas_ELL.addEventListener("rerenderCanvas", (): void => void drawEllGraph([...graphEllValues], true));
+        canvas_FCD.addEventListener("rerenderCanvas", (): void => void drawFcdGraph([...graphFcdValues], true));
+    }
     //#endregion
     document.querySelectorAll(".addScrollbar").forEach(addScrollbarToHTMLElement);
 })();
+
+const __OUIC_customOverlays_initSyncEndPerf__: number = performance.now();
+const __OUIC_customOverlays_initSyncEndMs__: number = Date.now();

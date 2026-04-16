@@ -20,15 +20,15 @@ type CSSJSObject = {
     subStyles?: undefined;
     comments?: string | null;
 };
-type CSSJSRule = {
+interface CSSJSRule {
     directive: string;
     value: string;
     defective?: boolean | undefined;
     type?: "DELETED";
-};
-declare class cssjs<TestMode extends false | ((...args: [string, string]) => any) = false> {
+}
+declare class cssjs<TestMode extends false | ((...args: [string, string]) => unknown) = false> {
     cssImportStatements: string[];
-    cssKeyframeStatements: any[];
+    cssKeyframeStatements: unknown[];
     cssRegex: RegExp;
     cssMediaQueryRegex: string;
     cssKeyframeRegex: string;
@@ -191,5 +191,5 @@ declare class cssjs<TestMode extends false | ((...args: [string, string]) => any
               creates a new style tag (also destroys the previous one)
               and injects given css string into that css tag
             */
-    createStyleElement(id: string, css: string | CSSJSObject[], format?: string | boolean | undefined): (TestMode extends false ? void : never) | Extract<TestMode, (...args: [string, string]) => any>;
+    createStyleElement(id: string, css: string | CSSJSObject[], format?: string | boolean | undefined): (TestMode extends false ? void : never) | ReturnType<Extract<TestMode, (...args: [string, string]) => unknown>>;
 }

@@ -1,5 +1,3 @@
-//@ts-nocheck
-
 declare const oreUICustomizerConfig: {
     hardcoreModeToggleAlwaysClickable?: boolean;
     allowDisablingEnabledExperimentalToggles?: boolean;
@@ -101,7 +99,7 @@ declare const oreUICustomizerConfig: {
     /**
      * @todo Replace this with a proper type once this is actually used.
      */
-    activePluginsDetails?: Record<string, any>[];
+    activePluginsDetails?: Record<string, unknown>[];
     bundleEncodedPluginDataInConfigFile?: boolean;
 };
-declare const oreUICustomizerVersion = `${bigint}.${bigint}.${bigint}${"" | `${"+" | "-"}${string}`}`;
+declare const oreUICustomizerVersion: `${bigint}.${bigint}.${bigint}${"" | `${"+" | "-"}${string}`}`;

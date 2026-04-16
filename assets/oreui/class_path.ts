@@ -1,6 +1,7 @@
 /*
  * Converted to TypeScript by 8Crafter on 11/12/2025.
  *
+ * Copyright (C) 2026 8Crafter <8crafteryt@gmail.com>
  * Copyright (C) 2015 Pavel Savshenko
  * Copyright (C) 2011 Google Inc.  All rights reserved.
  * Copyright (C) 2007, 2008 Apple Inc.  All rights reserved.
@@ -31,6 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/* eslint-disable @typescript-eslint/no-duplicate-type-constituents */
 
 /**
  * A namespace with utility functions for getting the CSS path to a node.
@@ -62,7 +64,7 @@ namespace UTILS {
      * @param {boolean | undefined} [optimized]
      * @returns
      */
-    export function cssPath(node: Element, optimized?: boolean | undefined) {
+    export function cssPath(node: Element, optimized?: boolean | undefined): string {
         if (node.nodeType !== Node.ELEMENT_NODE) return "";
         var steps = [];
         var contextNode: Element | null = node;
@@ -84,7 +86,7 @@ namespace UTILS {
      * @param {boolean} isTargetNode
      * @returns
      */
-    export function _cssPathStep(node: Element, optimized: boolean, isTargetNode: boolean) {
+    export function _cssPathStep(node: Element, optimized: boolean, isTargetNode: boolean): DOMNodePathStep | null {
         if (node.nodeType !== Node.ELEMENT_NODE) return null;
 
         var id = node.getAttribute("id");
@@ -104,7 +106,7 @@ namespace UTILS {
          * @param {UTILS.DOMNode} node
          * @return {Array.<string>}
          */
-        function prefixedElementClassNames(node: UTILS.DOMNode): Array<string> {
+        function prefixedElementClassNames(node: UTILS.DOMNode): string[] {
             var classAttribute = node.getAttribute("class");
             if (!classAttribute) return [];
 
@@ -150,8 +152,8 @@ namespace UTILS {
         /**
          * @param {string} c
          */
-        function toHexByte(c: string) {
-            var hexByte = c.charCodeAt(0).toString(16);
+        function toHexByte(c: string): string {
+            var hexByte: string = c.charCodeAt(0).toString(16);
             if (hexByte.length === 1) hexByte = "0" + hexByte;
             return hexByte;
         }
@@ -190,16 +192,19 @@ namespace UTILS {
             needsClassNames = true;
             var ownClassNames = prefixedOwnClassNamesArray;
             var ownClassNameCount = 0;
-            for (var name in ownClassNames) ++ownClassNameCount;
+            // eslint-disable-next-line @typescript-eslint/no-for-in-array
+            for (var _name in ownClassNames) ++ownClassNameCount;
             if (ownClassNameCount === 0) {
                 needsNthChild = true;
                 continue;
             }
             var siblingClassNamesArray = prefixedElementClassNames(sibling);
+            // eslint-disable-next-line @typescript-eslint/prefer-for-of
             for (var j = 0; j < siblingClassNamesArray.length; ++j) {
                 var siblingClass = siblingClassNamesArray[j]!;
                 if (ownClassNames.indexOf(siblingClass)) continue;
                 //@ts-ignore
+                // eslint-disable-next-line @typescript-eslint/no-array-delete
                 delete ownClassNames[siblingClass];
                 if (!--ownClassNameCount) {
                     needsNthChild = true;
@@ -215,6 +220,7 @@ namespace UTILS {
             result += ":nth-child(" + (ownIndex + 1) + ")";
         } else if (needsClassNames) {
             // for (var prefixedName in prefixedOwnClassNamesArray.keySet())
+            // eslint-disable-next-line @typescript-eslint/no-for-in-array
             for (var prefixedName in prefixedOwnClassNamesArray) result += "." + escapeIdentifierIfNeeded(prefixedOwnClassNamesArray[prefixedName]!.substr(1));
         }
 

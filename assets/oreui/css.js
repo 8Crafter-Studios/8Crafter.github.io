@@ -1,4 +1,3 @@
-"use strict";
 class cssjs {
     cssImportStatements;
     cssKeyframeStatements;
@@ -105,7 +104,7 @@ class cssjs {
             // Never have more than a single line break in a row
             selector = selector.replace(/\n+/, "\n");
             //determine the type
-            if (selector.indexOf("@media") !== -1) {
+            if (selector.includes("@media")) {
                 //we have a media query
                 var cssObject = {
                     selector: selector,
@@ -152,7 +151,7 @@ class cssjs {
             var line = rulesList[i];
             //determine if line is a valid css directive, ie color:white;
             line = line.trim();
-            if (line.indexOf(":") !== -1) {
+            if (line.includes(":")) {
                 //line contains :
                 line = line.split(":");
                 var cssDirective = line[0].trim();
@@ -193,6 +192,7 @@ class cssjs {
               if not found returns false;
             */
     findCorrespondingRule(rules, directive, value) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (value === undefined) {
             value = false;
         }
@@ -212,6 +212,7 @@ class cssjs {
                 and returns them
             */
     findBySelector(cssObjectArray, selector, contains) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (contains === undefined) {
             contains = false;
         }
@@ -223,7 +224,7 @@ class cssjs {
                 }
             }
             else {
-                if (cssObjectArray[i].selector.indexOf(selector) !== -1) {
+                if (cssObjectArray[i].selector.includes(selector)) {
                     found.push(cssObjectArray[i]);
                 }
             }
@@ -242,6 +243,7 @@ class cssjs {
     /**
               deletes cssObjects having given selector, and returns new array
             */
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
     deleteBySelector(cssObjectArray, selector) {
         var ret = [];
         for (var i = 0; i < cssObjectArray.length; i++) {
@@ -291,6 +293,7 @@ class cssjs {
           
                 @return diff css object contains changed values in css1 in regards to css2 see test input output in /test/data/css.js
             */
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
     cssDiff(css1, css2) {
         if (css1.selector !== css2.selector) {
             return false;
@@ -345,6 +348,7 @@ class cssjs {
                         effectively giving priority to the styles in newArray
             */
     intelligentMerge(cssObjectArray, newArray, reverse) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (reverse === undefined) {
             reverse = false;
         }
@@ -372,6 +376,7 @@ class cssjs {
         var pushSelector = minimalObject.selector;
         //find correct selector if not found just push minimalObject into cssObject
         var cssObject = false;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (reverse === undefined) {
             reverse = false;
         }
@@ -439,11 +444,14 @@ class cssjs {
               @param [optional] cssBase, if given computes cssString from cssObject array
             */
     getCSSForEditor(cssBase, depth) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (depth === undefined) {
             depth = 0;
         }
         var ret = "";
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (cssBase === undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- This may be necessary in the future.
             cssBase = this.css;
         }
         //append imports
@@ -482,6 +490,7 @@ class cssjs {
         }
         return ret;
     }
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
     getImports(cssObjectArray) {
         var imps = [];
         for (var i = 0; i < cssObjectArray.length; i++) {
@@ -539,18 +548,18 @@ class cssjs {
         for (var i = 0; i < cssObjectArray.length; i++) {
             var obj = cssObjectArray[i];
             //bypass namespacing for @font-face @keyframes @import
-            if (obj.selector.indexOf("@font-face") > -1 ||
-                obj.selector.indexOf("keyframes") > -1 ||
-                obj.selector.indexOf("@import") > -1 ||
-                obj.selector.indexOf(".form-all") > -1 ||
-                obj.selector.indexOf("#stage") > -1) {
+            if (obj.selector.includes("@font-face") ||
+                obj.selector.includes("keyframes") ||
+                obj.selector.includes("@import") ||
+                obj.selector.includes(".form-all") ||
+                obj.selector.includes("#stage")) {
                 continue;
             }
             if (obj.type !== "media") {
                 var selector = obj.selector.split(",");
                 var newSelector = [];
                 for (var j = 0; j < selector.length; j++) {
-                    if (selector[j].indexOf(".supernova") === -1) {
+                    if (!selector[j].includes(".supernova")) {
                         //do not apply namespacing to selectors including supernova
                         newSelector.push(namespaceClass + " " + selector[j]);
                     }
@@ -567,6 +576,7 @@ class cssjs {
         return cssObjectArray;
     }
     clearNamespacing(css, returnObj) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (returnObj === undefined) {
             returnObj = false;
         }
@@ -597,6 +607,7 @@ class cssjs {
         }
     }
     createStyleElement(id, css, format) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (format === undefined) {
             format = false;
         }
@@ -620,9 +631,12 @@ class cssjs {
         }
         var head = document.head || document.getElementsByTagName("head")[0], style = document.createElement("style");
         style.id = id;
+        // @ts-ignore: This is for browser compatibility.
         style.type = "text/css";
         head.appendChild(style);
+        // @ts-ignore: The sheet property test is for browser compatibility.
         if ("styleSheet" in style && style.styleSheet && !style.sheet) {
+            // @ts-ignore: This for browser compatibility.
             style.styleSheet.cssText = css;
         }
         else {

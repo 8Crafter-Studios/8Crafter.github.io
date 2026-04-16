@@ -7,3 +7,4 @@ writeFileSync(
     `// Copied from @ore-ui-types/enums v${json5.parse(readFileSync("./node_modules/@ore-ui-types/enums/package.json", "utf8")).version}
 ${readFileSync("./node_modules/@ore-ui-types/enums/index.js")}`
 );
+writeFileSync("./assets/oreui/@ore-ui-types/enums.map", readFileSync("./node_modules/@ore-ui-types/enums/index.js.map"));

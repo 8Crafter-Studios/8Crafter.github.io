@@ -59,12 +59,36 @@
     margin-bottom: 0.1em;
 }
 
-.context-menu-item-action {
-    cursor: pointer;
+.context-menu-submenu {
+    cursor: auto;
 }
 
 .context-menu-item-action,
-.context-menu-item-submenu {
+.context-menu-item-submenu,
+.context-menu-submenu-back {
+    cursor: pointer;
+}
+
+.context-menu-item-submenu::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    margin-top: calc(-11px + 0.2em);
+    margin-bottom: 11px;
+    background-image: url(assets/chevron_new_white_right.png);
+    background-size: contain;
+    image-rendering: pixelated;
+    width: 22px;
+    height: 22px;
+    coh-font-fit-mode: fit;
+    coh-font-fit-max-size: "aa";
+    coh-font-fit: boolean;
+}
+
+.context-menu-item-action,
+.context-menu-item-submenu,
+.context-menu-submenu-back {
     padding: 0.2em 0.4em;
     border-radius: 2px;
 }
@@ -73,13 +97,36 @@
 .context-menu-item-submenu:hover {
     background-color: #00ff8822;
 }
+
+.context-menu-item-action:hover,
+.context-menu-item-submenu:hover {
+    background-color: #00ff8822;
+}
+.context-menu-item-submenu.context-menu-item-submenu-open:hover {
+    background-color: #00ff8800;
+}
 .context-menu-item-action:active,
 .context-menu-item-submenu:active {
     background-color: #00ff8855;
 }
+.context-menu-item-submenu.context-menu-item-submenu-open:active {
+    background-color: #00ff8800;
+}
 .context-menu-item-action:hover:active,
 .context-menu-item-submenu:hover:active {
     background-color: #00ff8888;
+}
+.context-menu-item-submenu.context-menu-item-submenu-open:hover:active {
+    background-color: #00ff8800;
+}
+.context-menu-submenu-back:hover {
+    background-color: #ff008822;
+}
+.context-menu-submenu-back:active {
+    background-color: #ff008855;
+}
+.context-menu-submenu-back:hover:active {
+    background-color: #ff008888;
 }
 /* Disabled is repeated 3 times to increase the specificity. */
 .context-menu-item-action[disabled][disabled][disabled],

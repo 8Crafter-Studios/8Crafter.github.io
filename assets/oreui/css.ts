@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-for-of, @typescript-eslint/no-duplicate-type-constituents */
 type CSSJSObject =
     | {
           selector: string;
@@ -24,26 +25,26 @@ type CSSJSObject =
           comments?: string | null;
       };
 
-type CSSJSRule = {
+interface CSSJSRule {
     directive: string;
     value: string;
     defective?: boolean | undefined;
     type?: "DELETED";
-};
+}
 
-class cssjs<TestMode extends false | ((...args: [string, string]) => any) = false> {
-    cssImportStatements: string[];
-    cssKeyframeStatements: any[];
-    cssRegex: RegExp;
-    cssMediaQueryRegex: string;
-    cssKeyframeRegex: string;
-    combinedCSSRegex: string;
-    cssCommentsRegex: string;
-    cssImportStatementRegex: RegExp;
-    css: CSSJSObject[] = [];
-    cssPreviewNamespace?: string;
-    testMode: TestMode;
-    constructor(testMode: TestMode = false as TestMode) {
+class cssjs<TestMode extends false | ((...args: [string, string]) => unknown) = false> {
+    public cssImportStatements: string[];
+    public cssKeyframeStatements: unknown[];
+    public cssRegex: RegExp;
+    public cssMediaQueryRegex: string;
+    public cssKeyframeRegex: string;
+    public combinedCSSRegex: string;
+    public cssCommentsRegex: string;
+    public cssImportStatementRegex: RegExp;
+    public css: CSSJSObject[] = [];
+    public cssPreviewNamespace?: string;
+    public testMode: TestMode;
+    public constructor(testMode: TestMode = false as TestMode) {
         this.cssImportStatements = [];
         this.cssKeyframeStatements = [];
 
@@ -62,7 +63,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
               @return cleanedCSS contains no css comments
             */
-    stripComments(cssString: string) {
+    public stripComments(cssString: string): string {
         var regex = new RegExp(this.cssCommentsRegex, "gi");
 
         return cssString.replace(regex, "");
@@ -76,7 +77,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
               @return object css
             */
-    parseCSS(source: string) {
+    public parseCSS(source: string): CSSJSObject[] {
         if (source === undefined) {
             return [];
         }
@@ -143,9 +144,9 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
             selector = selector.replace(/\n+/, "\n");
 
             //determine the type
-            if (selector.indexOf("@media") !== -1) {
+            if (selector.includes("@media")) {
                 //we have a media query
-                var cssObject: Extract<CSSJSObject, { subStyles: any }> = {
+                var cssObject: Extract<CSSJSObject, { subStyles: unknown }> = {
                     selector: selector,
                     type: "media",
                     subStyles: this.parseCSS(arr[3] + "\n}"), //recursively parse media query inner css
@@ -157,7 +158,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
             } else {
                 //we have standard css
                 var rules = this.parseRules(arr[6]!);
-                var style: Extract<CSSJSObject, { rules: any }> = {
+                var style: Extract<CSSJSObject, { rules: unknown }> = {
                     selector: selector,
                     rules: rules,
                 };
@@ -180,7 +181,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
               @param rules, css directive string example
                   \n\ncolor:white;\n    font-size:18px;\n
             */
-    parseRules(rules: string): CSSJSRule[] {
+    public parseRules(rules: string): CSSJSRule[] {
         //convert all windows style line endings to unix style line endings
         rules = rules.split("\r\n").join("\n");
         var ret: CSSJSRule[] = [];
@@ -193,7 +194,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
 
             //determine if line is a valid css directive, ie color:white;
             line = line.trim();
-            if (line.indexOf(":") !== -1) {
+            if (line.includes(":")) {
                 //line contains :
                 line = line.split(":");
                 var cssDirective = line[0]!.trim();
@@ -235,7 +236,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
               just returns the rule having given directive
               if not found returns false;
             */
-    findCorrespondingRule(rules: CSSJSRule[], directive: string, value?: string | false | undefined): false | CSSJSRule {
+    public findCorrespondingRule(rules: CSSJSRule[], directive: string, value?: string | false | undefined): false | CSSJSRule {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (value === undefined) {
             value = false;
         }
@@ -254,7 +256,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                 Finds styles that have given selector, compress them,
                 and returns them
             */
-    findBySelector(cssObjectArray: CSSJSObject[], selector: string, contains?: boolean | undefined): CSSJSObject[] {
+    public findBySelector(cssObjectArray: CSSJSObject[], selector: string, contains?: boolean | undefined): CSSJSObject[] {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (contains === undefined) {
             contains = false;
         }
@@ -266,7 +269,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                     found.push(cssObjectArray[i]!);
                 }
             } else {
-                if (cssObjectArray[i]!.selector.indexOf(selector) !== -1) {
+                if (cssObjectArray[i]!.selector.includes(selector)) {
                     found.push(cssObjectArray[i]!);
                 }
             }
@@ -284,7 +287,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
     /**
               deletes cssObjects having given selector, and returns new array
             */
-    deleteBySelector(cssObjectArray: CSSJSObject[], selector: string) {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
+    public deleteBySelector(cssObjectArray: CSSJSObject[], selector: string) {
         var ret = [];
         for (var i = 0; i < cssObjectArray.length; i++) {
             if (cssObjectArray[i]!.selector !== selector) {
@@ -297,7 +301,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                 Compresses given cssObjectArray and tries to minimize
                 selector redundence.
             */
-    compressCSS(cssObjectArray: CSSJSObject[]): CSSJSObject[] {
+    public compressCSS(cssObjectArray: CSSJSObject[]): CSSJSObject[] {
         var compressed: CSSJSObject[] = [];
         var done: Record<string, true> = {};
         for (var i: number = 0; i < cssObjectArray.length; i++) {
@@ -334,7 +338,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
                 @return diff css object contains changed values in css1 in regards to css2 see test input output in /test/data/css.js
             */
-    cssDiff(css1: CSSJSObject, css2: CSSJSObject) {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
+    public cssDiff(css1: CSSJSObject, css2: CSSJSObject) {
         if (css1.selector !== css2.selector) {
             return false;
         }
@@ -346,7 +351,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
 
         var diff = {
             selector: css1.selector,
-            rules: <CSSJSRule[]>[],
+            rules: [] as CSSJSRule[],
         };
         var rule1, rule2;
         for (var i: number = 0; i < css1.rules!.length; i++) {
@@ -390,7 +395,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                 @param reverse, [optional], if given true, first parameter will be traversed on reversed order
                         effectively giving priority to the styles in newArray
             */
-    intelligentMerge(cssObjectArray: CSSJSObject[], newArray: CSSJSObject[], reverse?: boolean | undefined) {
+    public intelligentMerge(cssObjectArray: CSSJSObject[], newArray: CSSJSObject[], reverse?: boolean | undefined): void {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (reverse === undefined) {
             reverse = false;
         }
@@ -415,11 +421,12 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
               @param reverse [optional] default is false, if given, cssObjectArray will be reversly traversed
                       resulting more priority in minimalObject's styles
             */
-    intelligentCSSPush(cssObjectArray: CSSJSObject[], minimalObject: CSSJSObject, reverse?: boolean | undefined): void {
+    public intelligentCSSPush(cssObjectArray: CSSJSObject[], minimalObject: CSSJSObject, reverse?: boolean | undefined): void {
         var pushSelector: string = minimalObject.selector;
         //find correct selector if not found just push minimalObject into cssObject
         var cssObject: CSSJSObject | false = false;
 
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (reverse === undefined) {
             reverse = false;
         }
@@ -458,8 +465,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                     }
                 }
             } else {
-                (<Extract<CSSJSObject, { subStyles: any }>>cssObject).subStyles = (<Extract<CSSJSObject, { subStyles: any }>>cssObject).subStyles.concat(
-                    (<Extract<CSSJSObject, { subStyles: any }>>minimalObject).subStyles
+                (cssObject as Extract<CSSJSObject, { subStyles: unknown }>).subStyles = (cssObject as Extract<CSSJSObject, { subStyles: unknown }>).subStyles.concat(
+                    (minimalObject as Extract<CSSJSObject, { subStyles: unknown }>).subStyles
                 ); //TODO, make this intelligent too
             }
         }
@@ -471,7 +478,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
               @returns rules array, compacted by deleting all unnecessary rules
             */
-    compactRules(rules: CSSJSRule[]): CSSJSRule[] {
+    public compactRules(rules: CSSJSRule[]): CSSJSRule[] {
         var newRules = [];
         for (var i = 0; i < rules.length; i++) {
             if (rules[i]!.type !== "DELETED") {
@@ -485,12 +492,15 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
               @param [optional] cssBase, if given computes cssString from cssObject array
             */
-    getCSSForEditor(cssBase?: CSSJSObject[] | undefined, depth?: number | undefined): string {
+    public getCSSForEditor(cssBase?: CSSJSObject[] | undefined, depth?: number | undefined): string {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (depth === undefined) {
             depth = 0;
         }
         var ret = "";
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (cssBase === undefined) {
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- This may be necessary in the future.
             cssBase = this.css as CSSJSObject[];
         }
         //append imports
@@ -531,7 +541,8 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
 
         return ret;
     }
-    getImports(cssObjectArray: CSSJSObject[]) {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type -- TEMP
+    public getImports(cssObjectArray: CSSJSObject[]) {
         var imps = [];
         for (var i = 0; i < cssObjectArray.length; i++) {
             if (cssObjectArray[i]!.type === "imports") {
@@ -544,7 +555,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
               given rules array, returns visually formatted css string
               to be used inside editor
             */
-    getCSSOfRules(rules: CSSJSRule[], depth: number): string {
+    public getCSSOfRules(rules: CSSJSRule[], depth: number): string {
         var ret = "";
         for (var i = 0; i < rules.length; i++) {
             if (rules[i] === undefined) {
@@ -562,7 +573,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                 A very simple helper function returns number of spaces appended in a single string,
                 the number depends input parameter, namely input*2
             */
-    getSpaces(num: number): string {
+    public getSpaces(num: number): string {
         var ret = "";
         for (var i = 0; i < num * 4; i++) {
             ret += " ";
@@ -575,7 +586,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
           
               @returns css string in which this.cssPreviewNamespace prepended
             */
-    applyNamespacing(css: CSSJSObject[] | string, forcedNamespace?: string | undefined): CSSJSObject[] {
+    public applyNamespacing(css: CSSJSObject[] | string, forcedNamespace?: string | undefined): CSSJSObject[] {
         var cssObjectArray: CSSJSObject[] | string = css;
         var namespaceClass: string = "." + this.cssPreviewNamespace;
         if (forcedNamespace !== undefined) {
@@ -587,15 +598,15 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
         }
 
         for (var i = 0; i < cssObjectArray.length; i++) {
-            var obj: CSSJSObject = <CSSJSObject>cssObjectArray[i]!;
+            var obj: CSSJSObject = cssObjectArray[i]! as CSSJSObject;
 
             //bypass namespacing for @font-face @keyframes @import
             if (
-                obj.selector.indexOf("@font-face") > -1 ||
-                obj.selector.indexOf("keyframes") > -1 ||
-                obj.selector.indexOf("@import") > -1 ||
-                obj.selector.indexOf(".form-all") > -1 ||
-                obj.selector.indexOf("#stage") > -1
+                obj.selector.includes("@font-face") ||
+                obj.selector.includes("keyframes") ||
+                obj.selector.includes("@import") ||
+                obj.selector.includes(".form-all") ||
+                obj.selector.includes("#stage")
             ) {
                 continue;
             }
@@ -604,7 +615,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
                 var selector = obj.selector.split(",");
                 var newSelector: string[] = [];
                 for (var j = 0; j < selector.length; j++) {
-                    if (selector[j]!.indexOf(".supernova") === -1) {
+                    if (!selector[j]!.includes(".supernova")) {
                         //do not apply namespacing to selectors including supernova
                         newSelector.push(namespaceClass + " " + selector[j]!);
                     } else {
@@ -617,15 +628,16 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
             }
         }
 
-        return <CSSJSObject[]>cssObjectArray;
+        return cssObjectArray as CSSJSObject[];
     }
     /**
               given css string or object array, clears possible namespacing from
               all of the selectors inside the css
             */
-    clearNamespacing(css: CSSJSObject[] | string, returnObj?: true | undefined): CSSJSObject[];
-    clearNamespacing(css: CSSJSObject[] | string, returnObj: false): string;
-    clearNamespacing(css: CSSJSObject[] | string, returnObj?: boolean | undefined): string | CSSJSObject[] {
+    public clearNamespacing(css: CSSJSObject[] | string, returnObj?: true | undefined): CSSJSObject[];
+    public clearNamespacing(css: CSSJSObject[] | string, returnObj: false): string;
+    public clearNamespacing(css: CSSJSObject[] | string, returnObj?: boolean | undefined): string | CSSJSObject[] {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (returnObj === undefined) {
             returnObj = false;
         }
@@ -636,7 +648,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
         }
 
         for (var i = 0; i < cssObjectArray.length; i++) {
-            var obj = <CSSJSObject>cssObjectArray[i]!;
+            var obj = cssObjectArray[i]! as CSSJSObject;
 
             if (obj.type !== "media") {
                 var selector = obj.selector.split(",");
@@ -650,25 +662,26 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
             }
         }
         if (returnObj === false) {
-            return this.getCSSForEditor(<CSSJSObject[]>cssObjectArray);
+            return this.getCSSForEditor(cssObjectArray as CSSJSObject[]);
         } else {
-            return <CSSJSObject[]>cssObjectArray;
+            return cssObjectArray as CSSJSObject[];
         }
     }
     /**
               creates a new style tag (also destroys the previous one)
               and injects given css string into that css tag
             */
-    createStyleElement(
+    public createStyleElement(
         id: string,
         css: string | CSSJSObject[],
         format?: string | boolean | undefined
-    ): (TestMode extends false ? void : never) | Extract<TestMode, (...args: [string, string]) => any>;
-    createStyleElement(
+    ): (TestMode extends false ? void : never) | ReturnType<Extract<TestMode, (...args: [string, string]) => unknown>>;
+    public createStyleElement(
         id: string,
         css: string | CSSJSObject[],
         format?: string | boolean | undefined
-    ): Extract<TestMode, (...args: [string, string]) => any> | void {
+    ): ReturnType<Extract<TestMode, (...args: [string, string]) => unknown>> | void {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is only supposed to replace undefined, not null.
         if (format === undefined) {
             format = false;
         }
@@ -687,7 +700,7 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
         }
 
         if (this.testMode !== false) {
-            return this.testMode("create style #" + id, css); //if test mode, just pass result to callback
+            return this.testMode("create style #" + id, css) as ReturnType<Extract<TestMode, (...args: [string, string]) => unknown>>; //if test mode, just pass result to callback
         }
 
         var __el = document.getElementById(id);
@@ -699,12 +712,15 @@ class cssjs<TestMode extends false | ((...args: [string, string]) => any) = fals
             style = document.createElement("style");
 
         style.id = id;
+        // @ts-ignore: This is for browser compatibility.
         style.type = "text/css";
 
         head.appendChild(style);
 
+        // @ts-ignore: The sheet property test is for browser compatibility.
         if ("styleSheet" in style && style.styleSheet && !style.sheet) {
-            (style.styleSheet as any).cssText = css;
+            // @ts-ignore: This for browser compatibility.
+            style.styleSheet.cssText = css;
         } else {
             style.appendChild(document.createTextNode(css));
         }

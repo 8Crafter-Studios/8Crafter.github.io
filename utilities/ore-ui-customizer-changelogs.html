@@ -184,6 +184,104 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.12.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>MASSIVE improvements to the console.</li>
+                            <li>The console now has source map support.</li>
+                            <li>Console timestamps now include a performance stamp.</li>
+                            <li>
+                                The console now supports accessing recently selected elements through <code>$0</code>, <code>$1</code>, <code>$2</code>,
+                                <code>$3</code>, and <code>$4</code>.
+                            </li>
+                            <li>The console now supports accessing the result of the last executed command through <code>$_</code>.</li>
+                            <li>
+                                The console now supports many other DevTools utility variables in addition to the ones already mentioned.
+                                <ul>
+                                    <li><code>$</code></li>
+                                    <li><code>$$</code></li>
+                                    <li><code>clear</code></li>
+                                </ul>
+                            </li>
+                            <li>
+                                The element used to display the result of the execution in the console can now be accessed inside of the script with
+                                <code>$resultElem</code>.
+                            </li>
+                            <li>
+                                If a script in the console returns the value of the <code>$noResultElemModificationsSymbol</code> variable, there will be no
+                                result element added to the console for that execution.
+                            </li>
+                            <li>Complete overhaul to the rendering of objects and other expandable things in the console.</li>
+                            <li>Added support for rendering properties that have symbol keys in the console.</li>
+                            <li>Added more options to the console context menus.</li>
+                            <li>Implemented some unimplemented console context menu options .</li>
+                            <li>Many console rendering improvements.</li>
+                            <li>Many other console improvements.</li>
+                            <li>Added the <code>Stats Corner Debug Overlay</code>. It can be accessed through <code>CTRL + SHIFT + I</code>.</li>
+                            <li>
+                                Added 3 new debug graphs. They can be accessed through <code>F3 + 2</code>, <code>F3 + 3</code>, and
+                                <code>F3 + 4</code> respectively.
+                                <ul>
+                                    <li><code>Lagometer</code></li>
+                                    <li><code>Event Loop Lag Graph</code></li>
+                                    <li><code>Frame Callback Delay Graph</code></li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <h3>Website Version</h3>
+                        <ul>
+                            <li>Added the "v1.26.10/11/12/13 (PC)" preset.</li>
+                            <li>Added the "v1.26.20.26 Preview (PC)" preset.</li>
+                            <li>Added the "v1.26.20.27 Preview (PC)" preset.</li>
+                        </ul>
+                        <h2>Changes</h2>
+                        <ul>
+                            <li>v1.26.0/1/2/3 is now fully supported!</li>
+                            <li>v1.26.10/11/12/13 is now fully supported!</li>
+                            <li>v1.26.0 previews are now fully supported!</li>
+                            <li>v1.26.10 previews are now fully supported!</li>
+                            <li>v1.26.20.20-v1.26.20.27 previews are now fully supported!</li>
+                            <li>Major code refactoring.</li>
+                            <li>
+                                In Minecraft v1.26.10+ the button for the featured tab of the Lite Play Screen now shows the server count as
+                                <code>&lt;Creator Experiences&gt;+&lt;Featured Experiences&gt;</code>
+                            </li>
+                            <li>
+                                In Minecraft v1.26.10+ the buttons for servers in the featured tab of the Lite Play Screen now show whether the server is a
+                                Creator Experience or a Featured Experience.
+                            </li>
+                            <li>
+                                Added more data to the details panels of servers on the Lite Play Screen.
+                                <ul>
+                                    <li>IP</li>
+                                    <li>Type</li>
+                                    <li>Is Supported for Party Travel</li>
+                                </ul>
+                            </li>
+                            <li>
+                                Major in-game API changes. You can see the updated API in the generated <code>.d.ts</code> files that will be in your modded
+                                <code>gui</code> folder.
+                            </li>
+                        </ul>
+                        <h2>Fixes</h2>
+                        <ul>
+                            <li>Bug fixes for console execution history.</li>
+                            <li>Bug fixes for multiple console context menu actions.</li>
+                            <li>The details panes of friends worlds now correctly display the max player count.</li>
+                        </ul>
+                        <h2>Security Fixes</h2>
+                        <ul>
+                            <li>
+                                Fixed a security vulnerability where when opening the details panel of a server on the Lite Play Screen, it would display the
+                                MOTD as HTML, which could allow the MOTD to be used to execute scripts (not on your computer, but in Ore UI).
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.11.3 (Website Only)</h2>
                     </div>
                     <div class="collapsible-group-content">

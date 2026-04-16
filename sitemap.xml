@@ -9,15 +9,15 @@
     xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://www.8crafter.com/</loc>
-        <lastmod>2025-10-23T03:12:07.599Z</lastmod>
+        <lastmod>2026-04-10T21:34:49.014Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/404.html</loc>
-        <lastmod>2025-11-14T02:13:48.181Z</lastmod>
+        <lastmod>2026-02-16T19:41:29.093Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/andexdb-security-configurator-generator.html</loc>
-        <lastmod>2025-06-25T18:25:13.229Z</lastmod>
+        <lastmod>2026-02-16T19:41:35.699Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/favicon.ico</loc>
@@ -29,36 +29,40 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/index.html</loc>
-        <lastmod>2025-10-23T03:12:07.599Z</lastmod>
+        <lastmod>2026-04-10T21:34:49.014Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/debug-sticks-add-on/andexdbnbtstructureloader.html</loc>
-        <lastmod>2025-06-25T17:27:42.442Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.539Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/downloads/andexhm.html</loc>
+        <lastmod>2026-02-16T19:32:26.915Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/main/about.html</loc>
-        <lastmod>2025-10-29T01:26:37.073Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.540Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/main/contact.html</loc>
-        <lastmod>2025-06-25T18:56:25.881Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.529Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/misc/subdomains-list.html</loc>
-        <lastmod>2025-06-25T18:17:31.997Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.528Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/mcstructure-loader.html</loc>
-        <lastmod>2025-10-23T03:16:39.070Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.529Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer-changelogs.html</loc>
-        <lastmod>2025-11-14T23:31:39.445Z</lastmod>
+        <lastmod>2026-04-16T04:31:16.353Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer.html</loc>
-        <lastmod>2025-11-14T21:37:00.538Z</lastmod>
+        <lastmod>2026-02-16T19:41:52.529Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -92,6 +96,10 @@
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.21.12x.html</loc>
         <lastmod>2025-10-29T01:30:46.649Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/downloads/andexdb/1.21.13x.html</loc>
+        <lastmod>2026-02-14T23:19:25.605Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.21.2x.html</loc>
@@ -128,6 +136,10 @@
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.21.x.html</loc>
         <lastmod>2025-10-29T01:39:06.102Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/downloads/andexdb/1.26.x.html</loc>
+        <lastmod>2026-02-14T23:20:05.963Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/images/andexdb-security-configurator-generator/pack_icon.png</loc>
@@ -3746,6 +3758,10 @@
         <lastmod>2024-12-26T18:46:04.344Z</lastmod>
     </url>
     <url>
+        <loc>https://www.8crafter.com/assets/images/ui/icons/curseforge.svg</loc>
+        <lastmod>2026-04-10T21:33:00.176Z</lastmod>
+    </url>
+    <url>
         <loc>https://www.8crafter.com/assets/images/ui/icons/discord-icon-512x512-xtx725no.png</loc>
         <lastmod>2024-12-26T18:46:04.344Z</lastmod>
     </url>
@@ -3760,6 +3776,10 @@
     <url>
         <loc>https://www.8crafter.com/assets/images/ui/icons/modbay_logo_s.png</loc>
         <lastmod>2024-12-26T18:46:04.345Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/images/ui/icons/modrinth.svg</loc>
+        <lastmod>2026-04-07T23:43:22.528Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/images/ui/icons/NodeJS.png</loc>

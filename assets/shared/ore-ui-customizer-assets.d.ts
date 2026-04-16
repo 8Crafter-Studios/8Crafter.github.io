@@ -147,7 +147,7 @@ export interface ExtractedSymbolNames {
  * @param {string} fileContents The file contents.
  * @returns {ExtractedSymbolNames} The extracted symbol names.
  */
-export declare function getExtractedSymbolNames(fileContents: string): ExtractedSymbolNames;
+export declare function getExtractedSymbolNames(fileContents: string, fileName?: string): ExtractedSymbolNames;
 /**
  * Extracts the regexes for the replacer function for the Ore UI Customizer.
  *
@@ -324,7 +324,7 @@ export declare function getReplacerRegexes(extractedSymbolNames: ReturnType<type
          * #### Support Unknown:
          * - \> 1.21.90.21 preview (index-aaad2.js)
          */
-        readonly 1: readonly [RegExp];
+        readonly 1: readonly [RegExp, RegExp];
     };
     /**
      * Add the generator type dropdown to the advanced tab of the create and edit world screens.
@@ -521,7 +521,7 @@ export declare function getReplacerRegexes(extractedSymbolNames: ReturnType<type
             readonly replacement: `return ${string}.createElement(${string}.Fragment,null,${string}.createElement(${string}.Mount,{when:false},${string}.createElement($1,{onChange:$2,value:$3,title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),disabled:$5,offNarrationText:$6,onNarrationText:$7,narrationSuffix:$8})),${string}.createElement(${string}.Mount,{when:false,condition:!1},${string}.createElement($9,{title:$4(".useFlatWorldTitle"),description:$4(".useFlatWorldDescription"),value:$3,onChange:$2,disabled:$5,narrationSuffix:$8,offNarrationText:$6,onNarrationText:$7,onExpandNarrationHint:$10},${string}.createElement($11,{title:$12(".title"),customSelectionDescription:${string}.createElement($13,{preset:$14}),options:$15,value:$16,onItemSelect:e=>$17($18[e]),disabled:$5,wrapperRole:"neutral80",indented:!0,dropdownNarrationSuffix:$19}))))`;
         }, {
             readonly regex: RegExp;
-            readonly replacement: "return $1.createElement($2,{data:$3},($4=>false /* $5 */ ?$6.createElement($7,{onChange:$8,value:$9,title:$10(\".useFlatWorldTitle\"),description:$11(\".useFlatWorldDescription\"),disabled:$12,offNarrationText:$13,onNarrationText:$14,narrationSuffix:$15}):$16.createElement($17,{title:$18(\".useFlatWorldTitle\"),description:$19(\".useFlatWorldDescription\"),value:$20,onChange:$21,disabled:$22,narrationSuffix:$23,offNarrationText:$24,onNarrationText:$25,onExpandNarrationHint:$26},$27.createElement($28,{title:$29(\".title\"),customSelectionDescription:$30.createElement($31,{selectedPreset:$32,selectedPresetID:$33}),options:$34,value:$35,onItemSelect:$36=>$37($38[$39]),disabled:$40,wrapperRole:\"neutral80\",indented:!0,dropdownNarrationSuffix:$41}))))}";
+            readonly replacement: "return $1.createElement($2,{data:$3},($4=>false /* $5 */ ?$6.createElement($7,{onChange:$8,value:$9,title:$10(\".useFlatWorldTitle\"),description:$11(\".useFlatWorldDescription\"),disabled:$12,offNarrationText:$13,onNarrationText:$14,narrationSuffix:$15}):$16.createElement($17,{title:$18(\".useFlatWorldTitle\"),description:$19(\".useFlatWorldDescription\"),value:$20,onChange:$21,disabled:$22,narrationSuffix:$23,offNarrationText:$24,onNarrationText:$25,onExpandNarrationHint:$26},$27.createElement($28title:$29(\".title\"),customSelectionDescription:$30.createElement($31,{selectedPreset:$32,selectedPresetID:$33}),options:$34,value:$35,onItemSelect:$36=>$37($38[$39]),disabled:$40,wrapperRole:\"neutral80\",indented:!0,$41}))))}";
         }];
     };
     /**

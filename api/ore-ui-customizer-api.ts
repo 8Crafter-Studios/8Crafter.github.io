@@ -13,7 +13,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.11.0";
+export const format_version = "1.12.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -390,7 +390,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
             /**
              * The extracted symbol names.
              */
-            let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData);
+            let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData, entry.data?.filename!);
 
             /**
              * Lists of regexes to use for certain modifications.
@@ -466,7 +466,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                 f: { formatDate },
                                 gt: (tAB, $2AA) => {
                                     var $3AA;
-                                    return null !== ($3AA = translate(tAB, $2AA)) && void 0 !== $3AA ? $3AA : tAB;
+                                    return null !== ($3AA = translate(tAB, null!=$2AA?$2AA:[])) && void 0 !== $3AA ? $3AA : tAB;
                                 },
                             }),
                             [translate, formatDate]
@@ -927,7 +927,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     u = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isLockedTemplate, [], [eAA]),
                     d = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.achievementsDisabled, [], [eAA]),
                     m = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)(({ spawnDimensionId: e }) => e, [], [c]),
-                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3(e, (e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
+                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3(e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
                     f = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => $4(e, (e) => e.dimension === t), [], [p, m]),
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
@@ -1198,7 +1198,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.worldSeed,
                             maxLength: 3000,
-                            value: rawData.get().advanced.worldSeed,
+                            value: String(rawData.get().advanced.worldSeed ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.worldSeed = t), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1209,7 +1209,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerPermissions,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer.playerPermissions,
+                            value: String(rawData.get().multiplayer.playerPermissions ?? ""),
                             onChange: playerPermissionsChange,
                             filterProfanity: !1,
                             disabled: false,
@@ -1221,7 +1221,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().multiplayer.playerAccess,
                             maxLength: 3000,
-                            value: rawData.get().multiplayer.playerAccess,
+                            value: String(rawData.get().multiplayer.playerAccess ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.multiplayer.playerAccess = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1232,7 +1232,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.gameMode,
                             maxLength: 3000,
-                            value: rawData.get().general.gameMode,
+                            value: String(rawData.get().general.gameMode ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.general.gameMode = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1243,7 +1243,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().general.difficulty,
                             maxLength: 3000,
-                            value: rawData.get().general.difficulty,
+                            value: String(rawData.get().general.difficulty ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.general.difficulty = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1254,7 +1254,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.generatorType,
                             maxLength: 3000,
-                            value: rawData.get().advanced.generatorType,
+                            value: String(rawData.get().advanced.generatorType ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.generatorType = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1265,7 +1265,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                             gamepadIndex: 1,
                             placeholder: typeof rawData.get().advanced.simulationDistance,
                             maxLength: 3000,
-                            value: rawData.get().advanced.simulationDistance,
+                            value: String(rawData.get().advanced.simulationDistance ?? ""),
                             onChange: (0, ${extractedSymbolNames.facetHolder}.useFacetCallback)((e) => (t) => (e.advanced.simulationDistance = Number(t)), [], [rawData]),
                             filterProfanity: !1,
                             disabled: false,
@@ -1410,7 +1410,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
                     origData
                         .match(
-                            /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
+                            /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
                         )
                         ?.slice(1, 4) ?? [];
                 disabledVariableSymbolName ??= "n";
@@ -1734,6 +1734,9 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         zipFs.addBlob("gui/dist/hbui/JSONB.js", await fetchFileBlob("./assets/oreui/JSONB.js"));
         log("Added gui/dist/hbui/JSONB.js");
         addedCount++;
+        zipFs.addBlob("gui/dist/hbui/JSONB.js.map", await fetchFileBlob("./assets/oreui/JSONB.js.map"));
+        log("Added gui/dist/hbui/JSONB.js.map");
+        addedCount++;
         zipFs.addBlob("gui/dist/hbui/JSONB.d.ts", await fetchFileBlob("./assets/oreui/JSONB.d.ts"));
         log("Added gui/dist/hbui/JSONB.d.ts");
         addedCount++;
@@ -1742,6 +1745,9 @@ const oreUICustomizerVersion = ${JSON.stringify(format_version)};`
         addedCount++;
         zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums", await fetchFileBlob("./assets/oreui/@ore-ui-types/enums"));
         log("Added gui/dist/hbui/@ore-ui-types/enums");
+        addedCount++;
+        zipFs.addBlob("gui/dist/hbui/@ore-ui-types/enums.map", await fetchFileBlob("./assets/oreui/@ore-ui-types/enums.map"));
+        log("Added gui/dist/hbui/@ore-ui-types/enums.map");
         addedCount++;
         zipFs.addBlob("gui/dist/hbui/assets/chevron_new_white_right.png", await fetchFileBlob("./assets/oreui/assets/chevron_new_white_right.png"));
         log("Added gui/dist/hbui/assets/chevron_new_white_right.png");
