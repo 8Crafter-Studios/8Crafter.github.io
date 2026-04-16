@@ -65,7 +65,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.12.0";
+    OreUICustomizer.format_version = "1.12.1";
     /**
      * @type {File | undefined}
      */
@@ -2206,7 +2206,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     u = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.isLockedTemplate, [], [eAA]),
                     d = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.achievementsDisabled, [], [eAA]),
                     m = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)(({ spawnDimensionId: e }) => e, [], [c]),
-                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3(e) => ({ label: e.label, dimension: e.dimension, value: e.id })), [], [s]),
+                    p = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $3), [], [s]),
                     f = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e, t) => $4(e, (e) => e.dimension === t), [], [p, m]),
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
