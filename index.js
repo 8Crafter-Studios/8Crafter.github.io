@@ -118,4 +118,5 @@ if (!!!currentIP) {
 console.log(nets);
 console.log(network);
 console.log(`Running at Port http://${currentIP}:8213`);
+console.log(`Local Port http://localhost:8213`);
 export default { app, router, path, exec, execute: execute };

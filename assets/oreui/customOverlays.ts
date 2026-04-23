@@ -155,8 +155,8 @@ if (console.everything === undefined!) {
  * @todo Implement usage of this.
  */
 const MOTDAPIFetchSources = {
-    latestVersion: ["motd.api.ouic.8crafter.com", 58000],
-    updateInfo: ["motd.api.ouic.8crafter.com", 58001],
+    latestVersion: ["motd.api.ouic.8crafter.com", 19800],
+    updateInfo: ["motd.api.ouic.8crafter.com", 19801],
 } as const satisfies Record<string, [address: string, port: number]>;
 
 /**
@@ -8748,7 +8748,7 @@ async function enableLitePlayScreen(noReload = false): Promise<void> {
     <div id="serverOptionsOverlayElement_textElement" style="user-select: text; /* white-space: pre-wrap; overflow-wrap: anywhere;  */width: 100%; height: 100%;">
         <h1 data-server-options-overlay-field="serverName"></h1>
         <p data-server-options-overlay-field="motd"></p>
-        <p>Ping: <span>${server.ping}</span></p>
+        <p>Ping: <span>${server.ping} (${server.pingStatus})</span></p>
         <p>Players: ${server.playerCount}/${server.capacity}</p>
         <p data-server-options-overlay-field="description" style="display: ${server.description ? "block" : "none"}"></p>
         <p>Server ID: ${server.id}</p>
@@ -8808,13 +8808,21 @@ async function enableLitePlayScreen(noReload = false): Promise<void> {
                             editServerButton.classList.add("btn", "nsel");
                             editServerButton.style = "font-size: 2vw; line-height: 2.8571428572vw; width: 6vw; font-family: Minecraft Seven v2;";
                             editServerButton.id = `litePlayScreen_serversTabServerList_serverListContainer_serverButton_editServerButton_${server.id}`;
-                            editServerButton.addEventListener("click", () => {
-                                getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
-                                const router = getAccessibleFacetSpyFacets()["core.router"];
-                                if (router) {
-                                    router.history.push(`/play/servers/${serverID}/external/edit`);
-                                }
-                            });
+                            editServerButton.addEventListener(
+                                "click",
+                                (): void =>
+                                    void (async (): Promise<void> => {
+                                        (
+                                            getAccessibleFacetSpyFacets()["vanilla.networkWorldDetails"] ??
+                                            (await forceLoadFacet("vanilla.networkWorldDetails"))
+                                        )?.loadNetworkWorldDetails(serverID, 1);
+                                        getAccessibleFacetSpyFacets()["core.sound"]?.play("random.click", 1, 1);
+                                        const router = getAccessibleFacetSpyFacets()["core.router"];
+                                        if (router) {
+                                            router.history.push(`/play/servers/${serverID}/external/edit`);
+                                        }
+                                    })()
+                            );
                             const editServerButton_icon = document.createElement("img");
                             editServerButton_icon.src = "/hbui/assets/Edit-887593a7c3d9749e237a.png";
                             editServerButton_icon.style = "width: 2vw; height: 2vw;";

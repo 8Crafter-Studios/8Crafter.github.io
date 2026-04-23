@@ -36,7 +36,7 @@
         },
         {
             "name": "only_visible_on_themes",
-            "description": "Makes all elements inside of it only visible when one of the specified themes in active.",
+            "description": "Makes all elements inside of it only visible when one of the specified themes is active.",
             "attributes": [{ "name": "dark" }, { "name": "light" }, { "name": "blue" }]
         }
     ],

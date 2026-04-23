@@ -57,12 +57,12 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer-changelogs.html</loc>
-        <lastmod>2026-04-16T04:31:16.353Z</lastmod>
+        <lastmod>2026-04-23T21:52:04.269Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer.html</loc>
-        <lastmod>2026-02-16T19:41:52.529Z</lastmod>
+        <lastmod>2026-04-23T21:47:06.733Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -136,6 +136,10 @@
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.21.x.html</loc>
         <lastmod>2025-10-29T01:39:06.102Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/downloads/andexdb/1.26.1x.html</loc>
+        <lastmod>2026-04-23T21:19:48.800Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/downloads/andexdb/1.26.x.html</loc>
@@ -3700,6 +3704,10 @@
     <url>
         <loc>https://www.8crafter.com/assets/images/ui/glyphs/crossout.png</loc>
         <lastmod>2025-04-11T04:27:32.448Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/images/ui/glyphs/download.png</loc>
+        <lastmod>2026-04-23T21:14:55.878Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/images/ui/glyphs/ErrorGlyph.png</loc>

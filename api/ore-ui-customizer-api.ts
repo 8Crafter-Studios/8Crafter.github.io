@@ -13,7 +13,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.12.1";
+export const format_version = "1.13.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -122,11 +122,9 @@ function checkIsURIOrPath(URIOrPath: string): "URI" | "Path" {
  */
 export function resolveOreUICustomizerSettings(
     settings: {
-        [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements"
-            ? Partial<OreUICustomizerSettings["colorReplacements"]>
-            : key extends "enabledBuiltInPlugins"
-            ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]>
-            : OreUICustomizerSettings[key];
+        [key in keyof OreUICustomizerSettings]?: key extends "colorReplacements" ? Partial<OreUICustomizerSettings["colorReplacements"]>
+        : key extends "enabledBuiltInPlugins" ? Partial<OreUICustomizerSettings["enabledBuiltInPlugins"]>
+        : OreUICustomizerSettings[key];
     } = {}
 ): OreUICustomizerSettings {
     const resolvedSettings = {
@@ -174,6 +172,8 @@ export function resolveOreUICustomizerSettings(
  * @param {Blob} file The zip file to apply mods to.
  * @param {ApplyModsOptions} options The options.
  * @returns {Promise<ApplyModsResult>} A promise resolving to the result.
+ *
+ * @todo Implement an option for a callback to receive status updates.
  */
 export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Promise<ApplyModsResult> {
     /**
@@ -279,29 +279,28 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
         }
     }
     for (const entry of zipFs.entries as (zip.ZipFileEntry<any, any> | zip.ZipDirectoryEntry)[]) {
-        if (/^(gui\/)?dist\/hbui\/assets\/[^/]*?%40/.test(entry.data?.filename!)) {
-            let origName: string = entry.name;
+        const filePath: string = entry.getFullname();
+        if (!filePath) {
+            unmodifiedCount++;
+        } else if (/^(gui\/)?dist\/hbui\/assets\/[^/]*?%40/.test(filePath)) {
+            const origName: string = entry.name;
             entry.rename(entry.name.split("/").pop()!.replaceAll("%40", "@"));
             log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
             modifiedCount++;
             renamedCount++;
-        } else if (!/^(gui\/)?dist\/hbui\/[^/]+\.(js|html|css)$/.test(entry.data?.filename.toLowerCase()!)) {
+        } else if (!/^(gui\/)?dist\/hbui\/[^/]+\.(js|html|css)$/.test(filePath.toLowerCase())) {
             if (entry.directory !== void false) {
                 unmodifiedCount++;
-            } else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(entry.data?.filename.toLowerCase()!)) {
-                /**
-                 * @type {string}
-                 */
-                const origData: string = await entry.getText();
-                let distData: string = origData;
-                /**
-                 * @type {string[]}
-                 */
-                let failedReplaces: string[] = [];
+            } else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(filePath.toLowerCase())) {
+                let origData: string | undefined;
+                let distData: string | undefined;
+                const failedReplaces: string[] = [];
                 for (const plugin of plugins) {
                     if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
                         for (const action of plugin.actions) {
                             if (action.context !== "per_text_file") continue;
+                            origData ??= await entry.getText();
+                            distData ??= origData;
                             try {
                                 distData = await action.action(distData, entry, zipFs);
                             } catch (e) {
@@ -311,17 +310,18 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         }
                     }
                 }
-                if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
-                if (origData !== distData) {
-                    if (entry.data?.filename.endsWith(".js")) {
+                if (failedReplaces.length > 0) allFailedReplaces[filePath] = failedReplaces;
+                if (origData !== undefined && distData !== undefined && origData !== distData) {
+                    // FIXME: Add sanitization to escape possible comment escaping strings.
+                    if (filePath.endsWith(".js")) {
                         distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                             { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         )}\n${distData}`;
-                    } else if (entry.data?.filename.endsWith(".css")) {
+                    } else if (filePath.endsWith(".css")) {
                         distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                             { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         ).replaceAll("*/", "*\\/")} */\n${distData}`;
-                    } else if (entry.data?.filename.endsWith(".html")) {
+                    } else if (filePath.endsWith(".html")) {
                         distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                             { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                         ).replaceAll("-->", "--\\>")} -->\n${distData}`;
@@ -335,19 +335,15 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     unmodifiedCount++;
                 }
             } else {
-                /**
-                 * @type {Blob}
-                 */
-                const origData: Blob = await entry.getBlob();
-                let distData: Blob = origData;
-                /**
-                 * @type {string[]}
-                 */
-                let failedReplaces: string[] = [];
+                let origData: Blob | undefined;
+                let distData: Blob | undefined;
+                const failedReplaces: string[] = [];
                 for (const plugin of plugins) {
                     if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id as keyof typeof settings.enabledBuiltInPlugins] ?? true)) {
                         for (const action of plugin.actions) {
                             if (action.context !== "per_binary_file") continue;
+                            origData ??= await entry.getBlob();
+                            distData ??= origData;
                             try {
                                 distData = await action.action(distData, entry, zipFs!);
                             } catch (e) {
@@ -357,8 +353,8 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         }
                     }
                 }
-                if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
-                if (Buffer.from(await origData.arrayBuffer()).compare(Buffer.from(await distData.arrayBuffer())) !== 0) {
+                if (failedReplaces.length > 0) allFailedReplaces[filePath] = failedReplaces;
+                if (origData && distData && Buffer.from(await origData.arrayBuffer()).compare(Buffer.from(await distData.arrayBuffer())) !== 0) {
                     entry.replaceBlob(distData);
                     log(`Entry ${entry.name} has been successfully modified.`);
                     modifiedCount++;
@@ -368,7 +364,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     unmodifiedCount++;
                 }
             }
-        } else if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
+        } else if (filePath.endsWith("oreUICustomizer8CrafterConfig.js")) {
             unmodifiedCount++;
         } else if (entry.directory === void false) {
             /**
@@ -390,7 +386,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
             /**
              * The extracted symbol names.
              */
-            let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData, entry.data?.filename!);
+            let extractedSymbolNames: ExtractedSymbolNames = getExtractedSymbolNames(origData, filePath);
 
             /**
              * Lists of regexes to use for certain modifications.
@@ -438,7 +434,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
                     failedReplaces.push("hardcoreModeToggleAlwaysClickable");
                 }
             }
@@ -510,7 +506,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
                     failedReplaces.push("allowDisablingEnabledExperimentalToggles");
                 }
             }
@@ -685,7 +681,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addMoreDefaultGameModes_dropdown");
                     }
@@ -782,7 +778,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addGeneratorTypeDropdown_dropdown");
                     }
@@ -860,7 +856,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
                     failedReplaces.push("allowForChangingSeeds");
                 }
             }
@@ -884,7 +880,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset")) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && origData.includes("flatWorldPreset")) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
                     }
@@ -892,7 +888,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
                     failedReplaces.push("allowForChangingFlatWorldPreset");
                 }
             }
@@ -1337,7 +1333,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!)) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
                     if (!successfullyReplacedA) {
                         failedReplaces.push("addDebugTab_replaceTab");
                     }
@@ -1399,7 +1395,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         }`
                     );
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && distData === origDistData) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && distData === origDistData) {
                     failedReplaces.push("maxTextLengthOverride");
                 }
             } else {
@@ -1487,7 +1483,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                         break;
                     }
                 }
-                if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename!) && !successfullyReplaced) {
+                if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
                     failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
                 }
             }
@@ -1504,17 +1500,18 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     }
                 }
             }
-            if (failedReplaces.length > 0) allFailedReplaces[entry.data?.filename!] = failedReplaces;
+            if (failedReplaces.length > 0) allFailedReplaces[filePath] = failedReplaces;
             if (origData !== distData) {
-                if (entry.data?.filename.endsWith(".js")) {
+                // FIXME: Add sanitization to escape possible comment escaping strings.
+                if (filePath.endsWith(".js")) {
                     distData = `// Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify(
                         { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )}\n${distData}`;
-                } else if (entry.data?.filename.endsWith(".css")) {
+                } else if (filePath.endsWith(".css")) {
                     distData = `/* Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify(
                         { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )} */\n${distData}`;
-                } else if (entry.data?.filename.endsWith(".html")) {
+                } else if (filePath.endsWith(".html")) {
                     distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify(
                         { ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }
                     )} -->\n${distData}`;
@@ -1528,7 +1525,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 unmodifiedCount++;
             }
         } else {
-            console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.data?.filename);
+            console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + filePath);
             unmodifiedCount++;
         }
     }

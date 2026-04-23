@@ -49,6 +49,7 @@
         <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkbox_spaceHover.png" />
         <link rel="preload" as="image" href="../assets/images/ui/checkbox/checkboxUnFilled.png" />
         <link rel="preload" as="image" href="../assets/images/ui/glyphs/copy.png" />
+        <link rel="preload" as="image" href="../assets/images/ui/glyphs/download.png" />
         <link rel="preload" as="image" href="../assets/images/ui/glyphs/ErrorGlyph.png" />
         <link rel="preload" as="image" href="../assets/images/ui/glyphs/infobulb.png" />
         <link rel="preload" as="image" href="../assets/images/ui/glyphs/settings_glyph_2x.png" />
@@ -80,7 +81,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.12.1" type="module"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.13.0" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -2183,7 +2184,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v1.12.1</h1>
+                <h1>8Crafter's Ore UI Customizer v1.13.0</h1>
                 <h4>Instructions</h4>
                 <div class="collapsible-group collapsible-group-collapsed">
                     <div class="collapsible-group-header">
@@ -2383,7 +2384,27 @@
                         Import Config
                     </button>
                 </label>
-                <button type="button" class="btn nsel" id="customizer_export_config_button" onclick="oreUICustomizer.exportConfigFile()">Export Config</button>
+                <button type="button" class="btn nsel" id="customizer_export_config_button" onclick="oreUICustomizer.exportConfigFile()">
+                    <only_visible_on_themes light blue>
+                        <img
+                            width="16"
+                            height="16"
+                            src="/assets/images/ui/glyphs/download.png"
+                            style="image-rendering: pixelated; vertical-align: text-bottom; filter: invert(100%)"
+                            aria-hidden="true"
+                        />
+                    </only_visible_on_themes>
+                    <only_visible_on_themes dark>
+                        <img
+                            width="16"
+                            height="16"
+                            src="/assets/images/ui/glyphs/download.png"
+                            style="image-rendering: pixelated; vertical-align: text-bottom"
+                            aria-hidden="true"
+                        />
+                    </only_visible_on_themes>
+                    Export Config
+                </button>
                 <hr />
                 <center style="width: 100%; margin-top: 30px">
                     <div class="text-center mx-auto my-2" style="color: inherit">
@@ -2480,15 +2501,16 @@
                         </label>
                         <hr />
                         <img id="customizer_loading_bar" style="display: none" src="/assets/images/ui/misc/loading_bar.gif" class="piximg" />
-                        <p id="current_customizer_status"></p>
+                        <p id="current_customizer_status" style="white-space: pre-wrap"></p>
                         <button type="button" class="btn nsel" id="apply_mods" disabled onclick="oreUICustomizer.applyMods()">Apply Mods</button>
                         <button type="button" class="btn nsel" id="download" disabled onclick="oreUICustomizer.download()">Download</button>
                         <br />
                         <br />
                         <p>
                             If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices
-                            it could take up to 2 minutes for the file to actually download. (NOTE: There is a known bug with some browsers on Android that will
-                            cause it to stall indefinitely, this is currently being investigated and should be fixed soon!)
+                            it could take up to 2 minutes for the file to actually download. (NOTE: The below buttons are slower as they don't use web workers,
+                            but that may improve compatibility on some devices. On Android web workers are disabled by default due to instability, even for the
+                            above buttons (unless the user agent string isn't recognized as Android).)
                         </p>
                         <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="oreUICustomizer.downloadInNewTab()">
                             Generate Download Link
@@ -2506,6 +2528,29 @@
                                 onclick="window.open('./ore-ui-customizer-changelogs.html', '_self')"
                             >
                                 Changelogs
+                            </button>
+                        </a>
+                        <a href="https://wiki.8crafter.com/ouic/">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="wiki-link-button"
+                                onclick="window.open('https:/\/wiki.8crafter.com/ouic/', '_self')"
+                            >
+                                Wiki
+                            </button>
+                        </a>
+                        <a href="https://github.com/8Crafter-Studios/Ore-UI-Customizer-App">
+                            <button
+                                type="button"
+                                class="btn nsel"
+                                id="app-version-link-button"
+                                onclick="
+                                    event.preventDefault();
+                                    window.open('https:/\/github.com/8Crafter-Studios/Ore-UI-Customizer-App', '_blank');
+                                "
+                            >
+                                App Version
                             </button>
                         </a>
                         <a href="https://npmjs.com/package/ore-ui-customizer-cli">

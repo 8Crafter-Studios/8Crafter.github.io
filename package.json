@@ -29,7 +29,10 @@
         "@types/node": "^24.10.1",
         "@types/semver": "^7.7.0",
         "json5": "^2.2.3",
-        "ore-ui-types": "^1.3.1"
+        "ore-ui-types": "^1.3.1",
+        "prettier": "^3.8.3",
+        "prettier-plugin-markdown-list-tabwidth": "^1.2.0",
+        "user-agent-data-types": "^0.4.3"
     },
     "private": true
 }

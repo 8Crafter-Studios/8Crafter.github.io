@@ -11,8 +11,8 @@ declare const __OUIC_customOverlays_initStartMs__: number;
  * @todo Implement usage of this.
  */
 declare const MOTDAPIFetchSources: {
-    readonly latestVersion: ["motd.api.ouic.8crafter.com", 58000];
-    readonly updateInfo: ["motd.api.ouic.8crafter.com", 58001];
+    readonly latestVersion: ["motd.api.ouic.8crafter.com", 19800];
+    readonly updateInfo: ["motd.api.ouic.8crafter.com", 19801];
 };
 /**
  * @decorator

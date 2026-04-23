@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "1.12.1";
+export declare const format_version = "1.13.0";
 /**
  * The result of the {@link applyMods} function.
  */
@@ -104,5 +104,7 @@ export declare function resolveOreUICustomizerSettings(settings?: {
  * @param {Blob} file The zip file to apply mods to.
  * @param {ApplyModsOptions} options The options.
  * @returns {Promise<ApplyModsResult>} A promise resolving to the result.
+ *
+ * @todo Implement an option for a callback to receive status updates.
  */
 export declare function applyMods(file: Blob, options?: ApplyModsOptions): Promise<ApplyModsResult>;

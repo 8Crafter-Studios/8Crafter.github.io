@@ -135,7 +135,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.12.1";
+    const format_version = "1.13.0";
     /**
      * @type {File | undefined}
      */
@@ -174,6 +174,14 @@ export declare namespace OreUICustomizer {
      * @type {EncodedPluginData[]}
      */
     const encodedImportedPlugins: EncodedPluginData[];
+    /**
+     * Detects if the device is an Android device.
+     *
+     * NOTE: This is not 100% accurate, this can be spoofed and some Android devices may not be detected.
+     *
+     * @returns True if the device is an Android device, false otherwise.
+     */
+    function detectAndroid(): boolean;
     /**
      * Changes the hue of a color.
      *

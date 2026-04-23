@@ -184,6 +184,45 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.13.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Critical Fixes</h2>
+                        <h3>Website Version</h3>
+                        <ul>
+                            <li>
+                                Fixed a bug where on Android, the download of the modified zip file would often times hang during the "Exporting modified zip
+                                file..." step. This bug was fixed by completely disabling the use of web workers when the device is detected as an Android
+                                device. (This is a very old bug that has been around since the first version of the Ore UI Customizer.)
+                            </li>
+                        </ul>
+                        <h2>Performance</h2>
+                        <ul>
+                            <li>
+                                Major performance improvements to the "Modifying files..." step. It is now around at least 10-20x faster. (ex. On a slow Android
+                                VM, this update made the "Modifying files..." step go from taking over a minute to taking under 4 seconds, and on a fast PC it
+                                went from taking 4 seconds to taking a tiny fraction of a second.)
+                            </li>
+                        </ul>
+                        <h2>Additions</h2>
+                        <h3>Website Version</h3>
+                        <ul>
+                            <li>
+                                The "Modifying files..." step now has a progress indicator that shows the completed number of files, total files, and the path
+                                of the current file.
+                            </li>
+                            <li>
+                                The "Exporting modified zip file..." step now has a progress indicator during the second half of that step (the compression
+                                step) that shows the amount of data compressed, the total amount that needs compressing, and the completion percentage.
+                            </li>
+                            <li>Added a link button for the Ore UI Customizer Wiki.</li>
+                            <li>Added a link button for the Ore UI Customizer App.</li>
+                            <li>Added an icon to the "Export Config" button.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.12.1</h2>
                     </div>
                     <div class="collapsible-group-content">

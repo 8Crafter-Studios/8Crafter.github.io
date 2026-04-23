@@ -1,3 +1,4 @@
+/// <reference types="user-agent-data-types" />
 import { blobToDataURI, builtInPlugins, getExtractedSymbolNames, getReplacerRegexes, importPluginFromDataURI, validatePluginFile, } from "../../../shared/ore-ui-customizer-assets.js";
 // import semver from "../../../shared/semver.js";
 /**
@@ -65,7 +66,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.12.1";
+    OreUICustomizer.format_version = "1.13.0";
     /**
      * @type {File | undefined}
      */
@@ -619,6 +620,26 @@ export var OreUICustomizer;
         }
     });
     /**
+     * Detects if the device is an Android device.
+     *
+     * NOTE: This is not 100% accurate, this can be spoofed and some Android devices may not be detected.
+     *
+     * @returns True if the device is an Android device, false otherwise.
+     */
+    function detectAndroid() {
+        if (navigator.userAgentData?.platform === "Android")
+            return true;
+        if (navigator.platform === "Android")
+            return true;
+        if (!navigator.userAgentData) {
+            if (navigator.userAgent.includes("Android") && !navigator.userAgent.includes("Windows Phone"))
+                return true;
+        }
+        return false;
+    }
+    OreUICustomizer.detectAndroid = detectAndroid;
+    zip.configure({ useWebWorkers: !detectAndroid() });
+    /**
      * Changes the hue of a color.
      *
      * @param {string} rgb The hex color code to change the hue of.
@@ -936,11 +957,11 @@ export var OreUICustomizer;
         if (!OreUICustomizer.currentImportedFile)
             return false;
         try {
-            if (!failed && OreUICustomizer.zipFs.entries.findIndex((entry) => entry.data?.filename === "gui/") === -1) {
+            if (!failed && OreUICustomizer.zipFs.entries.findIndex((entry) => entry.getFullname() === "gui" && entry.directory) === -1) {
                 failed = 1;
-                if (OreUICustomizer.zipFs.entries.findIndex((entry) => entry.data?.filename === "dist/") !== -1) {
+                if (OreUICustomizer.zipFs.entries.findIndex((entry) => entry.getFullname() === "dist" && entry.directory) !== -1) {
                     // Repair the zip directory structure.
-                    OreUICustomizer.zipFs.move(OreUICustomizer.zipFs.entries.find((entry) => entry.data?.filename === "dist/"), OreUICustomizer.zipFs.addDirectory("gui")); // adding a / to the end of the string for addDirectory causes it to show "Local Disk" inside of the zip file on windows.
+                    OreUICustomizer.zipFs.move(OreUICustomizer.zipFs.entries.find((entry) => entry.getFullname() === "dist" && entry.directory), OreUICustomizer.zipFs.addDirectory("gui")); // adding a / to the end of the string for addDirectory causes it to show "Local Disk" inside of the zip file on windows.
                     failed = 2;
                     $("#import_files_error").css("color", "yellow");
                     $("#import_files_error").text(`Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of it. Your .zip file was structured ${OreUICustomizer.currentImportedFile.name}/dist/hbui/** instead of ${OreUICustomizer.currentImportedFile.name}/gui/dist/hbui/**. You had zipped the dist folder instead of the gui folder.`);
@@ -954,9 +975,9 @@ export var OreUICustomizer;
         $("#download_in_new_tab_link_open_button").prop("disabled", true);
         $("#download_in_new_tab_link").removeAttr("href"); */
                 }
-                else if (OreUICustomizer.zipFs.entries.findIndex((entry) => entry.data?.filename === "hbui/") !== -1) {
+                else if (OreUICustomizer.zipFs.entries.findIndex((entry) => entry.getFullname() === "hbui" && entry.directory) !== -1) {
                     // Repair the zip directory structure.
-                    OreUICustomizer.zipFs.move(OreUICustomizer.zipFs.entries.find((entry) => entry.data?.filename === "hbui/"), OreUICustomizer.zipFs.addDirectory("gui/dist"));
+                    OreUICustomizer.zipFs.move(OreUICustomizer.zipFs.entries.find((entry) => entry.getFullname() === "hbui" && entry.directory), OreUICustomizer.zipFs.addDirectory("gui/dist"));
                     failed = 2;
                     $("#import_files_error").css("color", "yellow");
                     $("#import_files_error").text(`Your zip file folder structure was invalid, but was repaired. It was supposed have the entire gui/ folder in the root of the zip file. NOT just the contents of the contents of it. Your .zip file was structured ${OreUICustomizer.currentImportedFile.name}/hbui/** instead of ${OreUICustomizer.currentImportedFile.name}/gui/dist/hbui/**. You had zipped the hbui folder instead of the gui folder.`);
@@ -1558,7 +1579,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 oreUICustomizerEnvGlobalVariableName,
             }, plugin.fileType);
         }
-        $("#current_customizer_status").text("Applying mods (Modifying files)...");
+        $("#current_customizer_status").text("Applying mods (Running plugin global_before actions)...");
         for (const plugin of plugins) {
             if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
                 for (const action of plugin.actions) {
@@ -1575,139 +1596,155 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 }
             }
         }
-        for (const entry of OreUICustomizer.zipFs.entries) {
-            if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(entry.data?.filename)) {
-                let origName = entry.name;
-                entry.rename(entry.name.split("/").pop().replaceAll("%40", "@"));
-                console.log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
-                modifiedCount++;
-                renamedCount++;
-            }
-            else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(entry.data?.filename.toLowerCase())) {
-                if (entry.directory !== void false) {
-                    unmodifiedCount++;
-                }
-                else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(entry.data?.filename.toLowerCase())) {
-                    /**
-                     * @type {string}
-                     */
-                    const origData = await entry.getText();
-                    let distData = origData;
-                    /**
-                     * @type {string[]}
-                     */
-                    let failedReplaces = [];
-                    for (const plugin of plugins) {
-                        if (plugin.namespace !== "built-in" ||
-                            (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
-                            for (const action of plugin.actions) {
-                                if (action.context !== "per_text_file")
-                                    continue;
-                                try {
-                                    distData = await action.action(distData, entry, OreUICustomizer.zipFs);
+        $("#current_customizer_status").text("Applying mods (Modifying files)...");
+        {
+            const entryCount = OreUICustomizer.zipFs.entries.filter((v) => v.directory === void false).length;
+            let entryIndex = -1;
+            let lastStatus = "Applying mods (Modifying files)...";
+            let lastAppliedStatus = "Applying mods (Modifying files)...";
+            const STATUS_UPDATE_INTERVAL = 10;
+            const statusUpdateIntervalId = setInterval(() => {
+                if (lastStatus === lastAppliedStatus)
+                    return;
+                lastAppliedStatus = lastStatus;
+                $("#current_customizer_status").text(lastAppliedStatus);
+            }, STATUS_UPDATE_INTERVAL);
+            try {
+                for (const entry of OreUICustomizer.zipFs.entries) {
+                    entryIndex++;
+                    const filePath = entry.getFullname();
+                    if (!filePath) {
+                        unmodifiedCount++;
+                    }
+                    else if (/^(gui\/)?dist\/hbui\/assets\/[^\/]*?%40/.test(filePath)) {
+                        lastStatus = `Applying mods (Modifying files (${entryIndex}/${entryCount}): ${entry.name})...`;
+                        const origName = entry.name;
+                        entry.rename(entry.name.split("/").pop().replaceAll("%40", "@"));
+                        console.log(`Entry ${origName} has been successfully renamed to ${entry.name}.`);
+                        modifiedCount++;
+                        renamedCount++;
+                    }
+                    else if (!/^(gui\/)?dist\/hbui\/[^\/]+\.(js|html|css)$/.test(filePath.toLowerCase())) {
+                        lastStatus = `Applying mods (Modifying files (${entryIndex}/${entryCount}): ${entry.name})...`;
+                        if (entry.directory !== void false) {
+                            unmodifiedCount++;
+                        }
+                        else if (/\.(txt|md|js|jsx|html|css|json|jsonc|jsonl)$/.test(filePath.toLowerCase())) {
+                            let origData;
+                            let distData;
+                            const failedReplaces = [];
+                            for (const plugin of plugins) {
+                                if (plugin.namespace !== "built-in" ||
+                                    (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                                    for (const action of plugin.actions) {
+                                        if (action.context !== "per_text_file")
+                                            continue;
+                                        origData ??= await entry.getText();
+                                        distData ??= origData;
+                                        try {
+                                            distData = await action.action(distData, entry, OreUICustomizer.zipFs);
+                                        }
+                                        catch (e) {
+                                            console.error(e, e?.stack);
+                                            failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                                        }
+                                    }
                                 }
-                                catch (e) {
-                                    console.error(e, e?.stack);
-                                    failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            }
+                            if (failedReplaces.length > 0)
+                                allFailedReplaces[filePath] = failedReplaces;
+                            if (origData !== undefined && distData !== undefined && origData !== distData) {
+                                // FIXME: Add sanitization to escape possible comment escaping strings.
+                                if (filePath.endsWith(".js")) {
+                                    distData = `// Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })}\n${distData}`;
                                 }
+                                else if (filePath.endsWith(".css")) {
+                                    distData = `/* Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("*/", "*\\/")} */\n${distData}`;
+                                }
+                                else if (filePath.endsWith(".html")) {
+                                    distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("-->", "--\\>")} -->\n${distData}`;
+                                }
+                                entry.replaceText(distData);
+                                console.log(`Entry ${entry.name} has been successfully modified.`);
+                                modifiedCount++;
+                                editedCount++;
+                            }
+                            else {
+                                // log(`Entry ${entry.name} has not been modified.`);
+                                unmodifiedCount++;
+                            }
+                        }
+                        else {
+                            let origData;
+                            let distData;
+                            const failedReplaces = [];
+                            for (const plugin of plugins) {
+                                if (plugin.namespace !== "built-in" ||
+                                    (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                                    for (const action of plugin.actions) {
+                                        if (action.context !== "per_binary_file")
+                                            continue;
+                                        origData ??= await entry.getBlob();
+                                        distData ??= origData;
+                                        try {
+                                            distData = await action.action(distData, entry, OreUICustomizer.zipFs);
+                                        }
+                                        catch (e) {
+                                            console.error(e, e?.stack);
+                                            failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                                        }
+                                    }
+                                }
+                            }
+                            if (failedReplaces.length > 0)
+                                allFailedReplaces[filePath] = failedReplaces;
+                            if (origData && distData && !arrayBuffersAreEqual(await origData.arrayBuffer(), await distData.arrayBuffer())) {
+                                entry.replaceBlob(distData);
+                                console.log(`Entry ${entry.name} has been successfully modified.`);
+                                modifiedCount++;
+                                editedCount++;
+                            }
+                            else {
+                                // log(`Entry ${entry.name} has not been modified.`);
+                                unmodifiedCount++;
                             }
                         }
                     }
-                    if (failedReplaces.length > 0)
-                        allFailedReplaces[entry.data?.filename] = failedReplaces;
-                    if (origData !== distData) {
-                        if (entry.data?.filename.endsWith(".js")) {
-                            distData = `// Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })}\n${distData}`;
-                        }
-                        else if (entry.data?.filename.endsWith(".css")) {
-                            distData = `/* Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("*/", "*\\/")} */\n${distData}`;
-                        }
-                        else if (entry.data?.filename.endsWith(".html")) {
-                            distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) }).replaceAll("-->", "--\\>")} -->\n${distData}`;
-                        }
-                        entry.replaceText(distData);
-                        console.log(`Entry ${entry.name} has been successfully modified.`);
-                        modifiedCount++;
-                        editedCount++;
-                    }
-                    else {
-                        // log(`Entry ${entry.name} has not been modified.`);
+                    else if (filePath.endsWith("oreUICustomizer8CrafterConfig.js")) {
+                        lastStatus = `Applying mods (Modifying files (${entryIndex}/${entryCount}): ${entry.name})...`;
                         unmodifiedCount++;
                     }
-                }
-                else {
-                    /**
-                     * @type {Blob}
-                     */
-                    const origData = await entry.getBlob();
-                    let distData = origData;
-                    /**
-                     * @type {string[]}
-                     */
-                    let failedReplaces = [];
-                    for (const plugin of plugins) {
-                        if (plugin.namespace !== "built-in" ||
-                            (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
-                            for (const action of plugin.actions) {
-                                if (action.context !== "per_binary_file")
-                                    continue;
-                                try {
-                                    distData = await action.action(distData, entry, OreUICustomizer.zipFs);
-                                }
-                                catch (e) {
-                                    console.error(e, e?.stack);
-                                    failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
-                                }
-                            }
-                        }
-                    }
-                    if (failedReplaces.length > 0)
-                        allFailedReplaces[entry.data?.filename] = failedReplaces;
-                    if (!arrayBuffersAreEqual(await origData.arrayBuffer(), await distData.arrayBuffer())) {
-                        entry.replaceBlob(distData);
-                        console.log(`Entry ${entry.name} has been successfully modified.`);
-                        modifiedCount++;
-                        editedCount++;
-                    }
-                    else {
-                        // log(`Entry ${entry.name} has not been modified.`);
-                        unmodifiedCount++;
-                    }
-                }
-            }
-            else if (entry.data?.filename.endsWith("oreUICustomizer8CrafterConfig.js")) {
-                unmodifiedCount++;
-            }
-            else if (entry.directory === void false) {
-                /**
-                 * The original data.
-                 *
-                 * @type {string}
-                 */
-                const origData = await entry.getText();
-                /**
-                 * The modified data.
-                 */
-                let distData = origData;
-                /**
-                 * The list of failed replaces.
-                 *
-                 * @type {string[]}
-                 */
-                let failedReplaces = [];
-                /**
-                 * The extracted symbol names.
-                 */
-                let extractedSymbolNames = getExtractedSymbolNames(origData, entry.data?.filename);
-                /**
-                 * Lists of regexes to use for certain modifications.
-                 */
-                const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
-                if (settings.hardcoreModeToggleAlwaysClickable) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `/**
+                    else if (entry.directory === void false) {
+                        lastStatus = `Applying mods (Modifying files (${entryIndex}/${entryCount}): ${entry.name})...`;
+                        /**
+                         * The original data.
+                         *
+                         * @type {string}
+                         */
+                        const origData = await entry.getText();
+                        /**
+                         * The modified data.
+                         */
+                        let distData = origData;
+                        /**
+                         * The list of failed replaces.
+                         *
+                         * @type {string[]}
+                         */
+                        let failedReplaces = [];
+                        /**
+                         * The extracted symbol names.
+                         */
+                        let extractedSymbolNames = getExtractedSymbolNames(origData, filePath);
+                        /**
+                         * Lists of regexes to use for certain modifications.
+                         */
+                        const replacerRegexes = getReplacerRegexes(extractedSymbolNames);
+                        if (settings.hardcoreModeToggleAlwaysClickable) {
+                            let successfullyReplaced = false;
+                            for (const regex of replacerRegexes.hardcoreModeToggleAlwaysClickable[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `/**
              * The hardcore mode toggle.
              *
              * @param {Object} param0
@@ -1738,19 +1775,19 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     "data-testid": "hardcore-mode-toggle",
                 });
             }`);
-                            successfullyReplaced = true;
-                            break;
+                                    successfullyReplaced = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
+                                failedReplaces.push("hardcoreModeToggleAlwaysClickable");
+                            }
                         }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
-                        failedReplaces.push("hardcoreModeToggleAlwaysClickable");
-                    }
-                }
-                if (settings.allowDisablingEnabledExperimentalToggles) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `/**
+                        if (settings.allowDisablingEnabledExperimentalToggles) {
+                            let successfullyReplaced = false;
+                            for (const regex of replacerRegexes.allowDisablingEnabledExperimentalToggles[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `/**
              * Handles the gneration of an experimental toggle, and the education edition toggle.
              *
              * @param {object} param0
@@ -1807,21 +1844,21 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                       })
                     : null;
             }`);
-                            successfullyReplaced = true;
-                            break;
+                                    successfullyReplaced = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
+                                failedReplaces.push("allowDisablingEnabledExperimentalToggles");
+                            }
                         }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
-                        failedReplaces.push("allowDisablingEnabledExperimentalToggles");
-                    }
-                }
-                // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
-                if (settings.addMoreDefaultGameModes) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `/**
+                        // `FUNCTION CODE`.split("${extractedFunctionNames.translationStringResolver}").map(v=>stringToRegexString(v)).join("${extractedFunctionNames.translationStringResolver}")
+                        if (settings.addMoreDefaultGameModes) {
+                            let successfullyReplacedA = false;
+                            let successfullyReplacedB = false;
+                            for (const regex of replacerRegexes.addMoreDefaultGameModes[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `/**
              * The game mode dropdown.
              *
              * @param param0
@@ -1956,13 +1993,13 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     ),
                 });
             }`);
-                            successfullyReplacedA = true;
-                            break;
-                        }
-                    }
-                    for (const regex of replacerRegexes.addMoreDefaultGameModes[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `(function (e) {
+                                    successfullyReplacedA = true;
+                                    break;
+                                }
+                            }
+                            for (const regex of replacerRegexes.addMoreDefaultGameModes[1]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `(function (e) {
                     // Modified to add more game modes.
                     (e[(e.UNKNOWN = -1)] = "UNKNOWN"),
                         (e[(e.SURVIVAL = 0)] = "SURVIVAL"),
@@ -1976,25 +2013,25 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         (e[(e.GM8 = 8)] = "GM8"),
                         (e[(e.GM9 = 9)] = "GM9");
                 })($1 || ($2 = {})),`);
-                            successfullyReplacedB = true;
-                            break;
+                                    successfullyReplacedB = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
+                                if (!successfullyReplacedA) {
+                                    failedReplaces.push("addMoreDefaultGameModes_dropdown");
+                                }
+                                if (!successfullyReplacedB) {
+                                    failedReplaces.push("addMoreDefaultGameModes_enumeration");
+                                }
+                            }
                         }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addMoreDefaultGameModes_dropdown");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("addMoreDefaultGameModes_enumeration");
-                        }
-                    }
-                }
-                if (settings.addGeneratorTypeDropdown) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `// Modified to add this dropdown
+                        if (settings.addGeneratorTypeDropdown) {
+                            let successfullyReplacedA = false;
+                            let successfullyReplacedB = false;
+                            for (const regex of replacerRegexes.addGeneratorTypeDropdown[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `// Modified to add this dropdown
                                       ${extractedSymbolNames.contextHolder}.createElement(
                                           ${extractedSymbolNames.facetHolder}.Mount,
                                           { when: true /* $1 */ },
@@ -2052,13 +2089,13 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                 (e[(e.Undefined = 6)] = "Undefined"); */
                                           )
                                       )`);
-                            successfullyReplacedA = true;
-                            break;
-                        }
-                    }
-                    for (const regex of replacerRegexes.addGeneratorTypeDropdown[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `(function (e) {
+                                    successfullyReplacedA = true;
+                                    break;
+                                }
+                            }
+                            for (const regex of replacerRegexes.addGeneratorTypeDropdown[1]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `(function (e) {
                     (e[(e.Legacy = 0)] = "Legacy"),
                         (e[(e.Overworld = 1)] = "Overworld"),
                         (e[(e.Flat = 2)] = "Flat"),
@@ -2067,24 +2104,24 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                         (e[(e.Void = 5)] = "Void"),
                         (e[(e.Undefined = 6)] = "Undefined");
                 })($1 || ($1 = {})),`);
-                            successfullyReplacedB = true;
-                            break;
+                                    successfullyReplacedB = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
+                                if (!successfullyReplacedA) {
+                                    failedReplaces.push("addGeneratorTypeDropdown_dropdown");
+                                }
+                                if (!successfullyReplacedB) {
+                                    failedReplaces.push("addGeneratorTypeDropdown_enumeration");
+                                }
+                            }
                         }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addGeneratorTypeDropdown_dropdown");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("addGeneratorTypeDropdown_enumeration");
-                        }
-                    }
-                }
-                if (settings.allowForChangingSeeds) {
-                    let successfullyReplaced = false;
-                    for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `$1 = ({ advancedData: eAA, isEditorWorld: tAA, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: oAA, worldData: wd }) => {
+                        if (settings.allowForChangingSeeds) {
+                            let successfullyReplaced = false;
+                            for (const regex of replacerRegexes.allowForChangingSeeds[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `$1 = ({ advancedData: eAA, isEditorWorld: tAA, onSeedValueChange: $2, isSeedChangeLocked: $3, showSeedTemplates: oAA, worldData: wd }) => {
                     const { t: iAA } = $4("CreateNewWorld.advanced"),
                         { t: cAA } = $4("CreateNewWorld.all"),
                         sAA = (0, ${extractedSymbolNames.contextHolder}.useContext)($5) !== $6.CREATE,
@@ -2140,49 +2177,49 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                               )
                           );
                 },`);
-                            successfullyReplaced = true;
-                            break;
+                                    successfullyReplaced = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
+                                failedReplaces.push("allowForChangingSeeds");
+                            }
                         }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
-                        failedReplaces.push("allowForChangingSeeds");
-                    }
-                }
-                if (settings.allowForChangingFlatWorldPreset) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`);
-                            successfullyReplacedA = true;
-                            break;
+                        if (settings.allowForChangingFlatWorldPreset) {
+                            let successfullyReplacedA = false;
+                            let successfullyReplacedB = false;
+                            for (const regex of replacerRegexes.allowForChangingFlatWorldPreset[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.facetHolder}.Mount,{when:true},${extractedSymbolNames.contextHolder}.createElement($1,{value:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.useFlatWorld),[],[$2]),preset:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>e.flatWorldPreset),[],[$2]),onValueChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.useFlatWorld=t,t&&e.flatWorldPreset?$3($4[e.flatWorldPreset]):$3("")}),[$3],[$2]),onPresetChanged:(0,${extractedSymbolNames.facetHolder}.useFacetCallback)((e=>t=>{e.flatWorldPreset=t,e.useFlatWorld?$3($4[t]):c("")}),[$3],[$2]),disabled:false,hideAccordion:(0,${extractedSymbolNames.facetHolder}.useFacetMap)((e=>null==e.flatWorldPreset),[],[$2]),achievementsDisabledMessages:$5})))`);
+                                    successfullyReplacedA = true;
+                                    break;
+                                }
+                            }
+                            for (const { regex, replacement } of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, replacement);
+                                    successfullyReplacedB = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && origData.includes("flatWorldPreset")) {
+                                if (!successfullyReplacedA) {
+                                    failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
+                                }
+                                if (!successfullyReplacedB) {
+                                    failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
+                                failedReplaces.push("allowForChangingFlatWorldPreset");
+                            }
                         }
-                    }
-                    for (const { regex, replacement } of replacerRegexes.allowForChangingFlatWorldPreset[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, replacement);
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset")) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("allowForChangingFlatWorldPreset_enableToggleAndPresetSelector");
-                        }
-                        if (!successfullyReplacedB) {
-                            failedReplaces.push("allowForChangingFlatWorldPreset_makePresetSelectorDropdownVisible");
-                        }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && origData.includes("flatWorldPreset") && !successfullyReplacedA) {
-                        failedReplaces.push("allowForChangingFlatWorldPreset");
-                    }
-                }
-                if (settings.addDebugTab) {
-                    let successfullyReplacedA = false;
-                    let successfullyReplacedB = false;
-                    for (const regex of replacerRegexes.addDebugTab[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `/**
+                        if (settings.addDebugTab) {
+                            let successfullyReplacedA = false;
+                            let successfullyReplacedB = false;
+                            for (const regex of replacerRegexes.addDebugTab[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `/**
              * The function for the Debug tab of the create and edit world screens.
              *
              * @param {object} param0
@@ -2604,71 +2641,71 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     )
                 );
             }`);
-                            successfullyReplacedA = true;
-                            break;
+                                    successfullyReplacedA = true;
+                                    break;
+                                }
+                            }
+                            for (const { regex, replacement } of replacerRegexes.addDebugTab[1]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, replacement);
+                                    successfullyReplacedB = true;
+                                    break;
+                                }
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath)) {
+                                if (!successfullyReplacedA) {
+                                    failedReplaces.push("addDebugTab_replaceTab");
+                                }
+                                if (!successfullyReplacedB) {
+                                    // console.log(replacerRegexes.addDebugTab[1][0], "\n\n\n");
+                                    failedReplaces.push("addDebugTab_makeVisible");
+                                }
+                            }
                         }
-                    }
-                    for (const { regex, replacement } of replacerRegexes.addDebugTab[1]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, replacement);
-                            successfullyReplacedB = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename)) {
-                        if (!successfullyReplacedA) {
-                            failedReplaces.push("addDebugTab_replaceTab");
-                        }
-                        if (!successfullyReplacedB) {
-                            // console.log(replacerRegexes.addDebugTab[1][0], "\n\n\n");
-                            failedReplaces.push("addDebugTab_makeVisible");
-                        }
-                    }
-                }
-                Object.entries(settings.colorReplacements).forEach(([key, value]) => {
-                    if (value !== "" && value !== undefined && value !== null && value !== key) {
-                        distData = distData.replaceAll(key, value);
-                    }
-                });
-                distData = distData
-                    .replace(/(?=<script defer="defer" src="\/hbui\/(?:index|gameplay|editor)-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
+                        Object.entries(settings.colorReplacements).forEach(([key, value]) => {
+                            if (value !== "" && value !== undefined && value !== null && value !== key) {
+                                distData = distData.replaceAll(key, value);
+                            }
+                        });
+                        distData = distData
+                            .replace(/(?=<script defer="defer" src="\/hbui\/(?:index|gameplay|editor)-[a-zA-Z0-9]+\.js"><\/script>)/, `<script defer="defer" src="/hbui/oreUICustomizer8CrafterConfig.js"></script>
         <script defer="defer" src="/hbui/class_path.js"></script>
         <script defer="defer" src="/hbui/css.js"></script>
         <script defer="defer" src="/hbui/JSONB.js"></script>
         <script defer="defer" src="/hbui/customOverlays.js"></script>
         `)
-                    .replace(/(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/, `
+                            .replace(/(?<=<link href="\/hbui\/gameplay-theme(?:-[a-zA-Z0-9]+)?\.css" rel="stylesheet">)/, `
         <link href="/hbui/customOverlays.css" rel="stylesheet" />`);
-                distData = distData
-                    .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`)
-                    .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`)
-                    .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`);
-                if (settings.maxTextLengthOverride !== "") {
-                    const origDistData = distData;
-                    const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
-                    const values = [...textLengthValues];
-                    // console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
-                    for (const textLengthValue of values) {
-                        distData = distData.replace(textLengthValue[0], `maxLength${textLengthValue[1]}${settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */}`);
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && distData === origDistData) {
-                        failedReplaces.push("maxTextLengthOverride");
-                    }
-                }
-                else {
-                    console.warn("maxTextLengthOverride is empty");
-                }
-                if (settings.add8CrafterUtilitiesMainMenuButton) {
-                    let successfullyReplaced = false;
-                    let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] = origData
-                        .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/)
-                        ?.slice(1, 4) ?? [];
-                    disabledVariableSymbolName ??= "n";
-                    focusGridIndexVariableSymbolName ??= "r";
-                    navbarButtonImageClass ??= "QQfwv";
-                    for (const regex of replacerRegexes.add8CrafterUtilitiesMainMenuButton[0]) {
-                        if (regex.test(distData)) {
-                            distData = distData.replace(regex, `${extractedSymbolNames.contextHolder}.createElement(
+                        distData = distData
+                            .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.bonusChestDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.bonusChest\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.bonusChest=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`)
+                            .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.startWithMapDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\(\\((?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\)=>!(?:[a-zA-Z0-9_\$]{1})&&(?:[a-zA-Z0-9_\$]{1})\\.startWithMap\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1}),(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.startWithMap=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`)
+                            .replace(new RegExp(`(?<=\\{title:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldTitle"\\),description:(?:[a-zA-Z0-9_\$]{1})\\("\\.useFlatWorldDescription"\\),value:\\(0,(?:[a-zA-Z0-9_\\$]{1}).useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onChange:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetCallback\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>(?:[a-zA-Z0-9_\$]{1})=>\\{(?:[a-zA-Z0-9_\$]{1})\\.useFlatWorld=(?:[a-zA-Z0-9_\$]{1})\\}\\),\\[\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),onNarrationText:(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixDisablesAchievements"\\),offNarrationText:\\(0,(?:[a-zA-Z0-9_\$]{1})\\.useFacetMap\\)\\(\\((?:[a-zA-Z0-9_\$]{1})=>0===(?:[a-zA-Z0-9_\$]{1})\\.length\\?(?:[a-zA-Z0-9_\$]{1})\\("\\.narrationSuffixEnablesAchievements"\\):void 0\\),\\[(?:[a-zA-Z0-9_\$]{1})\\],\\[(?:[a-zA-Z0-9_\$]{1})\\]\\),disabled:)(?:[a-zA-Z0-9_\$]{1})(?=,visible:(?:[a-zA-Z0-9_\$]{1})\\})`), `false`);
+                        if (settings.maxTextLengthOverride !== "") {
+                            const origDistData = distData;
+                            const textLengthValues = distData.matchAll(/maxLength(:\s?)([0-9]+)/g);
+                            const values = [...textLengthValues];
+                            // console.warn(`maxTextLengthOverrideReplacementsLength: ${values.length}`);
+                            for (const textLengthValue of values) {
+                                distData = distData.replace(textLengthValue[0], `maxLength${textLengthValue[1]}${settings.maxTextLengthOverride /* BigInt(settings.maxTextLengthOverride) > BigInt(textLengthValue[1]) ? settings.maxTextLengthOverride : textLengthValue[1] */}`);
+                            }
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && distData === origDistData) {
+                                failedReplaces.push("maxTextLengthOverride");
+                            }
+                        }
+                        else {
+                            console.warn("maxTextLengthOverride is empty");
+                        }
+                        if (settings.add8CrafterUtilitiesMainMenuButton) {
+                            let successfullyReplaced = false;
+                            let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] = origData
+                                .match(/DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/)
+                                ?.slice(1, 4) ?? [];
+                            disabledVariableSymbolName ??= "n";
+                            focusGridIndexVariableSymbolName ??= "r";
+                            navbarButtonImageClass ??= "QQfwv";
+                            for (const regex of replacerRegexes.add8CrafterUtilitiesMainMenuButton[0]) {
+                                if (regex.test(distData)) {
+                                    distData = distData.replace(regex, `${extractedSymbolNames.contextHolder}.createElement(
                                                     ${extractedSymbolNames.facetHolder}.Mount,
                                                     { when: true },
                                                     ${extractedSymbolNames.contextHolder}.createElement(
@@ -2730,54 +2767,61 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                         ${extractedSymbolNames.contextHolder}.createElement($4, { onClick: $5, screenAnalyticsId: $6 })
                                                     )
                                                 )`);
-                            successfullyReplaced = true;
-                            break;
-                        }
-                    }
-                    if (/index-[0-9a-f]{5,20}\.js$/.test(entry.data?.filename) && !successfullyReplaced) {
-                        failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
-                    }
-                }
-                for (const plugin of plugins) {
-                    if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
-                        for (const action of plugin.actions) {
-                            if (action.context !== "per_text_file")
-                                continue;
-                            try {
-                                distData = await action.action(distData, entry, OreUICustomizer.zipFs);
+                                    successfullyReplaced = true;
+                                    break;
+                                }
                             }
-                            catch (e) {
-                                console.error(e, e?.stack);
-                                failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                            if (/index-[0-9a-f]{5,20}\.js$/.test(filePath) && !successfullyReplaced) {
+                                failedReplaces.push("add8CrafterUtilitiesMainMenuButton");
                             }
                         }
+                        for (const plugin of plugins) {
+                            if (plugin.namespace !== "built-in" ||
+                                (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
+                                for (const action of plugin.actions) {
+                                    if (action.context !== "per_text_file")
+                                        continue;
+                                    try {
+                                        distData = await action.action(distData, entry, OreUICustomizer.zipFs);
+                                    }
+                                    catch (e) {
+                                        console.error(e, e?.stack);
+                                        failedReplaces.push(`${plugin.namespace !== "built-in" ? `${plugin.namespace}:` : ""}${plugin.id}:${action.id}`);
+                                    }
+                                }
+                            }
+                        }
+                        if (failedReplaces.length > 0)
+                            allFailedReplaces[filePath] = failedReplaces;
+                        if (origData !== distData) {
+                            // FIXME: Add sanitization to escape possible comment escaping strings.
+                            if (filePath.endsWith(".js")) {
+                                distData = `// Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })}\n${distData}`;
+                            }
+                            else if (filePath.endsWith(".css")) {
+                                distData = `/* Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} */\n${distData}`;
+                            }
+                            else if (filePath.endsWith(".html")) {
+                                distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} -->\n${distData}`;
+                            }
+                            entry.replaceText(distData);
+                            console.log(`Entry ${entry.name} has been successfully modified.`);
+                            modifiedCount++;
+                            editedCount++;
+                        }
+                        else {
+                            // console.log(`Entry ${entry.name} has not been modified.`);
+                            unmodifiedCount++;
+                        }
                     }
-                }
-                if (failedReplaces.length > 0)
-                    allFailedReplaces[entry.data?.filename] = failedReplaces;
-                if (origData !== distData) {
-                    if (entry.data?.filename.endsWith(".js")) {
-                        distData = `// Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer\n// Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })}\n${distData}`;
+                    else {
+                        console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + filePath);
+                        unmodifiedCount++;
                     }
-                    else if (entry.data?.filename.endsWith(".css")) {
-                        distData = `/* Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer */\n/* Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} */\n${distData}`;
-                    }
-                    else if (entry.data?.filename.endsWith(".html")) {
-                        distData = `<!-- Modified by 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}: https://www.8crafter.com/utilities/ore-ui-customizer -->\n<!-- Options: ${JSON.stringify({ ...settings, plugins: settings.plugins?.map((plugin) => ({ ...plugin, dataURI: "..." })) })} -->\n${distData}`;
-                    }
-                    entry.replaceText(distData);
-                    console.log(`Entry ${entry.name} has been successfully modified.`);
-                    modifiedCount++;
-                    editedCount++;
-                }
-                else {
-                    // console.log(`Entry ${entry.name} has not been modified.`);
-                    unmodifiedCount++;
                 }
             }
-            else {
-                console.error("Entry is not a ZipFileEntry but has a file extension of js, html, or css: " + entry.data?.filename);
-                unmodifiedCount++;
+            finally {
+                clearInterval(statusUpdateIntervalId);
             }
         }
         $("#current_customizer_status").text("Applying mods (Adding assets)...");
@@ -2995,6 +3039,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         catch (e) {
             console.error(e);
         }
+        $("#current_customizer_status").text("Applying mods (Running plugin global actions)...");
         for (const plugin of plugins) {
             if (plugin.namespace !== "built-in" || (settings.enabledBuiltInPlugins[plugin.id] ?? true)) {
                 for (const action of plugin.actions) {
@@ -3015,7 +3060,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         if (Object.keys(allFailedReplaces).length > 0) {
             console.warn("Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:", allFailedReplaces);
             $("#import_files_error").css("color", "yellow");
-            const originalWarning = $("#import_files_error").text();
+            // const originalWarning = $("#import_files_error").text();
             const newWarning = `<b>Some customizations failed, this could be due to the provided file being modified, or that version is not supported for the failed customizations:</b>
 <pre>${Object.entries(allFailedReplaces)
                 .map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v, null, 4)}`)
@@ -3051,20 +3096,60 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             throw new Error("zipFs is undefined");
         }
         $("#download").prop("disabled", true);
+        $("#download_in_new_tab_button").prop("disabled", true);
         $("#current_customizer_status").text("Exporting modified zip file...");
         $("#customizer_loading_bar").show();
-        const blob = await OreUICustomizer.zipFs.exportBlob();
-        $("#current_customizer_status").text("Generating download URI...");
-        const url = URL.createObjectURL(blob);
-        $("#current_customizer_status").text("Setting download link...");
-        const a = $("#download_in_new_tab_link")[0];
-        a.href = url;
-        a.download = "gui-mod.zip";
-        a.target = "_blank";
-        $("#customizer_loading_bar").hide();
-        $("#current_customizer_status").text("");
-        $(a).prop("disabled", false);
-        $("#download_in_new_tab_link_open_button").prop("disabled", false);
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        let lastStatus = "Applying mods (Modifying files)...";
+        let lastAppliedStatus = "Applying mods (Modifying files)...";
+        const STATUS_UPDATE_INTERVAL = 10;
+        const statusUpdateIntervalId = setInterval(() => {
+            if (lastStatus === lastAppliedStatus)
+                return;
+            lastAppliedStatus = lastStatus;
+            $("#current_customizer_status").text(lastAppliedStatus);
+        }, STATUS_UPDATE_INTERVAL);
+        try {
+            // Disable web workers for improved compatibility, when the user is having issues.
+            zip.configure({ useWebWorkers: false });
+            const blob = await OreUICustomizer.zipFs.exportBlob({
+                async onprogress(progress, total) {
+                    lastStatus = `Compressing modified zip file (${progress}/${total}) (${((progress / total) * 100).toFixed(1)}%)...`;
+                },
+            });
+            clearInterval(statusUpdateIntervalId);
+            $("#current_customizer_status").text("Generating download URI...");
+            const url = URL.createObjectURL(blob);
+            $("#current_customizer_status").text("Setting download link...");
+            const a = $("#download_in_new_tab_link")[0];
+            a.href = url;
+            a.download = "gui-mod.zip";
+            a.target = "_blank";
+            $(a).prop("disabled", false);
+            $("#customizer_loading_bar").hide();
+            $("#current_customizer_status").text("");
+            $("#download").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+            $("#download_in_new_tab_link_open_button").prop("disabled", false);
+        }
+        catch (e) {
+            console.error(e);
+            clearInterval(statusUpdateIntervalId);
+            $("#import_files_error").css("color", "red");
+            $("#import_files_error").text("");
+            const newWarning = `<b>An error occurred while generating the download link for the modified zip file:</b>
+<pre>${e}</pre>`;
+            $("#import_files_error").append(newWarning);
+            $("#import_files_error").prop("hidden", false);
+            $("#customizer_loading_bar").hide();
+            $("#download").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+            $("#current_customizer_status").text("Download link generation failed.");
+            return;
+        }
+        finally {
+            zip.configure({ useWebWorkers: !detectAndroid() });
+        }
     }
     OreUICustomizer.downloadInNewTab = downloadInNewTab;
     async function download() {
@@ -3072,19 +3157,53 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             throw new Error("zipFs is undefined");
         }
         $("#download").prop("disabled", true);
+        $("#download_in_new_tab_button").prop("disabled", true);
         $("#current_customizer_status").text("Exporting modified zip file...");
         $("#customizer_loading_bar").show();
-        const blob = await OreUICustomizer.zipFs.exportBlob();
-        $("#current_customizer_status").text("Generating download URI...");
-        const url = URL.createObjectURL(blob);
-        $("#current_customizer_status").text("Downloading modified zip file...");
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "gui-mod.zip";
-        a.click();
-        $("#customizer_loading_bar").hide();
-        $("#download").prop("disabled", false);
-        $("#current_customizer_status").text("");
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        let lastStatus = "Applying mods (Modifying files)...";
+        let lastAppliedStatus = "Applying mods (Modifying files)...";
+        const STATUS_UPDATE_INTERVAL = 10;
+        const statusUpdateIntervalId = setInterval(() => {
+            if (lastStatus === lastAppliedStatus)
+                return;
+            lastAppliedStatus = lastStatus;
+            $("#current_customizer_status").text(lastAppliedStatus);
+        }, STATUS_UPDATE_INTERVAL);
+        try {
+            const blob = await OreUICustomizer.zipFs.exportBlob({
+                async onprogress(progress, total) {
+                    lastStatus = `Compressing modified zip file (${progress}/${total}) (${((progress / total) * 100).toFixed(1)}%)...`;
+                },
+            });
+            clearInterval(statusUpdateIntervalId);
+            $("#current_customizer_status").text("Generating download URI...");
+            const url = URL.createObjectURL(blob);
+            $("#current_customizer_status").text("Downloading modified zip file...");
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "gui-mod.zip";
+            a.click();
+            $("#customizer_loading_bar").hide();
+            $("#current_customizer_status").text("");
+            $("#download").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+        }
+        catch (e) {
+            console.error(e);
+            clearInterval(statusUpdateIntervalId);
+            $("#import_files_error").css("color", "red");
+            $("#import_files_error").text("");
+            const newWarning = `<b>An error occurred while downloading the modified zip file:</b>
+<pre>${e}</pre>`;
+            $("#import_files_error").append(newWarning);
+            $("#import_files_error").prop("hidden", false);
+            $("#customizer_loading_bar").hide();
+            $("#download").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+            $("#current_customizer_status").text("Download failed.");
+            return;
+        }
     }
     OreUICustomizer.download = download;
 })(OreUICustomizer || (OreUICustomizer = {}));
