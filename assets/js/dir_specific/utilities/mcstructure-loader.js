@@ -288,7 +288,7 @@ globalThis.download = function download(file, name) {
     a.click();
 };
 function randomUUID() {
-    var chars = "0123456789abcdef";
+    const chars = "0123456789abcdef";
     var random_1 = "";
     var random_2 = "";
     var random_3 = "";
@@ -302,11 +302,17 @@ function randomUUID() {
         var rnum = Math.floor(Math.random() * chars.length);
         random_2 += chars.substring(rnum, rnum + 1);
     }
-    for (var i = 0; i < 4; i++) {
+    random_3 += "4";
+    for (var i = 0; i < 3; i++) {
         var rnum = Math.floor(Math.random() * chars.length);
         random_3 += chars.substring(rnum, rnum + 1);
     }
-    for (var i = 0; i < 4; i++) {
+    {
+        const chars = "89ab";
+        var rnum = Math.floor(Math.random() * chars.length);
+        random_4 += chars.substring(rnum, rnum + 1);
+    }
+    for (var i = 0; i < 3; i++) {
         var rnum = Math.floor(Math.random() * chars.length);
         random_4 += chars.substring(rnum, rnum + 1);
     }
@@ -335,7 +341,7 @@ async function generateStructureImporterPack() {
         header: {
             description: `Structure list:\n${Object.values(importedFiles)
                 .map((f) => (f.name.includes("/") ? f.name.slice(0, -12).replace("/", ":") : "mystructure:" + f.name.slice(0, -12)))
-                .join("\n")}\nCreated at: ${Date.now()}; Generated using version 1.1.0; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
+                .join("\n")}\nCreated at: ${new Date().toUTCString()}; Generated using version 1.1.1; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
             name: `${Date.now()} - 8Crafter's Mobile Structure Importer`,
             uuid: randomUUID(),
             version: [
@@ -347,7 +353,7 @@ async function generateStructureImporterPack() {
         },
         modules: [
             {
-                description: `Structure list: ${JSON.stringify(Object.values(importedFiles).map((f) => f.name.includes("/") ? f.name.slice(0, -12).replace("/", ":") : "mystructure:" + f.name.slice(0, -12)))}; Created at: ${Date.now()}; Generated using version 1.1.0; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
+                description: `Structure list: ${JSON.stringify(Object.values(importedFiles).map((f) => f.name.includes("/") ? f.name.slice(0, -12).replace("/", ":") : "mystructure:" + f.name.slice(0, -12)))}; Created at: ${new Date().toUTCString()}; Generated using version 1.1.1; This pack was generated at at §bhttps://www.8crafter.com/utilities/mcstructure-loader`,
                 type: "data",
                 uuid: randomUUID(),
                 version: [
@@ -358,11 +364,11 @@ async function generateStructureImporterPack() {
             },
         ],
         metadata: {
-            authors: ["Andexter8", "Andersen Zahn", "8Crafter"],
-            url: "https://www.8crafter.com",
+            authors: ["8Crafter", "Andersen Zahn"],
+            url: "https://www.8crafter.com/utilities/mcstructure-loader",
             product_type: "addon",
             generated_with: {
-                "8CraftersMobileStructureImporter": ["1.1.0"],
+                "8CraftersMobileStructureImporter": ["1.1.1"],
             },
         },
     }, undefined, 4));
