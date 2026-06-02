@@ -57,12 +57,12 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer-changelogs.html</loc>
-        <lastmod>2026-05-25T21:31:44.923Z</lastmod>
+        <lastmod>2026-06-02T01:35:30.037Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer.html</loc>
-        <lastmod>2026-05-25T21:30:55.117Z</lastmod>
+        <lastmod>2026-06-02T01:39:24.083Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -3400,6 +3400,10 @@
     <url>
         <loc>https://www.8crafter.com/assets/oreui/assets/Nonconfigurable_icon.png</loc>
         <lastmod>2025-11-08T23:12:47.723Z</lastmod>
+    </url>
+    <url>
+        <loc>https://www.8crafter.com/assets/oreui/assets/ore_ui_customizer_icon.png</loc>
+        <lastmod>2025-07-12T20:08:46.703Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/oreui/assets/radio_off.png</loc>

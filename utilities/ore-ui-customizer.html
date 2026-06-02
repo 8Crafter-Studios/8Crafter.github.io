@@ -81,7 +81,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.13.1" type="module"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.13.2" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -520,7 +520,11 @@
             </settings_section>
             <settings_section id="colors_customizer_settings_section" class="settings_section" style="display: none">
                 <center><h1>Color Replacements Options</h1></center>
-                <p><a href="https://www.youtube.com/@TheOctazen/featured" target="_blank">The Octazen</a> has made a guide to help with color customizations, you can see it here: <a href="https://bgdocs.netlify.app/#/ore_ui_colors/home" target="_blank">https://bgdocs.netlify.app/#/ore_ui_colors/home</a></p>
+                <p>
+                    <a href="https://www.youtube.com/@TheOctazen/featured" target="_blank">The Octazen</a> has made a guide to help with color customizations,
+                    you can see it here:
+                    <a href="https://bgdocs.netlify.app/#/ore_ui_colors/home" target="_blank">https://bgdocs.netlify.app/#/ore_ui_colors/home</a>
+                </p>
                 <form id="colors_options_box" style="text-align: left; width: fit-content">
                     <div class="form-group">
                         <div class="form-group-header">
@@ -2185,7 +2189,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v1.13.1</h1>
+                <h1>8Crafter's Ore UI Customizer v1.13.2</h1>
                 <h4>Instructions</h4>
                 <div class="collapsible-group collapsible-group-collapsed">
                     <div class="collapsible-group-header">
@@ -2242,11 +2246,12 @@
                                                 else it will not detect the parts to replace properly, if you have modifed it, make a backup of it, and repair
                                                 your Minecraft installation.
                                                 <br />
-                                                Go to <code>C:/XboxGames</code> (or whatever folder contains the version folders in your custom launcher), if you are using a custom launcher open the folder for the version that is your current
-                                                Minecraft version, otherwise open
-                                                either the <code>Minecraft for Windows</code> or <code>Minecraft Preview for Windows</code> folder. Then, open the
-                                                <code>data</code> folder if you are using a custom launcher, otherwise open the <code>Content/data</code> folder. Then, right click
-                                                on the <code>gui</code> folder, and click on <code>Compress to... > ZIP File</code>.
+                                                Go to <code>C:/XboxGames</code> (or whatever folder contains the version folders in your custom launcher), if
+                                                you are using a custom launcher open the folder for the version that is your current Minecraft version,
+                                                otherwise open either the <code>Minecraft for Windows</code> or
+                                                <code>Minecraft Preview for Windows</code> folder. Then, open the <code>data</code> folder if you are using a
+                                                custom launcher, otherwise open the <code>Content/data</code> folder. Then, right click on the
+                                                <code>gui</code> folder, and click on <code>Compress to... > ZIP File</code>.
                                             </li>
                                             <li>Click on the "Import .zip file" button at the bottom of the screen.</li>
                                             <li>Upload the .zip file containing your unmodified gui folder.</li>
@@ -2572,7 +2577,7 @@
                         <br />
                         <br />
                         <p>
-                            If you are having issues downloading the .zip file, try using the buttons below instead, make sure to be patient, as on some devices
+                            If you are having issues downloading the .zip file, try using the two buttons below instead, make sure to be patient, as on some devices
                             it could take up to 2 minutes for the file to actually download. (NOTE: The below buttons are slower as they don't use web workers,
                             but that may improve compatibility on some devices. On Android web workers are disabled by default due to instability, even for the
                             above buttons (unless the user agent string isn't recognized as Android).)
@@ -2583,6 +2588,14 @@
                         <a target="_blank" id="download_in_new_tab_link">
                             <button type="button" class="btn nsel" id="download_in_new_tab_link_open_button" disabled>Open Generated Download Link</button>
                         </a>
+                        <br />
+                        <br />
+                        <p>
+                            IMPORTANT!: The below <code>Export as RP</code> option does NOT work on vanilla Minecraft. You need a mod that allows the game to
+                            load Ore UI from resource packs. On Android this would come in the form of a <code>lib.so</code> file and on Windows a
+                            <code>.dll</code> file. You would also need a mod-capable launcher in order to use that mod.
+                        </p>
+                        <button type="button" class="btn nsel" id="export_as_rp" disabled onclick="oreUICustomizer.exportAsRP()">Export as RP (Read above warning)</button>
                         <br />
                         <br />
                         <a href="./ore-ui-customizer-changelogs.html">

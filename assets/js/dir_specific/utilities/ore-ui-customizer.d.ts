@@ -11,6 +11,10 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
+        "v1.26.20-21_PC": {
+            displayName: string;
+            url: string;
+        };
         "v1.26.10-13_PC": {
             displayName: string;
             url: string;
@@ -135,7 +139,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.13.1";
+    const format_version = "1.13.2";
     /**
      * @type {File | undefined}
      */
@@ -375,6 +379,8 @@ export declare namespace OreUICustomizer {
     function applyMods(): Promise<boolean>;
     function downloadInNewTab(): Promise<void>;
     function download(): Promise<void>;
+    function randomUUID(): string;
+    function exportAsRP(): Promise<void>;
 }
 declare global {
     /**

@@ -30,6 +30,8 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        // REVIEW: Make sure the 1.26.21 gui folder is identical to the 1.26.20 gui folder.
+        "v1.26.20-21_PC": { displayName: "v1.26.20/21 (PC)", url: "/assets/zip/gui_mc-v1.26.20_PC.zip" },
         // REVIEW: Make sure the 1.26.13 gui folder is identical to the 1.26.10 gui folder.
         "v1.26.10-13_PC": { displayName: "v1.26.10/11/12/13 (PC)", url: "/assets/zip/gui_mc-v1.26.13_PC.zip" },
         // REVIEW: Make sure the 1.26.3 gui folder is identical to the 1.26.0 gui folder.
@@ -66,7 +68,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.13.1";
+    OreUICustomizer.format_version = "1.13.2";
     /**
      * @type {File | undefined}
      */
@@ -145,6 +147,7 @@ export var OreUICustomizer;
                     $("#import_files_error").prop("hidden", true);
                     $("#apply_mods").prop("disabled", true);
                     $("#download").prop("disabled", true);
+                    $("#export_as_rp").prop("disabled", true);
                     $("#download_in_new_tab_button").prop("disabled", true);
                     $("#download_in_new_tab_link_open_button").prop("disabled", true);
                     $("#download_in_new_tab_link").removeAttr("href");
@@ -264,6 +267,7 @@ export var OreUICustomizer;
             $("#import_files_error").prop("hidden", true);
             $("#apply_mods").prop("disabled", true);
             $("#download").prop("disabled", true);
+            $("#export_as_rp").prop("disabled", true);
             $("#download_in_new_tab_button").prop("disabled", true);
             $("#download_in_new_tab_link_open_button").prop("disabled", true);
             $("#download_in_new_tab_link").removeAttr("href");
@@ -462,6 +466,7 @@ export var OreUICustomizer;
             if (selectedInput.value === OreUICustomizer.currentPreset)
                 return;
             $("#download").prop("disabled", true);
+            $("#export_as_rp").prop("disabled", true);
             $("#download_in_new_tab_button").prop("disabled", true);
             $("#download_in_new_tab_link_open_button").prop("disabled", true);
             $("#download_in_new_tab_link").removeAttr("href");
@@ -1539,6 +1544,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
         $("#apply_mods").prop("disabled", true);
         $("#current_customizer_status").text("Validating zip file...");
         $("#download").prop("disabled", true);
+        $("#export_as_rp").prop("disabled", true);
         $("#download_in_new_tab_button").prop("disabled", true);
         $("#download_in_new_tab_link_open_button").prop("disabled", true);
         $("#download_in_new_tab_link").removeAttr("href");
@@ -3079,6 +3085,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
         $("#customizer_loading_bar").hide();
         $("#apply_mods").prop("disabled", false);
         $("#download").prop("disabled", false);
+        $("#export_as_rp").prop("disabled", false);
         $("#download_in_new_tab_button").prop("disabled", false);
         for (const plugin of plugins) {
             if (!globalPluginEnvIDs.has(plugin))
@@ -3096,12 +3103,13 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             throw new Error("zipFs is undefined");
         }
         $("#download").prop("disabled", true);
+        $("#export_as_rp").prop("disabled", true);
         $("#download_in_new_tab_button").prop("disabled", true);
         $("#current_customizer_status").text("Exporting modified zip file...");
         $("#customizer_loading_bar").show();
         await new Promise((resolve) => setTimeout(resolve, 1));
-        let lastStatus = "Applying mods (Modifying files)...";
-        let lastAppliedStatus = "Applying mods (Modifying files)...";
+        let lastStatus = "Exporting modified zip file...";
+        let lastAppliedStatus = "Exporting modified zip file...";
         const STATUS_UPDATE_INTERVAL = 10;
         const statusUpdateIntervalId = setInterval(() => {
             if (lastStatus === lastAppliedStatus)
@@ -3129,6 +3137,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             $("#customizer_loading_bar").hide();
             $("#current_customizer_status").text("");
             $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
             $("#download_in_new_tab_button").prop("disabled", false);
             $("#download_in_new_tab_link_open_button").prop("disabled", false);
         }
@@ -3143,6 +3152,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             $("#import_files_error").prop("hidden", false);
             $("#customizer_loading_bar").hide();
             $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
             $("#download_in_new_tab_button").prop("disabled", false);
             $("#current_customizer_status").text("Download link generation failed.");
             return;
@@ -3157,12 +3167,13 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             throw new Error("zipFs is undefined");
         }
         $("#download").prop("disabled", true);
+        $("#export_as_rp").prop("disabled", true);
         $("#download_in_new_tab_button").prop("disabled", true);
         $("#current_customizer_status").text("Exporting modified zip file...");
         $("#customizer_loading_bar").show();
         await new Promise((resolve) => setTimeout(resolve, 1));
-        let lastStatus = "Applying mods (Modifying files)...";
-        let lastAppliedStatus = "Applying mods (Modifying files)...";
+        let lastStatus = "Exporting modified zip file...";
+        let lastAppliedStatus = "Exporting modified zip file...";
         const STATUS_UPDATE_INTERVAL = 10;
         const statusUpdateIntervalId = setInterval(() => {
             if (lastStatus === lastAppliedStatus)
@@ -3187,6 +3198,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             $("#customizer_loading_bar").hide();
             $("#current_customizer_status").text("");
             $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
             $("#download_in_new_tab_button").prop("disabled", false);
         }
         catch (e) {
@@ -3200,12 +3212,149 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             $("#import_files_error").prop("hidden", false);
             $("#customizer_loading_bar").hide();
             $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
             $("#download_in_new_tab_button").prop("disabled", false);
             $("#current_customizer_status").text("Download failed.");
             return;
         }
     }
     OreUICustomizer.download = download;
+    function randomUUID() {
+        const chars = "0123456789abcdef";
+        var random_1 = "";
+        var random_2 = "";
+        var random_3 = "";
+        var random_4 = "";
+        var random_5 = "";
+        for (var i = 0; i < 8; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_1 += chars.substring(rnum, rnum + 1);
+        }
+        for (var i = 0; i < 4; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_2 += chars.substring(rnum, rnum + 1);
+        }
+        random_3 += "4";
+        for (var i = 0; i < 3; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_3 += chars.substring(rnum, rnum + 1);
+        }
+        {
+            const chars = "89ab";
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_4 += chars.substring(rnum, rnum + 1);
+        }
+        for (var i = 0; i < 3; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_4 += chars.substring(rnum, rnum + 1);
+        }
+        for (var i = 0; i < 12; i++) {
+            var rnum = Math.floor(Math.random() * chars.length);
+            random_5 += chars.substring(rnum, rnum + 1);
+        }
+        var uuid = random_1 + "-" + random_2 + "-" + random_3 + "-" + random_4 + "-" + random_5;
+        return uuid;
+    }
+    OreUICustomizer.randomUUID = randomUUID;
+    async function exportAsRP() {
+        if (OreUICustomizer.zipFs === undefined) {
+            throw new Error("zipFs is undefined");
+        }
+        $("#download").prop("disabled", true);
+        $("#export_as_rp").prop("disabled", true);
+        $("#download_in_new_tab_button").prop("disabled", true);
+        $("#current_customizer_status").text("Exporting modified zip file as resource pack...");
+        $("#customizer_loading_bar").show();
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        let lastStatus = "Exporting modified zip file as resource pack...";
+        let lastAppliedStatus = "Exporting modified zip file as resource pack...";
+        const STATUS_UPDATE_INTERVAL = 10;
+        const statusUpdateIntervalId = setInterval(() => {
+            if (lastStatus === lastAppliedStatus)
+                return;
+            lastAppliedStatus = lastStatus;
+            $("#current_customizer_status").text(lastAppliedStatus);
+        }, STATUS_UPDATE_INTERVAL);
+        lastStatus = "Cloning zip...";
+        // const rpZipFS = new zip.fs.FS();
+        // await rpZipFS.importUint8Array(await zipFs.exportUint8Array());
+        lastStatus = "Adding RP-specific files...";
+        const manifestFileEntry = OreUICustomizer.zipFs.find("manifest.json") ? null : (OreUICustomizer.zipFs.addText("manifest.json", JSON.stringify({
+            format_version: 2,
+            header: {
+                description: `Created at: ${new Date().toUTCString()}; 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}; This pack was generated at §bhttps://www.8crafter.com/utilities/ore-ui-customizer`,
+                name: `8Crafter's Ore UI Customizer v${OreUICustomizer.format_version} - ${Date.now()}`,
+                uuid: randomUUID(),
+                version: [
+                    Number(Date.now().toString().slice(-13, -8)) % 65536,
+                    Number(Date.now().toString().slice(-8, -4)),
+                    Number(Date.now().toString().slice(-4)),
+                ],
+                min_engine_version: [1, 20, 0],
+            },
+            modules: [
+                {
+                    description: `Created at: ${new Date().toUTCString()}; 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}; This pack was generated at §bhttps://www.8crafter.com/utilities/ore-ui-customizer`,
+                    type: "data",
+                    uuid: randomUUID(),
+                    version: [
+                        Number(Date.now().toString().slice(-13, -8)) % 65536,
+                        Number(Date.now().toString().slice(-8, -4)),
+                        Number(Date.now().toString().slice(-4)),
+                    ],
+                },
+            ],
+            metadata: {
+                authors: ["Andexter8", "Andersen Zahn", "8Crafter"],
+                url: "https://www.8crafter.com/utilities/ore-ui-customizer",
+                generated_with: {
+                    "8CraftersOreUICustomizer": [OreUICustomizer.format_version],
+                },
+            },
+        }, null, 4)));
+        const iconFileEntry = OreUICustomizer.zipFs.find("pack_icon.png") ? null : (OreUICustomizer.zipFs.addBlob("pack_icon.png", await fetch("/assets/oreui/assets/ore_ui_customizer_icon.png").then((r) => r.blob())));
+        try {
+            const blob = await OreUICustomizer.zipFs.exportBlob({
+                async onprogress(progress, total) {
+                    lastStatus = `Compressing modified zip file as RP (${progress}/${total}) (${((progress / total) * 100).toFixed(1)}%)...`;
+                },
+            });
+            clearInterval(statusUpdateIntervalId);
+            $("#current_customizer_status").text("Generating download URI for RP...");
+            const url = URL.createObjectURL(blob);
+            $("#current_customizer_status").text("Downloading modified zip file as resource pack...");
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "gui-mod.mcpack";
+            a.click();
+            $("#customizer_loading_bar").hide();
+            $("#current_customizer_status").text("");
+            $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+        }
+        catch (e) {
+            console.error(e);
+            clearInterval(statusUpdateIntervalId);
+            $("#import_files_error").css("color", "red");
+            $("#import_files_error").text("");
+            const newWarning = `<b>An error occurred while downloading the modified zip file as a resource pack:</b>
+<pre>${e}</pre>`;
+            $("#import_files_error").append(newWarning);
+            $("#import_files_error").prop("hidden", false);
+            $("#customizer_loading_bar").hide();
+            $("#download").prop("disabled", false);
+            $("#export_as_rp").prop("disabled", false);
+            $("#download_in_new_tab_button").prop("disabled", false);
+            $("#current_customizer_status").text("Download failed.");
+            return;
+        }
+        if (manifestFileEntry)
+            OreUICustomizer.zipFs.remove(manifestFileEntry);
+        if (iconFileEntry)
+            OreUICustomizer.zipFs.remove(iconFileEntry);
+    }
+    OreUICustomizer.exportAsRP = exportAsRP;
 })(OreUICustomizer || (OreUICustomizer = {}));
 Object.defineProperties(globalThis, {
     oreUICustomizer: { enumerable: true, value: OreUICustomizer, writable: false },
