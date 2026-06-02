@@ -56,7 +56,7 @@ router.get("/console_run", function (req, res) {
     res.sendFile(path.join(import.meta.dirname + "/docs/index.html"));
 }); */
 app.use("/", express.static(import.meta.dirname + "/"));
-app.use(express.static(import.meta.dirname + "/"));
+app.use(express.static(import.meta.dirname + "/", { extensions: ["html", "htm"] }));
 // app.use(express.static(import.meta.dirname + "/editor"));
 app.use(text());
 app.use(json());

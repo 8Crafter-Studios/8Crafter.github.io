@@ -25,9 +25,9 @@ export default function getComponent(tabIndex = -1, page = "") {
         }
         <ul class="horizontal-nav full-sized-nav">
             <li class="NavLink_8Crafter"><a href="/" style="padding-top: 4px; padding-bottom: 4px"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px"></image><span class="NavLink_8Crafter_Span" style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial">8Crafter</span></a></li>
-            <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index.html" rel="keep-params">Home</a></li>
-            <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
-            <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about.html" rel="keep-params">About</a></li>
+            <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index" rel="keep-params">Home</a></li>
+            <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact" rel="keep-params">Contact</a></li>
+            <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about" rel="keep-params">About</a></li>
             <li${
                 tabIndex == 3 ? ' class="active"' : ""
             }><a href="https://wiki.8crafter.com/main/">Wiki<image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 9.5px 0px; padding-right: 10px;" title="External Link"></image></a></li>
@@ -54,12 +54,12 @@ export default function getComponent(tabIndex = -1, page = "") {
                     <div class="navbar-dropdown-content">
                         <a${
                             tabIndex == 100 ? ' class="active"' : ""
-                        } href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
+                        } href="/debug-sticks-add-on/andexdbnbtstructureloader" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
                         <a${
                             tabIndex == 101 ? ' class="active"' : ""
-                        } href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
-                        <a${tabIndex == 102 ? ' class="active"' : ""} href="/utilities/mcstructure-loader.html" rel="keep-params">Structure Loader</a>
-                        <a${tabIndex == 103 ? ' class="active"' : ""} href="/utilities/ore-ui-customizer.html" rel="keep-params">Ore UI Customizer</a>
+                        } href="/andexdb-security-configurator-generator" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                        <a${tabIndex == 102 ? ' class="active"' : ""} href="/utilities/mcstructure-loader" rel="keep-params">Structure Loader</a>
+                        <a${tabIndex == 103 ? ' class="active"' : ""} href="/utilities/ore-ui-customizer" rel="keep-params">Ore UI Customizer</a>
                     </div>
                 </div>
             </li>
@@ -84,7 +84,7 @@ export default function getComponent(tabIndex = -1, page = "") {
                         />
                     </button>
                     <div class="navbar-dropdown-content">
-                        <a${tabIndex == 200 ? ' class="active"' : ""} href="/misc/subdomains-list.html" rel="keep-params">Subdomains List</a>
+                        <a${tabIndex == 200 ? ' class="active"' : ""} href="/misc/subdomains-list" rel="keep-params">Subdomains List</a>
                     </div>
                 </div>
             </li>
@@ -97,9 +97,9 @@ export default function getComponent(tabIndex = -1, page = "") {
         <div id="nav-sidebar" class="blur_behind_5px" style="display: none;">
             <ul class="vertical-nav compressed-nav" style="background-color: unset;">
             <!-- <li style="height: 48px; margin-bottom: -5px;"><a href="/" style="padding-top: 4px; padding-bottom: 4px;"><image title="8Crafter" src="/favicon.ico" width="32px" height="32px" class="piximg" style="vertical-align: middle; margin-right: 5px; padding: 2px 0px;"></image><span style="vertical-align: text-bottom; font-size: 32px; font-family: Mojangles; line-height: initial;">8Crafter</span></a></li> -->
-            <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index.html" rel="keep-params">Home</a></li>
-            <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact.html" rel="keep-params">Contact</a></li>
-            <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about.html" rel="keep-params">About</a></li>
+            <li${tabIndex == 0 ? ' class="active"' : ""}><a href="/index" rel="keep-params">Home</a></li>
+            <li${tabIndex == 1 ? ' class="active"' : ""}><a href="/main/contact" rel="keep-params">Contact</a></li>
+            <li${tabIndex == 2 ? ' class="active"' : ""}><a href="/main/about" rel="keep-params">About</a></li>
             <li${
                 tabIndex == 3 ? ' class="active"' : ""
             }><a href="https://wiki.8crafter.com/main/">Wiki<inlinecontainer class="nav-image-invert-on-button-hover"><image src="/assets/images/ui/glyphs/external_link.png" style="width: 17px; height: 17px; margin: -10px -10px -10px 5px; image-rendering: pixelated; vertical-align: middle; padding: 7.5px 0px; filter: invert(1);" title="External Link"></image></inlinecontainer></a></li>
@@ -126,12 +126,12 @@ export default function getComponent(tabIndex = -1, page = "") {
                     <div class="navbar-dropdown-content no_absolute_display no_bg_color_override">
                         <a${
                             tabIndex == 100 ? ' class="active"' : ""
-                        } href="/debug-sticks-add-on/andexdbnbtstructureloader.html" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
+                        } href="/debug-sticks-add-on/andexdbnbtstructureloader" rel="keep-params">Map Art Generator for 8Crafter's Debug Sticks Add-On</a>
                         <a${
                             tabIndex == 101 ? ' class="active"' : ""
-                        } href="/andexdb-security-configurator-generator.html" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
-                        <a${tabIndex == 102 ? ' class="active"' : ""} href="/utilities/mcstructure-loader.html" rel="keep-params">Structure Loader</a>
-                        <a${tabIndex == 103 ? ' class="active"' : ""} href="/utilities/ore-ui-customizer.html" rel="keep-params">Ore UI Customizer</a>
+                        } href="/andexdb-security-configurator-generator" rel="keep-params">Security Configurator Pack Generator for 8Crafter's Debug Sticks</a>
+                        <a${tabIndex == 102 ? ' class="active"' : ""} href="/utilities/mcstructure-loader" rel="keep-params">Structure Loader</a>
+                        <a${tabIndex == 103 ? ' class="active"' : ""} href="/utilities/ore-ui-customizer" rel="keep-params">Ore UI Customizer</a>
                     </div>
                 </div>
             </li>
@@ -156,7 +156,7 @@ export default function getComponent(tabIndex = -1, page = "") {
                         />
                     </button>
                     <div class="navbar-dropdown-content no_absolute_display no_bg_color_override">
-                        <a${tabIndex == 200 ? ' class="active"' : ""} href="/misc/subdomains-list.html" rel="keep-params">Subdomains List</a>
+                        <a${tabIndex == 200 ? ' class="active"' : ""} href="/misc/subdomains-list" rel="keep-params">Subdomains List</a>
                     </div>
                 </div>
             </li>
