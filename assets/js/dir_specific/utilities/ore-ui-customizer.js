@@ -3295,7 +3295,7 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             modules: [
                 {
                     description: `Created at: ${new Date().toUTCString()}; 8Crafter's Ore UI Customizer v${OreUICustomizer.format_version}; This pack was generated at §bhttps://www.8crafter.com/utilities/ore-ui-customizer`,
-                    type: "data",
+                    type: "resources",
                     uuid: randomUUID(),
                     version: [
                         Number(Date.now().toString().slice(-13, -8)) % 65536,
