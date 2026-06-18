@@ -499,7 +499,28 @@ declare global {
          *
          * It sources from both {@link facetSpyData.sharedFacets} and {@link accessedFacets}.
          *
+         * If the facetSpy is not injected, this will not exist.
+         *
          * @returns The accessible facets.
+         *
+         * @todo Maybe add a parameter for context for getting facets from accessedFacets.
+         */
+        function getAccessibleFacetSpyFacets_internal(): Partial<{ [FacetType in FacetList[number]]: FacetTypeMap[FacetType] }> & Record<string, unknown>;
+        /**
+         * Returns a list of all accessible facets from the facetSpy data (if available) and the FacetManager data.
+         *
+         * It sources from {@link facetSpyData.sharedFacets}, {@link accessedFacets}, and {@link FacetManager}.
+         *
+         * If the facetSpy data is not available, it sources from only {@link FacetManager}.
+         *
+         * If {@link FacetManager} is not available, this gets set to the getAccessibleFacetSpyFacets_internal function, and as a result it sources from only
+         * {@link facetSpyData.sharedFacets} and {@link accessedFacets}.
+         *
+         * If neither are available, it throws an error.
+         *
+         * @returns The accessible facets.
+         *
+         * @throws {ReferenceError} If neither the facetSpy data nor the {@link FacetManager} are available.
          *
          * @todo Maybe add a parameter for context for getting facets from accessedFacets.
          */

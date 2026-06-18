@@ -24,10 +24,11 @@ import type {} from "@ore-ui-customizer-api/plugin-env/backend";
  */
 export namespace OreUICustomizer {
     /**
+     * Checks if two array buffers are equal.
      *
-     * @param buf1
-     * @param buf2
-     * @returns
+     * @param buf1 The first array buffer.
+     * @param buf2 The second array buffer.
+     * @returns True if the two array buffers are equal, false otherwise.
      *
      * @see https://stackoverflow.com/a/21554107/16872762
      */
@@ -45,11 +46,10 @@ export namespace OreUICustomizer {
      */
     export const currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
-        // REVIEW: Make sure the 1.26.21 gui folder is identical to the 1.26.20 gui folder.
-        "v1.26.20-21_PC": { displayName: "v1.26.20/21 (PC)", url: "/assets/zip/gui_mc-v1.26.20_PC.zip" },
-        // REVIEW: Make sure the 1.26.13 gui folder is identical to the 1.26.10 gui folder.
+        "v1.26.30_PC": { displayName: "v1.26.30 (PC)", url: "/assets/zip/gui_mc-v1.26.30_PC.zip" },
+        "v1.26.21_PC": { displayName: "v1.26.21 (PC)", url: "/assets/zip/gui_mc-v1.26.21_PC.zip" },
+        "v1.26.20_PC": { displayName: "v1.26.20 (PC)", url: "/assets/zip/gui_mc-v1.26.20_PC.zip" },
         "v1.26.10-13_PC": { displayName: "v1.26.10/11/12/13 (PC)", url: "/assets/zip/gui_mc-v1.26.13_PC.zip" },
-        // REVIEW: Make sure the 1.26.3 gui folder is identical to the 1.26.0 gui folder.
         "v1.26.0-3_PC": { displayName: "v1.26.0/1/2/3 (PC)", url: "/assets/zip/gui_mc-v1.26.0_PC.zip" },
         "v1.21.130-131_PC": { displayName: "v1.21.130-131 (PC)", url: "/assets/zip/gui_mc-v1.21.130_PC.zip" },
         "v1.21.120-124_PC": { displayName: "v1.21.120-124 (PC)", url: "/assets/zip/gui_mc-v1.21.120_PC.zip" },
@@ -63,8 +63,21 @@ export namespace OreUICustomizer {
         "v1.21.80_Android": { displayName: "v1.21.80 (Android)", url: "/assets/zip/gui_mc-v1.21.80_Android.zip" },
         "v1.21.70-71_PC": { displayName: "v1.21.70-71 (PC)", url: "/assets/zip/gui_mc-v1.21.70-71_PC.zip" },
         "v1.21.70-71_Android": { displayName: "v1.21.70-71 (Android)", url: "/assets/zip/gui_mc-v1.21.70-71_Android.zip" },
+        "v1.26.40-preview.26_PC": { displayName: "v1.26.40.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.40-preview.26_PC.zip" },
+        "v1.26.40-preview.22_PC": { displayName: "v1.26.40.22 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.40-preview.22_PC.zip" },
+        "v1.26.40-preview.20_PC": { displayName: "v1.26.40.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.40-preview.20_PC.zip" },
+        "v1.26.30-preview.32_PC": { displayName: "v1.26.30.32 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.32_PC.zip" },
+        "v1.26.30-preview.29_PC": { displayName: "v1.26.30.29 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.29_PC.zip" },
+        "v1.26.30-preview.28_PC": { displayName: "v1.26.30.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.28_PC.zip" },
+        "v1.26.30-preview.27_PC": { displayName: "v1.26.30.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.27_PC.zip" },
+        "v1.26.30-preview.25_PC": { displayName: "v1.26.30.25 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.25_PC.zip" },
+        "v1.26.30-preview.20_PC": { displayName: "v1.26.30.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.30-preview.20_PC.zip" },
         "v1.26.20-preview.27_PC": { displayName: "v1.26.20.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.27_PC.zip" },
         "v1.26.20-preview.26_PC": { displayName: "v1.26.20.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.26_PC.zip" },
+        "v1.26.20-preview.23_PC": { displayName: "v1.26.20.23 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.23_PC.zip" },
+        "v1.26.20-preview.22_PC": { displayName: "v1.26.20.22 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.22_PC.zip" },
+        "v1.26.20-preview.21_PC": { displayName: "v1.26.20.21 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.21_PC.zip" },
+        "v1.26.20-preview.20_PC": { displayName: "v1.26.20.20 Preview (PC)", url: "/assets/zip/gui_mc-v1.26.20-preview.20_PC.zip" },
         "v1.21.130-preview.28_PC": { displayName: "v1.21.130.28 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.28_PC.zip" },
         "v1.21.130-preview.27_PC": { displayName: "v1.21.130.27 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.130-preview.27_PC.zip" },
         "v1.21.110-preview.26_PC": { displayName: "v1.21.110.26 Preview (PC)", url: "/assets/zip/gui_mc-v1.21.110-preview.26_PC.zip" },
@@ -83,7 +96,7 @@ export namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    export const format_version = "1.13.2";
+    export const format_version = "1.14.0";
     /**
      * @type {File | undefined}
      */
@@ -3004,7 +3017,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                             let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
                                 origData
                                     .match(
-                                        /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
+                                        /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:(?:[a-zA-Z0-9_$]{1})\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
                                     )
                                     ?.slice(1, 4) ?? [];
                             disabledVariableSymbolName ??= "n";
@@ -3023,20 +3036,20 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                                                         ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
-                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
+                                                                function ({ onClick: eAA, selected: tAA, disabled: ${disabledVariableSymbolName}AAQ1, focusGridIndex: rAA, role: lAA = "inherit" }) {
                                                                     return ${extractedSymbolNames.contextHolder}.createElement(
                                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                                         null,
                                                                         ${extractedSymbolNames.contextHolder}.createElement(
                                                                             ${extractedSymbolNames.navbarButtonFunction},
                                                                             {
-                                                                                disabled: ${disabledVariableSymbolName},
+                                                                                disabled: ${disabledVariableSymbolName}AAQ1,
                                                                                 // focusGridIndex: rAA,
                                                                                 inputLegend: "8Crafter Utilities",
                                                                                 // narrationText: "8Crafter Utilities Button",
-                                                                                onClick: e,
-                                                                                role: l,
-                                                                                selected: t,
+                                                                                onClick: eAA,
+                                                                                role: lAA,
+                                                                                selected: tAA,
                                                                                 className: "reverse_m2lNR_rightPadding",
                                                                             },
                                                                             ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.navbarButtonImageFunction}, {

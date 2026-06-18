@@ -1310,6 +1310,12 @@ var globalThis;
         },
     });
 })(globalThis || (globalThis = {}));
+globalThis.getAccessibleFacetSpyFacets = function getAccessibleFacetSpyFacets() {
+    if (globalThis.getAccessibleFacetSpyFacets_internal === undefined && typeof FacetManager === "undefined") {
+        throw new ReferenceError("[getAccessibleFacetSpyFacets] Neither the facetSpy data nor the FacetManager are available.");
+    }
+    return { ...globalThis.getAccessibleFacetSpyFacets_internal?.(), ...FacetManager.facetData };
+};
 /**
  * Whether to intercept engine subscriptions and store them in the {@link hookedEngineSubscriptions} object.
  *
@@ -6789,6 +6795,9 @@ function addScrollbarToHTMLElement(element) {
             totalHeight = element.scrollHeight;
             if (element.parentElement)
                 visibleHeight = element.parentElement.getBoundingClientRect().height;
+            // UNDONE: This did not work because element.scrollHeight includes the additional empty space from the larger element.scrollTop.
+            // Snap the scroll position to be within the bounds.
+            // element.scrollTop = Math.min(element.scrollTop, totalHeight));
             scrollbarHeight = Math.max(60, (visibleHeight / totalHeight) * visibleHeight);
             scrollbarTop = Math.min((element.scrollTop / (totalHeight - visibleHeight)) * (visibleHeight - scrollbarHeight), visibleHeight - scrollbarHeight);
             scrollbar.style.height = `${scrollbarHeight}px`;
@@ -6909,6 +6918,13 @@ async function enableLitePlayScreen(noReload = false) {
      */
     //@ts-ignore
     const contentContainerElement = elements.find((element) => !element.classList.contains("vanilla-neutral20-background") && element.hasAttribute("data-landmark-id") && !element.hasAttribute("data-in-use")) ?? null;
+    try {
+        if ((getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"] ?? (await forceLoadFacet("vanilla.realmsListFacet"))).realms.length === 0) {
+            console.debug("Force fetching realms list."); // DEBUG
+            (getAccessibleFacetSpyFacets()["vanilla.realmsListFacet"] ?? (await forceLoadFacet("vanilla.realmsListFacet"))).forceFetchRealmsList?.();
+        }
+    }
+    catch { }
     //@ts-ignore
     contentContainerElement.setAttribute("data-in-use", "true");
     //@ts-ignore
@@ -8907,7 +8923,7 @@ queueMicrotask(() => {
         else if (e.keyCode === types_KeyboardKey.KEY_I && e.ctrlKey && e.altKey && !e.shiftKey) {
             e.preventDefault();
         }
-        else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey && !e.shiftKey) {
+        else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey /* && !e.shiftKey */) {
             e.preventDefault();
         }
         else if (e.keyCode === types_KeyboardKey.KEY_C && e.ctrlKey && e.altKey && !e.shiftKey) {
@@ -8976,7 +8992,7 @@ queueMicrotask(() => {
             e.preventDefault();
             toggleGeneralDebugOverlayElement();
         }
-        else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey && !e.shiftKey) {
+        else if (e.keyCode === types_KeyboardKey.KEY_M && e.ctrlKey && e.altKey /* && !e.shiftKey */) {
             e.preventDefault();
             if (mainMenu8CrafterUtilities.style.display === "none") {
                 mainMenu8CrafterUtilities.style.display = "block";
@@ -9494,168 +9510,173 @@ Pixels Per Millimeter: ${pixelsPerMillimeter ?? "Loading..."}`;
     // 8Crafter Utilities Main Menu, accessed with CTRL+M.
     const mainMenu8CrafterUtilitiesTempContainer = document.createElement("div");
     mainMenu8CrafterUtilitiesTempContainer.innerHTML = `<div id="mainMenu8CrafterUtilities" style="background-color: #00000080; color: #FFFFFFFF; width: 75vw; height: 75vh; position: fixed; top: 12.5vh; left: 12.5vw; z-index: 20000000; display: none; border: 5px solid #87CEEb;" draggable="true">
-    <div id="8CrafterUtilitiesMenu_leftSidebar" style="display: block; height: 100%; width: 30%; border-right: 5px solid #87CEEb; position: absolute; top: 0; left: 0;">
-        <button type="button" class="btn nsel selected" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_general" onclick="setMainMenu8CrafterUtilitiesTab('general'); event.preventDefault();">General</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_about" onclick="setMainMenu8CrafterUtilitiesTab('about'); event.preventDefault();">About</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_autoJoin" onclick="setMainMenu8CrafterUtilitiesTab('autoJoin'); event.preventDefault();">Auto Rejoin</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_router" onclick="setMainMenu8CrafterUtilitiesTab('router'); event.preventDefault();">Router</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_performance" onclick="setMainMenu8CrafterUtilitiesTab('performance'); event.preventDefault();">Performance</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_dev" onclick="setMainMenu8CrafterUtilitiesTab('dev'); event.preventDefault();">Dev</button>
-        <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_debug" onclick="setMainMenu8CrafterUtilitiesTab('debug'); event.preventDefault();">Debug</button>
-        <!-- <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_facets" onclick="setMainMenu8CrafterUtilitiesTab('facets'); event.preventDefault();">Facets</button> -->
+    <div id="8CrafterUtilitiesMenu_leftSidebar_outer" style="display: block; height: 100%; width: 30%; border-right: 5px solid #87CEEb; position: absolute; top: 0; left: 0;">
+        <div id="8CrafterUtilitiesMenu_leftSidebar" style="display: block; overflow-y: scroll; height: 100%; width: 100%; position: absolute; top: 0; left: 0;" class="addScrollbar">
+            <button type="button" class="btn nsel selected" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_general" onclick="setMainMenu8CrafterUtilitiesTab('general'); event.preventDefault();">General</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_UIs" onclick="setMainMenu8CrafterUtilitiesTab('UIs'); event.preventDefault();">UIs</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_about" onclick="setMainMenu8CrafterUtilitiesTab('about'); event.preventDefault();">About</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_autoJoin" onclick="setMainMenu8CrafterUtilitiesTab('autoJoin'); event.preventDefault();">Auto Rejoin</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_router" onclick="setMainMenu8CrafterUtilitiesTab('router'); event.preventDefault();">Router</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_performance" onclick="setMainMenu8CrafterUtilitiesTab('performance'); event.preventDefault();">Performance</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_dev" onclick="setMainMenu8CrafterUtilitiesTab('dev'); event.preventDefault();">Dev</button>
+            <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_debug" onclick="setMainMenu8CrafterUtilitiesTab('debug'); event.preventDefault();">Debug</button>
+            <!-- <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_tabButton_facets" onclick="setMainMenu8CrafterUtilitiesTab('facets'); event.preventDefault();">Facets</button> -->
+        </div>
     </div>
-    <div id="8CrafterUtilitiesMenu_rightSide" style="display: block; height: 100%; width: 70%; border-right: 5px solid #87CEEb; position: absolute; top: 0; right: 0; padding: 1rem; padding-right: 10px; overflow-y: scroll;" class="addScrollbar">
-        <div id="8CrafterUtilitiesMenu_general" style="display: block;">
-            <center>
-                <h1>8Crafter Utilities</h1>
-            </center>
-            <p>
-                <span style="white-space: pre-wrap;"><b>Version:</b> ${typeof oreUICustomizerVersion !== "undefined" ?
+    <div id="8CrafterUtilitiesMenu_rightSide_outer" style="display: block; height: 100%; width: 70%; border-right: 5px solid #87CEEb; position: absolute; top: 0; right: 0;">
+        <div id="8CrafterUtilitiesMenu_rightSide" style="display: block; overflow-y: scroll; height: 100%; width: 100%; position: absolute; top: 0; left: 0; padding: 1rem;" class="addScrollbar">
+            <div id="8CrafterUtilitiesMenu_general" style="display: block;">
+                <center>
+                    <h1>8Crafter Utilities</h1>
+                </center>
+                <p>
+                    <span style="white-space: pre-wrap;"><b>Version:</b> ${typeof oreUICustomizerVersion !== "undefined" ?
         `v${oreUICustomizerVersion}`
         : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'}</span>
-            </p>
-            <p>
-                <span style="white-space: pre-wrap;"><b>Config:</b> ${typeof oreUICustomizerConfig !== "undefined" ?
+                </p>
+                <p style="margin-top: 0;">
+                    <div style="white-space: pre-wrap;"><b>Config:</b></div>
+                    <span style="white-space: pre-wrap; font-family: Consolas;">${typeof oreUICustomizerConfig !== "undefined" ?
         JSON.stringify(oreUICustomizerConfig, undefined, 4)
         : '<em style="color: red;"><strong>&lt;MISSING CONFIG!&gt;</strong></em>'}</span>
-            </p>
-        </div>
-        <div id="8CrafterUtilitiesMenu_UIs" style="display: none;">
-            <center>
-                <h1>UIs</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_viewHTMLSource" onclick="toggleHTMLSourceCodePreviewElement(); event.preventDefault();">View HTML Source</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_CSSEditor" onclick="cssEditorDisplayElement.style.display = cssEditorDisplayElement.style.display === 'none' ? 'block' : 'none'; event.preventDefault();">CSS Editor</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_smallCornerDebugOverlayElement" onclick="toggleSmallCornerDebugOverlay(); event.preventDefault();">Small Corner Debug Overlay</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_statsCornerDebugOverlayElement" onclick="toggleStatsCornerDebugOverlay(); event.preventDefault();">Stats Corner Debug Overlay</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_elementGeneralDebugOverlayElement" onclick="toggleGeneralDebugOverlayElement(); event.preventDefault();">Element General Debug Overlay</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_consoleOverlay" onclick="toggleConsoleOverlay(); event.preventDefault();">Console</button>
-            <h2>F3 Graphs</h2>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FPS'); event.preventDefault();">Lagometer</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('ELL'); event.preventDefault();">Event Loop Lag Graph</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FCD'); event.preventDefault();">Frame Callback Delay Graph</button>
-        </div>
-        <div id="8CrafterUtilitiesMenu_about" style="display: none;">
-            <center>
-                <h1>About</h1>
-            </center>
-            <p>
-                8Crafter's Ore UI Customizer ${typeof oreUICustomizerVersion !== "undefined" ?
+                </p>
+            </div>
+            <div id="8CrafterUtilitiesMenu_UIs" style="display: none;">
+                <center>
+                    <h1>UIs</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_viewHTMLSource" onclick="toggleHTMLSourceCodePreviewElement(); event.preventDefault();">View HTML Source</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_CSSEditor" onclick="cssEditorDisplayElement.style.display = cssEditorDisplayElement.style.display === 'none' ? 'block' : 'none'; event.preventDefault();">CSS Editor</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_smallCornerDebugOverlayElement" onclick="toggleSmallCornerDebugOverlay(); event.preventDefault();">Small Corner Debug Overlay</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_statsCornerDebugOverlayElement" onclick="toggleStatsCornerDebugOverlay(); event.preventDefault();">Stats Corner Debug Overlay</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_elementGeneralDebugOverlayElement" onclick="toggleGeneralDebugOverlayElement(); event.preventDefault();">Element General Debug Overlay</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_consoleOverlay" onclick="toggleConsoleOverlay(); event.preventDefault();">Console</button>
+                <h2>F3 Graphs</h2>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FPS'); event.preventDefault();">Lagometer</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('ELL'); event.preventDefault();">Event Loop Lag Graph</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_perfGraph_FPS_overlay" onclick="togglePerfGraphDebugOverlay('FCD'); event.preventDefault();">Frame Callback Delay Graph</button>
+            </div>
+            <div id="8CrafterUtilitiesMenu_about" style="display: none;">
+                <center>
+                    <h1>About</h1>
+                </center>
+                <p>
+                    8Crafter's Ore UI Customizer ${typeof oreUICustomizerVersion !== "undefined" ?
         `v${oreUICustomizerVersion}`
         : '<em style="color: red;"><strong>&lt;MISSING VERSION!&gt;</strong></em>'}
-            </p>
-            <p>
-                <span style="display: inline;">Source: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://www.8crafter.com/utilities/ore-ui-customizer');})()">https://www.8crafter.com/utilities/ore-ui-customizer</span></span>
-            </p>
-            <h3>Support</h3>
-            <p>
-                <span style="display: inline;">Discord: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://discord.8crafter.com');})()">https://discord.8crafter.com</span></span>
-            </p>
-            <p>
-                <span style="display: inline;">GitHub: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://github.com/8Crafter-Studios/8Crafter.github.io');})()">https://github.com/8Crafter-Studios/8Crafter.github.io</span></span>
-            </p>
-            <p>
-                <span style="display: inline;">Email: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('mailto:8crafteryt@gmail.com');})()">8crafteryt@gmail.com</span></span>
-            </p>
-            <h3>Keyboard Shortcuts</h3>
-            <ul>
-                <li>
-                    <code>CTRL + P</code> - Toggle CSS Editor visibility.
-                </li>
-                <li>
-                    <code>CTRL + O</code> - Toggle Target Element HTML Source Code Preview visibility.
-                </li>
-                <li>
-                    <code>CTRL + I</code> - Toggle Small Corner Debug Overlay visibility.
-                </li>
-                <li>
-                    <code>CTRL + ALT + I</code> - Toggle Element General Debug Overlay visibility.
-                </li>
-                <li>
-                    <code>CTRL + SHIFT + I</code> - Toggle Stats Corner Debug Overlay visibility.
-                </li>
-                <li>
-                    <code>CTRL + ALT + M</code> - Toggle 8Crafter Utilities Menu visibility.
-                </li>
-                <li>
-                    <code>CTRL + ALT + C</code> - Toggle Console visibility.
-                </li>
-                <li>
-                    <code>CTRL + S</code> - Toggle HTML Source Code Preview visibility.
-                </li>
-                <li>
-                    <code>CTRL + F8</code> - Reload Ore UI.
-                </li>
-                <li>
-                    <code>F3 + 2</code> - Toggle Lagometer.
-                </li>
-                <li>
-                    <code>F3 + 3</code> - Toggle Event Loop Lag Graph.
-                </li>
-                <li>
-                    <code>F3 + 4</code> - Toggle Frame Callback Delay Graph.
-                </li>
-            </ul>
+                </p>
+                <p>
+                    <span style="display: inline;">Source: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://www.8crafter.com/utilities/ore-ui-customizer');})()">https://www.8crafter.com/utilities/ore-ui-customizer</span></span>
+                </p>
+                <h3>Support</h3>
+                <p>
+                    <span style="display: inline;">Discord: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://discord.8crafter.com');})()">https://discord.8crafter.com</span></span>
+                </p>
+                <p>
+                    <span style="display: inline;">GitHub: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('https://github.com/8Crafter-Studios/Ore-UI-Customizer-App');})()">https://github.com/8Crafter-Studios/Ore-UI-Customizer-App</span></span>
+                </p>
+                <p>
+                    <span style="display: inline;">Email: <span style="color: #87ceeb; cursor: pointer; text-decoration: underline 1px solid #87ceeb;" onclick="(async () => {(getAccessibleFacetSpyFacets()['vanilla.editor'] ?? await forceLoadFacet('vanilla.editor')).navigateUri('mailto:8crafteryt@gmail.com');})()">8crafteryt@gmail.com</span></span>
+                </p>
+                <h3>Keyboard Shortcuts</h3>
+                <ul>
+                    <li>
+                        <code>CTRL + P</code> - Toggle CSS Editor visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + O</code> - Toggle Target Element HTML Source Code Preview visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + I</code> - Toggle Small Corner Debug Overlay visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + ALT + I</code> - Toggle Element General Debug Overlay visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + SHIFT + I</code> - Toggle Stats Corner Debug Overlay visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + ALT + M</code> - Toggle 8Crafter Utilities Menu visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + ALT + C</code> - Toggle Console visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + S</code> - Toggle HTML Source Code Preview visibility.
+                    </li>
+                    <li>
+                        <code>CTRL + F8</code> - Reload Ore UI.
+                    </li>
+                    <li>
+                        <code>F3 + 2</code> - Toggle Lagometer.
+                    </li>
+                    <li>
+                        <code>F3 + 3</code> - Toggle Event Loop Lag Graph.
+                    </li>
+                    <li>
+                        <code>F3 + 4</code> - Toggle Frame Callback Delay Graph.
+                    </li>
+                </ul>
+            </div>
+            <div id="8CrafterUtilitiesMenu_autoJoin" style="display: none;">
+                <center>
+                    <h1>Auto Rejoin</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
+                <button type="button" class="btn nsel disabled" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById('8CrafterUtilitiesMenu_span_autoJoinName').textContent = 'None'; document.getElementById('8CrafterUtilitiesMenu_span_autoJoinType').textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
+                <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
+                <p style="margin-top: 0; margin-bottom: 0;">
+    Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
+                </p>
+                <p style="margin-top: 0;">
+    Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
+                </p>
+            </div>
+            <div id="8CrafterUtilitiesMenu_router" style="display: none;">
+                <center>
+                    <h1>Router</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goBack" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goBack(); event.preventDefault();">Go Back</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goForward" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goForward(); event.preventDefault();">Go Forward</button>
+                <hr />
+                <label for="8CrafterUtilitiesMenu_input_router_path">Route</label>
+                <input type="text" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in; width: 100%;" id="8CrafterUtilitiesMenu_input_router_path" placeholder="/example/route?p1=v1&amp;p2=v2#anchor" />
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_replaceRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.replace(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Replace</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_pushRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.push(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Push</button>
+                <hr />
+                <center>
+                    <h2>Current Router Stack</h2>
+                </center>
+                <div id="8CrafterUtilitiesMenu_div_router_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
+            </div>
+            <div id="8CrafterUtilitiesMenu_performance" style="display: none;">
+                <center>
+                    <h1>Performance</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload').disabled = false; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${localStorage.getItem("enableLitePlayScreen") === "true" ? "Disable" : "Enable"} Lite Play Screen</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload" onclick="if (!this.disabled) {this.disabled = true; setLitePlayScreenEnabled(true, true); enableLitePlayScreen(true); document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreen').textContent = 'Disable Lite Play Screen';}; event.preventDefault();"${localStorage.getItem("enableLitePlayScreenNoReload") === "true" ? "" : " disabled"}>Enable Lite Play Screen (No Reload)</button>
+            </div>
+            <div id="8CrafterUtilitiesMenu_dev" style="display: none;">
+                <center>
+                    <h1>Dev</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyNewFacetListToClipboard" onclick="copyNewFacetListToClipboard(); event.preventDefault();">Copy New Facet List</button>
+            </div>
+            <div id="8CrafterUtilitiesMenu_debug" style="display: none;">
+                <center>
+                    <h1>Debug</h1>
+                </center>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_clearLocalStorage" onclick="localStorage.clear(); event.preventDefault();">Clear localStorage</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyLocalStorageToClipboard" onclick="copyTextToClipboardAsync(JSON.stringify(Object.fromEntries(readLocalStorageKeys().map(v=>[v, localStorage.getItem(v)])), null, 4)); event.preventDefault();">Copy localStorage</button>
+                <button type="button" class="btn nsel" style="overflow-wrap: anywhere; white-space: pre-wrap; font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_reload" onclick="location.reload(); event.preventDefault();">Reload</button>
+            </div>
+            <!-- <div id="8CrafterUtilitiesMenu_facets" style="display: none;">
+                <center>
+                    <h1>Facets</h1>
+                </center>
+                <div id="8CrafterUtilitiesMenu_div_facets_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
+            </div> -->
         </div>
-        <div id="8CrafterUtilitiesMenu_autoJoin" style="display: none;">
-            <center>
-                <h1>Auto Rejoin</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_enableAutoRejoin" onclick="enableAutoJoinForOpenServer(); event.preventDefault();">Enable Auto Rejoin</button>
-            <button type="button" class="btn nsel disabled" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_disableAutoRejoin" disabled onclick="window.localStorage.removeItem('autoJoinName'); window.localStorage.removeItem('autoJoinType'); document.getElementById('8CrafterUtilitiesMenu_span_autoJoinName').textContent = 'None'; document.getElementById('8CrafterUtilitiesMenu_span_autoJoinType').textContent = 'None'; this.setAttribute('disabled', true); this.classList.add('disabled'); event.preventDefault();">Disable Auto Rejoin</button>
-            <h4 style="margin-bottom: 0;">Auto Rejoin Details</h4>
-            <p style="margin-top: 0; margin-bottom: 0;">
-Name: <span id="8CrafterUtilitiesMenu_span_autoJoinName">None</span>
-            </p>
-            <p style="margin-top: 0;">
-Type: <span id="8CrafterUtilitiesMenu_span_autoJoinType">None</span>
-            </p>
-        </div>
-        <div id="8CrafterUtilitiesMenu_router" style="display: none;">
-            <center>
-                <h1>Router</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goBack" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goBack(); event.preventDefault();">Go Back</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_router_goForward" onclick="getAccessibleFacetSpyFacets()['core.router'].history.goForward(); event.preventDefault();">Go Forward</button>
-            <hr />
-            <label for="8CrafterUtilitiesMenu_input_router_path">Route</label>
-            <input type="text" style="font-size: 0.5in; line-height: 0.7142857143in; width: 100%;" id="8CrafterUtilitiesMenu_input_router_path" placeholder="/example/route?p1=v1&amp;p2=v2#anchor" />
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_replaceRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.replace(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Replace</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_pushRoute" onclick="getAccessibleFacetSpyFacets()['core.router'].history.push(document.getElementById('8CrafterUtilitiesMenu_input_router_path').value); event.preventDefault();">Push</button>
-            <hr />
-            <center>
-                <h2>Current Router Stack</h2>
-            </center>
-            <div id="8CrafterUtilitiesMenu_div_router_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
-        </div>
-        <div id="8CrafterUtilitiesMenu_performance" style="display: none;">
-            <center>
-                <h1>Performance</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreen" onclick="if (localStorage.getItem('enableLitePlayScreen') === 'true') {this.textContent = 'Enable Lite Play Screen'; document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload').disabled = false; setLitePlayScreenEnabled(false); disableLitePlayScreen();} else {this.textContent = 'Disable Lite Play Screen'; setLitePlayScreenEnabled(true); enableLitePlayScreen();}; event.preventDefault();">${localStorage.getItem("enableLitePlayScreen") === "true" ? "Disable" : "Enable"} Lite Play Screen</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_toggleLitePlayScreenNoReload" onclick="if (!this.disabled) {this.disabled = true; setLitePlayScreenEnabled(true, true); enableLitePlayScreen(true); document.getElementById('8CrafterUtilitiesMenu_button_toggleLitePlayScreen').textContent = 'Disable Lite Play Screen';}; event.preventDefault();"${localStorage.getItem("enableLitePlayScreenNoReload") === "true" ? "" : " disabled"}>Enable Lite Play Screen (No Reload)</button>
-        </div>
-        <div id="8CrafterUtilitiesMenu_dev" style="display: none;">
-            <center>
-                <h1>Dev</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyNewFacetListToClipboard" onclick="copyNewFacetListToClipboard(); event.preventDefault();">Copy New Facet List</button>
-        </div>
-        <div id="8CrafterUtilitiesMenu_debug" style="display: none;">
-            <center>
-                <h1>Debug</h1>
-            </center>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_clearLocalStorage" onclick="localStorage.clear(); event.preventDefault();">Clear localStorage</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_copyLocalStorageToClipboard" onclick="copyTextToClipboardAsync(JSON.stringify(Object.fromEntries(readLocalStorageKeys().map(v=>[v, localStorage.getItem(v)])), null, 4)); event.preventDefault();">Copy localStorage</button>
-            <button type="button" class="btn nsel" style="font-size: 0.5in; line-height: 0.7142857143in;" id="8CrafterUtilitiesMenu_button_reload" onclick="location.reload(); event.preventDefault();">Reload</button>
-        </div>
-        <!-- <div id="8CrafterUtilitiesMenu_facets" style="display: none;">
-            <center>
-                <h1>Facets</h1>
-            </center>
-            <div id="8CrafterUtilitiesMenu_div_facets_stack" style="width: 100%; display: flex; flex-direction: column;"></div>
-        </div> -->
     </div>
 </div>`; // IDEA: Add a facets list, with backround colors indicating the status of each facet (ex. green for loaded, yellow for unloaded, red for non-existent).
     //@ts-ignore

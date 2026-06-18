@@ -618,25 +618,21 @@ export function getExtractedSymbolNames(fileContents, fileName) {
      */
     let extractedSymbolNames = {
         translationStringResolver: "wi",
-        headerFunciton: "fu",
+        headerFunciton: "fu", // TODO: Fix this for the editor-menu, editor-project, and gameplay scripts.
         headerSpacingFunction: "Gc",
-        editWorldTextFunction: "Dk",
-        jsText: "js",
-        navbarButtonFunction: "lc",
-        navbarButtonImageFunction: "xc",
+        editWorldTextFunction: "Dk", // TODO: Fix this for the editor-menu, editor-project, and gameplay scripts.
+        jsText: "js", // TODO: Fix this for the editor-project, and gameplay scripts.
+        navbarButtonFunction: "lc", // TODO: Fix this for the gameplay script.
+        navbarButtonImageFunction: "xc", // TODO: Fix this for the editor-project, and gameplay scripts.
         contextHolder: "a",
         facetHolder: "r",
     };
     const showWarnings = /(?:index|gameplay|editor(?:-menu|-project)?)-[0-9a-f]{5,20}\.js$/.test(fileName);
     let failures = [];
-    [extractedSymbolNames.contextHolder, extractedSymbolNames.facetHolder] =
-        fileContents
-            .match(/var ([a-zA-Z0-9_$])[\s\n]*=[\s\n]*[a-zA-Z0-9_$]\((?:[0-9]+)\),[\s\n]*([a-zA-Z0-9_$])[\s\n]*=[\s\n]*[a-zA-Z0-9_$]\((?:[0-9]+)\);const/)
-            ?.slice(1, 3)
-            ?.map((v, i) => v ??
-            (failures.push(["contextHolder", "facetHolder"][i]),
-                [extractedSymbolNames.contextHolder, extractedSymbolNames.facetHolder][i])) ??
-            (failures.push("contextHolder", "facetHolder"), [extractedSymbolNames.contextHolder, extractedSymbolNames.facetHolder]);
+    extractedSymbolNames.facetHolder =
+        fileContents.match(/inverse:\(0,([a-zA-Z0-9_$])\.useFacetMap\)\(\(\(?([a-zA-Z0-9_$])\)?=>"POP"===(?:[a-zA-Z0-9_$])\),\[\],\[([a-zA-Z0-9_$])\]\)\}\)\)\)/)?.[1] ?? (failures.push("facetHolder"), extractedSymbolNames.facetHolder);
+    extractedSymbolNames.contextHolder =
+        fileContents.match(/(?:[a-zA-Z0-9_$]{2})=\(\{route:(?:[a-zA-Z0-9_$]),children:(?:[a-zA-Z0-9_$])\}\)=>\{const (?:[a-zA-Z0-9_$])=\(0,([a-zA-Z0-9_$]).useContext\)/)?.[1] ?? (failures.push("contextHolder"), extractedSymbolNames.contextHolder);
     extractedSymbolNames.translationStringResolver =
         fileContents.match(/([a-zA-Z0-9_$]{2})\("TitleBar.Buttons.Close"\)/)?.[1] ??
             (failures.push("translationStringResolver"), extractedSymbolNames.translationStringResolver);
@@ -1192,7 +1188,7 @@ export function getReplacerRegexes(extractedSymbolNames) {
                  * #### Support Unknown:
                  */
                 {
-                    regex: new RegExp(`return ([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}|l\\.Unwrap),\\{data:([a-zA-Z0-9_$]{1})\\},\\(([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\?([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onChange:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),disabled:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1})\\}\\):([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),value:([a-zA-Z0-9_$]{1}),onChange:([a-zA-Z0-9_$]{1}),disabled:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),onExpandNarrationHint:([a-zA-Z0-9_$]{1})\\},([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2},\\{(?:indentedPanel:!0,)?)title:([a-zA-Z0-9_$]{1})\\("\\.title"\\),customSelectionDescription:([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2,3}),\\{selectedPreset:([a-zA-Z0-9_$]{1}),selectedPresetID:([a-zA-Z0-9_$]{1})\\}\\),options:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),onItemSelect:([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\(([a-zA-Z0-9_$]{2,3})\\[([a-zA-Z0-9_$]{1})\\]\\),disabled:([a-zA-Z0-9_$]{1}),wrapperRole:"neutral80",((?:indented:!0,)?dropdownNarrationSuffix:[a-zA-Z0-9_$]{1})\\}\\)\\)\\)\\)\\}`),
+                    regex: new RegExp(`return ([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}|[a-zA-Z0-9_$]{1}\\.Unwrap),\\{data:([a-zA-Z0-9_$]{1})\\},\\(([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\?([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{onChange:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),disabled:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1})\\}\\):([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{title:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldTitle"\\),description:([a-zA-Z0-9_$]{1})\\("\\.useFlatWorldDescription"\\),value:([a-zA-Z0-9_$]{1}),onChange:([a-zA-Z0-9_$]{1}),disabled:([a-zA-Z0-9_$]{1}),narrationSuffix:([a-zA-Z0-9_$]{1}),offNarrationText:([a-zA-Z0-9_$]{1}),onNarrationText:([a-zA-Z0-9_$]{1}),onExpandNarrationHint:([a-zA-Z0-9_$]{1})\\},([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2},\\{(?:indentedPanel:!0,)?)title:([a-zA-Z0-9_$]{1})\\("\\.title"\\),customSelectionDescription:([a-zA-Z0-9_$]{1})\\.createElement\\(([a-zA-Z0-9_$]{2,3}),\\{selectedPreset:([a-zA-Z0-9_$]{1}),selectedPresetID:([a-zA-Z0-9_$]{1})\\}\\),options:([a-zA-Z0-9_$]{1}),value:([a-zA-Z0-9_$]{1}),onItemSelect:([a-zA-Z0-9_$]{1})=>([a-zA-Z0-9_$]{1})\\(([a-zA-Z0-9_$]{2,3})\\[([a-zA-Z0-9_$]{1})\\]\\),disabled:([a-zA-Z0-9_$]{1}),wrapperRole:"neutral80",((?:indented:!0,)?dropdownNarrationSuffix:[a-zA-Z0-9_$]{1})\\}\\)\\)\\)\\)\\}`),
                     replacement: `return $1.createElement($2,{data:$3},($4=>false /* $5 */ ?$6.createElement($7,{onChange:$8,value:$9,title:$10(".useFlatWorldTitle"),description:$11(".useFlatWorldDescription"),disabled:$12,offNarrationText:$13,onNarrationText:$14,narrationSuffix:$15}):$16.createElement($17,{title:$18(".useFlatWorldTitle"),description:$19(".useFlatWorldDescription"),value:$20,onChange:$21,disabled:$22,narrationSuffix:$23,offNarrationText:$24,onNarrationText:$25,onExpandNarrationHint:$26},$27.createElement($28title:$29(".title"),customSelectionDescription:$30.createElement($31,{selectedPreset:$32,selectedPresetID:$33}),options:$34,value:$35,onItemSelect:$36=>$37($38[$39]),disabled:$40,wrapperRole:"neutral80",indented:!0,$41}))))}`,
                 },
             ],
@@ -1667,9 +1663,20 @@ export const builtInPlugins = [
                 ${isEditorMode ? "" : "// "}"vanilla.editorStructure", // Crashes the game when not in editor mode
                 ${isEditorMode ? "" : "// "}"vanilla.editorTutorial", // Crashes the game when not in editor mode
             ];
+            let isUseSharedFacetLimited = true;
+            try {
+                isUseSharedFacetLimited = !facetAccessHolder.useSharedFacet.toString().includes("sharedFacetDriverContext");
+            } catch (e) {
+                console.error(e);
+            }
+            // If the useSharedFacet method is limited such that is does not include the set and setWithCallback methods in the return value, then fallback to a copy of the old one that isn't limited.
+            const fullUseSharedFacet =
+                isUseSharedFacetLimited ?
+                    (e) => e(contextHolder.useContext(facetAccessHolder.SharedFacetDriverProvider._context))
+                :   facetAccessHolder.useSharedFacet;
             function facetSpy({}) {
                 let data = globalThis.facetSpyData ?? {
-                    sharedFacets: Object.fromEntries(facetList.map((name) => [name, (0, ${facetAccessHolderBindingVariableTarget}.useSharedFacet)((0, ${facetAccessHolderBindingVariableTarget}.sharedFacet)(name))])),
+                    sharedFacets: Object.fromEntries(facetList.map((name) => [name, (0, fullUseSharedFacet)((0, ${facetAccessHolderBindingVariableTarget}.sharedFacet)(name))])),
                 };
                 // // This is commented out to fix the increased load times it causes.
                 // /**
@@ -1879,7 +1886,7 @@ export const builtInPlugins = [
              *
              * @todo Maybe add a parameter for context for getting facets from accessedFacets.
              */
-            function getAccessibleFacetSpyFacets() {
+            function getAccessibleFacetSpyFacets_internal() {
                 return Object.fromEntries(
                     Object.entries({ ...accessedFacets, ...(facetSpyData?.sharedFacets || {}) })
                         .filter(([_name, facet]) => {
@@ -1892,13 +1899,18 @@ export const builtInPlugins = [
                         .map(([name, facet]) => [name, ("get" in facet ? facet : facet())?.get?.() ?? ("get" in facet ? facet : facet())])
                 );
             }
-            globalThis.getAccessibleFacetSpyFacets = getAccessibleFacetSpyFacets;`;
+            globalThis.getAccessibleFacetSpyFacets_internal = getAccessibleFacetSpyFacets_internal;
+            // Fallback when customOverlay.js does not load.
+            if (globalThis.getAccessibleFacetSpyFacets === undefined) {
+                console.warn("getAccessibleFacetSpyFacets is undefined. Falling back to getAccessibleFacetSpyFacets_internal.");
+                globalThis.getAccessibleFacetSpyFacets ??= getAccessibleFacetSpyFacets_internal;
+            }`;
                     }
                     {
                         // Brackets so that the 5 MiB variable is discarded immediately afterwards.
                         const preInjectionContent = currentFileContent;
                         currentFileContent = currentFileContent.replace(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
-                            new RegExp(`var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`)
+                            new RegExp(`(?<!\\(\\)=>(?:[a-zA-Z0-9_$])\\}\\);)var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`)
                             : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
                                 new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`)
                                 : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`), getFacetSpyFunction(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
@@ -1952,7 +1964,7 @@ export const builtInPlugins = [
                          * The symbol name of the facet access holder.
                          */
                         const bindingVariableTargets = origData
-                            .match(/const\{([a-zA-Z0-9_$]):([a-zA-Z0-9_$])\}=([a-zA-Z0-9_$]{2})\("PlayScreen"\);return ([a-zA-Z0-9_$])\.createElement\(([a-zA-Z0-9_$]{2}),\{debugDrawer:\[/)
+                            .match(/const\{([a-zA-Z0-9_$]):([a-zA-Z0-9_$])\}=([a-zA-Z0-9_$]{2})\("PlayScreen"\)(?:,(?:[a-zA-Z0-9_$])=\(\)=>\{const (?:[a-zA-Z0-9_$])=(?:[a-zA-Z0-9_$]{2})\((?:[a-zA-Z0-9_$]{2})\.serversTabV2\);return (?:[a-zA-Z0-9_$])\.createElement\((?:[a-zA-Z0-9_$])\.Unwrap,\{data:(?:[a-zA-Z0-9_$])\},\((?:[a-zA-Z0-9_$])=>(?:[a-zA-Z0-9_$])\.enabled\?(?:[a-zA-Z0-9_$])\.createElement\((?:[a-zA-Z0-9_$]{2}),null\):(?:[a-zA-Z0-9_$])\.createElement\((?:[a-zA-Z0-9_$]{2}),null\)\)\)\})?;return ([a-zA-Z0-9_$])\.createElement\(([a-zA-Z0-9_$]{2}),\{debugDrawer:\[/)
                             .slice(1, 6);
                         if (!new RegExp(`(?<=([a-zA-Z0-9_$])\\.createElement\\(([a-zA-Z0-9_$]{2}),\\{route:"/play/servers/add",component:(?:[a-zA-Z0-9_$]{2})(?:\\.ExternalServerForm)?,transitionComponent:([a-zA-Z0-9_$]{2})\\}\\),)`).test(currentFileContent)) {
                             throw new Error(`Unable to find routes in file "${file.data?.filename}".`);

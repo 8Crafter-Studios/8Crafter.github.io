@@ -13,7 +13,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export const format_version = "1.13.1";
+export const format_version = "1.14.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -1406,7 +1406,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                 let [disabledVariableSymbolName, focusGridIndexVariableSymbolName, navbarButtonImageClass] =
                     origData
                         .match(
-                            /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:r\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
+                            /DebugButton=function\(\{onClick:e,selected:t,disabled:([a-zA-Z0-9_$]{1}),focusGridIndex:([a-zA-Z0-9_$]{1}),role:l="inherit",narrationText:o\}\)\{const\{t:(?:[a-zA-Z0-9_$]{1})\}=(?:[a-zA-Z0-9_$]{2})\("NavigationBarLayout\.DebugButton"\);return (?:[a-zA-Z0-9_$]{1})\.createElement\((?:(?:[a-zA-Z0-9_$]{1})\.Fragment,null,(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2})|(?:[a-zA-Z0-9_$]{2})),\{(?:className:"(?:[a-zA-Z0-9_$]{5,})",)?disabled:(?:[a-zA-Z0-9_$]{1}),focusGridIndex:(?:[a-zA-Z0-9_$]{1}),inputLegend:(?:[a-zA-Z0-9_$]{1})\("\.inputLegend"\),narrationText:null!=o\?o:(?:[a-zA-Z0-9_$]{1})\("\.narration"\),onClick:e,role:l,selected:t\},(?:(?:[a-zA-Z0-9_$]{1})\.createElement\("div",\{className:"(?:[a-zA-Z0-9_$]{5,})"\},)?(?:[a-zA-Z0-9_$]{1})\.createElement\((?:[a-zA-Z0-9_$]{2}),\{className:"([a-zA-Z0-9_$]{5,})",imageRendering:"pixelated",src:(?:[a-zA-Z0-9_$]{2})\}/
                         )
                         ?.slice(1, 4) ?? [];
                 disabledVariableSymbolName ??= "n";
@@ -1425,20 +1425,20 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                                                         ${extractedSymbolNames.contextHolder}.createElement($3.Divider, null),
                                                         ${extractedSymbolNames.contextHolder}.createElement(() =>
                                                             ${extractedSymbolNames.contextHolder}.createElement(
-                                                                function ({ onClick: e, selected: t, disabled: ${disabledVariableSymbolName}, focusGridIndex: rAA, role: l = "inherit" }) {
+                                                                function ({ onClick: eAA, selected: tAA, disabled: ${disabledVariableSymbolName}AAQ1, focusGridIndex: rAA, role: lAA = "inherit" }) {
                                                                     return ${extractedSymbolNames.contextHolder}.createElement(
                                                                         ${extractedSymbolNames.contextHolder}.Fragment,
                                                                         null,
                                                                         ${extractedSymbolNames.contextHolder}.createElement(
                                                                             ${extractedSymbolNames.navbarButtonFunction},
                                                                             {
-                                                                                disabled: ${disabledVariableSymbolName},
+                                                                                disabled: ${disabledVariableSymbolName}AAQ1,
                                                                                 // focusGridIndex: rAA,
                                                                                 inputLegend: "8Crafter Utilities",
                                                                                 // narrationText: "8Crafter Utilities Button",
-                                                                                onClick: e,
-                                                                                role: l,
-                                                                                selected: t,
+                                                                                onClick: eAA,
+                                                                                role: lAA,
+                                                                                selected: tAA,
                                                                                 className: "reverse_m2lNR_rightPadding",
                                                                             },
                                                                             ${extractedSymbolNames.contextHolder}.createElement(${extractedSymbolNames.navbarButtonImageFunction}, {

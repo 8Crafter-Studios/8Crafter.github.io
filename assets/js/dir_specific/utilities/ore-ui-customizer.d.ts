@@ -11,7 +11,15 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
-        "v1.26.20-21_PC": {
+        "v1.26.30_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.21_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.20_PC": {
             displayName: string;
             url: string;
         };
@@ -71,11 +79,63 @@ export declare namespace OreUICustomizer {
             displayName: string;
             url: string;
         };
+        "v1.26.40-preview.26_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.40-preview.22_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.40-preview.20_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.32_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.29_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.28_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.27_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.25_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.30-preview.20_PC": {
+            displayName: string;
+            url: string;
+        };
         "v1.26.20-preview.27_PC": {
             displayName: string;
             url: string;
         };
         "v1.26.20-preview.26_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.20-preview.23_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.20-preview.22_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.20-preview.21_PC": {
+            displayName: string;
+            url: string;
+        };
+        "v1.26.20-preview.20_PC": {
             displayName: string;
             url: string;
         };
@@ -139,7 +199,7 @@ export declare namespace OreUICustomizer {
     /**
      * The version of the Ore UI Customizer.
      */
-    const format_version = "1.13.2";
+    const format_version = "1.14.0";
     /**
      * @type {File | undefined}
      */
