@@ -1,0 +1,21 @@
+{
+    "$schema": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
+    "format_version": 1,
+    "header": {
+        "name": "Add File Example Plugin",
+        "uuid": "dc9343bc-5547-4ebe-807d-058a9c8a9189",
+        "id": "add-file-example-plugin",
+        "namespace": "andexpl",
+        "description": "An example plugin that adds a file into the gui folder at gui/dist/hbui/example_file_123a.txt.",
+        "version": "1.0.0",
+        "format_version": "1.11.0",
+        "min_engine_version": "1.11.0"
+    },
+    "entry": "scripts/index.js",
+    "metadata": {
+        "authors": ["8Crafter"],
+        "license": "MIT",
+        "product_type": "plugin",
+        "url": "https://www.8crafter.com"
+    }
+}
