@@ -18,13 +18,24 @@ import type {
     WebBrowserFacetLinkType,
     WorldPlayerInfoBindingsConnectionType,
     WorldPlayerInfoBindingsPlatform,
-} from "@ore-ui-types/enums/ts";
+} from "@ore-ui-types/enums";
+declare const FACET_NO_VALUE_SYMBOL: unique symbol;
 declare global {
     namespace globalThis {
         // copyTextToClipboardAsync(Object.entries(__commands__).map(v=>`${v[0]}: {${Object.keys(v[1]).map(v2=>`${v2}: {
         //     id: number;
         //     callable(...args: unknown[]): unknown;
         // };\n`).join("")}};`).join("\n"))
+
+        /**
+         * This is the symbol used internally to mark a {@link SharedFacetBase | shared facet} as not having a value, usually due to not being loaded yet or being discarded.
+         *
+         * This symbol can be obtained with the following:
+         * ```ts
+         * Symbol.for("NoValue") as FacetNoValueSymbol
+         * ```
+         */
+        type FacetNoValueSymbol = typeof FACET_NO_VALUE_SYMBOL;
 
         /**
          * The Ore UI native commands.
@@ -453,7 +464,7 @@ declare global {
              * }
              * engine.AddOrRemoveOnHandler(name, callback, context || engine);
              * return { clear: this._createClear(this, name, callback, context) };
-            ```
+             * ```
              */
             on<T extends EngineEventID, Context extends unknown = Engine>(
                 name: T,
@@ -3266,6 +3277,13 @@ declare global {
                  * @todo Make the type an enum.
                  */
                 compatibility: number;
+                /**
+                 * Forcefully fetches the realms list.
+                 *
+                 * @added Unknown.
+                 * @todo Figure out what version this was added in.
+                 */
+                forceFetchRealmsList(): null;
             };
             "vanilla.realmSlots": {
                 realmSlots: [slot0: RealmSlot, slot1: RealmSlot, slot2: RealmSlot];
@@ -5725,8 +5743,12 @@ declare global {
         interface SharedFacetBase<FacetType extends LooseAutocomplete<FacetList[number]>> {
             /**
              * Gets the current value of the facet.
+             *
+             * If the value is {@link FacetNoValueSymbol}, then the facet does not have a value, usually due to either being unloaded or discarded.
+             *
+             * @returns The current value of the facet.
              */
-            get(): (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | symbol;
+            get(): (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | FacetNoValueSymbol;
             /**
              * Watches for changes to the value of the facet.
              *
@@ -5734,11 +5756,32 @@ declare global {
              */
             observe(callback: (value: FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) => void): void;
             /**
+             * Sets the value of the facet using a callback.
+             *
+             * Return the {@link FacetNoValueSymbol} from the callback to mark the facet as not having a value, usually due to either being unloaded or discarded.
+             *
+             * @param callback The callback that gets called to get the new value of the facet.
+             *
+             * @description
+             * This is the code of the function (note that this is the minified compiled code):
+             * ```
+             * e=>{const t=e(i);t===r.NO_VALUE?i=r.NO_VALUE:u(t)}
+             * ```
+             * where `e` is the callback, `i` *seems to be* the current value of the facet, `t` is the value returned from the callback as the new value of the facet, and `r` is the {@link facetAccessHolder}.
+             */
+            setWithCallback?(
+                callback: (
+                    previousValue: (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | FacetNoValueSymbol
+                ) => (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | FacetNoValueSymbol
+            ): void;
+            /**
              * Sets the value of the facet.
+             *
+             * Pass the {@link FacetNoValueSymbol} as the value to mark the facet as not having a value, usually due to either being unloaded or discarded.
              *
              * @param value The new value of the facet.
              */
-            set(value: FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown): void;
+            set(value: (FacetType extends FacetList[number] ? FacetTypeMap[FacetType] : unknown) | FacetNoValueSymbol): void;
             [k: PropertyKey]: unknown;
         }
 
@@ -5764,6 +5807,20 @@ declare global {
          */
         interface LocalWorldDataType {
             /**
+             * If the world is an editor world.
+             *
+             * @added Unknown.
+             * @todo Figure out what version this was added in.
+             */
+            isEditorWorld: boolean;
+            /**
+             * UNDOCUMENTED.
+             *
+             * @added Unknown.
+             * @todo Figure out what version this was added in.
+             */
+            xblBroadcastIntent: number;
+            /**
              * If multiplayer is enabled in the world.
              */
             isMultiplayerEnabled: boolean;
@@ -5787,6 +5844,20 @@ declare global {
              * The game version that the world was last saved in.
              */
             gameVersion: { isBeta: boolean; revision: number; patch: number; minor: number; major: number };
+            /**
+             * Whether the number of days the player has played in the world should be shown.
+             *
+             * @added Unknown.
+             * @todo Figure out what version this was added in.
+             */
+            showDaysPlayed: boolean;
+            /**
+             * The number of days the player has played in the world.
+             *
+             * @added Unknown.
+             * @todo Figure out what version this was added in.
+             */
+            daysPlayed: number;
             /**
              * Whether any player has died in the world before.
              */

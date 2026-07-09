@@ -1461,7 +1461,7 @@ export const builtInPlugins = [
                         return currentFileContent;
                     const origData = await file.getText();
                     if (!/inverse:\(0,([a-zA-Z0-9_$])\.useFacetMap\)\(\(([a-zA-Z0-9_$])=>"POP"===(?:[a-zA-Z0-9_$])\),\[\],\[([a-zA-Z0-9_$])\]\)\}\)\)\)/.test(currentFileContent)) {
-                        throw new Error("Unable to find facet spy render injection location.");
+                        throw new Error(`Unable to find facet spy render injection location in file "${file.data?.filename}".`);
                     }
                     /**
                      * The symbol name of the facet access holder.
@@ -1672,7 +1672,7 @@ export const builtInPlugins = [
             // If the useSharedFacet method is limited such that is does not include the set and setWithCallback methods in the return value, then fallback to a copy of the old one that isn't limited.
             const fullUseSharedFacet =
                 isUseSharedFacetLimited ?
-                    (e) => e(contextHolder.useContext(facetAccessHolder.SharedFacetDriverProvider._context))
+                    (e) => globalThis.contextHolder ? e(contextHolder.useContext(facetAccessHolder.SharedFacetDriverProvider._context)) : facetAccessHolder.useSharedFacet(e)
                 :   facetAccessHolder.useSharedFacet;
             function facetSpy({}) {
                 let data = globalThis.facetSpyData ?? {
@@ -1703,6 +1703,29 @@ export const builtInPlugins = [
                 // }
 
                 globalThis.facetSpyData = data;
+
+                // for (const facetName of globalThis.__facetSpy_forceLoadedFacetsToPropogateStoredValues__ ?? []) {
+                //     if (!(facetName in (globalThis.FacetManager?.facetData ?? {}))) continue;
+                //     const value = globalThis.FacetManager.facetData[facetName];
+                //     globalThis.forceLoadedFacets[facetName] = true;
+                //     const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
+                //     const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
+                //     if (!targetFacetA && !targetFacetB) {
+                //         console.warn(new ReferenceError(
+                //             \`No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets while attempting to propogate stored values for facet: \${facetName}\`
+                //         ));
+                //         continue;
+                //     }
+                //     if (!targetFacetA?.set && !targetFacetB?.set) {
+                //         console.warn(new ReferenceError(
+                //             \`No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets that had a set method while attempting to propogate stored values for facet: \${facetName}\`
+                //         ));
+                //         continue;
+                //     }
+                //     targetFacetA?.set(value);
+                //     targetFacetB?.set(value);
+                // }
+
                 return null;
             }
             function forceLoadFacet(facetName, timeout = 5000, ignoreAlreadyLoadedData = false) {
@@ -1719,14 +1742,19 @@ export const builtInPlugins = [
                     const callback = (value) => {
                         try {
                             globalThis.forceLoadedFacets[facetName] = true;
+                            if (globalThis.FacetManager?.forceLoadedFacets?.includes?.(facetName) === false) globalThis.FacetManager.forceLoadedFacets.push(facetName);
                             const targetFacetA = globalThis.facetSpyData?.sharedFacets?.[facetName];
                             const targetFacetB = globalThis.accessedFacets?.[facetName]?.();
                             if (!targetFacetA && !targetFacetB)
                                 throw new ReferenceError(
                                     \`No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets for facet: \${facetName}\`
                                 );
-                            targetFacetA?.set(value);
-                            targetFacetB?.set(value);
+                            if (!targetFacetA?.set && !targetFacetB?.set)
+                                console.warn(new ReferenceError(
+                                    \`No target facet matching the facet's name could be found in facetSpyData.sharedFacets or accessedFacets that had a set method for facet: \${facetName}\`
+                                ));
+                            targetFacetA?.set?.(value);
+                            targetFacetB?.set?.(value);
                             engine.off(\`facet:updated:\${facetName}\`, callback);
                             engine.off(\`facet:error:\${facetName}\`, failureCallback);
                             facetStatus = "loaded";
@@ -1762,9 +1790,10 @@ export const builtInPlugins = [
                 });
             }
             function unloadForceLoadedFacet(facetName) {
-                if (globalThis.forceLoadedFacets[facetName]) {
+                if (globalThis.forceLoadedFacets[facetName] || globalThis.FacetManager?.forceLoadedFacets?.includes?.(facetName)) {
                     forceUnloadFacet(facetName);
                     delete globalThis.forceLoadedFacets[facetName];
+                    if (globalThis.FacetManager?.forceLoadedFacets?.includes?.(facetName)) globalThis.FacetManager.forceLoadedFacets.splice(globalThis.FacetManager.forceLoadedFacets.indexOf(facetName), 1);
                     return true;
                 }
                 return false;
@@ -1808,6 +1837,7 @@ export const builtInPlugins = [
                             } else {
                                 const result = [facetName, currentFacetData, "alreadyLoaded", !facetList.includes(facetName)];
                                 enableAlreadyLoadedLogging && console.log(i, ...result);
+                                return result;
                             }
                         } catch (e) {
                             enableErrorLogging && console.error(e, i, facetName, "error");
@@ -1819,8 +1849,9 @@ export const builtInPlugins = [
                 );
             }
             function unloadForceLoadedFacets() {
-                return Object.keys(globalThis.forceLoadedFacets).map((facetName) => [facetName, unloadForceLoadedFacet(facetName)]);
+                return [...Object.keys(globalThis.forceLoadedFacets), ...(globalThis.FacetManager?.forceLoadedFacets ?? [])].map((facetName) => [facetName, unloadForceLoadedFacet(facetName)]);
             }
+            // globalThis.__facetSpy_forceLoadedFacetsToPropogateStoredValues__ = globalThis.forceLoadedFacets && globalThis.FacetManager && Object.keys(globalThis.forceLoadedFacets).length ? Object.keys(globalThis.forceLoadedFacets).filter((facetName) => globalThis.forceLoadedFacets[facetName] === true) : null;
             globalThis.forceLoadedFacets = {};
             globalThis.facetSpy = facetSpy;
             globalThis.forceLoadFacet = forceLoadFacet;
@@ -1834,6 +1865,7 @@ export const builtInPlugins = [
                 if (!globalThis.accessedFacets || typeof globalThis.accessedFacets !== "object") return;
                 for (const facetName in globalThis.accessedFacets) {
                     if (facetList.includes(facetName)) continue;
+                    if (globalThis.FacetManager?.__notedDiscoveredNewLoadedFacets__?.includes?.(facetName)) continue;
                     if (globalThis.notedNewFacets.includes(facetName)) continue;
                     globalThis.notedNewFacets.push(facetName);
                     console.info(\`New facet discovered!: \${facetName}\`);
@@ -1888,7 +1920,7 @@ export const builtInPlugins = [
              */
             function getAccessibleFacetSpyFacets_internal() {
                 return Object.fromEntries(
-                    Object.entries({ ...accessedFacets, ...(facetSpyData?.sharedFacets || {}) })
+                    Object.entries({ ...globalThis.accessedFacets, ...(globalThis.facetSpyData?.sharedFacets || {}) })
                         .filter(([_name, facet]) => {
                             try {
                                 return facet && ("get" in facet ? facet : facet()).get()?.toString?.() !== "Symbol(NoValue)";
@@ -1909,11 +1941,16 @@ export const builtInPlugins = [
                     {
                         // Brackets so that the 5 MiB variable is discarded immediately afterwards.
                         const preInjectionContent = currentFileContent;
-                        currentFileContent = currentFileContent.replace(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
+                        const facetAccessHolderReplacementTarget = /index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
                             new RegExp(`(?<!\\(\\)=>(?:[a-zA-Z0-9_$])\\}\\);)var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`)
                             : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
                                 new RegExp(`.URLSearchParams;var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`)
-                                : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`), getFacetSpyFunction(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
+                                : new RegExp(`var ${facetAccessHolderBindingVariableTarget}=([a-zA-Z0-9_$])\\(([0-9]+)\\);`);
+                        let contextHolderNotInjected = !/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename);
+                        if (!facetAccessHolderReplacementTarget.test(currentFileContent)) {
+                            throw new Error(`Unable to find facet spy facet access holder variable injection location in file "${file.data?.filename}".`);
+                        }
+                        currentFileContent = currentFileContent.replace(facetAccessHolderReplacementTarget, getFacetSpyFunction(/index-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
                             `var $1 = (globalThis.contextHolder = $2($3)),
                 ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $2($4));`
                             : /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename) ?
@@ -1921,11 +1958,18 @@ export const builtInPlugins = [
             var ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $1($2));`
                                 : `var ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $1($2));`));
                         if (currentFileContent === preInjectionContent && /gameplay-[0-9a-f]{5,20}\.js$/.test(file.data?.filename)) {
+                            const preContextHolderReplacementFileContent = currentFileContent;
                             currentFileContent = currentFileContent.replace(new RegExp(`var ([a-zA-Z0-9_$])=([a-zA-Z0-9_$])\\(([0-9]+)\\),${facetAccessHolderBindingVariableTarget}=\\2\\(([0-9]+)\\);(?=const (?:[a-zA-Z0-9_$])=\\(0,(?:[a-zA-Z0-9_$])\\.createContext\\))`), getFacetSpyFunction(`var $1 = (globalThis.contextHolder = $2($3)),
                 ${facetAccessHolderBindingVariableTarget} = (globalThis.facetAccessHolder = $2($4));`));
+                            if (currentFileContent !== preContextHolderReplacementFileContent)
+                                contextHolderNotInjected = false;
                         }
                         if (currentFileContent === preInjectionContent) {
                             throw new Error(`Failed to inject facetSpy function into file "${file.data?.filename}".`);
+                        }
+                        // if (contextHolderNotInjected) throw new Error(`Facet spy context holder variable not injected into file "${file.data?.filename}".`);
+                        if (contextHolderNotInjected) {
+                            console.warn(new Error(`Facet spy context holder variable not injected into file "${file.data?.filename}".`));
                         }
                     }
                     {

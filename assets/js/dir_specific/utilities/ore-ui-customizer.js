@@ -81,7 +81,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.14.0";
+    OreUICustomizer.format_version = "1.15.0";
     /**
      * @type {File | undefined}
      */

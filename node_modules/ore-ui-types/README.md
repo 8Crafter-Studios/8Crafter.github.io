@@ -11,3 +11,5 @@
 [![Discord](https://img.shields.io/discord/1213197616570048512?logo=discord&label=discord&link=https%3A%2F%2Fdiscord.8crafter.com)](https://discord.8crafter.com)
 
 Type definitions for Minecraft Bedrock Edition's Ore UI scripting environment.
+
+Also see [@ore-ui-types/enums](https://www.npmjs.com/package/@ore-ui-types/enums) and [@ore-ui-types/libs](https://www.npmjs.com/package/@ore-ui-types/libs).

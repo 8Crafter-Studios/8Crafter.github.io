@@ -3,7 +3,7 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-export declare const format_version = "1.14.0";
+export declare const format_version = "1.15.0";
 /**
  * The result of the {@link applyMods} function.
  */

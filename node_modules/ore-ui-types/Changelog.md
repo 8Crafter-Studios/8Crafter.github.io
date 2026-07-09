@@ -1,3 +1,21 @@
+# v1.4.0
+
+## Additions
+
+-   Added the `forceFetchRealmsList` method to the type of the `vanilla.realmsListFacet` facet.
+-   Added the `FacetNoValueSymbol` type.
+-   The types of the methods of the `SharedFacetBase` type now include the `FacetNoValueSymbol` type where appropriate.
+-   Added the `setWithCallback` method to the `SharedFacetBase` type.
+-   Added the following properties to the `LocalWorldDataType` type:
+    -   `isEditorWorld`
+    -   `xblBroadcastIntent`
+    -   `showDaysPlayed`
+    -   `daysPlayed`
+
+## Fixes
+
+-   The package now imports types from `@ore-ui-types/enums` instead of `@ore-ui-types/enums/ts` to fix some compilation errors when using an older module resolution format in TypeScript.
+
 # v1.3.1
 
 ## Fixes

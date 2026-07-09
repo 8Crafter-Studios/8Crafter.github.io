@@ -184,6 +184,31 @@
                 </inlinecontainer>
                 <div class="collapsible-group">
                     <div class="collapsible-group-header">
+                        <h2>v1.15.0</h2>
+                    </div>
+                    <div class="collapsible-group-content">
+                        <h2>Critical Fixes</h2>
+                        <ul>
+                            <li>
+                                Fixed an issue where Ore UI screens that were in a file other than the index-#.js file in some Minecraft versions (ex. gameplay
+                                screens or Editor Mode) would freeze the game for a few seconds to minutes upon opening and would be completely blank.
+                            </li>
+                        </ul>
+                        <h2>Additions</h2>
+                        <ul>
+                            <li>
+                                Added a fallback system for when the facet spy fails to inject or doesn't inject properly so that all the features still work
+                                without it. This also means if there is an error in the vanilla UI script file that it won't break things like the Router tab of
+                                the 8Crafter Utilities Main Menu or prevent you from copying errors in the console to your clipboard.
+                            </li>
+                            <li>
+                                Added the ability for the Ore UI Customizer's menus/features to access facets before the game's UI script is loaded.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="collapsible-group">
+                    <div class="collapsible-group-header">
                         <h2>v1.14.0</h2>
                     </div>
                     <div class="collapsible-group-content">
