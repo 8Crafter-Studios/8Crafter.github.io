@@ -53,7 +53,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/fullsite_index.xml</loc>
-        <lastmod>2026-07-09T18:37:34.990Z</lastmod>
+        <lastmod>2026-07-29T20:03:59.131Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/generateSitemap.ts</loc>
@@ -96,7 +96,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/sitemap.xml</loc>
-        <lastmod>2026-07-09T18:34:48.930Z</lastmod>
+        <lastmod>2026-07-29T20:03:59.131Z</lastmod>
         <changefreq>always</changefreq>
     </url>
     <url>
@@ -106,7 +106,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/sitemap_index.xml</loc>
-        <lastmod>2026-07-09T18:37:34.992Z</lastmod>
+        <lastmod>2026-07-29T20:03:59.133Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/testUnknownFileExtensionWithNoBinary.sdfaksdajflk</loc>
@@ -158,7 +158,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/api/tsconfig.tsbuildinfo</loc>
-        <lastmod>2026-07-09T18:37:26.291Z</lastmod>
+        <lastmod>2026-07-29T19:20:52.931Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -178,7 +178,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/tsconfig.tsbuildinfo</loc>
-        <lastmod>2026-07-09T18:37:26.288Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.425Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -223,12 +223,12 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer-changelogs.html</loc>
-        <lastmod>2026-07-09T18:32:57.333Z</lastmod>
+        <lastmod>2026-07-29T20:02:17.089Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
         <loc>https://www.8crafter.com/utilities/ore-ui-customizer.html</loc>
-        <lastmod>2026-07-09T18:34:00.592Z</lastmod>
+        <lastmod>2026-07-29T19:59:29.333Z</lastmod>
         <changefreq>hourly</changefreq>
     </url>
     <url>
@@ -366,7 +366,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/class_path.js</loc>
-        <lastmod>2026-07-09T18:34:31.709Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.395Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/cool-ore-ui-customizer-scripts.js</loc>
@@ -378,7 +378,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/customElements.js</loc>
-        <lastmod>2026-07-09T18:34:31.712Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.400Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/default.d.ts</loc>
@@ -386,7 +386,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/default.js</loc>
-        <lastmod>2026-07-09T18:34:31.721Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.411Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/getBase64.ps1</loc>
@@ -398,7 +398,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/index.js</loc>
-        <lastmod>2026-07-09T18:34:31.712Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.401Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/jquery.min.js</loc>
@@ -410,7 +410,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/JSONB.js</loc>
-        <lastmod>2026-07-09T18:34:31.707Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.392Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/spectrum.d.ts</loc>
@@ -599,7 +599,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/ore-ui-customizer-assets.js</loc>
-        <lastmod>2026-07-09T18:37:26.275Z</lastmod>
+        <lastmod>2026-07-13T18:52:29.841Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/ore-ui-customizer-assets.ts</loc>
@@ -988,7 +988,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/dir_specific/index.js</loc>
-        <lastmod>2026-07-09T18:34:31.723Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.413Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/jquery-ui-1.14.1.custom/AUTHORS.txt</loc>
@@ -4441,7 +4441,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/sample_ore_ui_customizer_plugins/replacePlayWithLol.plugin.js</loc>
-        <lastmod>2026-06-18T01:03:53.138Z</lastmod>
+        <lastmod>2026-07-13T18:52:29.845Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/sample_ore_ui_customizer_plugins/replacePlayWithLol.plugin.ts</loc>
@@ -5028,15 +5028,15 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/dir_specific/utilities/mcstructure-loader.js</loc>
-        <lastmod>2026-07-09T18:34:31.733Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.421Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/dir_specific/utilities/ore-ui-customizer.d.ts</loc>
-        <lastmod>2026-07-09T18:34:31.702Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.386Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/js/dir_specific/utilities/ore-ui-customizer.js</loc>
-        <lastmod>2026-07-09T18:34:31.700Z</lastmod>
+        <lastmod>2026-07-29T19:57:23.383Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/sample_ore_ui_customizer_plugins/addClientScriptExamplePlugin/manifest.json</loc>
@@ -5084,7 +5084,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/ts/dir_specific/utilities/ore-ui-customizer.ts</loc>
-        <lastmod>2026-07-09T18:33:46.971Z</lastmod>
+        <lastmod>2026-07-29T19:57:21.950Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/images/pages/utilities/mcstructure-loader/pack_icon%20copy.png</loc>
@@ -5263,7 +5263,7 @@
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/sample_ore_ui_customizer_plugins/textureRemoverPlugin/scripts/index.js</loc>
-        <lastmod>2026-06-18T01:03:53.142Z</lastmod>
+        <lastmod>2026-07-13T18:52:29.851Z</lastmod>
     </url>
     <url>
         <loc>https://www.8crafter.com/assets/shared/sample_ore_ui_customizer_plugins/textureRemoverPlugin/scripts/index.ts</loc>

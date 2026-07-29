@@ -81,7 +81,7 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.15.0";
+    OreUICustomizer.format_version = "1.15.1";
     /**
      * @type {File | undefined}
      */
@@ -963,13 +963,16 @@ export var OreUICustomizer;
         let failed = 0;
         try {
             OreUICustomizer.zipFs = new zip.fs.FS();
-            await OreUICustomizer.zipFs.importBlob(OreUICustomizer.currentImportedFile);
+            // await zipFs.importBlob(currentImportedFile!);
+            // Use this instead, as on some devices, like Chromebooks, the Blob might throw a NotReadableError due to being discarded, as the importBlob method uses the reference to the original Blob/File object.
+            await OreUICustomizer.zipFs.importUint8Array(new Uint8Array(await OreUICustomizer.currentImportedFile.arrayBuffer()));
         }
         catch (e) {
             failed = 1;
             console.error(e);
             $("#import_files_error").css("color", "red");
             $("#import_files_error").text(`Invalid zip file. ${e + e?.stack}`);
+            $("#import_files_error").prop("hidden", false);
             return false;
         }
         if (!OreUICustomizer.currentImportedFile)
@@ -3143,6 +3146,9 @@ const oreUICustomizerVersion = ${JSON.stringify(OreUICustomizer.format_version)}
             const url = URL.createObjectURL(blob);
             $("#current_customizer_status").text("Setting download link...");
             const a = $("#download_in_new_tab_link")[0];
+            // Revoke the old blob URL.
+            if (a.href)
+                URL.revokeObjectURL(a.href);
             a.href = url;
             a.download = "gui-mod.zip";
             a.target = "_blank";
