@@ -13,8 +13,8 @@ import "./zip.js";
 /**
  * The version of the Ore UI Customizer API.
  */
-// BUILD 12
-export const format_version = "1.15.0";
+// BUILD 18
+export const format_version = "1.16.0";
 
 /**
  * The result of the {@link applyMods} function.
@@ -929,7 +929,7 @@ export async function applyMods(file: Blob, options: ApplyModsOptions = {}): Pro
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
                     h = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($5),
-                    v = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $6(e.platform), [], [h]),
+                    v = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => true /* $6(e.platform) */ /* Makes the export world button always visible. */, [], [h]),
                     b = (0, ${extractedSymbolNames.contextHolder}.useContext)($7) !== $8.CREATE,
                     y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e && b, [b], [v]),
                     rawData = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e, [], [eAA]);

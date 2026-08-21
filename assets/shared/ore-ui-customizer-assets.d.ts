@@ -711,4 +711,18 @@ export declare const builtInPlugins: [{
     }];
     readonly format_version: "1.0.0";
     readonly min_engine_version: "1.0.0";
+}, {
+    readonly name: "Make export world button visible.";
+    readonly id: "make-export-world-button-visible";
+    readonly namespace: "built-in";
+    readonly version: "1.0.0";
+    readonly uuid: "69e1926b-f1d6-4744-8fe7-a64aed9d6d91";
+    readonly description: "A built-in plugin that makes the export world button visible on non-Windows platforms, such as Android.";
+    readonly actions: [{
+        readonly id: "make-export-world-button-visible";
+        readonly context: "per_text_file";
+        readonly action: (currentFileContent: string, file: zip.ZipFileEntry<any, any>) => Promise<string>;
+    }];
+    readonly format_version: "0.25.0";
+    readonly min_engine_version: "0.25.0";
 }];

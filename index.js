@@ -13,6 +13,7 @@ if (!("toJSON" in Error.prototype))
         writable: true,
     });
 const debugMode = false;
+const PORT = 8213;
 import express, { Router, text, json, urlencoded } from "express";
 const app = express();
 import path from "path";
@@ -86,7 +87,7 @@ if (debugMode) {
     });
 }
 app.use("/", router);
-app.listen(8213);
+app.listen(PORT);
 if (!!!network.en0) {
     network.en0 = [];
 }
@@ -110,13 +111,13 @@ if (!!!currentIP) {
         currentIP = network["Ethernet 2"][0];
     } else if (!!network["Ethernet"] && !!network["Ethernet"][0]) {
         currentIP = network["Ethernet"][0];
-    } else if (!!Object.entries(network).find((v) => v[1].length > 0) && !!Object.entries(network).find((v) => v[1].length > 0)[0]) {
-        currentIP = Object.entries(network).find((v) => v[1].length > 0)[0];
+    } else if (!!Object.entries(network).find((v) => v[1].length > 0) && !!Object.entries(network).find((v) => v[1].length > 0)[1][0]) {
+        currentIP = Object.entries(network).find((v) => v[1].length > 0)[1][0];
     }
 }
 
 console.log(nets);
 console.log(network);
-console.log(`Running at Port http://${currentIP}:8213`);
-console.log(`Local Port http://localhost:8213`);
+console.log(`Running at Port http://${currentIP}:${PORT}`);
+console.log(`Local Port http://localhost:${PORT}`);
 export default { app, router, path, exec, execute: execute };

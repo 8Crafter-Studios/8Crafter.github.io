@@ -81,7 +81,7 @@
         <script src="../assets/js/default.js"></script>
         <script src="../assets/js/JSONB.js" type="module"></script>
         <script src="../assets/js/CharacterSetConverter.js"></script>
-        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.15.1" type="module"></script>
+        <script src="../assets/js/dir_specific/utilities/ore-ui-customizer.js?version=1.16.0" type="module"></script>
         <script src="../assets/js/spectrum.js"></script>
 
         <link href="../assets/css/default.css" rel="stylesheet" />
@@ -2189,7 +2189,7 @@
                     <br>
                     <button type="button" class="btn nsel" id="generate" onclick="generateSecurityConfiguratorPack($(mcUsername).val())">Generate</button>
                 </div> -->
-                <h1>8Crafter's Ore UI Customizer v1.15.1</h1>
+                <h1>8Crafter's Ore UI Customizer v1.16.0</h1>
                 <h4>Instructions</h4>
                 <div class="collapsible-group collapsible-group-collapsed">
                     <div class="collapsible-group-header">
@@ -2577,10 +2577,10 @@
                         <br />
                         <br />
                         <p>
-                            If you are having issues downloading the .zip file, try using the two buttons below instead, make sure to be patient, as on some devices
-                            it could take up to 2 minutes for the file to actually download. (NOTE: The below buttons are slower as they don't use web workers,
-                            but that may improve compatibility on some devices. On Android web workers are disabled by default due to instability, even for the
-                            above buttons (unless the user agent string isn't recognized as Android).)
+                            If you are having issues downloading the .zip file, try using the two buttons below instead, make sure to be patient, as on some
+                            devices it could take up to 2 minutes for the file to actually download. (NOTE: The below buttons are slower as they don't use web
+                            workers, but that may improve compatibility on some devices. On Android web workers are disabled by default due to instability, even
+                            for the above buttons (unless the user agent string isn't recognized as Android).)
                         </p>
                         <button type="button" class="btn nsel" id="download_in_new_tab_button" disabled onclick="oreUICustomizer.downloadInNewTab()">
                             Generate Download Link
@@ -2595,7 +2595,9 @@
                             load Ore UI from resource packs. On Android this would come in the form of a <code>lib.so</code> file and on Windows a
                             <code>.dll</code> file. You would also need a mod-capable launcher in order to use that mod.
                         </p>
-                        <button type="button" class="btn nsel" id="export_as_rp" disabled onclick="oreUICustomizer.exportAsRP()">Export as RP (Read above warning)</button>
+                        <button type="button" class="btn nsel" id="export_as_rp" disabled onclick="oreUICustomizer.exportAsRP()">
+                            Export as RP (Read above warning)
+                        </button>
                         <br />
                         <br />
                         <a href="./ore-ui-customizer-changelogs.html">

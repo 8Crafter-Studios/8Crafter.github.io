@@ -31,6 +31,7 @@ export var OreUICustomizer;
      */
     OreUICustomizer.currentPresets = {
         none: { displayName: "None (Use Imported .zip File)", url: "" },
+        "v1.26.40_PC": { displayName: "v1.26.40 (PC)", url: "/assets/zip/gui_mc-v1.26.40_PC.zip" },
         "v1.26.30_PC": { displayName: "v1.26.30 (PC)", url: "/assets/zip/gui_mc-v1.26.30_PC.zip" },
         "v1.26.21_PC": { displayName: "v1.26.21 (PC)", url: "/assets/zip/gui_mc-v1.26.21_PC.zip" },
         "v1.26.20_PC": { displayName: "v1.26.20 (PC)", url: "/assets/zip/gui_mc-v1.26.20_PC.zip" },
@@ -81,7 +82,8 @@ export var OreUICustomizer;
     /**
      * The version of the Ore UI Customizer.
      */
-    OreUICustomizer.format_version = "1.15.1";
+    // BUILD 18
+    OreUICustomizer.format_version = "1.16.0";
     /**
      * @type {File | undefined}
      */
@@ -1147,6 +1149,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                 "add-exact-ping-count-to-servers-tab": true,
                 "add-max-player-count-to-servers-tab": true,
                 "facet-spy": true,
+                "make-export-world-button-visible": true,
             },
             /**
              * These are replacements for the UI colors.
@@ -2270,7 +2273,7 @@ console.log(Object.entries(colorMap).map(v=>`            ${JSON.stringify(v[1])}
                     g = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.spawnBiomeId, [], [c]),
                     E = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e.defaultSpawnBiome || e.isBiomeOverrideActive, [], [c]),
                     h = (0, ${extractedSymbolNames.facetHolder}.useSharedFacet)($5),
-                    v = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => $6(e.platform), [], [h]),
+                    v = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => true /* $6(e.platform) */ /* Makes the export world button always visible. */, [], [h]),
                     b = (0, ${extractedSymbolNames.contextHolder}.useContext)($7) !== $8.CREATE,
                     y = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e && b, [b], [v]),
                     rawData = (0, ${extractedSymbolNames.facetHolder}.useFacetMap)((e) => e, [], [eAA]);

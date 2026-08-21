@@ -16,20 +16,21 @@
     "license": "",
     "dependencies": {
         "@ore-ui-customizer-api/plugin-env": "^1.0.0",
-        "@ore-ui-types/enums": "^1.4.0",
+        "@ore-ui-types/enums": "^1.7.0",
         "express": "^4.21.1",
         "jquery": "^3.7.1",
         "mime-types": "^3.0.1",
-        "ore-ui-customizer-types": "^1.0.2"
+        "ore-ui-customizer-types": "^1.1.0"
     },
     "devDependencies": {
+        "@ore-ui-customizer-api/env": "^1.1.0",
         "@ore-ui-types/libs": "^1.1.0",
         "@types/jquery": "^3.5.32",
         "@types/mime-types": "^3.0.1",
         "@types/node": "^24.10.1",
         "@types/semver": "^7.7.0",
         "json5": "^2.2.3",
-        "ore-ui-types": "^1.4.0",
+        "ore-ui-types": "^1.6.0",
         "prettier": "^3.8.3",
         "prettier-plugin-markdown-list-tabwidth": "^1.2.0",
         "user-agent-data-types": "^0.4.3"

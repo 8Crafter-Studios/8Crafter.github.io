@@ -1291,6 +1291,6 @@ export type PluginAction = PerTextFilePluginAction | PerBinaryFilePluginAction |
 /**
  * The ID of a built-in plugin.
  */
-export type BuiltInPluginID = "add-exact-ping-count-to-servers-tab" | "add-max-player-count-to-servers-tab" | "facet-spy";
+export type BuiltInPluginID = "add-exact-ping-count-to-servers-tab" | "add-max-player-count-to-servers-tab" | "facet-spy" | "make-export-world-button-visible";
 
 export type { zip } from "./zip.js";
