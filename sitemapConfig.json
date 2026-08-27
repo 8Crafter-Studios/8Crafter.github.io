@@ -26,5 +26,6 @@
             "flags": "i"
         }
     ],
-    "exclude": ["/.git/**", "/CNAME"]
+    "exclude": ["/.git/**", "/CNAME"],
+    "excludeFromMainSitemapOnly": ["/404.html", "/assets/ore-ui-customizer-preview/**", "/favicon.*", "/apple-touch-icon.png"]
 }

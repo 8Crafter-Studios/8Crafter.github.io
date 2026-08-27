@@ -34,6 +34,7 @@ for (const file of readdirSync("./", {
             sitemapConfig.changeFrequencies.find((entry) => new RegExp(entry.regex, entry.flags).test(rootRelativePath))?.changeFrequency
         ),
     });
+    if (sitemapConfig.excludeFromMainSitemapOnly.some((entry) => matchesGlob(rootRelativePath, entry))) continue;
     if (rootRelativePath.startsWith("/node_modules/")) continue;
     let mimeType: string | false = mime.lookup(rootRelativePath);
     if (!mimeType) continue;
@@ -42,7 +43,7 @@ for (const file of readdirSync("./", {
         !(
             mimeType.endsWith("/html") ||
             mimeType.startsWith("image/") ||
-            mimeType.startsWith("audio/") ||
+            // mimeType.startsWith("audio/") ||
             (mimeType.startsWith("video/") && !["video/mp2t"].includes(mimeType))
         )
     )
@@ -74,14 +75,14 @@ const sitemapContents = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
     xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
     xmlns:xhtml="http://www.w3.org/1999/xhtml">${sitemapEntries.length > 0 ? "\n" : ""}${sitemapEntries
-    .map(
-        (sitemap: SitemapEntry): string =>
-            `    <url>
+        .map(
+            (sitemap: SitemapEntry): string =>
+                `    <url>
         <loc>https://www.8crafter.com${sitemap.path}</loc>
         <lastmod>${sitemap.lastmod}</lastmod>${sitemap.changefreq ? `\n${" ".repeat(8)}<changefreq>${sitemap.changefreq}</changefreq>` : ""}
     </url>`
-    )
-    .join("\n")}
+        )
+        .join("\n")}
 </urlset>` as const;
 
 if (!existsSync("sitemap.xml") || sitemapContents !== readFileSync("sitemap.xml", "utf-8")) {
@@ -97,14 +98,14 @@ const fullSitemapContents = `<?xml version="1.0" encoding="UTF-8" standalone="ye
     xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
     xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
     xmlns:xhtml="http://www.w3.org/1999/xhtml">${fullSitemapEntries.length > 0 ? "\n" : ""}${fullSitemapEntries
-    .map(
-        (sitemap: SitemapEntry): string =>
-            `    <url>
+        .map(
+            (sitemap: SitemapEntry): string =>
+                `    <url>
         <loc>https://www.8crafter.com${sitemap.path}</loc>
         <lastmod>${sitemap.lastmod}</lastmod>${sitemap.changefreq ? `\n${" ".repeat(8)}<changefreq>${sitemap.changefreq}</changefreq>` : ""}
     </url>`
-    )
-    .join("\n")}
+        )
+        .join("\n")}
 </urlset>` as const;
 
 if (!existsSync("fullsite_index.xml") || fullSitemapContents !== readFileSync("fullsite_index.xml", "utf-8")) {
@@ -120,14 +121,14 @@ const nodeModulesSitemapContents = `<?xml version="1.0" encoding="UTF-8" standal
     xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
     xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
     xmlns:xhtml="http://www.w3.org/1999/xhtml">${nodeModulesFullSitemapEntries.length > 0 ? "\n" : ""}${nodeModulesFullSitemapEntries
-    .map(
-        (sitemap: SitemapEntry): string =>
-            `    <url>
+        .map(
+            (sitemap: SitemapEntry): string =>
+                `    <url>
         <loc>https://www.8crafter.com${sitemap.path}</loc>
         <lastmod>${sitemap.lastmod}</lastmod>${sitemap.changefreq ? `\n${" ".repeat(8)}<changefreq>${sitemap.changefreq}</changefreq>` : ""}
     </url>`
-    )
-    .join("\n")}
+        )
+        .join("\n")}
 </urlset>` as const;
 
 if (!existsSync("node_modules/fullsite_index.xml") || nodeModulesSitemapContents !== readFileSync("node_modules/fullsite_index.xml", "utf-8")) {
@@ -152,14 +153,14 @@ const sitemapIndexContents = `<?xml version="1.0" encoding="UTF-8"?>
     xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/siteindex.xsd"
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
     xmlns:xhtml="http://www.w3.org/1999/xhtml">${sitemapFiles.length > 0 ? "\n" : ""}${sitemapFiles
-    .map(
-        (sitemap) =>
-            `    <sitemap>
+        .map(
+            (sitemap) =>
+                `    <sitemap>
         <loc>https://www.8crafter.com${sitemap.path}</loc>
         <lastmod>${sitemap.lastmod}</lastmod>
     </sitemap>`
-    )
-    .join("\n")}
+        )
+        .join("\n")}
 </sitemapindex>` as const;
 
 if (!existsSync("sitemap_index.xml") || sitemapIndexContents !== readFileSync("sitemap_index.xml", "utf-8")) {
