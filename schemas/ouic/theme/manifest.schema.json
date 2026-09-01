@@ -58,7 +58,7 @@
                         },
                         "description": {
                             "title": "Description",
-                            "description": "An optional description of the theee.",
+                            "description": "An optional description of the theme.",
                             "type": "string"
                         },
                         "version": {
