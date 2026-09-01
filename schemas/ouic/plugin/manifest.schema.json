@@ -1,5 +1,5 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
     "title": "Plugin manifest.json Schema for 8Crafter's Ore UI Customizer",
     "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer.",
@@ -55,6 +55,11 @@
                                 "const": "built-in"
                             },
                             "examples": ["andexpl"]
+                        },
+                        "description": {
+                            "title": "Description",
+                            "description": "An optional description of the plugin.",
+                            "type": "string"
                         },
                         "version": {
                             "title": "Version",
@@ -177,7 +182,8 @@
                             ],
                             "$comment": "This should not have a default value. The examples of this should include every version of the Ore UI Customizer (and 0.0.0)."
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 },
                 "entry": {
                     "title": "Entry",
@@ -206,17 +212,17 @@
                             {
                                 "title": "External Dependency",
                                 "description": "A theme, plugin, or config dependency.",
-                                "required": ["uuid", "version"],
+                                "required": ["uuid"],
                                 "properties": {
                                     "uuid": {
                                         "title": "UUID",
-                                        "description": "The UUID of the theme, plugin, or config dependency.\nMust be a valid UUID v4.\nMay also be the UUID of a built-in theme or plugin to force the user to have it enabled to use the theme.",
+                                        "description": "The UUID of the theme, plugin, or config dependency.\nMust be a valid UUID v4.\nMay also be the UUID of a built-in theme, plugin, or config to force the user to have it enabled to use the theme.",
                                         "type": "string",
                                         "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
                                     },
                                     "version": {
                                         "title": "Version",
-                                        "description": "The version of the theme, plugin, or config dependency.\nMust be a valid semver string, without the leading `v`.\nNote: This field is ignored when the dependency is a built-in plugin.",
+                                        "description": "The version of the theme, plugin, or config dependency.\nMust be a valid semver string, without the leading `v`.\nIf no version is specified, the latest available version will match, or whatever version is currently active.\nIMPORTANT: In Ore UI Customizer verisons < v1.17.0+BUILD.8, the version field is required.\nNOTE: This field is ignored when the dependency is a built-in theme, plugin, or config.",
                                         "type": "string",
                                         "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
                                     }
@@ -226,7 +232,7 @@
                                 "title": "Built-In Module Dependency",
                                 "description": "A built-in module dependency.",
                                 "type": "object",
-                                "required": ["module_name", "version"],
+                                "required": ["module_name"],
                                 "properties": {
                                     "module_name": {
                                         "title": "Module Name",
@@ -236,7 +242,7 @@
                                     },
                                     "version": {
                                         "title": "Version",
-                                        "description": "The version of the module dependency.\nMust be a valid semver string, without the leading `v`.",
+                                        "description": "The version of the module dependency.\nMust be a valid semver string, without the leading `v`.\nIf no version is specified, the latest available version will match.\nIMPORTANT: In Ore UI Customizer verisons < v1.17.0+BUILD.8, the version field is required.",
                                         "type": "string",
                                         "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
                                     }
@@ -244,7 +250,8 @@
                                 "allOf": [{ "type": "null" }],
                                 "$comment": "The above allOf statement disables this until it is removed, effectively commenting it out temporarily."
                             }
-                        ]
+                        ],
+                        "unevaluatedProperties": false
                     }
                 },
                 "metadata": {
@@ -259,7 +266,7 @@
                             "type": "array",
                             "items": {
                                 "title": "Author",
-                                "description": "An author or of the plugin.",
+                                "description": "An author of the plugin.",
                                 "type": "string"
                             },
                             "examples": [["8Crafter", "StormStqr"]]
@@ -375,7 +382,8 @@
                                 "enum": ["https://marketplace.ore-ui-customizer.8crafter.com/plugin/8crafter.my-custom-plugin"]
                             }
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 },
                 "checkForUpdatesDetails": {
                     "title": "Check for Updates Details",
@@ -389,7 +397,8 @@
                             "type": "string",
                             "examples": ["https://example.com/ore-ui-customizer-plugins/my-custom-plugin/latestVersion.json"]
                         }
-                    }
+                    },
+                    "unevaluatedProperties": false
                 }
             },
             "allOf": [
@@ -404,5 +413,6 @@
                 }
             ]
         }
-    ]
+    ],
+    "unevaluatedProperties": false
 }

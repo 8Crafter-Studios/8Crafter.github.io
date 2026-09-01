@@ -1,13 +1,14 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"[html]": {
-			"editor.defaultFormatter": "esbenp.prettier-vscode",
-			"prettier.printWidth": 160
-		}
-	}
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "[html]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode",
+            "prettier.printWidth": 160
+        },
+        "eslint.useFlatConfig": false
+    }
 }

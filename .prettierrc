@@ -24,13 +24,7 @@
     "objectWrap": "preserve",
     "overrides": [
         {
-            "files": ".hintrc",
-            "options": {
-                "parser": "json"
-            }
-        },
-        {
-            "files": ".eslintrc",
+            "files": [".hintrc", ".eslintrc", "*.code-workspace"],
             "options": {
                 "parser": "json"
             }

@@ -1,0 +1,1228 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "https://www.8crafter.com/schemas/ouic/config/config.schema.json",
+    "$comment": "// TODO: Replace the schema that this schema uses with one that includes VSCode-specific properties like markdownDescription and defaultSnippets. Then, update this schema to also use those properties.",
+    "title": "Config JSON Schema for 8Crafter's Ore UI Customizer",
+    "description": "The JSON schema for a config file for 8Crafter's Ore UI Customizer.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "description": "The JSON schema for a config file for 8Crafter's Ore UI Customizer.",
+            "type": "string",
+            "default": "https://www.8crafter.com/schemas/ouic/config/config.schema.json"
+        }
+    },
+    "definitions": {
+        "OreUICustomizerConfig_Settings": {
+            "properties": {
+                "hardcoreModeToggleAlwaysClickable": {
+                    "title": "Hardcore Mode Toggle Always Clickable",
+                    "description": "This will allow you to turn hardcore mode on and off whenever you want.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "allowDisablingEnabledExperimentalToggles": {
+                    "title": "Allow Disabling Enabled Experimental Toggles",
+                    "description": "This will allow you to disable the experimental toggles even after the world has been played with them on, also applies to the `Education Edition` toggle.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "addGeneratorTypeDropdown": {
+                    "title": "Add Generator Type Dropdown",
+                    "description": "This will add a dropdown that allows you to select the world generator type.\nIt lets you choose any of the following world generator types:\n- `Legacy`\n- `Infinite world`\n- `Flat world`\n- `Void world`",
+                    "type": "boolean",
+                    "default": true
+                },
+                "addMoreDefaultGameModes": {
+                    "title": "Add More Default Game Modes",
+                    "description": "This will add more options to the `Game Mode` dropdown.\nIt will cause the dropdown to have the following options:\n- `Survival`\n- `Creative`\n- `Adventure`\n- `Default`\n- `Spectator`",
+                    "type": "boolean",
+                    "default": true
+                },
+                "allowForChangingSeeds": {
+                    "title": "Allow For Changing Seeds",
+                    "description": "This will allow you to change the world seed whenever you want, also works on marketplace worlds that don't let you change the seed.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "allowForChangingFlatWorldPreset": {
+                    "title": "Allow For Changing Flat World Preset",
+                    "description": "This will allow you to change the flat world preset, even after the world has been created.\nNote: This option requires that the addGeneratorTypeDropdown option is enabled.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "maxTextLengthOverride": {
+                    "title": "Max Text Length Override",
+                    "description": "If specified, this will override the max length of every text box to be the specified value. Leave it blank to not override it.",
+                    "type": "string",
+                    "oneOf": [
+                        {
+                            "pattern": "^(0|[1-9]\\d*)$"
+                        },
+                        {
+                            "const": ""
+                        }
+                    ]
+                },
+                "addDebugTab": {
+                    "title": "Add Debug Tab",
+                    "description": "This adds the `Debug` tab to the create and edit world screens.\nIt also has a bunch of additional options added to the tab that aren't normally in there.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "add8CrafterUtilitiesMainMenuButton": {
+                    "title": "Add 8Crafter Utilities Main Menu Button",
+                    "description": "This adds a button in the top right of the screen on the title bar to get access to the 8Crafter Utilities menu, this allows you to access certain menus without a keyboard shortcut, and has information and the auto rejoiner menu.",
+                    "type": "boolean",
+                    "default": true
+                },
+                "enabledBuiltInPlugins": {
+                    "title": "Enabled Built-In Plugins",
+                    "description": "An object that lists whether or not each built-in plugin is enabled.",
+                    "type": "object",
+                    "properties": {
+                        "add-exact-ping-count-to-servers-tab": {
+                            "title": "Add Exact Ping Count to Servers Tab",
+                            "description": "A built-in plugin that adds the exact ping count to the servers tab.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "add-max-player-count-to-servers-tab": {
+                            "title": "Add Max Player Count to Servers Tab",
+                            "description": "A built-in plugin that adds the max player count to the servers tab.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "facet-spy": {
+                            "title": "Facet Spy",
+                            "description": "Facet spy.\nIMPORTANT: This built-in plugin is being deprecated.",
+                            "type": "boolean",
+                            "default": true,
+                            "$comment": "\"if\": { \"const\": true },\n\"then\": { \"deprecated\": true, /* <-- standard | VSCode-specific --> */ \"deprecationMessage\": \"/* TODO */\" }, // TODO: Uncomment this when facet-spy is fully deprecated and the schema's schema is swapped for one with VSCode-specific properties like deprecationMessage.\n"
+                        },
+                        "lite-play-screen-routes": {
+                            "title": "Lite Play Screen Routes",
+                            "description": "Injects the routes for the lite play screen into the routes.json and index.js files.",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        "make-export-world-button-visible": {
+                            "title": "Make Export World Button Visible",
+                            "description": "A built-in plugin that makes the export world button visible on non-Windows platforms, such as Android.",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                },
+                "colorReplacements": {
+                    "title": "Color Replacements",
+                    "description": "These are replacements for the UI colors.",
+                    "type": "object",
+                    "properties": {
+                        "#a0e081": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#a0e081",
+                            "examples": [""]
+                        },
+                        "#86d562": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#86d562",
+                            "examples": [""]
+                        },
+                        "#6cc349": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#6cc349",
+                            "examples": [""]
+                        },
+                        "#52a535": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#52a535",
+                            "examples": [""]
+                        },
+                        "#3c8527": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#3c8527",
+                            "examples": [""]
+                        },
+                        "#2a641c": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#2a641c",
+                            "examples": [""]
+                        },
+                        "#1d4d13": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#1d4d13",
+                            "examples": [""]
+                        },
+                        "#153a0e": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#153a0e",
+                            "examples": [""]
+                        },
+                        "#112f0b": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#112f0b",
+                            "examples": [""]
+                        },
+                        "#0f2b0a": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#0f2b0a",
+                            "examples": [""]
+                        },
+                        "#ffffff": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ffffff",
+                            "examples": [""]
+                        },
+                        "#000000": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#000000",
+                            "examples": [""]
+                        },
+                        "#f4f6f9": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#f4f6f9",
+                            "examples": [""]
+                        },
+                        "#e6e8eb": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#e6e8eb",
+                            "examples": [""]
+                        },
+                        "#d0d1d4": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#d0d1d4",
+                            "examples": [""]
+                        },
+                        "#b1b2b5": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#b1b2b5",
+                            "examples": [""]
+                        },
+                        "#8c8d90": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#8c8d90",
+                            "examples": [""]
+                        },
+                        "#58585a": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#58585a",
+                            "examples": [""]
+                        },
+                        "#48494a": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#48494a",
+                            "examples": [""]
+                        },
+                        "#313233": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#313233",
+                            "examples": [""]
+                        },
+                        "#242425": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#242425",
+                            "examples": [""]
+                        },
+                        "#1e1e1f": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#1e1e1f",
+                            "examples": [""]
+                        },
+                        "#ff8080": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ff8080",
+                            "examples": [""]
+                        },
+                        "#d93636": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#d93636",
+                            "examples": [""]
+                        },
+                        "#b31b1b": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#b31b1b",
+                            "examples": [""]
+                        },
+                        "#d54242": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#d54242",
+                            "examples": [""]
+                        },
+                        "#ca3636": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ca3636",
+                            "examples": [""]
+                        },
+                        "#c02d2d": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#c02d2d",
+                            "examples": [""]
+                        },
+                        "#b62525": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#b62525",
+                            "examples": [""]
+                        },
+                        "#ad1d1d": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ad1d1d",
+                            "examples": [""]
+                        },
+                        "#a31616": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#a31616",
+                            "examples": [""]
+                        },
+                        "#990f0f": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#990f0f",
+                            "examples": [""]
+                        },
+                        "#ffb366": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ffb366",
+                            "examples": [""]
+                        },
+                        "#d3791f": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#d3791f",
+                            "examples": [""]
+                        },
+                        "#a65b11": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#a65b11",
+                            "examples": [""]
+                        },
+                        "#ffe866": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ffe866",
+                            "examples": [""]
+                        },
+                        "#e5c317": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#e5c317",
+                            "examples": [""]
+                        },
+                        "#8a7500": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#8a7500",
+                            "examples": [""]
+                        },
+                        "#fff0c5": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#fff0c5",
+                            "examples": [""]
+                        },
+                        "#ffd783": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ffd783",
+                            "examples": [""]
+                        },
+                        "#f8af2b": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#f8af2b",
+                            "examples": [""]
+                        },
+                        "#ce8706": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ce8706",
+                            "examples": [""]
+                        },
+                        "#ae7100": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#ae7100",
+                            "examples": [""]
+                        },
+                        "#8cb3ff": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#8cb3ff",
+                            "examples": [""]
+                        },
+                        "#2e6be5": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#2e6be5",
+                            "examples": [""]
+                        },
+                        "#1452cc": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#1452cc",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.1)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.1)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.2)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.2)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.25)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.25)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.3)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.3)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.4)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.4)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.5)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.5)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.6)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.6)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.7)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.7)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.8)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.8)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 0.9)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 0.9)",
+                            "examples": [""]
+                        },
+                        "rgba(0, 0, 0, 1)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(0, 0, 0, 1)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.1)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.1)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.2)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.2)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.3)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.3)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.4)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.4)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.5)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.5)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.6)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.6)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.7)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.7)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.8)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.8)",
+                            "examples": [""]
+                        },
+                        "rgba(255, 255, 255, 0.9)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(255, 255, 255, 0.9)",
+                            "examples": [""]
+                        },
+                        "#FB95E2": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#FB95E2",
+                            "examples": [""]
+                        },
+                        "#FFB1EC": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#FFB1EC",
+                            "examples": [""]
+                        },
+                        "#E833C2": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#E833C2",
+                            "examples": [""]
+                        },
+                        "#F877DC": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#F877DC",
+                            "examples": [""]
+                        },
+                        "#643ACB": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#643ACB",
+                            "examples": [""]
+                        },
+                        "#AC90F3": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#AC90F3",
+                            "examples": [""]
+                        },
+                        "#9471E0": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#9471E0",
+                            "examples": [""]
+                        },
+                        "#8557F8": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#8557F8",
+                            "examples": [""]
+                        },
+                        "#7345E5": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#7345E5",
+                            "examples": [""]
+                        },
+                        "#5D2CC6": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#5D2CC6",
+                            "examples": [""]
+                        },
+                        "#4A1CAC": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#4A1CAC",
+                            "examples": [""]
+                        },
+                        "#050029": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "#050029",
+                            "examples": [""]
+                        },
+                        "rgba(5, 0, 41, 0.5)": {
+                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                            "type": "string",
+                            "default": "rgba(5, 0, 41, 0.5)",
+                            "examples": [""]
+                        }
+                    }
+                },
+                "advancedColorReplacements": {
+                    "title": "Advanced Color Replacements",
+                    "description": "These are some more advanced color replacements for the UI colors.",
+                    "type": "object",
+                    "properties": {
+                        "menusTheme": {
+                            "title": "menus-theme-*.css",
+                            "description": "Color replacements options for the `menus-theme-*.css` file.",
+                            "type": "object",
+                            "properties": {
+                                ".menus": {
+                                    "type": "object",
+                                    "properties": {
+                                        "colorsPrimary": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#3c8527",
+                                            "examples": [""]
+                                        },
+                                        "colorsSecondary": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#d0d1d4",
+                                            "examples": [""]
+                                        },
+                                        "colorsDestructive": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#ca3636",
+                                            "examples": [""]
+                                        },
+                                        "colorsText": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#ffffff",
+                                            "examples": [""]
+                                        },
+                                        "colorsMuted0": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#d0d1d4",
+                                            "examples": [""]
+                                        },
+                                        "colorsMuted1": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#b1b2b5",
+                                            "examples": [""]
+                                        },
+                                        "colorsDisabled": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#d0d1d4",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#ffffff",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldPlaceholderColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#b1b2b5",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldDisabledColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#58585a",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldCaretColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#6cc349",
+                                            "examples": [""]
+                                        },
+                                        "inputFieldPlaceholderUnderlineColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#ffffff",
+                                            "examples": [""]
+                                        },
+                                        "inputLegendWrapperBackgroundColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#1e1e1f",
+                                            "examples": [""]
+                                        },
+                                        "inputLegendWrapperBorderTopColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "rgba(255, 255, 255, 0.2)",
+                                            "examples": [""]
+                                        },
+                                        "inputLegendInputHintColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#fff",
+                                            "examples": [""]
+                                        },
+                                        "buttonIconKeyboardTextColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#313233",
+                                            "examples": [""]
+                                        }
+                                    }
+                                },
+                                ".menus.realms": {
+                                    "type": "object",
+                                    "properties": {
+                                        "colorsPrimary": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#7345e5",
+                                            "examples": [""]
+                                        }
+                                    }
+                                },
+                                ".menus.neutral90": {
+                                    "type": "object",
+                                    "properties": {
+                                        "baseTextFieldColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#ffffff",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldPlaceholderColor": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#b1b2b5",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldColorDisabled": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#58585a",
+                                            "examples": [""]
+                                        },
+                                        "baseTextFieldPlaceholderColorDisabled": {
+                                            "description": "Setting this to \"\" will prevent this color from being replaced.",
+                                            "type": "string",
+                                            "default": "#58585a",
+                                            "examples": [""]
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "custom": {
+                            "title": "Custom",
+                            "description": "Custom color replacements options.\nThese are inserted into cutstom CSS that is appended to the `menus-theme-*.css` file.",
+                            "type": "object",
+                            "properties": {
+                                ".vanilla-neutral-text,.vanilla-neutral-text-interactive": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#ffffff"]
+                                        }
+                                    }
+                                },
+                                ".vanilla-neutral-text.dimmer,.vanilla-neutral-text-interactive.dimmer": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#d0d1d4"]
+                                        }
+                                    }
+                                },
+                                ".vanilla-neutral-text.dimmest,.vanilla-neutral-text-interactive.dimmest": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#b1b2b5"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral80-text,.realms-neutral80-text-interactive": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#ffffff"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral80-text.dimmer,.realms-neutral80-text-interactive.dimmer": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#d0d1d4"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral80-text.dimmest,.realms-neutral80-text-interactive.dimmest": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#b1b2b5"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral-text,.realms-neutral-text-interactive": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#ffffff"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral-text.dimmer,.realms-neutral-text-interactive.dimmer": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#d0d1d4"]
+                                        }
+                                    }
+                                },
+                                ".realms-neutral-text.dimmest,.realms-neutral-text-interactive.dimmest": {
+                                    "type": "object",
+                                    "properties": {
+                                        "color": {
+                                            "description": "Setting this to \"\" will prevent this CSS variable override from being defined, which is necessary if you plan to override those values from a custom CSS file.",
+                                            "type": "string",
+                                            "default": "",
+                                            "examples": ["#b1b2b5"]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "if": { "required": ["allowForChangingFlatWorldPreset"], "properties": { "allowForChangingFlatWorldPreset": { "const": true } } },
+            "then": { "properties": { "addGeneratorTypeDropdown": { "const": true } } },
+            "$comment_2": "// REVIEW: Maybe this should also include the plugins, bundleEncodedPluginDataInConfigFile, activePluginsDetails, themes, bundleEncodedThemeDataInConfigFile, and activeThemesDetails properties."
+        }
+    },
+    "oneOf": [
+        {
+            "title": "Legacy Pre-v1.0.0 Config",
+            "description": "The legacy pre-v1.0.0 JSON format for the configs for 8Crafter's Ore UI Customizer.",
+            "required": ["format_version"],
+            "properties": {
+                "format_version": {
+                    "title": "Format Version (Legacy)",
+                    "description": "The version of 8Crafter's Ore UI Customizer that this legacy config is made for.",
+                    "type": "string",
+                    "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                    "default": "1.16.0",
+                    "examples": [
+                        "0.7.3",
+                        "0.8.0",
+                        "0.8.1",
+                        "0.9.0",
+                        "0.9.1",
+                        "0.9.2",
+                        "0.10.0",
+                        "0.11.0",
+                        "0.11.1",
+                        "0.11.2",
+                        "0.12.0",
+                        "0.13.0",
+                        "0.13.1",
+                        "0.14.0",
+                        "0.15.0",
+                        "0.15.1",
+                        "0.16.0",
+                        "0.17.0",
+                        "0.17.1",
+                        "0.17.2",
+                        "0.17.3",
+                        "0.18.0",
+                        "0.19.0",
+                        "0.20.0",
+                        "0.21.0",
+                        "0.22.0",
+                        "0.23.0",
+                        "0.24.0",
+                        "0.25.0",
+                        "0.25.1",
+                        "1.0.0",
+                        "1.1.0",
+                        "1.1.1",
+                        "1.1.2",
+                        "1.2.0",
+                        "1.2.1",
+                        "1.3.0",
+                        "1.3.1",
+                        "1.4.0",
+                        "1.5.0",
+                        "1.6.0",
+                        "1.7.0",
+                        "1.8.0",
+                        "1.9.0",
+                        "1.10.0",
+                        "1.11.0",
+                        "1.11.1",
+                        "1.12.0",
+                        "1.12.1",
+                        "1.13.0",
+                        "1.14.0",
+                        "1.15.0",
+                        "1.16.0"
+                    ],
+                    "$comment": "The default value of this should be the latest version of the Ore UI Customizer. The examples of this should include every version of the Ore UI Customizer since initial config support was added."
+                }
+            },
+            "if": { "required": ["format_version"] },
+            "then": { "allOf": [{ "$ref": "#/definitions/OreUICustomizerConfig_Settings" }] }
+        },
+        {
+            "required": ["oreUICustomizerConfig", "oreUICustomizerVersion"],
+            "properties": {
+                "oreUICustomizerConfig": {
+                    "title": "Ore UI Customizer Config",
+                    "description": "The settings for 8Crafter's Ore UI Customizer.",
+                    "$ref": "#/definitions/OreUICustomizerConfig_Settings"
+                },
+                "oreUICustomizerVersion": {
+                    "title": "Ore UI Customizer Version",
+                    "description": "The version of 8Crafter's Ore UI Customizer that this config is made for.",
+                    "type": "string",
+                    "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                    "default": "1.16.0",
+                    "examples": [
+                        "1.0.0",
+                        "1.1.0",
+                        "1.1.1",
+                        "1.1.2",
+                        "1.2.0",
+                        "1.2.1",
+                        "1.3.0",
+                        "1.3.1",
+                        "1.4.0",
+                        "1.5.0",
+                        "1.6.0",
+                        "1.7.0",
+                        "1.8.0",
+                        "1.9.0",
+                        "1.10.0",
+                        "1.11.0",
+                        "1.11.1",
+                        "1.12.0",
+                        "1.12.1",
+                        "1.13.0",
+                        "1.14.0",
+                        "1.15.0",
+                        "1.16.0"
+                    ],
+                    "$comment": "The default value of this should be the latest version of the Ore UI Customizer. The examples of this should include every version of the Ore UI Customizer since v1.0.0."
+                },
+                "metadata": {
+                    "title": "Metadata",
+                    "description": "Additonal metadata about the config.",
+                    "type": "object",
+                    "required": ["product_type"],
+                    "properties": {
+                        "name": {
+                            "title": "Name",
+                            "description": "The display name of the config.",
+                            "type": "string",
+                            "examples": ["My Custom Config"]
+                        },
+                        "id": {
+                            "title": "ID",
+                            "description": "The id of the config, used to identify the config when applying the configs, also used to identify the config in error messages, this should be unique.\nThis is required if the config is from the marketplace.\nMust consist only of alphanumeric characters, underscores, hyphens, and periods.",
+                            "type": "string",
+                            "pattern": "^[a-zA-Z0-9_.-]+$",
+                            "examples": ["my-custom-config"]
+                        },
+                        "uuid": {
+                            "title": "UUID",
+                            "description": "The UUID of the config, used to uniquely identify the config.\nThis is required if the config is from the marketplace, or if you wish to have a plugin or theme require the config as a dependency.\nIf it is not specified a new UUID will be generated upon import.\nMust be a valid UUID v4.",
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                            "$comment": "Do not put an example for this as it may encourage some users to use it, which will result in multiple configs having the same UUID."
+                        },
+                        "description": {
+                            "title": "Description",
+                            "description": "An optional description of the config.",
+                            "type": "string"
+                        },
+                        "version": {
+                            "title": "Version",
+                            "description": "The version of the config.\nThis is required if the config is from the marketplace.\nThis must be a valid semver string, without the leading `v`.",
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+                            "default": "1.0.0",
+                            "examples": [
+                                "0.0.1-alpha",
+                                "0.0.1-alpha.1",
+                                "0.0.1-alpha.1+BUILD.1",
+                                "1.0.0-alpha.1",
+                                "1.0.0-alpha.1+BUILD.1",
+                                "1.0.0-beta",
+                                "1.0.0-beta.1",
+                                "1.0.0-beta.1+BUILD.1",
+                                "1.0.0-preview.20",
+                                "1.0.0-preview.20+BUILD.1",
+                                "1.0.0-rc.1",
+                                "1.0.0-rc.1+BUILD.1",
+                                "1.0.0",
+                                "1.0.0+BUILD.1",
+                                "1.0.1-rc.5",
+                                "3.17.4-preview.20+BUILD.5"
+                            ]
+                        },
+                        "pack_icon_data_uri": {
+                            "title": "Pack Icon Data URI",
+                            "description": "The data URI of the icon for the config.\nIf not specified the default icon will be used.\nThe MIME type must match `image/*`.",
+                            "pattern": "^data:image\\/[^;]+;base64,[a-zA-Z0-9+/=]+$",
+                            "examples": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="]
+                        },
+                        "dependencies": {
+                            "title": "Dependencies",
+                            "description": "The dependencies of the config.\nThese dependencies can be other themes, plugins, or configs.",
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "title": "Dependency",
+                                "description": "A dependency of the config.",
+                                "type": "object",
+                                "oneOf": [
+                                    {
+                                        "title": "External Dependency",
+                                        "description": "A theme, plugin, or config dependency.",
+                                        "required": ["uuid"],
+                                        "properties": {
+                                            "uuid": {
+                                                "title": "UUID",
+                                                "description": "The UUID of the theme, plugin, or config dependency.\nMust be a valid UUID v4.\nMay also be the UUID of a built-in theme, plugin, or config to force the user to have it enabled to use the config.",
+                                                "type": "string",
+                                                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                                            },
+                                            "version": {
+                                                "title": "Version",
+                                                "description": "The version of the theme, plugin, or config dependency.\nMust be a valid semver string, without the leading `v`.\nIf no version is specified, the latest available version will match, or whatever version is currently active.\nNOTE: This field is ignored when the dependency is a built-in theme, plugin, or config.",
+                                                "type": "string",
+                                                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        "authors": {
+                            "title": "Authors",
+                            "description": "The authors of the config.",
+                            "type": "array",
+                            "items": {
+                                "title": "Author",
+                                "description": "An author of the config.",
+                                "type": "string"
+                            },
+                            "examples": [["8Crafter", "StormStqr"]]
+                        },
+                        "url": {
+                            "title": "URL",
+                            "description": "The URL of the website for the config, or just the config creator's website.",
+                            "type": "string",
+                            "examples": ["https://www.8crafter.com"]
+                        },
+                        "product_type": {
+                            "title": "Product Type",
+                            "description": "The product type.",
+                            "type": "string",
+                            "enum": ["config"]
+                        },
+                        "license": {
+                            "title": "License",
+                            "description": "The license of the config.",
+                            "type": "string",
+                            "examples": [
+                                "0BSD",
+                                "AFL-3.0",
+                                "AGPL-3.0",
+                                "APACHE-2.0",
+                                "ARTISTIC-2.0",
+                                "BLUEOAK-1.0.0",
+                                "BSD-2-CLAUSE-PATENT",
+                                "BSD-2-CLAUSE",
+                                "BSD-3-CLAUSE-CLEAR",
+                                "BSD-3-CLAUSE",
+                                "BSD-4-CLAUSE",
+                                "BSL-1.0",
+                                "CC-BY-4.0",
+                                "CC-BY-SA-4.0",
+                                "CC0-1.0",
+                                "CECILL-2.1",
+                                "CERN-OHL-P-2.0",
+                                "CERN-OHL-S-2.0",
+                                "CERN-OHL-W-2.0",
+                                "ECL-2.0",
+                                "EPL-1.0",
+                                "EPL-2.0",
+                                "EUPL-1.1",
+                                "EUPL-1.2",
+                                "GFDL-1.3",
+                                "GPL-2.0",
+                                "GPL-3.0",
+                                "ISC",
+                                "LGPL-2.1",
+                                "LGPL-3.0",
+                                "LPPL-1.3C",
+                                "MIT-0",
+                                "MIT",
+                                "MPL-2.0",
+                                "MS-PL",
+                                "MS-RL",
+                                "MULANPSL-2.0",
+                                "NCSA",
+                                "ODBL-1.0",
+                                "OFL-1.1",
+                                "OSL-3.0",
+                                "POSTGRESQL",
+                                "UNLICENSE",
+                                "UPL-1.0",
+                                "VIM",
+                                "WTFPL",
+                                "ZLIB"
+                            ]
+                        }
+                    },
+                    "additionalProperties": true,
+                    "default": {
+                        "product_type": "config"
+                    }
+                },
+                "marketplaceDetails": {
+                    "title": "Marketplace Details",
+                    "description": "The details of the config in the marketplace.\nThis is only used if the config is from the marketplace.\nThis should not be included when uploading the config to the marketplace, as the server will handle adding this information.\nThis is mutually exclusive with checkForUpdatesDetails.",
+                    "type": "object",
+                    "required": ["marketplaceId", "originalDownloadURL", "marketplaceURL"],
+                    "properties": {
+                        "marketplaceId": {
+                            "title": "Marketplace ID",
+                            "description": "The ID of the config in the marketplace.\nShould be in the format `${configPublisher}.${id}`.",
+                            "type": "string",
+                            "pattern": ".\\.[a-zA-Z0-9_.-]+$",
+                            "examples": ["8crafter.my-custom-config"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the config.",
+                                "enum": ["8crafter.my-custom-config"]
+                            }
+                        },
+                        "originalDownloadURL": {
+                            "title": "Original Download URL",
+                            "description": "The original download URL of the config in the marketplace.",
+                            "type": "string",
+                            "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/download/config/[^/]+\\.[a-zA-Z0-9_.-]+/[^/]+$",
+                            "examples": ["https://marketplace.ore-ui-customizer.8crafter.com/download/config/8crafter.my-custom-config/1.0.0"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the config.",
+                                "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/download/config/8crafter\\.my-custom-config/"
+                            }
+                        },
+                        "marketplaceURL": {
+                            "title": "Marketplace URL",
+                            "description": "The URL of the config in the marketplace.",
+                            "type": "string",
+                            "pattern": "^https://marketplace\\.ore-ui-customizer\\.8crafter\\.com/config/[^/]+\\.[^/]+$",
+                            "examples": ["https://marketplace.ore-ui-customizer.8crafter.com/config/8crafter.my-custom-config"],
+                            "not": {
+                                "$comment": "Disallow using the example as the actual value in the config.",
+                                "enum": ["https://marketplace.ore-ui-customizer.8crafter.com/config/8crafter.my-custom-config"]
+                            }
+                        }
+                    },
+                    "unevaluatedProperties": false
+                },
+                "checkForUpdatesDetails": {
+                    "title": "Check for Updates Details",
+                    "description": "The details of the config to check for updates.\nThis is only used if the config is not from the marketplace.\nThis allows non-marketplace configs to be checked for updates.\nThis is mutually exclusive with marketplaceDetails.",
+                    "type": "object",
+                    "required": ["versionInfoURL"],
+                    "properties": {
+                        "versionInfoURL": {
+                            "title": "Version Info URL",
+                            "description": "The URL to the JSON object containing the newest version of the config.\nThe response from this URL should match the https://www.8crafter.com/schemas/ouic/config/checkForUpdatesDetailsVersionInfoResponse.schema.json schema.\nWhen fetching the URL, the response should have an MIME type of `application/json` or `text/json`.",
+                            "type": "string",
+                            "examples": ["https://example.com/ore-ui-customizer-configs/my-custom-config/latestVersion.json"]
+                        }
+                    },
+                    "unevaluatedProperties": false
+                }
+            },
+            "allOf": [
+                {
+                    "not": {
+                        "required": ["marketplaceDetails", "checkForUpdatesDetails"],
+                        "properties": {
+                            "marketplaceDetails": true,
+                            "checkForUpdatesDetails": true
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "unevaluatedProperties": false
+}
