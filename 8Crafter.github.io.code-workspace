@@ -9,6 +9,9 @@
             "editor.defaultFormatter": "esbenp.prettier-vscode",
             "prettier.printWidth": 160
         },
-        "eslint.useFlatConfig": false
+        "eslint.useFlatConfig": false,
+        "files.associations": {
+            "*.schema.json": "json"
+        }
     }
 }

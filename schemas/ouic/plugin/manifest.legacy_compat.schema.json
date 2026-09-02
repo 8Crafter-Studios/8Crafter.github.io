@@ -1,0 +1,10 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "$id": "https://www.8crafter.com/schemas/ouic/plugin/manifest.legacy_compat.schema.json",
+    "title": "Plugin manifest.json Schema for 8Crafter's Ore UI Customizer (Legacy Compatibility)",
+    "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer. This is the same as the manifest.schema.json schema, except that it disables comments and trailing commas, as those are not supported in Ore UI Customizer versions before v1.17.0+BUILD.8.",
+    "allOf": [{ "$ref": "./manifest.schema.json" }],
+    "unevaluatedProperties": false,
+    "allowComments": false,
+    "allowTrailingCommas": false
+}

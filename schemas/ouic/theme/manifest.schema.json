@@ -32,29 +32,12 @@
                             "type": "string",
                             "examples": ["My Custom Theme"]
                         },
-                        "id": {
-                            "title": "ID",
-                            "description": "The id of the theme, used to identify the theme when applying the themes, also used to identify the theme in error messages, this should be unique when combined with the namespace.\nMust consist only of alphanumeric characters, underscores, hyphens, and periods.",
-                            "type": "string",
-                            "pattern": "^[a-zA-Z0-9_.-]+$",
-                            "examples": ["my-custom-theme"]
-                        },
                         "uuid": {
                             "title": "UUID",
                             "description": "The UUID of the theme, used to uniquely identify the theme.\nMust be a valid UUID v4.",
                             "type": "string",
                             "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
                             "$comment": "Do not put an example for this as it may encourage some users to use it, which will result in multiple themes having the same UUID."
-                        },
-                        "namespace": {
-                            "title": "Namespace",
-                            "description": "The namespace of the plugin, used in conjunction with the id to identify the plugin in error messages.\nMust consist only of alphanumeric characters, underscores, hyphens, and periods.\nMust not be `built-in`, as it is reserved for built-in plugins.",
-                            "type": "string",
-                            "pattern": "^[a-zA-Z0-9_.-]+$",
-                            "not": {
-                                "const": "built-in"
-                            },
-                            "examples": ["andexth"]
                         },
                         "description": {
                             "title": "Description",
@@ -305,5 +288,7 @@
             ]
         }
     ],
-    "unevaluatedProperties": false
+    "unevaluatedProperties": false,
+    "allowComments": true,
+    "allowTrailingCommas": true
 }

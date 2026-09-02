@@ -1,5 +1,5 @@
 {
-    "$schema": "https://json-schema.org/draft-07/schema#",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://www.8crafter.com/schemas/ouic/plugin/checkForUpdatesDetailsVersionInfoResponse.schema.json",
     "title": "checkForUpdatesDetails.versionInfoURL Response Schema for 8Crafter's Ore UI Customizer",
     "description": "The JSON schema for the response of the `checkForUpdatesDetails.versionInfoURL` endpoint of a plugin for 8Crafter's Ore UI Customizer.",
@@ -42,5 +42,7 @@
             "type": "string",
             "examples": ["https://example.com/ore-ui-customizer-plugins/my-custom-plugin/1.0.1-rc.5/myCustomPlugin.ouicplugin"]
         }
-    }
+    },
+    "allowComments": true,
+    "allowTrailingCommas": true
 }

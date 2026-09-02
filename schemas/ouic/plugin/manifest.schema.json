@@ -2,13 +2,26 @@
     "$schema": "https://json-schema.org/draft/2019-09/schema",
     "$id": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
     "title": "Plugin manifest.json Schema for 8Crafter's Ore UI Customizer",
-    "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer.",
+    "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer. NOTE: Comments and trailing commas in this file are only supported in Ore UI Customizer versions v1.17.0+BUILD.8 and later.",
     "type": "object",
     "properties": {
         "$schema": {
             "description": "The JSON schema of the `manifest.json` file of a plugin for 8Crafter's Ore UI Customizer.",
             "type": "string",
-            "default": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json"
+            "default": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json",
+            "examples": ["https://www.8crafter.com/schemas/ouic/plugin/manifest.legacy_compat.schema.json"],
+            "defaultSnippets": [
+                {
+                    "label": "v1.17.0+BUILD.8 and later ONLY",
+                    "description": "Choose this schema if you want to use comments and trailing commas in your manifest, but be aware that this will result in your plugin not working on Ore UI Customizer versions before v1.17.0+BUILD.8.",
+                    "body": "https://www.8crafter.com/schemas/ouic/plugin/manifest.schema.json"
+                },
+                {
+                    "label": "Compatiblity",
+                    "description": "Choose this schema want you plugin to work in Ore UI Customizer versions before v1.17.0+BUILD.8, but this will also result in you being unable to use comments and trailing commas in this file. This schema is identical to the other except that is marks comments and trailing commas as not allowed.",
+                    "body": "https://www.8crafter.com/schemas/ouic/plugin/manifest.legacy_compat.schema.json"
+                }
+            ]
         }
     },
     "oneOf": [
@@ -414,5 +427,7 @@
             ]
         }
     ],
-    "unevaluatedProperties": false
+    "unevaluatedProperties": false,
+    "allowComments": true,
+    "allowTrailingCommas": true
 }

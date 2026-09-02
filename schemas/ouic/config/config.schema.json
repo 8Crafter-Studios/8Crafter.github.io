@@ -3,7 +3,7 @@
     "$id": "https://www.8crafter.com/schemas/ouic/config/config.schema.json",
     "$comment": "// TODO: Replace the schema that this schema uses with one that includes VSCode-specific properties like markdownDescription and defaultSnippets. Then, update this schema to also use those properties.",
     "title": "Config JSON Schema for 8Crafter's Ore UI Customizer",
-    "description": "The JSON schema for a config file for 8Crafter's Ore UI Customizer.",
+    "description": "The JSON schema for a config file for 8Crafter's Ore UI Customizer. NOTE: Comments and trailing commas in this file are only supported in Ore UI Customizer versions v1.17.0+BUILD.8 and later.",
     "type": "object",
     "properties": {
         "$schema": {
