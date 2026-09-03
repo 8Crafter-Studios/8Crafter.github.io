@@ -24,7 +24,7 @@
                     "title": "Header",
                     "description": "The header of the theme manifest.",
                     "type": "object",
-                    "required": ["name", "id", "uuid", "namespace", "version", "format_version"],
+                    "required": ["name", "uuid", "version", "format_version"],
                     "properties": {
                         "name": {
                             "title": "Name",
